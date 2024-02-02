@@ -78,14 +78,12 @@ int ReadNumber(UCodeLang::String_view View, UCodeLang::String_view& ToUpdate)
 	return Value;
 }
 
-UCodeLang::String FilePath = "Msg.txt";
-std::ofstream File = std::ofstream(FilePath);
 std::mutex Lock = {};
 void LogMSG(const UCodeLang::String& Str)
 {
 	Lock.lock();
-	//std::cerr << Str << std::endl;
-	File << Str << std::endl;
+	std::cerr << Str << std::endl;
+	//File << Str << std::endl;
 	Lock.unlock();
 }
 
@@ -177,8 +175,7 @@ void RunArg(UCodeLang::String_view View)
 
 									auto s = Item.ToLanguageServerString();
 
-									std::cout << s;
-									//std::cout.flush();
+									std::cout << s << std::flush;
 								}
 							}
 						}
@@ -190,7 +187,6 @@ void RunArg(UCodeLang::String_view View)
 				{
 					char V;
 					std::cin >> V;
-					File << V;
 					auto packet_op = UCodeLanguageSever::ClientPacket::Stream(state, V);
 
 					if (packet_op.has_value())
@@ -247,14 +243,12 @@ int main(int argc, char* argv[])
 	#endif // DEBUG
 	#endif
 	LogMSG("Sever main");
-	if (argc == 1)
-	{
-		RunArg(UCodeLang::String_view("start stdio"));
-
-	}
 	for (size_t i = 1; i < argc; i++)
 	{
-		//while (true);
+		while (true)
+		{
+
+		}
 		char* Arg = argv[i];
 		RunArg(UCodeLang::String_view(Arg));
 	}

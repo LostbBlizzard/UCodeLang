@@ -280,8 +280,6 @@ private:
 	bool is32bit = false;
 };
 
-
-
 //follows std::string class kind of
 //a wrapper to make use UCodeString easier.
 struct ReflectionString
@@ -737,6 +735,163 @@ private:
 	size_t elemsize = 0;
 	const ClassAssembly* assembly = nullptr;
 	bool is32bit = false;
+};
+
+//follows std::unordered_map class kind of
+//a wrapper to make use UCodeMaps easier.
+struct ReflectionMap
+{
+public:
+	using Info_t = ClassAssembly::InfoMap_t;
+	ReflectionMap() {}
+	~ReflectionMap() {}
+
+	bool empty()
+	{
+		return size() != 0;
+	}
+	size_t size()
+	{
+		return 0;
+	}
+	inline size_t max_size()
+	{
+		return SIZE_MAX;
+	}
+
+	void clear()
+	{
+
+	}
+	void insert(void* key, void* maptype)
+	{
+
+	}
+	void erase(void* key)
+	{
+
+	}
+	bool haskey(void* key)
+	{
+		return false;
+	}
+	void* at(void* key)
+	{
+		return nullptr;
+	}
+
+	void Set(void* UObject, const Info_t* Info,
+		AnyInterpreterPtr ptr,
+		const ClassAssembly& assembly,
+		bool is32bit)
+	{
+		SetUObject(UObject);
+		SetInfo(Info);
+		SetInterpreter(ptr);
+	}
+	inline void SetUObject(void* UObject) { _UObject = UObject; }
+	inline void SetInfo(const Info_t* Info) { _Info = Info; }
+	inline void SetInterpreter(AnyInterpreterPtr ptr) { _ptr = ptr; }
+	inline void SetAssembly(const ClassAssembly& assembly, bool is32bit)
+	{
+		this->assembly = &assembly;
+		this->is32bit = is32bit;
+	}
+private:
+	void* _UObject = nullptr;
+	AnyInterpreterPtr _ptr;
+	const Info_t* _Info = nullptr;
+	const ClassAssembly* assembly = nullptr;
+	bool is32bit = false;
+};
+
+//follows std::array class kind of
+//a wrapper to make use UCodeArray easier.
+struct ReflectionArray
+{
+public:
+	using Info_t = ClassAssembly::InfoArray_t;
+	ReflectionArray() {}
+	~ReflectionArray() {}
+
+	inline void* data()
+	{
+		return _ptr.RCall<void*>(_Info->Data_Method, _UObject);
+	}
+	inline size_t size()
+	{
+		return _ptr.RCall<size_t>(_Info->Size_Method, _UObject);
+	}
+	inline void* at(size_t index)
+	{
+		#if UCodeLangDebug
+		if (index >= size())
+		{
+			UCodeLangThrowException("out of bounds");
+		}
+		#endif // DEBUG
+
+		return (void*)((uintptr_t)data() + (index * GetElemSize()));
+	}
+
+	inline void* operator[](size_t index)
+	{
+		return  at(index);
+	}
+
+	class iterator {
+	public:
+		iterator(ReflectionArray* This) : This(This) {}
+		iterator(ReflectionArray* This, size_t Index) : This(This), Index(Index) {}
+		inline iterator operator++() { Index++; return *this; }
+		inline bool operator!=(const iterator& other) const { return Index != other.Index; }
+		inline void* operator*() { return  This->at(Index); }
+	private:
+		ReflectionArray* This = nullptr;
+		size_t Index = 0;
+	};
+
+	iterator begin() { return iterator(this); }
+	iterator end() { return iterator(this, size()); }
+
+	void Set(void* UObject, const Info_t* Info,
+		AnyInterpreterPtr ptr,
+		const ClassAssembly& assembly,
+		bool is32bit)
+	{
+		SetUObject(UObject);
+		SetInfo(Info);
+		SetInterpreter(ptr);
+	}
+	inline void SetUObject(void* UObject) { _UObject = UObject; }
+	inline void SetInfo(const Info_t* Info) { _Info = Info; }
+	inline void SetInterpreter(AnyInterpreterPtr ptr) { _ptr = ptr; }
+	inline void SetAssembly(const ClassAssembly& assembly, bool is32bit)
+	{
+		elemsize = assembly.GetSize(GetElementType(), is32bit).value_or(0);
+		this->assembly = &assembly;
+		this->is32bit = is32bit;
+	}
+
+	inline ReflectionTypeInfo GetElementType()
+	{
+		return _Info->ElementType;
+	}
+	inline size_t GetElementTypeSize()
+	{
+		return elemsize;
+	}
+private:
+	inline size_t GetElemSize()
+	{
+		return  elemsize;
+	}
+	void* _UObject = nullptr;
+	AnyInterpreterPtr _ptr;
+	const Info_t* _Info = nullptr;
+	const ClassAssembly* assembly = nullptr;
+	bool is32bit = false;
+	size_t elemsize = 0;
 };
 
 UCodeLangEnd

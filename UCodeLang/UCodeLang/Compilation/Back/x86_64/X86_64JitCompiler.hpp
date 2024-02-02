@@ -12,7 +12,7 @@ class X86_64JitCompiler :public JitCompiler
 {
 public:
 	using InterpreterCPPinterface_SetRet = void(*)(void* Input);
-	using InterpreterCPPinterface_GetParm = void(*)(void* Input,void* Pointer,size_t ParSize);
+	using InterpreterCPPinterface_GetParm = void(*)(void* Input, void* Pointer, size_t ParSize);
 	using JitBuildAddress = void(*)(UAddress Input);
 
 
@@ -34,7 +34,7 @@ public:
 		Pointer = (Byte)Int64,
 	};
 
-	
+
 
 	X86_64JitCompiler();
 	~X86_64JitCompiler();
@@ -44,12 +44,12 @@ public:
 	bool BuildFunc(Vector<Instruction>& Ins, UAddress funcAddress, Vector<Byte>& X64Output) JitCompilerOverride;
 
 	void SubCall(FuncType Value, uintptr_t CPPOffset, void* X64Output) JitCompilerOverride;
-	
-	UAddress OnUAddressPar=0;
+
+	UAddress OnUAddressPar = 0;
 private:
 	Vector<Byte>* Output = nullptr;
-	Vector<Instruction>* _Ins =nullptr;
-	
+	Vector<Instruction>* _Ins = nullptr;
+
 
 	X86_64IR _IR;
 	X86_64IR::CallConventionID _CallConvention;

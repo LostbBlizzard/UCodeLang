@@ -46,7 +46,7 @@ void As(ZydisEncoderOperand& ToUpdate, X86_64Builder::Value16 Value)
 {
 	As(ToUpdate, (X86_64Builder::Value32)Value);
 }
-void As(ZydisEncoderOperand& ToUpdate,X86_64Builder::GReg Value)
+void As(ZydisEncoderOperand& ToUpdate, X86_64Builder::GReg Value)
 {
 	ToUpdate.type = ZYDIS_OPERAND_TYPE_REGISTER;
 	ToUpdate.reg.value = To(Value);
@@ -84,7 +84,7 @@ void X86_64Builder::call(Near32 displacement)
 void X86_64Builder::r_call(Byte* Output, Near32 displacement)
 {
 	Output[0] = 0xE8;
-	NativeCodeBuilder::SubByte_t_little_endian(&Output[1],displacement);
+	NativeCodeBuilder::SubByte_t_little_endian(&Output[1], displacement);
 }
 thread_local ZydisEncoderRequest req;
 void X86_64Builder::mov(GReg Reg, Value8 Value)
@@ -109,7 +109,7 @@ void X86_64Builder::mov(GReg Reg, Value8 Value)
 }
 void X86_64Builder::mov(GReg Reg, Value16 Value)
 {
-	
+
 	memset(&req, 0, sizeof(req));
 
 	req.mnemonic = ZYDIS_MNEMONIC_MOV;
@@ -130,7 +130,7 @@ void X86_64Builder::mov(GReg Reg, Value16 Value)
 }
 void X86_64Builder::mov(GReg Reg, Value32 Value)
 {
-	
+
 	memset(&req, 0, sizeof(req));
 
 	req.mnemonic = ZYDIS_MNEMONIC_MOV;
@@ -151,15 +151,15 @@ void X86_64Builder::mov(GReg Reg, Value32 Value)
 }
 void X86_64Builder::mov(GReg Reg, Value64 Value)
 {
-	
+
 	memset(&req, 0, sizeof(req));
 
 	req.mnemonic = ZYDIS_MNEMONIC_MOV;
 	req.machine_mode = ZYDIS_MACHINE_MODE_LONG_64;
 	req.operand_count = 2;
 	req.operand_size_hint = ZydisOperandSizeHint_::ZYDIS_OPERAND_SIZE_HINT_64;
-	As(req.operands[0],Reg);
-	As(req.operands[1],Value);
+	As(req.operands[0], Reg);
+	As(req.operands[1], Value);
 
 	ZyanU8 encoded_instruction[ZYDIS_MAX_INSTRUCTION_LENGTH];
 	ZyanUSize encoded_length = sizeof(encoded_instruction);
@@ -174,7 +174,7 @@ void X86_64Builder::mov(GReg Reg, Value64 Value)
 
 void X86_64Builder::mov8(GReg dest, GReg src)
 {
-	
+
 	memset(&req, 0, sizeof(req));
 
 	req.mnemonic = ZYDIS_MNEMONIC_MOV;
@@ -195,7 +195,7 @@ void X86_64Builder::mov8(GReg dest, GReg src)
 }
 void X86_64Builder::mov16(GReg dest, GReg src)
 {
-	
+
 	memset(&req, 0, sizeof(req));
 
 	req.mnemonic = ZYDIS_MNEMONIC_MOV;
@@ -217,7 +217,7 @@ void X86_64Builder::mov16(GReg dest, GReg src)
 }
 void X86_64Builder::mov32(GReg dest, GReg src)
 {
-	
+
 	memset(&req, 0, sizeof(req));
 
 	req.mnemonic = ZYDIS_MNEMONIC_MOV;
@@ -239,7 +239,7 @@ void X86_64Builder::mov32(GReg dest, GReg src)
 }
 void X86_64Builder::mov64(GReg dest, GReg src)
 {
-	
+
 	memset(&req, 0, sizeof(req));
 
 	req.mnemonic = ZYDIS_MNEMONIC_MOV;
@@ -261,7 +261,7 @@ void X86_64Builder::mov64(GReg dest, GReg src)
 }
 void X86_64Builder::mov64(IndrReg dest, GReg src)
 {
-	
+
 	memset(&req, 0, sizeof(req));
 
 	req.mnemonic = ZYDIS_MNEMONIC_MOV;
@@ -283,7 +283,7 @@ void X86_64Builder::mov64(IndrReg dest, GReg src)
 }
 void X86_64Builder::mov64(GReg dest, IndrReg src)
 {
-	
+
 	memset(&req, 0, sizeof(req));
 
 	req.mnemonic = ZYDIS_MNEMONIC_MOV;
@@ -305,26 +305,26 @@ void X86_64Builder::mov64(GReg dest, IndrReg src)
 }
 void X86_64Builder::mov64(GReg dest, IndrReg src, Value8 src_offset)
 {
-	
+
 }
 void X86_64Builder::mov64(IndrReg dest, Value8 dest_offset, GReg src)
 {
-	
+
 }
 
 /// loads the address of a variable into register
 
 void X86_64Builder::lea(GReg dest, IndrReg src, Value8 scale, GReg index, UInt64 disp)
 {
-	
+
 	memset(&req, 0, sizeof(req));
 
 	req.mnemonic = ZYDIS_MNEMONIC_LEA;
 	req.machine_mode = ZYDIS_MACHINE_MODE_LONG_64;
 	req.operand_count = 2;
 	//req.operand_size_hint = ZydisOperandSizeHint_::ZYDIS_OPERAND_SIZE_HINT_16;
-	As(req.operands[0],dest);
-	As(req.operands[1],src,scale,index,disp,64);
+	As(req.operands[0], dest);
+	As(req.operands[1], src, scale, index, disp, 64);
 
 	ZyanU8 encoded_instruction[ZYDIS_MAX_INSTRUCTION_LENGTH];
 	ZyanUSize encoded_length = sizeof(encoded_instruction);
@@ -346,7 +346,7 @@ UCodeLangThrowException("not added");
 
 void X86_64Builder::push16(GReg Reg)
 {
-	
+
 	memset(&req, 0, sizeof(req));
 
 	req.mnemonic = ZYDIS_MNEMONIC_PUSH;
@@ -367,7 +367,7 @@ void X86_64Builder::push16(GReg Reg)
 }
 void X86_64Builder::push64(GReg Reg)
 {
-	
+
 	memset(&req, 0, sizeof(req));
 
 	req.mnemonic = ZYDIS_MNEMONIC_PUSH;
@@ -388,14 +388,14 @@ void X86_64Builder::push64(GReg Reg)
 }
 void X86_64Builder::push8(Value8 Value)
 {
-	
+
 	memset(&req, 0, sizeof(req));
 
 	req.mnemonic = ZYDIS_MNEMONIC_PUSH;
 	req.machine_mode = ZYDIS_MACHINE_MODE_LONG_64;
 	req.operand_count = 1;
 	req.operand_size_hint = ZydisOperandSizeHint_::ZYDIS_OPERAND_SIZE_HINT_8;
-	As(req.operands[0],Value);
+	As(req.operands[0], Value);
 
 	ZyanU8 encoded_instruction[ZYDIS_MAX_INSTRUCTION_LENGTH];
 	ZyanUSize encoded_length = sizeof(encoded_instruction);
@@ -409,7 +409,7 @@ void X86_64Builder::push8(Value8 Value)
 }
 void X86_64Builder::push16(Value16 Value)
 {
-	
+
 	memset(&req, 0, sizeof(req));
 
 	req.mnemonic = ZYDIS_MNEMONIC_PUSH;
@@ -430,7 +430,7 @@ void X86_64Builder::push16(Value16 Value)
 }
 void X86_64Builder::push32(Value32 Value)
 {
-	
+
 	memset(&req, 0, sizeof(req));
 
 	req.mnemonic = ZYDIS_MNEMONIC_PUSH;
@@ -451,7 +451,7 @@ void X86_64Builder::push32(Value32 Value)
 }
 void X86_64Builder::pop8(GReg Reg)
 {
-	
+
 	memset(&req, 0, sizeof(req));
 
 	req.mnemonic = ZYDIS_MNEMONIC_PUSH;
@@ -472,7 +472,7 @@ void X86_64Builder::pop8(GReg Reg)
 }
 void X86_64Builder::pop16(GReg Reg)
 {
-	
+
 	memset(&req, 0, sizeof(req));
 
 	req.mnemonic = ZYDIS_MNEMONIC_PUSH;
@@ -493,7 +493,7 @@ void X86_64Builder::pop16(GReg Reg)
 }
 void X86_64Builder::pop64(GReg Reg)
 {
-	
+
 	memset(&req, 0, sizeof(req));
 
 	req.mnemonic = ZYDIS_MNEMONIC_PUSH;
@@ -514,7 +514,7 @@ void X86_64Builder::pop64(GReg Reg)
 }
 void X86_64Builder::add8(GReg dest, GReg src)
 {
-	
+
 	memset(&req, 0, sizeof(req));
 
 	req.mnemonic = ZYDIS_MNEMONIC_ADD;
@@ -536,7 +536,7 @@ void X86_64Builder::add8(GReg dest, GReg src)
 }
 void X86_64Builder::add16(GReg dest, GReg src)
 {
-	
+
 	memset(&req, 0, sizeof(req));
 
 	req.mnemonic = ZYDIS_MNEMONIC_ADD;
@@ -558,7 +558,7 @@ void X86_64Builder::add16(GReg dest, GReg src)
 }
 void X86_64Builder::add32(GReg dest, GReg src)
 {
-	
+
 	memset(&req, 0, sizeof(req));
 
 	req.mnemonic = ZYDIS_MNEMONIC_ADD;
@@ -580,7 +580,7 @@ void X86_64Builder::add32(GReg dest, GReg src)
 }
 void X86_64Builder::add64(GReg dest, GReg src)
 {
-	
+
 	memset(&req, 0, sizeof(req));
 
 	req.mnemonic = ZYDIS_MNEMONIC_ADD;
@@ -602,7 +602,7 @@ void X86_64Builder::add64(GReg dest, GReg src)
 }
 void X86_64Builder::add32(GReg dest, Value32 src)
 {
-	
+
 	memset(&req, 0, sizeof(req));
 
 	req.mnemonic = ZYDIS_MNEMONIC_ADD;
@@ -624,7 +624,7 @@ void X86_64Builder::add32(GReg dest, Value32 src)
 }
 void X86_64Builder::add64(GReg dest, Value64 src)
 {
-	
+
 	memset(&req, 0, sizeof(req));
 
 	req.mnemonic = ZYDIS_MNEMONIC_ADD;
@@ -646,7 +646,7 @@ void X86_64Builder::add64(GReg dest, Value64 src)
 }
 void X86_64Builder::sub32(GReg dest, Value32 Value)
 {
-	
+
 	memset(&req, 0, sizeof(req));
 
 	req.mnemonic = ZYDIS_MNEMONIC_SUB;
@@ -668,7 +668,7 @@ void X86_64Builder::sub32(GReg dest, Value32 Value)
 }
 void X86_64Builder::sub64(GReg dest, Value64 Value)
 {
-	
+
 	memset(&req, 0, sizeof(req));
 
 	req.mnemonic = ZYDIS_MNEMONIC_SUB;
@@ -690,7 +690,7 @@ void X86_64Builder::sub64(GReg dest, Value64 Value)
 }
 void X86_64Builder::sub8(GReg dest, GReg src)
 {
-	
+
 	memset(&req, 0, sizeof(req));
 
 	req.mnemonic = ZYDIS_MNEMONIC_SUB;
@@ -712,7 +712,7 @@ void X86_64Builder::sub8(GReg dest, GReg src)
 }
 void X86_64Builder::sub16(GReg dest, GReg src)
 {
-	
+
 	memset(&req, 0, sizeof(req));
 
 	req.mnemonic = ZYDIS_MNEMONIC_SUB;
@@ -734,7 +734,7 @@ void X86_64Builder::sub16(GReg dest, GReg src)
 }
 void X86_64Builder::sub32(GReg dest, GReg src)
 {
-	
+
 	memset(&req, 0, sizeof(req));
 
 	req.mnemonic = ZYDIS_MNEMONIC_SUB;
@@ -756,7 +756,7 @@ void X86_64Builder::sub32(GReg dest, GReg src)
 }
 void X86_64Builder::sub64(GReg dest, GReg src)
 {
-	
+
 	memset(&req, 0, sizeof(req));
 
 	req.mnemonic = ZYDIS_MNEMONIC_SUB;
@@ -778,7 +778,7 @@ void X86_64Builder::sub64(GReg dest, GReg src)
 }
 void X86_64Builder::XOr8(GReg dest, GReg src)
 {
-	
+
 	memset(&req, 0, sizeof(req));
 
 	req.mnemonic = ZYDIS_MNEMONIC_XOR;
@@ -801,7 +801,7 @@ void X86_64Builder::XOr8(GReg dest, GReg src)
 
 void X86_64Builder::XOr16(GReg dest, GReg src)
 {
-	
+
 	memset(&req, 0, sizeof(req));
 
 	req.mnemonic = ZYDIS_MNEMONIC_XOR;
@@ -824,7 +824,7 @@ void X86_64Builder::XOr16(GReg dest, GReg src)
 
 void X86_64Builder::XOr32(GReg dest, GReg src)
 {
-	
+
 	memset(&req, 0, sizeof(req));
 
 	req.mnemonic = ZYDIS_MNEMONIC_XOR;
@@ -846,7 +846,7 @@ void X86_64Builder::XOr32(GReg dest, GReg src)
 }
 void X86_64Builder::XOr64(GReg dest, GReg src)
 {
-	
+
 	memset(&req, 0, sizeof(req));
 
 	req.mnemonic = ZYDIS_MNEMONIC_XOR;

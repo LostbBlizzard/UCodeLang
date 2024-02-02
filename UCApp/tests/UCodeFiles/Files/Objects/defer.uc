@@ -5,4 +5,5 @@ int a = 0;
  defer a++;
 
 |main[]:
+ func();
  ret a;

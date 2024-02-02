@@ -1,22 +1,22 @@
 
 |main[]:
- int[\1] V = [4];
- int[&] Ptr = V[0];
+ int[/1] V = [4];
+ int[&] Ptr =unsafe V[0];
  
- Ptr[0]++;
- Ptr[0] += 5;
+ unsafe Ptr[0]++;
+ unsafe Ptr[0] += 5;
  
- ret Ptr[0];
+ ret unsafe Ptr[0];
  
 
 
-|main[]:
+|main2[]:
  int[&] V = unsafe new int[1];
  defer unsafe drop(V);
 
- int[&] Ptr = V[0];
- Ptr[0]++;
- Ptr[0] += 5;
+ int[&] Ptr =unsafe V[0];
+ unsafe Ptr[0]++;
+ unsafe Ptr[0] += 5;
 
  
- ret Ptr[0];
+ ret unsafe Ptr[0];

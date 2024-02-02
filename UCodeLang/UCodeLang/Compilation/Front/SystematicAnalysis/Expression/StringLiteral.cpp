@@ -2,6 +2,28 @@
 #include "UCodeLang/Compilation/Front/SystematicAnalysis.hpp"
 #include "UCodeLang/Compilation/Helpers/ParseHelper.hpp"
 UCodeLangFrontStart
+bool SystematicAnalysis::Type_IsStringSpan(const TypeSymbol& type)
+{
+	auto symOp = Symbol_GetSymbol(type);
+	if (symOp.has_value())
+	{
+		auto sym = symOp.value();
+		auto& name = sym->FullName;
+		return StringHelper::Contains(name, UCodeLangStringSpanType);
+	}
+	return false;
+}
+bool SystematicAnalysis::Type_IsString(const TypeSymbol& type)
+{
+	auto symOp = Symbol_GetSymbol(type);
+	if (symOp.has_value())
+	{
+		auto sym = symOp.value();
+		auto& name = sym->FullName;
+		return StringHelper::Contains(name, UCodeLangStringType);
+	}
+	return false;
+}
 bool SystematicAnalysis::Type_IsStringSpan8(const TypeSymbol& type)
 {
 	auto symOp = Symbol_GetSymbol(type);
@@ -354,11 +376,16 @@ void SystematicAnalysis::OnStringLiteral(const StringliteralNode* nod, bool& ret
 			}
 			else
 			{
-				if (StaticArr->Count != BufferSize)
+				if (StaticArr->Count != BufferSize && StaticArr->IsCountError == false)
 				{
 					const NeverNullPtr<Token> Token = _LastLookedAtToken.value();
 					LogError_CanIncorrectStaticArrCount(Token, Type, BufferSize, StaticArr->Count);
 					_LastExpressionType.SetType(TypesEnum::Null);
+					return;
+				}
+				else if (StaticArr->IsCountError)
+				{
+					_LastExpressionType = Type_GetStaticArrayType(StaticArr->Type, V.size());
 					return;
 				}
 			}

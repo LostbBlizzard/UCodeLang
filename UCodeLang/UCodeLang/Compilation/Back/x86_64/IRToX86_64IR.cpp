@@ -44,7 +44,7 @@ void IRToX86_64IR::Build(const IRBuilder* builder, X86_64IR::CleanUpMode mode)
 		Build(Item.get());
 	}
 
-	
+
 	_Out.CleanUp(mode);
 }
 void IRToX86_64IR::Build(const IRFunc* func)
@@ -91,7 +91,7 @@ void IRToX86_64IR::Build(const IRBlock* func)
 			SetInfo(Get_FreeReg().value(), pos);
 			IRLocs.AddValue(Item.get(), pos);
 		}
-			break;
+		break;
 		case IRInstructionType::LoadReturn:
 		{
 			auto Returned = LoadOp(Item.get(), Item->Target());
@@ -99,7 +99,7 @@ void IRToX86_64IR::Build(const IRBlock* func)
 			//MoveToReg(GetLoc(Item->Target()), );
 			if (auto Val = Returned.LocTypes.Get_If<GReg>())
 			{
-				X86_64IR::Ins::Move::RegToFuncReturn v = X86_64IR::Ins::Move::RegToFuncReturn(ToInsRegSize(Returned.type),*Val);
+				X86_64IR::Ins::Move::RegToFuncReturn v = X86_64IR::Ins::Move::RegToFuncReturn(ToInsRegSize(Returned.type), *Val);
 				OutFunc->Add_Ins(X86_64IR::Ins::Move(v));
 			}
 			else
@@ -109,7 +109,7 @@ void IRToX86_64IR::Build(const IRBlock* func)
 		}
 		break;
 		case IRInstructionType::Return:
-		break;
+			break;
 		default:
 			UCodeLangUnreachable();
 			break;

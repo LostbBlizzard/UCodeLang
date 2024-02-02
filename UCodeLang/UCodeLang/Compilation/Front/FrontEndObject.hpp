@@ -27,9 +27,9 @@ public:
 		FrontEndType Type;
 		FileID FileId;
 	};
-	
-	
-	
+
+
+
 
 	String LangName;
 	Vector<FileInfo> FileTypes;
@@ -50,7 +50,7 @@ public:
 	virtual void Reset() {}
 	virtual ~FrontEndObject() {}
 
-	virtual void Set_FileIDType(LangDefInfo::FileID ID){}
+	virtual void Set_FileIDType(LangDefInfo::FileID ID) {}
 
 	virtual Unique_ptr<FileNode_t> BuildFile(String_view Text) { return nullptr; }
 	virtual Unique_ptr<FileNode_t> BuildFile(const BytesView Bytes) { return nullptr; }
@@ -64,20 +64,20 @@ public:
 
 	virtual Gep_DepPreIR Get_DependenciesPreIR(FileNode_t* File) { return {}; }
 	virtual Vector<NeverNullPtr<FileNode_t>> Get_DependenciesPostIR(FileNode_t* File) { return {}; }
-	
+
 	//
 	Unique_ptr<FileNode_t> LoadExternFile(const Path& path);
-	virtual Unique_ptr<FileNode_t> LoadExternFile(const BytesView Bytes, const Path& Ext){return nullptr;}
+	virtual Unique_ptr<FileNode_t> LoadExternFile(const BytesView Bytes, const Path& Ext) { return nullptr; }
 
 	Unique_ptr<FileNode_t> LoadIntFile(const Path& path);
 	virtual Unique_ptr<FileNode_t> LoadIntFile(const BytesView Bytes, const Path& Ext) { return nullptr; }
-	
 
-	virtual void ToIntFile(FileNode_t* File,const Path& path) { }
+
+	virtual void ToIntFile(FileNode_t* File, const Path& path) { }
 
 	void BuildIR(const Vector<Unique_ptr<FileNode_t>>& FileNode)
 	{
-		Vector<FileNode_t*>& _Files = *(Vector<FileNode_t*>*) &FileNode;
+		Vector<FileNode_t*>& _Files = *(Vector<FileNode_t*>*) & FileNode;
 		return  BuildIR(_Files);
 	}
 
@@ -87,10 +87,10 @@ public:
 
 
 	virtual const LangDefInfo* GetInfo() { return nullptr; }
-	
-	virtual IRBuilder* Get_Builder(){ return nullptr; }
-	
-	
+
+	virtual IRBuilder* Get_Builder() { return nullptr; }
+
+
 	//used if we can get the Dependencies befor IR may be used in 
 	// void BuildIR(const Vector<Unique_ptr<FileNode_t>>& FileNode)
 	// called after Get_Builder() 

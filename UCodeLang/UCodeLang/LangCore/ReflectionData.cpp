@@ -27,6 +27,7 @@ const AssemblyNode* ClassAssembly::Find_Node(ReflectionCustomTypeID TypeID) cons
 		case ClassType::FuncPtr:break;
 		case ClassType::GenericClass:break;
 		case ClassType::GenericFunction:break;
+		case ClassType::StaticArray:Value = Item->Get_StaticArray().TypeID; break;
 		default:
 			UCodeLangUnreachable();
 			break;
@@ -1070,23 +1071,24 @@ Optional<ClassAssembly::InfoVector_t> ClassAssembly::IsVector_t(const Reflection
 					{
 						if (Item->ParsType.size() == 3)
 						{
-							auto& ElemPar = Item->ParsType[1];
+							if (Item->ParsType[1].Type._Type == ReflectionTypes::uIntPtr) {
+								auto& ElemPar = Item->ParsType[2];
 
-							if (ElemPar.IsOutPar == false
-								&& ElemPar.Type._CustomTypeID == ElementType._CustomTypeID
-								&& ElemPar.Type.IsAddressArray() == false)
-							{
+								if (ElemPar.IsOutPar == false
+									&& ElemPar.Type._CustomTypeID == ElementType._CustomTypeID
+									&& ElemPar.Type.IsAddressArray() == false)
+								{
 
-								if (InsertMovedMethod == nullptr && ElemPar.Type.IsMovedType())
-								{
-									InsertMovedMethod = Item;
-								}
-								if (InsertCopyMethod == nullptr && ElemPar.Type.IsAddress())
-								{
-									InsertCopyMethod = Item;
+									if (InsertMovedMethod == nullptr && ElemPar.Type.IsMovedType())
+									{
+										InsertMovedMethod = Item;
+									}
+									if (InsertCopyMethod == nullptr && ElemPar.Type.IsAddress())
+									{
+										InsertCopyMethod = Item;
+									}
 								}
 							}
-
 						}
 					}
 				}
@@ -1258,6 +1260,16 @@ Optional<ClassAssembly::InfoStringView_t> ClassAssembly::IsStringView_t(const Re
 Optional<ClassAssembly::InfoSpan_t> ClassAssembly::IsSpan_t(const ReflectionTypeInfo& Type) const
 {
 	return Optional<InfoSpan_t>();
+}
+
+Optional<ClassAssembly::InfoMap_t> ClassAssembly::IsMap_t(const ReflectionTypeInfo& Type) const
+{
+	return Optional<InfoMap_t>();
+}
+
+Optional<ClassAssembly::InfoArray_t> ClassAssembly::IsArray_t(const ReflectionTypeInfo& Type) const
+{
+	return Optional<InfoArray_t>();
 }
 
 

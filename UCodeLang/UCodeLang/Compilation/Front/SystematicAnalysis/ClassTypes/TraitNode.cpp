@@ -209,7 +209,7 @@ void SystematicAnalysis::OnTrait(const TraitNode& node)
 		}
 
 
-		Trait_Data& TraitData = _Lib.Get_Assembly().AddTrait(ScopeHelper::GetNameFromFullName(Syb.FullName), Syb.FullName);
+		Trait_Data& TraitData = _Lib.Get_Assembly().AddTrait(ScopeHelper::GetNameFromFullName(Syb.FullName), RemoveSymboolFuncOverloadMangling(Syb.FullName));
 		TraitData.TypeID = Type_GetTypeID(TypesEnum::CustomType, Syb.ID);
 
 		for (auto& Item : info->_Vars)
@@ -327,8 +327,8 @@ void SystematicAnalysis::Symbol_InheritTrait(NeverNullPtr<Symbol> Syb, ClassInfo
 		{
 			FuncInfo* Info = Item.Syb->Get_Info<FuncInfo>();
 
-			auto FuncName = Info->Get_Name();
-			auto& List = GetSymbolsWithName(Info->Get_Name());
+			auto FuncName =RemoveSymboolFuncOverloadMangling(Info->Get_Name());
+			auto& List = GetSymbolsWithName(FuncName);
 
 			bool HasFunc = false;
 

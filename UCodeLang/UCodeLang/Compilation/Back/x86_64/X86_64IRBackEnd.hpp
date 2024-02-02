@@ -8,8 +8,8 @@ UCodeLangStart
 class X86_64IRBackEnd : BackEndObject
 {
 public:
-	X86_64IRBackEnd(){}
-	~X86_64IRBackEnd(){}
+	X86_64IRBackEnd() {}
+	~X86_64IRBackEnd() {}
 
 	void Reset() override;
 	void Build(const IRBuilder* Input) override;

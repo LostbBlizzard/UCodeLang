@@ -13,7 +13,7 @@ LangDefInfo& UCodeLangInfo::GetLangInfo()
 		Info.FileTypes.push_back({ FileExt::SourceFileWithDot,FrontEndType::Text,(LangDefInfo::FileID)FileTypes::SourceFile });
 
 		Info.FileTypes.push_back({ FileExt::LibWithDot,FrontEndType::Bytes,(LangDefInfo::FileID)FileTypes::Lib });
-		Info.FileTypes.push_back({ FileExt::DllWithDot,FrontEndType::Bytes,(LangDefInfo::FileID)FileTypes::Lib});
+		Info.FileTypes.push_back({ FileExt::DllWithDot,FrontEndType::Bytes,(LangDefInfo::FileID)FileTypes::Lib });
 	}
 
 	return Info;
@@ -49,7 +49,7 @@ Unique_ptr<FileNode_t> UCodeFrontEndObject::BuildFile(String_view Text)
 		if (Err->Has_Errors()) { return {}; }
 
 
-		_Parser.Parse(Text,_Lexer.Get_Tokens());
+		_Parser.Parse(Text, _Lexer.Get_Tokens());
 
 		if (Err->Has_Errors()) { return {}; }
 
@@ -61,7 +61,7 @@ Unique_ptr<FileNode_t> UCodeFrontEndObject::BuildFile(String_view Text)
 	{
 		LibImportNode tep;
 		BytesView Bits((Byte*)Text.data(), Text.size());
-		if (UClib::FromBytes(&tep.LIb, Bits)) 
+		if (UClib::FromBytes(&tep.LIb, Bits))
 		{
 			return Unique_ptr<FileNode_t>(new LibImportNode(std::move(tep)));
 		}
@@ -69,7 +69,7 @@ Unique_ptr<FileNode_t> UCodeFrontEndObject::BuildFile(String_view Text)
 	return nullptr;
 }
 Unique_ptr<FileNode_t> UCodeFrontEndObject::LoadIntFile(const BytesView Bytes, const Path& Ext)
-{ 
+{
 	LibImportNode tep;
 	tep.Mode = ImportMode::IntermediateFile;
 	if (UClib::FromBytes(&tep.LIb, Bytes))
@@ -77,7 +77,7 @@ Unique_ptr<FileNode_t> UCodeFrontEndObject::LoadIntFile(const BytesView Bytes, c
 		return Unique_ptr<FileNode_t>(new LibImportNode(std::move(tep)));
 	}
 
-	return nullptr; 
+	return nullptr;
 }
 
 Unique_ptr<FileNode_t> UCodeFrontEndObject::LoadExternFile(const BytesView Bytes, const Path& Ext)
@@ -95,7 +95,7 @@ Vector<NeverNullPtr<FileNode_t>> UCodeFrontEndObject::Get_DependenciesPostIR(Fil
 {
 	return  _Analyzer.GetFileDataPub(File)._Dependencys;
 }
-void UCodeFrontEndObject::ToIntFile(FileNode_t* File, const Path& path) 
+void UCodeFrontEndObject::ToIntFile(FileNode_t* File, const Path& path)
 {
 	_Analyzer.ToIntFile(File, path);
 }
@@ -103,8 +103,8 @@ void UCodeFrontEndObject::ToIntFile(FileNode_t* File, const Path& path)
 void UCodeFrontEndObject::BuildIR(const Vector<FileNode_t*>& fileNode)
 {
 	auto Err = Get_Errors();
-	auto Sett = Get_Settings(); 
-	_Analyzer.Set_ErrorsOutput(Err); 
+	auto Sett = Get_Settings();
+	_Analyzer.Set_ErrorsOutput(Err);
 	_Analyzer.Set_Settings(Sett);
 
 	//

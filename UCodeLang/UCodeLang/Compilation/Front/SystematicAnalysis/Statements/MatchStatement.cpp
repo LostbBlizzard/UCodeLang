@@ -86,7 +86,14 @@ void SystematicAnalysis::OnMatchStatement(const MatchStatement& node)
 		}
 		else
 		{
-			TryError_AllValuesAreMatched(ToMatchType, V.ArmData);
+			Vector<NeverNullPtr<ExpressionNodeType>> exnodes;
+			exnodes.resize(node._Arms.size());
+
+			for (size_t i = 0; i < node._Arms.size(); i++)
+			{
+				exnodes[i] = NeverNullptr(&node._Arms[i]._Expression);
+			}
+			TryError_AllValuesAreMatched(NeverNullptr(node._Token), ToMatchType, V.ArmData, exnodes);
 		}
 
 		_MatchStatementDatas.AddValue(Symbol_GetSymbolID(node), std::move(V));
@@ -184,6 +191,9 @@ bool SystematicAnalysis::MatchShouldOutPassEnumValue(const ExpressionNodeType& n
 }
 void SystematicAnalysis::MatchAutoPassEnumValueStart(MatchAutoPassEnum& V, const ExpressionNodeType& node, const ValueExpressionNode* Val, const FuncCallNode* Call)
 {
+	auto SymName = "";
+	auto& sym = Symbol_AddSymbol(SymbolType::StackVarable, SymName, SymName, AccessModifierType::Private);
+
 	V.Func._FuncName._ScopedName = Call->_FuncName._ScopedName;
 
 	V.Func.Parameters._Nodes.resize(Call->Parameters._Nodes.size() + 1);
@@ -368,16 +378,196 @@ void SystematicAnalysis::Type_CanMatch(const TypeSymbol& MatchItem, const Expres
 		}
 	}
 }
-void SystematicAnalysis::TryError_AllValuesAreMatched(const TypeSymbol& MatchItem, const MatchArmData& Data)
+void SystematicAnalysis::TryError_AllValuesAreMatched(const NeverNullPtr<Token> Token, const TypeSymbol& MatchItem, const MatchArmData& Data, const Vector<NeverNullPtr<ExpressionNodeType>>& _Arms)
 {
+	Optional<Vector<RawEvaluatedObject>> AllValues;
 	if (MatchItem.IsAn(TypesEnum::Bool))
 	{
-		bool ValuesSet[2] = { false,false };
-		for (auto& Item : Data.Arms)
-		{
+		Vector<RawEvaluatedObject> all;
+		all.reserve(2);
 
+		{
+			RawEvaluatedObject V;
+			V.ObjectSize = sizeof(bool);
+			V.Object_AsPointer.reset(new Byte[sizeof(bool)]);
+			*(bool*)(V.Object_AsPointer.get()) = false;
+			all.push_back(std::move(V));
+		}
+		{
+			RawEvaluatedObject V;
+			V.ObjectSize = sizeof(bool);
+			V.Object_AsPointer.reset(new Byte[sizeof(bool)]);
+			*(bool*)(V.Object_AsPointer.get()) = true;
+			all.push_back(std::move(V));
+		}
+
+
+		AllValues = std::move(all);
+	}
+	else
+	{
+		auto SybOp = Symbol_GetSymbol(MatchItem);
+
+		if (SybOp.has_value())
+		{
+			auto Syb = SybOp.value();
+			if (Syb->Type == SymbolType::Enum)
+			{
+				const EnumInfo* info = Syb->Get_Info<EnumInfo>();
+
+				size_t elemsize = Type_GetSize(info->Basetype).value_or(0);
+
+				Vector<RawEvaluatedObject> all;
+				all.resize(info->Fields.size());
+
+				for (size_t i = 0; i < info->Fields.size(); i++)
+				{
+					all[i] = info->Fields[i].Ex;
+				}
+
+				AllValues = std::move(all);
+			}
 		}
 	}
+
+	if (AllValues.has_value()) 
+	{
+		bool canbechecked = true;
+		Vector<RawEvaluatedObject> evalarmvalues;
+		auto typesize = Type_GetSize(MatchItem).value_or(0);
+		for (auto& Item : _Arms)
+		{
+			if (Item->_Value->Get_Type() != NodeType::ValueExpressionNode)
+			{
+				canbechecked = false;
+				break;
+			}
+
+			ValueExpressionNode* nod = ValueExpressionNode::As(Item->_Value.get());
+
+			auto type = nod->_Value->Get_Type();
+			if (!(type == NodeType::ReadVariableNode
+				|| type == NodeType::NumberliteralNode
+				|| type == NodeType::BoolliteralNode))
+			{
+				canbechecked = false;
+				break;
+			}
+
+			EvaluatedEx op;
+			op.EvaluatedObject.ObjectSize = typesize;
+			op.EvaluatedObject.Object_AsPointer.reset(new Byte[typesize]);
+			if (!Eval_Evaluate_t(op, Item.value()->_Value.get(), GetValueMode::Read))
+			{
+				canbechecked = false;
+				break;
+			}
+
+			evalarmvalues.push_back(std::move(op.EvaluatedObject));
+		}
+
+		if (canbechecked)
+		{
+			auto& allvals = AllValues.value();
+
+			Vector<bool> hasval;
+			hasval.resize(allvals.size());
+			Vector<size_t> extrasamevalue;
+
+			auto aresame = [&](const TypeSymbol& MatchItem, const RawEvaluatedObject& a,const RawEvaluatedObject& b) -> bool
+			{
+					auto v = Type_GetSize(MatchItem).value_or(0);
+
+					switch (v)
+					{
+					case sizeof(Int8) : return *(Int8*)a.Object_AsPointer.get() == *(Int8*)b.Object_AsPointer.get();
+					case sizeof(Int16) : return *(Int16*)a.Object_AsPointer.get() == *(Int16*)b.Object_AsPointer.get();
+					case sizeof(Int32) : return *(Int32*)a.Object_AsPointer.get() == *(Int32*)b.Object_AsPointer.get();
+					case sizeof(Int64) : return *(Int64*)a.Object_AsPointer.get() == *(Int64*)b.Object_AsPointer.get();
+					default:
+						UCodeLangUnreachable();
+						break;
+					}
+			};
+			for (size_t ix = 0; ix < evalarmvalues.size(); ix++)
+			{
+				auto& Item = evalarmvalues[ix];
+
+				for (size_t i = 0; i < allvals.size(); i++)
+				{
+					auto& Item2 = allvals[i];
+
+					bool issameval = aresame(MatchItem, Item, Item2);
+
+					if (issameval)
+					{
+
+						for (size_t i2 = 0; i2 < evalarmvalues.size(); i2++)
+						{
+							if (i2 != ix)
+							{
+								bool issameval3 = aresame(MatchItem, evalarmvalues[i2], Item2);
+								if (issameval3) 
+								{
+									bool allreadyhasvalue = false;
+
+									for (auto& v : extrasamevalue)
+									{
+										if (aresame(MatchItem,evalarmvalues[v],Item2))
+										{
+											allreadyhasvalue = true;
+											break;
+										}
+									}
+
+									if (allreadyhasvalue == false)
+									{
+										extrasamevalue.push_back(i2);
+									}
+								}
+							}
+						}
+
+						hasval[i] = true;
+					}
+				}
+			}
+
+			for (size_t i = 0; i < allvals.size(); i++)
+			{
+				auto& Item2 = allvals[i];
+				if (hasval[i] == false)
+				{
+					String msg;
+
+					msg += "missing the value '";
+
+					msg += ToString(MatchItem, Item2);
+
+					msg += "'";
+					msg += " for match";
+
+					LogError(ErrorCodes::InValidName, msg, Token);
+				}
+			}
+			for (auto& item : extrasamevalue)
+			{
+				auto& Item2 = allvals[item];
+				String msg;
+
+				msg += "'the value '";
+
+				msg += ToString(MatchItem, Item2);
+
+				msg += "'";
+				msg += " is matched more then once";
+
+				LogError(ErrorCodes::InValidName, msg, Token);
+			}
+		}
+
+	}
+
 }
 SystematicAnalysis::BuildMatch_ret SystematicAnalysis::IR_Build_Match(const TypeSymbol& MatchItem, const ExpressionNodeType& MatchValueNode, IRInstruction* Item, BuildMatch_State& State,MatchArm& Arm, const ExpressionNodeType& ArmEx)
 {
@@ -435,16 +625,16 @@ SystematicAnalysis::BuildMatch_ret SystematicAnalysis::IR_Build_Match(const Type
 					const ValueExpressionNode* Val = ValueExpressionNode::As(ArmEx._Value.get());
 					const FuncCallNode* Call = FuncCallNode::As(Val->_Value.get());
 
-					auto& Ptr = Arm.Get_AutoPassEnum();
+					String FieldName = "";
+					Call->_FuncName.GetScopedName(FieldName);
 
-					MatchAutoPassEnumValueStart(Ptr, MatchValueNode, Val, Call);
+					IRInstruction* obj = Item;
+					if (!eInfo->IsOptionalAddress())
+					{
+						obj = _IR_LookingAtIRBlock->NewLoadPtr(Item);
+					}
 
-
-					_LookingForTypes.push(MatchItem);
-					OnExpressionTypeNode(Ptr.NewNode, GetValueMode::Read);
-					_LookingForTypes.pop();
-
-					MatchAutoPassEnd(Ptr);
+					IR_Build_EnumOut(Syb,obj,  eInfo->GetFieldIndex(ScopeHelper::GetNameFromFullName(FieldName)).value(), Call->Parameters,0);
 
 					auto Type = _LastExpressionType;
 					auto ArmExIR = _IR_LastExpressionField;
@@ -568,9 +758,15 @@ void SystematicAnalysis::OnMatchExpression(const MatchExpression& node)
 
 			Type_CanMatch(ToMatchType, node._Expression, Item._Expression, V.ArmData);
 
+			_LookingForTypes.push(MatchAssignmentType);
+
 			OnExpressionTypeNode(Item._AssignmentExpression, GetValueMode::Read);
+
+			_LookingForTypes.pop();
+
 			auto AssignmentType = _LastExpressionType;
 			
+
 			if (MatchAssignmentType.IsAn(TypesEnum::Var))
 			{
 				MatchAssignmentType = AssignmentType;
@@ -594,7 +790,12 @@ void SystematicAnalysis::OnMatchExpression(const MatchExpression& node)
 		{
 			_Table.AddScope(ScopeName + std::to_string(ScopeCounter));
 
+			_LookingForTypes.push(MatchAssignmentType);
+
 			OnExpressionTypeNode(node._InvaidCase.value(), GetValueMode::Read);
+			
+			_LookingForTypes.pop();
+
 			auto AssignmentType = _LastExpressionType;
 			if (!Type_CanBeImplicitConverted(AssignmentType, MatchAssignmentType))
 			{
@@ -607,11 +808,21 @@ void SystematicAnalysis::OnMatchExpression(const MatchExpression& node)
 		}
 		else
 		{
-			TryError_AllValuesAreMatched(ToMatchType, V.ArmData);
+			Vector<NeverNullPtr<ExpressionNodeType>> exnodes;
+			exnodes.resize(node._Arms.size());
+
+			for (size_t i = 0; i < node._Arms.size(); i++)
+			{
+				exnodes[i] = NeverNullptr(&node._Arms[i]._Expression);
+			}
+
+			TryError_AllValuesAreMatched(NeverNullptr(node._Token), ToMatchType, V.ArmData, exnodes);
 		}
 
 		V._MatchAssignmentType = MatchAssignmentType;
 		_MatchExpressionDatas.AddValue(Symbol_GetSymbolID(node), std::move(V));
+
+		_LastExpressionType = MatchAssignmentType;
 	}
 	else if (_PassType == PassType::BuidCode)
 	{
@@ -692,6 +903,9 @@ void SystematicAnalysis::OnMatchExpression(const MatchExpression& node)
 		_LookingForTypes.pop();
 
 		_IR_LastExpressionField = OutEx;
+
+
+		_LastExpressionType = V._MatchAssignmentType;
 	}
 }
 void SystematicAnalysis::Assembly_LoadType(const ReflectionTypeInfo& Item, TypeSymbol& Out)

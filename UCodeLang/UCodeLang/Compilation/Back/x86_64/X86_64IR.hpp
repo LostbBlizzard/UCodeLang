@@ -16,7 +16,7 @@ struct X86_64IR
 
 	}
 	ImportUseing86x64Gen;
-	
+
 	using IDType = UInt64;
 	using FuncID = IDType;
 	using CallConventionID = IDType;
@@ -169,8 +169,8 @@ struct X86_64IR
 	};
 	struct Relocation
 	{
-		RelocationID RelocationId =0;
-		size_t ByteToUpdateOffset=0;
+		RelocationID RelocationId = 0;
+		size_t ByteToUpdateOffset = 0;
 		RelocationType Type = RelocationType::Size32;
 	};
 
@@ -194,7 +194,7 @@ struct X86_64IR
 	};
 	struct Relocation32
 	{
-		
+
 		RelocationID ID = 0;
 		explicit Relocation32(RelocationID Relocation = 0)
 			:ID(Relocation)
@@ -233,7 +233,7 @@ struct X86_64IR
 		case GReg::r13:return "r13";
 		case GReg::r14:return "r14";
 		case GReg::r15:return "r15";
-		default:return "n/a";break;
+		default:return "n/a"; break;
 		}
 	}
 	static String ToString(Near32 V)
@@ -257,10 +257,10 @@ struct X86_64IR
 	{
 		return "FuncID" + (String)"(" + std::to_string(V) + ")";
 	}
-	
-	
-	
-	
+
+
+
+
 	struct Ins
 	{
 		//ToString helper
@@ -292,7 +292,7 @@ struct X86_64IR
 		struct CurrintFuncOffset
 		{
 			size_t offset = 0;
-			explicit CurrintFuncOffset(size_t offset = 0):offset(offset) {}
+			explicit CurrintFuncOffset(size_t offset = 0) :offset(offset) {}
 
 		};
 		//Ins
@@ -308,7 +308,7 @@ struct X86_64IR
 		};
 		struct Call
 		{
-			Variant<GReg,Near32,NearRelocation32> callvariants;
+			Variant<GReg, Near32, NearRelocation32> callvariants;
 			//explicit Call(FuncID Value) :callvariants(Value) {};
 			explicit Call(GReg Value) :callvariants(Value) {};
 			explicit Call(Near32 Value) :callvariants(Value) {};
@@ -339,15 +339,15 @@ struct X86_64IR
 				return r;
 			}
 		};
-		struct Ret 
+		struct Ret
 		{
 			String ToString() const
 			{
 				return "ret";
 			}
 		};
-		struct Jump 
-		{ 
+		struct Jump
+		{
 			Variant<FuncID, GReg, Near32, NearRelocation32> jumpvariants;
 			explicit Jump(FuncID Value) :jumpvariants(Value) {};
 			explicit Jump(GReg Value) :jumpvariants(Value) {};
@@ -379,18 +379,18 @@ struct X86_64IR
 				return r;
 			}
 		};
-		
+
 		struct Move
 		{
 			struct RegToReg
 			{
-				GReg Src= GReg::Null;
+				GReg Src = GReg::Null;
 				GReg Out = GReg::Null;
 				InsRegSize RegSize = InsRegSize::bits64;
-				
-				explicit RegToReg(){};
-				explicit RegToReg(GReg Src, GReg Out):Src(Src),Out(Out){};
-				explicit RegToReg(InsRegSize RegSize,GReg Src, GReg Out) :Src(Src), Out(Out), RegSize(RegSize){};
+
+				explicit RegToReg() {};
+				explicit RegToReg(GReg Src, GReg Out) :Src(Src), Out(Out) {};
+				explicit RegToReg(InsRegSize RegSize, GReg Src, GReg Out) :Src(Src), Out(Out), RegSize(RegSize) {};
 				String ToString() const
 				{
 					String r;
@@ -405,8 +405,8 @@ struct X86_64IR
 				InsRegSize RegSize = InsRegSize::bits64;
 
 				explicit ConstToReg() {};
-				explicit ConstToReg(AnyInt64 Src, GReg Out):Src(Src), Out(Out) {};
-				explicit ConstToReg(InsRegSize RegSize,AnyInt64 Src, GReg Out) :Src(Src), Out(Out), RegSize(RegSize) {};
+				explicit ConstToReg(AnyInt64 Src, GReg Out) :Src(Src), Out(Out) {};
+				explicit ConstToReg(InsRegSize RegSize, AnyInt64 Src, GReg Out) :Src(Src), Out(Out), RegSize(RegSize) {};
 				String ToString() const
 				{
 					String r;
@@ -466,7 +466,7 @@ struct X86_64IR
 				FuncID func;
 				GReg Out = GReg::Null;
 
-				explicit FuncIDToReg(FuncID Value, GReg Out):func(Value), Out(Out) {};
+				explicit FuncIDToReg(FuncID Value, GReg Out) :func(Value), Out(Out) {};
 				String ToString() const
 				{
 					String r;
@@ -478,8 +478,8 @@ struct X86_64IR
 			};
 			//In
 			Variant<RegToReg, ConstToReg, IndRegToReg, RegToRegInd
-				,RegToFuncReturn, FuncIDToReg> MoveTypes;
-			explicit Move(const RegToReg& Value) :MoveTypes(Value){}
+				, RegToFuncReturn, FuncIDToReg> MoveTypes;
+			explicit Move(const RegToReg& Value) :MoveTypes(Value) {}
 			explicit Move(const ConstToReg& Value) :MoveTypes(Value) {}
 			explicit Move(const IndRegToReg& Value) :MoveTypes(Value) {}
 			explicit Move(const RegToRegInd& Value) :MoveTypes(Value) {}
@@ -602,7 +602,7 @@ struct X86_64IR
 			}
 		};
 
-		Variant<NoOp, Removed, Call, Ret, Jump,Move, XOR> variant;
+		Variant<NoOp, Removed, Call, Ret, Jump, Move, XOR> variant;
 		String ToString() const
 		{
 
@@ -639,7 +639,7 @@ struct X86_64IR
 				UCodeLangThrowException("not added");
 			}
 		}
-		
+
 		inline bool Reads_Stack() const
 		{
 			if (variant.Is<Ret>())
@@ -714,9 +714,9 @@ struct X86_64IR
 			return false;
 		}
 		//
-		explicit Ins(const Move& Value) :variant(Value){}
-		explicit Ins(const NoOp& Value) :variant(Value){}
-		explicit Ins(const Call& Value) :variant(Value){}
+		explicit Ins(const Move& Value) :variant(Value) {}
+		explicit Ins(const NoOp& Value) :variant(Value) {}
+		explicit Ins(const Call& Value) :variant(Value) {}
 		explicit Ins(const Ret& Value) :variant(Value) {}
 		explicit Ins(const Jump& Value) :variant(Value) {}
 		explicit Ins(const Removed& Value) :variant(Value) {}
@@ -730,11 +730,11 @@ struct X86_64IR
 		Func()
 		{
 			static constexpr size_t InsSize = sizeof(Ins);
-			static constexpr size_t MaxInsSize =32;
+			static constexpr size_t MaxInsSize = 32;
 			//static_assert(sizeof(Ins) <= MaxInsSize, "Ins Type Is too big,this will cause jit performance problems.");
 		}
 
-		
+
 
 		void Add_Ins(const Ins::Move& Item)
 		{
@@ -757,7 +757,7 @@ struct X86_64IR
 			Body.push_back(Ins(Item));
 		}
 	};
-	
+
 	struct BuildInfo
 	{
 		struct BuildFunc
@@ -769,11 +769,11 @@ struct X86_64IR
 		Vector<BuildFunc> Funcs;
 	};
 	Vector<Func> Funcs;
-	UnorderedMap<CallConventionID,CallConvention> CallingConventions;
+	UnorderedMap<CallConventionID, CallConvention> CallingConventions;
 	CallConventionID AddCallConvention(CallConvention&& Convention)
 	{
 		auto R = Next_NextCallID();
-		CallingConventions.AddValue(R,std::move(Convention));
+		CallingConventions.AddValue(R, std::move(Convention));
 
 		return R;
 	}
@@ -782,7 +782,7 @@ struct X86_64IR
 		Func func;
 		func.funcID = funcID;
 		Funcs.push_back(std::move(func));
-	
+
 		return Funcs.back();
 	}
 	Func* GetFunc(FuncID funcID)
@@ -847,8 +847,8 @@ struct X86_64IR
 		X86_64Builder Gen;
 	};
 
-	void Build(BuildInfo::BuildFunc& Out,BuildState& State,const Func& Value) const;
-	void Build(BuildInfo::BuildFunc& Out,BuildState& State,const Ins& Value) const;
+	void Build(BuildInfo::BuildFunc& Out, BuildState& State, const Func& Value) const;
+	void Build(BuildInfo::BuildFunc& Out, BuildState& State, const Ins& Value) const;
 
 	RelocationID Get_RelocationID()
 	{
@@ -858,7 +858,7 @@ private:
 	CallConventionID _NextCallID = CallConventionID();
 	CallConventionID Next_NextCallID()
 	{
-		auto r =_NextCallID;
+		auto r = _NextCallID;
 		_NextCallID++;
 		return r;
 	}

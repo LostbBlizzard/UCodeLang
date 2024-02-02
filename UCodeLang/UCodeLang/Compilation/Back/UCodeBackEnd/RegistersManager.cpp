@@ -11,7 +11,7 @@ RegistersManager::~RegistersManager()
 {
 }
 
-void RegistersManager::Reset() 
+void RegistersManager::Reset()
 {
 	for (size_t i = 0; i < RegisterSize; i++)
 	{

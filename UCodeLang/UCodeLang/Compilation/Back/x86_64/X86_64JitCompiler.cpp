@@ -57,19 +57,19 @@ bool X86_64JitCompiler::BuildFunc(Vector<Instruction>& Ins, UAddress funcAddress
 
 	Output = &X64Output;
 	_Ins = &Ins;
-	
+
 	size_t CallOffset = 0;
 	size_t CallInsSize = 0;
-	
-	
+
+
 	JitFuncData ThisFuncData;
-	
+
 	X86_64IR::FuncID CppFuncID = _IR.Get_RelocationID();//it just needs to be unique
 	X86_64IR::FuncID NativeFuncID = _IR.Get_RelocationID();
 
 	X86_64IR::Relocation32 NativeFuncNearCallRelocation = X86_64IR::Relocation32(_IR.Get_RelocationID());
 	{//CPPCall-body
-		
+
 		//use InterpreterCPPinterface_GetParm to get pars
 		auto& newfunc = _IR.AddNewFunc(NativeFuncID);
 		newfunc.CallConvention = _CallConvention;
@@ -132,12 +132,12 @@ bool X86_64JitCompiler::BuildFunc(Vector<Instruction>& Ins, UAddress funcAddress
 			default:return false;
 			}
 		}
-		
+
 
 		newfunc.Add_Ins(X86_64IR::Ins::Ret());
 	}
 
-	
+
 	_IR.CleanUp(X86_64IR::CleanUpMode::RunTimeSpeed);
 	auto BuildInfo = _IR.Build();
 	Vector<Byte> Outputbytes;
@@ -178,7 +178,7 @@ bool X86_64JitCompiler::BuildFunc(Vector<Instruction>& Ins, UAddress funcAddress
 			{
 				Byte* bitstoupdate = Outputbytes.data() + Item.ByteToUpdateOffset;
 				Byte* callpos = Outputbytes.data() + Out_NativeCallOffset;
-				int offset = (int)(callpos - bitstoupdate ) - 4;
+				int offset = (int)(callpos - bitstoupdate) - 4;
 				memcpy(bitstoupdate, &offset, sizeof(int));
 			}
 		}
@@ -192,11 +192,11 @@ bool X86_64JitCompiler::BuildFunc(Vector<Instruction>& Ins, UAddress funcAddress
 	Output = nullptr;
 
 	X64Output = std::move(Outputbytes);
-	
 
 
 
-	
+
+
 	return true;
 }
 

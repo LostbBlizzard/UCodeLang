@@ -6,7 +6,7 @@ $CoolEnum[MyBase] enum:
  Green,
 
 |main[]:
- bool R = 0;
+ bool R = false;
 
  eval typeinfo TypeCool = type(CoolEnum);
  $if TypeCool.GetEnumInfo(out typeinfo EnumTypeValue):

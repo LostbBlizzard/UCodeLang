@@ -38,7 +38,7 @@ private:
 	const IRBuilder* _Input = nullptr;
 	WasmFile _Output;
 
-	TypeSection* _typeSection =nullptr;
+	TypeSection* _typeSection = nullptr;
 	FuncSection* _funcSection = nullptr;
 	ExportSection* _exportSection = nullptr;
 	CodeSection* _codeSection = nullptr;
@@ -59,11 +59,11 @@ private:
 	};
 	Vector< InsToUpdateMap> InsToUpdate;
 	UnorderedMap< IRidentifierID, size_t> FuncToIndex;
-	
+
 	WasmType ToType(const IRType& Type);
-	
+
 	String ToWebName(const IRidentifierID Name);
-	
+
 	void LoadOp(const IRInstruction* ir, const IROperator& Op);
 
 	struct SaveInfo
@@ -74,7 +74,7 @@ private:
 
 	void EndSave(SaveInfo& info);
 
-	UnorderedMap<const IRInstruction*,size_t> Position;
+	UnorderedMap<const IRInstruction*, size_t> Position;
 
 };
 UCodeLangEnd

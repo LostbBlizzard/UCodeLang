@@ -6,14 +6,14 @@
 UCodeLangStart
 
 //outputs a flat binary of x86 code
-class X86BackEnd:BackEndObject
+class X86BackEnd :BackEndObject
 {
 public:
-	X86BackEnd(){}
+	X86BackEnd() {}
 	~X86BackEnd() override {}
 
 
-	String GetBackEndName() override  { return "flat_x86"; };
+	String GetBackEndName() override { return "flat_x86"; };
 	String GetOutputExtWithDot() override { return ".data"; }
 	static BackEndObject* MakeObject() { return new X86BackEnd(); }
 	void Reset() override;

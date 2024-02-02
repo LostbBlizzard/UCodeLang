@@ -74,7 +74,7 @@ void UCLibManger::LinkLib(UCodeLang::RunTimeLib* Item, bool HotReloadKeepStatic)
 		}
 		else if (Tep.OpCode == InstructionSet::Callv1)
 		{
-			auto func = Instruction::IsLoadFuncPtr(InsSpan, i);
+			auto func = Instruction::IsCall(InsSpan, i);
 
 			if (func.has_value())
 			{

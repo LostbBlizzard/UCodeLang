@@ -10,15 +10,15 @@ UCodeLangStart
 class IRToX86_64IR
 {
 public:
-	IRToX86_64IR(){}
+	IRToX86_64IR() {}
 	~IRToX86_64IR() {};
 	static X86_64IR Into(const IRBuilder& builder, X86_64IR::CleanUpMode mode = X86_64IR::CleanUpMode::None)
 	{
 		X86_64IR r;
 
 		IRToX86_64IR c;
-		c.Build(&builder,mode);
-		
+		c.Build(&builder, mode);
+
 		r = std::move(c.Get_Output());
 		return r;
 	}
@@ -30,32 +30,32 @@ public:
 	}
 private:
 	X86_64IR _Out;
-	const IRBuilder* _Input =nullptr;
+	const IRBuilder* _Input = nullptr;
 
 	X86_64IR::CallConventionID _MainCallConvention;
 	X86_64IR::CallConventionID _InternalCallConvention;
 	Vector<X86_64IR::CallConventionID> OtherCallConventions;
 
 	ImportUseing86x64Gen
-	
-	struct PostStackOffset
+
+		struct PostStackOffset
 	{
 		size_t Offset = 0;
-		explicit PostStackOffset(size_t offset = 0):Offset(offset){}
+		explicit PostStackOffset(size_t offset = 0) :Offset(offset) {}
 	};
 	struct IRLoc
 	{
 		IRType type;
 		Variant<GReg, PostStackOffset> LocTypes;
 	};
-	struct None{};
+	struct None {};
 	struct RegInfo
 	{
-		Variant<None, const IRInstruction*,AnyInt64> Type;
+		Variant<None, const IRInstruction*, AnyInt64> Type;
 	};
 	UnorderedMap<GReg, RegInfo> TemVarRegs;
 	UnorderedMap<const IRInstruction*, IRLoc> IRLocs;
-	X86_64IR::Func* OutFunc=nullptr;
+	X86_64IR::Func* OutFunc = nullptr;
 	const IRFunc* OnFunc = nullptr;
 
 	//code

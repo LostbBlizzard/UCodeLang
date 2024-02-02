@@ -47,7 +47,7 @@ bool ModuleIndex::FromBytes(ModuleIndex* Lib, const BytesView Bytes)
 	bits.SetBytes(Bytes.Data(), Bytes.Size());
 
 
-	BitReader::SizeAsBits Size=0;
+	BitReader::SizeAsBits Size = 0;
 	bits.ReadType(Size, Size);
 
 	for (size_t i = 0; i < Size; i++)
@@ -71,13 +71,13 @@ bool ModuleIndex::FromBytes(ModuleIndex* Lib, const BytesView Bytes)
 
 bool ModuleIndex::ToFile(const ModuleIndex* Lib, const Path& path)
 {
-	
+
 	std::ofstream File(path);
 
-	if (File.is_open()) 
+	if (File.is_open())
 	{
 		BytesPtr bits = ToBytes(Lib);
-		File.write((const char*)bits.Data(),bits.Size());
+		File.write((const char*)bits.Data(), bits.Size());
 		File.close();
 		return true;
 	}
@@ -127,7 +127,7 @@ Optional<size_t> ModuleIndex::FindFileFullPath(const Path& file) const
 	for (size_t i = 0; i < _IndexedFiles.size(); i++)
 	{
 		auto& Item = _IndexedFiles[i];
-		if (Item._ModuleFullPath== file)
+		if (Item._ModuleFullPath == file)
 		{
 			return i;
 		}
@@ -197,7 +197,7 @@ void ModuleIndex::RemoveDeletedModules()
 		}
 	}
 
-	this->_IndexedFiles =std::move(newlist);
+	this->_IndexedFiles = std::move(newlist);
 }
 void ModuleIndex::FromType(BitReader& bit, Path& Value)
 {
@@ -234,9 +234,9 @@ Compiler::CompilerPathData ModuleFile::GetPaths(Compiler& Compiler, bool IsSubMo
 
 	if ((OptimizationFlags_t)Settings._Flags & (OptimizationFlags_t)OptimizationFlags::Debug)
 	{
-		SettingStr  += "-Debug";
+		SettingStr += "-Debug";
 	}
-	
+
 	if ((OptimizationFlags_t)Settings._Flags & (OptimizationFlags_t)OptimizationFlags::O_1)
 	{
 		SettingStr += "-O1";
@@ -251,10 +251,10 @@ Compiler::CompilerPathData ModuleFile::GetPaths(Compiler& Compiler, bool IsSubMo
 	}
 
 	paths.FileDir = Path((B.native() + Path::preferred_separator + Path(ModuleSourcePath).native())).generic_string();
-	paths.IntDir = Path((B.native()  + Path::preferred_separator + Path(ModuleIntPath).native() + ValueToAddIfSubModule.native() + Path::preferred_separator + Path(OutputName).native() + Path::preferred_separator + Path(SettingStr).native())).generic_string();
+	paths.IntDir = Path((B.native() + Path::preferred_separator + Path(ModuleIntPath).native() + ValueToAddIfSubModule.native() + Path::preferred_separator + Path(OutputName).native() + Path::preferred_separator + Path(SettingStr).native())).generic_string();
 	paths.OutFile = Path((B.native() + Path::preferred_separator + Path(ModuleOutPath).native() + ValueToAddIfSubModule.native() + Path::preferred_separator + Path(OutputName).native() + Path::preferred_separator + Path(SettingStr).native() + Path::preferred_separator)).generic_string();
-	
-	
+
+
 	if (!std::filesystem::exists(paths.IntDir))
 	{
 		std::filesystem::create_directories(paths.IntDir);
@@ -267,7 +267,7 @@ Compiler::CompilerPathData ModuleFile::GetPaths(Compiler& Compiler, bool IsSubMo
 	}
 
 	paths.OutFile += ModuleName.ModuleName;
-	if (IsSubModule) 
+	if (IsSubModule)
 	{
 		paths.OutFile += FileExt::LibWithDot;
 	}
@@ -284,7 +284,7 @@ String ModuleFile::ToName(const ModuleIdentifier& ID)
 	R += ID.AuthorName;
 	return R;
 }
-bool ModuleFile::DownloadModules(const ModuleIndex& Modules,Optional<LogOut> LogsOut)
+bool ModuleFile::DownloadModules(const ModuleIndex& Modules, Optional<LogOut> LogsOut)
 {
 
 	for (auto& Item : ModuleDependencies)
@@ -293,8 +293,8 @@ bool ModuleFile::DownloadModules(const ModuleIndex& Modules,Optional<LogOut> Log
 		if (!file.has_value() && Item.WebLink)
 		{
 			const auto& WebLink = Item.WebLink.value();
-		
-			bool isgithub = StringHelper::StartWith(WebLink,"https://github.com");
+
+			bool isgithub = StringHelper::StartWith(WebLink, "https://github.com");
 
 			if (LogsOut.has_value())
 			{
@@ -448,7 +448,7 @@ ModuleFile::ModuleRet ModuleFile::BuildModule(Compiler& Compiler, const ModuleIn
 				{
 					Compiler.SetLog([&]()
 					{
-							(*LogsOut)("Building:" + this->ModuleName.ModuleName);
+						(*LogsOut)("Building:" + this->ModuleName.ModuleName);
 					});
 				}
 				else
@@ -499,7 +499,7 @@ ModuleFile::ModuleRet ModuleFile::BuildModule(Compiler& Compiler, const ModuleIn
 }
 
 void ModuleFile::BuildModuleDependencies(
-	const ModuleIndex& Modules, 
+	const ModuleIndex& Modules,
 	CompilationErrors& Errs, bool& Err,
 	Compiler& Compiler,
 	const Vector<ModuleDependencie>& ModuleDependencies,
@@ -520,13 +520,13 @@ void ModuleFile::BuildModuleDependencies(
 	for (auto& Item : ModuleDependencies)
 	{
 		auto V = Modules.FindFile(Item.Identifier);
-		
+
 		{
 			const ModuleIndex::IndexModuleFile& Index = Modules._IndexedFiles[V.value()];
 			ModuleFile MFile;
 			if (ModuleFile::FromFile(&MFile, Index._ModuleFullPath))
 			{
-				auto BuildData = MFile.BuildModule(Compiler, Modules, true,LogsOut);
+				auto BuildData = MFile.BuildModule(Compiler, Modules, true, LogsOut);
 				if (BuildData.CompilerRet.IsError())
 				{
 					Errs.FilePath = GetFullPathName();
@@ -560,7 +560,7 @@ bool ModuleFile::ToFile(const ModuleFile* Lib, const Path& path)
 		String V = ToStringBytes(Lib);
 		File.write((const char*)V.c_str(), V.size());
 
-		
+
 		File.close();
 		return true;
 	}
@@ -593,10 +593,10 @@ void ModuleFile::NewInit(String ModuleName, String AuthorName)
 	this->ModuleName.ModuleName = ModuleName;
 	this->ModuleName.AuthorName = AuthorName;
 	this->ModuleNameSpace = ModuleName;
-	
+
 	this->RemoveUnSafe = true;
 	{
-		
+
 		ModuleDependencie f;
 		f.Identifier.MajorVersion = 0;
 		f.Identifier.MinorVersion = 0;
@@ -614,8 +614,8 @@ String ModuleFile::ToStringBytes(const ModuleIdentifier* Value)
 	out += "AuthorName:" + Value->AuthorName + '\n';
 	out += "ModuleName:" + Value->ModuleName + '\n';
 
-	out += "Version:" + std::to_string(Value->MajorVersion) 
-		+ ":" + std::to_string(Value->MinorVersion) 
+	out += "Version:" + std::to_string(Value->MajorVersion)
+		+ ":" + std::to_string(Value->MinorVersion)
 		+ ":" + std::to_string(Value->RevisionVersion);
 	return out;
 }
@@ -634,11 +634,11 @@ ModuleFile::ModuleRet ModuleFile::BuildFile(const String& filestring, Compiler& 
 		for (size_t i = 0; i < filestring.size(); i++)
 		{
 			auto item = filestring[i];
-			
+
 			if (item == '\n')
 			{
-				Line = filestring.substr(StartIndex, i- StartIndex);
-				StartIndex = i+1;
+				Line = filestring.substr(StartIndex, i - StartIndex);
+				StartIndex = i + 1;
 				if (StringHelper::StartWith(Line, "import"))
 				{
 					fileimports += Line;
@@ -700,14 +700,14 @@ Version: 0:0:0)";
 	bool Err = false;
 
 	auto oldname = Errs.FilePath;
-	BuildModuleDependencies(Modules, Errs, Err, Compiler, buildfileDependencies, buildExternFiles,LogsOut);
+	BuildModuleDependencies(Modules, Errs, Err, Compiler, buildfileDependencies, buildExternFiles, LogsOut);
 	Errs.FilePath = oldname;
 
 
 	if (Err == false)
 	{
 		auto buildscriptinfo = Compiler.CompileText(filetext, buildExternFiles);//TODO cash this file to avoid full builds
-	
+
 		if (buildscriptinfo.IsValue())
 		{
 			ModuleRet CompilerRet = std::move(buildscriptinfo);
@@ -729,7 +729,7 @@ Version: 0:0:0)";
 }
 String ModuleFile::ToStringBytes(const Path* Value)
 {
-	String out =Value->generic_string();
+	String out = Value->generic_string();
 
 
 	return out;
@@ -750,7 +750,7 @@ String ModuleFile::ToStringBytes(const ModuleFile* Lib)
 		out += "import ";
 		out += Item.Identifier.AuthorName;
 		out += "::" + Item.Identifier.ModuleName;
-		out += + "[" + std::to_string(Item.Identifier.MajorVersion)
+		out += +"[" + std::to_string(Item.Identifier.MajorVersion)
 			+ ':' + std::to_string(Item.Identifier.MinorVersion)
 			+ ':' + std::to_string(Item.Identifier.RevisionVersion) + "]";
 
@@ -762,7 +762,7 @@ String ModuleFile::ToStringBytes(const ModuleFile* Lib)
 		}
 		out += ";\n";
 	}
-	
+
 
 	return out;
 }
@@ -773,7 +773,7 @@ bool ModuleFile::FromString(ModuleFile* Lib, const String_view& Data)
 	UCodeLang::FrontEnd::Lexer lex;
 	lex.Set_ErrorsOutput(&tep);
 	lex.Lex(Data);
-	
+
 
 	auto& tokens = lex.Get_Tokens();
 
@@ -819,16 +819,16 @@ bool ModuleFile::FromString(ModuleFile* Lib, const String_view& Data)
 					}
 					else if (Item.Value._String == "NameSpace")
 					{
-						if (tokens[i].Type == TokenType::Name) 
+						if (tokens[i].Type == TokenType::Name)
 						{
-							while (tokens[i].Type == TokenType::Name) 
+							while (tokens[i].Type == TokenType::Name)
 							{
 								Lib->ModuleNameSpace += tokens[i].Value._String;
 								if (i + 2 < tokens.size()
 									&& tokens[i + 1].Type == TokenType::ScopeResolution
 									&& tokens[i + 2].Type == TokenType::Name)
 								{
-									i+=2;
+									i += 2;
 									Lib->ModuleNameSpace += ScopeHelper::_ScopeSep;
 								}
 								else
@@ -862,9 +862,9 @@ bool ModuleFile::FromString(ModuleFile* Lib, const String_view& Data)
 					if (tokens[i].Type != TokenType::Name)
 					{
 						return false;
-					}	
+					}
 					auto& ModNameName = tokens[i];
-				
+
 					i++; IsGood(i);
 					if (tokens[i].Type != TokenType::Left_Bracket)
 					{
@@ -898,7 +898,7 @@ bool ModuleFile::FromString(ModuleFile* Lib, const String_view& Data)
 
 					i++; IsGood(i);
 					i++;
-					if (i < tokens.size()) 
+					if (i < tokens.size())
 					{
 						if (tokens[i].Type == TokenType::Left_Parentheses)
 						{
@@ -912,10 +912,10 @@ bool ModuleFile::FromString(ModuleFile* Lib, const String_view& Data)
 
 
 					ModuleDependencie moddep;
-					
+
 					moddep.Identifier.AuthorName = AuthorNameName.Value._String;
 					moddep.Identifier.ModuleName = ModNameName.Value._String;
-					
+
 					moddep.Identifier.MajorVersion = std::stoi((String)Num0.Value._String);
 					moddep.Identifier.MinorVersion = std::stoi((String)Num1.Value._String);
 					moddep.Identifier.RevisionVersion = std::stoi((String)Num2.Value._String);

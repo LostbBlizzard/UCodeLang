@@ -21,9 +21,9 @@ public:
 	struct GeneralRegisterData
 	{
 		GeneralRegisterDataState State = GeneralRegisterDataState::notUsed;
-		#ifndef UCodeLangNoCompiler
+#ifndef UCodeLangNoCompiler
 		IRInstruction* HasValue = nullptr;
-		#endif
+#endif
 	};
 	using Value8 = NativeCodeBuilder::Value8;
 	using Value16 = NativeCodeBuilder::Value16;
@@ -66,7 +66,7 @@ public:
 
 	//https://www.felixcloutier.com/x86/index.html
 	//x86 instructions
-	
+
 	inline size_t GetIndex() { return _Output.GetIndex(); }
 	inline Byte* GetData(size_t offset) { return _Output.ByteOutput.data() + offset; }
 	inline Byte* GetData() { return GetData(0); }
@@ -75,13 +75,13 @@ public:
 	inline void mov(GReg Reg, Value8 Value)
 	{
 		Use86
-		PushByte(0xb0 + RegisterOffset(Reg));
+			PushByte(0xb0 + RegisterOffset(Reg));
 		PushByte(Value);
 	}
 	inline void mov(GReg Reg, Value16 Value)
 	{
 		Use86
-		PushByte(0x66);
+			PushByte(0x66);
 		PushByte(0xb9 + RegisterOffset(Reg));
 		PushValue_t_little_endian(Value);
 	}
@@ -95,20 +95,20 @@ public:
 	inline void mov8(GReg dest, GReg src)
 	{
 		Use86
-		PushByte(0x88);
-		PushByte(modrm(src,dest));
+			PushByte(0x88);
+		PushByte(modrm(src, dest));
 	}
 	inline void mov16(GReg dest, GReg src)
 	{
 		Use86
-		PushByte(0x66);
+			PushByte(0x66);
 		PushByte(0x89);
 		PushByte(modrm(src, dest));
 	}
 	inline void mov32(GReg dest, GReg src)
 	{
 		Use86
-		PushByte(0x89);
+			PushByte(0x89);
 		PushByte(modrm(src, dest));
 	}
 
@@ -118,7 +118,7 @@ public:
 	inline void add8(GReg dest, GReg src)
 	{
 		Use86
-		PushByte(0x00);
+			PushByte(0x00);
 		PushByte(modrm(src, dest));
 	}
 
@@ -126,7 +126,7 @@ public:
 	inline void add16(GReg dest, GReg src)
 	{
 		Use86
-		PushByte(0x66);
+			PushByte(0x66);
 		PushByte(0x01);
 		PushByte(modrm(src, dest));
 	}
@@ -135,22 +135,22 @@ public:
 	inline void add32(GReg dest, GReg src)
 	{
 		Use86
-		PushByte(0x01);
+			PushByte(0x01);
 		PushByte(modrm(src, dest));
 	}
-	
+
 
 	//control flow
 	inline void syscall()
 	{
 		Use86
-		PushByte(0xf);
+			PushByte(0xf);
 		PushByte(0x05);
 	}
 	inline void ret()
 	{
 		Use86
-		PushByte(0xc3);
+			PushByte(0xc3);
 	}
 };
 

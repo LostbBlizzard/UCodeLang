@@ -47,7 +47,7 @@ void SystematicAnalysis::OnExpressionNode(const IndexedExpresionNode& node)
 				auto Syb = SybOp.value();
 				if (Syb->Type == SymbolType::Type_class)
 				{
-
+					/*
 					String funcName = Syb->FullName;
 					ScopeHelper::GetApendedString(funcName, Overload_Index_Func);
 
@@ -60,6 +60,8 @@ void SystematicAnalysis::OnExpressionNode(const IndexedExpresionNode& node)
 							gesstype = func->Pars[1].Type;
 						}
 					}
+					*/
+					gesstype.SetType(TypesEnum::uIntPtr);
 				}
 			}
 		}
@@ -76,12 +78,38 @@ void SystematicAnalysis::OnExpressionNode(const IndexedExpresionNode& node)
 		auto HasInfo = Type_HasIndexedOverLoadWith(SourcType, IndexType);
 		if (!HasInfo.HasValue)
 		{
-			auto  Token = _LastLookedAtToken;
-			LogError_CantBeIndexWithType(Token.value(), SourcType, IndexType);
+			auto  Token =NeverNullptr(node._token);
+			LogError_CantBeIndexWithType(Token, SourcType, IndexType);
 
 		}
+		else
+		{
+			bool isnativearraytype = false;
+			if (SourcType.IsAddressArray())
+			{
+				isnativearraytype = true;
+			}
+			else
+			{
+				auto SymOp = Symbol_GetSymbol(SourcType);
+				if (auto Sym = SymOp.value_unchecked())
+				{
+					if (Sym->Type == SymbolType::Type_StaticArray)
+					{
+						isnativearraytype = true;
+					}
+				}
+			}
 
-
+			if (isnativearraytype)
+			{
+				if (!IsInUnSafeBlock())
+				{
+					auto Token = NeverNullptr(node._token);
+					LogError(ErrorCodes::ExpectingSequence, Token->OnLine, Token->OnPos, "Cant Index Native Array Type '" + ToString(SourcType) + "' in safe mode.");
+				}
+			}
+		}
 
 
 
@@ -300,7 +328,7 @@ void SystematicAnalysis::OnExpressionNode(const IndexedExpresionNode& node)
 			_LastExpressionType = lookingfor;
 
 
-
+			auto beforex = _IR_LastExpressionField;
 
 			if (IsRead(_GetExpressionMode.top()))
 			{
@@ -320,12 +348,24 @@ void SystematicAnalysis::OnExpressionNode(const IndexedExpresionNode& node)
 						_LastExpressionType._IsAddress = false;
 					}
 				}
+				
 			}
 
 			if (IsWrite(_GetExpressionMode.top()))
 			{
-				_IR_LastStoreField = IROperator(_IR_LastExpressionField);
+				_IR_LastStoreField = IROperator(beforex);
 				_LastExpressionType = lookingfor;
+			}
+
+			if (_GetExpressionMode.top() == GetValueMode::ReadAndWrite && 
+				_LookingForTypes.top()._IsAddress ==true)
+			{
+				auto p = _LookingForTypes.top();
+				p._IsAddress = false;
+
+				_IR_LastExpressionField = _IR_LookingAtIRBlock->NewLoad_Dereferenc(_IR_LastExpressionField
+						, IR_ConvertToIRType(p));
+
 			}
 		}
 

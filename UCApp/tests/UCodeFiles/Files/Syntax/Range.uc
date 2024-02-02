@@ -15,8 +15,7 @@ $RangeInclusive_t<T>:
   end = End;
 
 |Range<T>[T start,T end] => Range_t<T>(start,end);
-|RangeInclusive<T>[T start,T end] =>RangeInclusive<T>(start,end);
+|RangeInclusive<T>[T start,T end] =>RangeInclusive_t<T>(start,end);
 
 |main[] -> int:
- ret RangeTest().start + RangeTest2().start
-   + RangeTest().end + RangeTest2().end;
+ ret RangeTest().start + RangeTest2().start + RangeTest().end + RangeTest2().end;

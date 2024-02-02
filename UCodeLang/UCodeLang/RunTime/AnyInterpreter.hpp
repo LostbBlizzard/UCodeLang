@@ -2,6 +2,10 @@
 #include "Interpreters/Interpreter.hpp"
 #include "Jit/Jit_Interpreter.hpp"
 #include "Interpreters/NativeInterpreter.hpp"
+#include "UCodeLang/Compilation/Helpers/NameDecoratior.hpp"
+#include "UCodeLang/LangCore/InstructionSet.hpp"
+#include "UCodeLang/RunTime/Interpreters/ParameterPassingHelper.hpp"
+#include <cstddef>
 
 
 UCodeLangStart
@@ -354,6 +358,167 @@ struct AnyInterpreterPtr
 		}
 	}
 
+	Optional<InterpretorError> XCall(UAddress address)
+	{
+	if (auto Val = Base.Get_If<Interpreter*>())
+		{
+          return (*Val)->XCall(address);
+    }
+		else if (auto Val = Base.Get_If<Jit_Interpreter*>())
+		{
+      return (*Val)->XCall(address);
+		}
+		else if (auto Val = Base.Get_If<NativeInterpreter*>())
+		{
+      return (*Val)->XCall(address);
+		}
+		else
+		{
+			UCodeLangUnreachable();//Ptr was not set
+	}
+	}
+
+	Optional<InterpretorError> XCall(const ClassMethod* Function)	
+	{
+
+	if (auto Val = Base.Get_If<Interpreter*>())
+		{
+          return (*Val)->XCall(Function);
+    }
+		else if (auto Val = Base.Get_If<Jit_Interpreter*>())
+		{
+      return (*Val)->XCall(Function);
+		}
+		else if (auto Val = Base.Get_If<NativeInterpreter*>())
+		{
+      return (*Val)->XCall(Function);
+		}
+		else
+		{
+			UCodeLangUnreachable();//Ptr was not set
+	}
+		}
+
+	Optional<InterpretorError> XCall(const String& FuncionName)
+	{	
+	if (auto Val = Base.Get_If<Interpreter*>())
+		{
+      return (*Val)->XCall(FuncionName);
+    }
+		else if (auto Val = Base.Get_If<Jit_Interpreter*>())
+		{
+      return (*Val)->XCall(FuncionName);
+		}
+		else if (auto Val = Base.Get_If<NativeInterpreter*>())
+		{
+      return (*Val)->XCall(FuncionName);
+		}
+		else
+		{
+			UCodeLangUnreachable();//Ptr was not set
+	}
+	  }
+	template<typename R, typename... Args>
+	Result<R,InterpretorError> RXCall(UAddress address, Args... parameters)
+	{
+		if (auto Val = Base.Get_If<Interpreter*>())
+		{
+      return (*Val)->RXCall<R>(address,parameters...);
+    }
+		else if (auto Val = Base.Get_If<Jit_Interpreter*>())
+		{
+      return (*Val)->RXCall<R>(address,parameters...);
+		}
+		else if (auto Val = Base.Get_If<NativeInterpreter*>())
+		{
+      return (*Val)->RXCall<R>(address,parameters...);
+		}
+		else
+		{
+			UCodeLangUnreachable();//Ptr was not set
+	}
+	}
+
+	template<typename T,typename... Args>
+	Result<T,InterpretorError> RXCall(const ClassMethod* Funcion, Args... parameters)
+	{
+		if (auto Val = Base.Get_If<Interpreter*>())
+		{
+      return (*Val)->RXCall<T>(Funcion,parameters...);
+    }
+		else if (auto Val = Base.Get_If<Jit_Interpreter*>())
+		{
+      return (*Val)->RXCall<T>(Funcion,parameters...);
+		}
+		else if (auto Val = Base.Get_If<NativeInterpreter*>())
+		{
+      return (*Val)->RXCall<T>(Funcion,parameters...);
+		}
+		else
+		{
+			UCodeLangUnreachable();//Ptr was not set
+	}
+	}
+
+	template<typename T,typename... Args>
+	Result<T,InterpretorError> RXCall(const String&  FuncionName, Args... parameters)
+	{
+	if (auto Val = Base.Get_If<Interpreter*>())
+		{
+      return (*Val)->RXCall<T>(FuncionName,parameters...);
+    }
+		else if (auto Val = Base.Get_If<Jit_Interpreter*>())
+		{
+      return (*Val)->RXCall<T>(FuncionName,parameters...);
+		}
+		else if (auto Val = Base.Get_If<NativeInterpreter*>())
+		{
+      return (*Val)->RXCall<T>(FuncionName,parameters...);
+		}
+		else
+		{
+			UCodeLangUnreachable();//Ptr was not set
+	}
+}	
+	template<typename T,typename... Args>
+	Result<T,InterpretorError> RXThisCall(const ClassMethod* Funcion,PtrType This, Args... parameters)
+	{if (auto Val = Base.Get_If<Interpreter*>())
+		{
+      return (*Val)->RXThisCall<T>(Funcion,This,parameters...);
+    }
+		else if (auto Val = Base.Get_If<Jit_Interpreter*>())
+		{
+      return (*Val)->RXThisCall<T>(Funcion,This,parameters...);
+  	}
+		else if (auto Val = Base.Get_If<NativeInterpreter*>())
+		{
+      return (*Val)->RXThisCall<T>(Funcion,This,parameters...);
+		}
+		else
+		{
+			UCodeLangUnreachable();//Ptr was not set
+	}
+}	
+
+	template<typename T,typename... Args>
+	Result<T,InterpretorError> RXThisCall(const String&  FuncionName,PtrType This, Args... parameters)
+	{if (auto Val = Base.Get_If<Interpreter*>())
+		{
+            return (*Val)->RXThisCall<T>(FuncionName,This,parameters...);
+    }
+		else if (auto Val = Base.Get_If<Jit_Interpreter*>())
+		{
+            return (*Val)->RXThisCall<T>(FuncionName,This,parameters...);
+		}
+		else if (auto Val = Base.Get_If<NativeInterpreter*>())
+		{
+            return (*Val)->RXThisCall<T>(FuncionName,This,parameters...);
+		}
+		else
+		{
+			UCodeLangUnreachable();//Ptr was not set
+	}
+	}
 	static const AnyInterpreterPtr Make(const Interpreter* ptr)
 	{
 		return AnyInterpreterPtr((Interpreter*)ptr);
@@ -647,7 +812,47 @@ public:
 	{
 		return Get_Ptr().RThisCall<T>(Function, This, parameters...);
 	}
-private:
+
+	Optional<InterpretorError> XCall(UAddress address)
+	{return Get_Ptr().XCall(address);	}
+
+	Optional<InterpretorError> XCall(const ClassMethod* Function)	
+	{
+    return Get_Ptr().XCall(Function);
+		}
+
+	Optional<InterpretorError> XCall(const String& FuncionName)
+	{	return Get_Ptr().XCall(FuncionName);
+      }
+	template<typename R, typename... Args>
+	Result<R,InterpretorError> RXCall(UAddress address, Args... parameters)
+{
+        return GetPtr().RXCall<R>(address,parameters...);	
+	}
+
+	template<typename T,typename... Args>
+	Result<T,InterpretorError> RXCall(const ClassMethod* Funcion, Args... parameters)
+	{
+    return GetPtr().RXCall<T>(Funcion,parameters...);	
+  }
+
+	template<typename T,typename... Args>
+	Result<T,InterpretorError> RXCall(const String&  FuncionName, Args... parameters)
+	{
+    return GetPtr().RXCall<T>(FuncionName,parameters...);
+  }
+	template<typename T,typename... Args>
+	Result<T,InterpretorError> RXThisCall(const ClassMethod* Funcion,PtrType This, Args... parameters)
+	{
+return GetPtr().RXThisCall<T>(Funcion,This,parameters...);
+  }
+
+	template<typename T,typename... Args>
+	Result<T,InterpretorError> RXThisCall(const String&  FuncionName,PtrType This, Args... parameters)
+	{
+    return GetPtr().RXThisCall<T>(FuncionName,This,parameters...);
+	}
+	private:
 	struct Null {};
 	Variant<Null,Interpreter,Jit_Interpreter,NativeInterpreter> Base;
 

@@ -19,7 +19,7 @@ public:
 
 	struct IndexModuleFile
 	{
-		Path _ModuleFullPath; 
+		Path _ModuleFullPath;
 		ModuleIdentifier _ModuleData;
 	};
 
@@ -32,7 +32,7 @@ public:
 
 	}
 
-	
+
 	static BytesPtr ToBytes(const ModuleIndex* Lib);
 	static bool FromBytes(ModuleIndex* Lib, const BytesView Bytes);
 	static bool ToFile(const ModuleIndex* Lib, const Path& path);
@@ -46,7 +46,7 @@ public:
 	void AddModueToList(const Path& path);
 
 	static Path GetModuleIndexFilePath();
-	
+
 	static void WriteType(BitMaker& bit, const Path& Value);
 	static void FromType(BitReader& bit, Path& Value);
 
@@ -71,7 +71,7 @@ class ModuleFile
 public:
 	ModuleIdentifier ModuleName;
 	Path ThisModuleDir;
-	
+
 	bool ForceImport = false;
 	bool RemoveUnSafe = false;
 	String ModuleNameSpace = "";
@@ -80,7 +80,7 @@ public:
 	{
 		Compiler::CompilerRet CompilerRet;
 		Path OutputItemPath;
-		ModuleRet(NeverNullPtr<UClib> OutPut):
+		ModuleRet(NeverNullPtr<UClib> OutPut) :
 			CompilerRet(OutPut)
 		{
 		}
@@ -114,9 +114,9 @@ public:
 	}
 	bool DownloadModules(const ModuleIndex& Modules, Optional<LogOut> LogsOut = {});
 
-	ModuleRet BuildModule(Compiler& Compiler,const ModuleIndex& Modules,bool IsSubModule = false, Optional<LogOut> LogsOut = {});
+	ModuleRet BuildModule(Compiler& Compiler, const ModuleIndex& Modules, bool IsSubModule = false, Optional<LogOut> LogsOut = {});
 	ModuleRet BuildFile(const String& filestring, Compiler& Compiler, const ModuleIndex& Modules, Optional<LogOut> LogsOut = {});
-	
+
 	static bool ToFile(const ModuleFile* Lib, const Path& path);
 	static bool FromFile(ModuleFile* Lib, const Path& path);
 
@@ -158,7 +158,7 @@ public:
 	inline static const String DefaultSourceFile = "use ULang;\n\n\n|main[]:\n  Fmt::Println(\"Hello World\");";
 	inline static const String DefaultBuildFile = "//Build Script Module Imports \n\nimport UCodeLang::StandardLibrary[0:0:0];\nimport UCodeLang::BuildSystem[0:0:0];\n\n//Your code starts here \nuse ULang;\nuse ULang::BuildSystem;\n\n|build[BuildSystem& system] => system.Build();";
 private:
-	void BuildModuleDependencies(const ModuleIndex& Modules,CompilationErrors& Errs, bool& Err, Compiler& Compiler
+	void BuildModuleDependencies(const ModuleIndex& Modules, CompilationErrors& Errs, bool& Err, Compiler& Compiler
 		, const Vector<ModuleDependencie>& ModuleDependencies
 		, Compiler::ExternalFiles& externfilesoutput, Optional<LogOut> LogsOut);
 

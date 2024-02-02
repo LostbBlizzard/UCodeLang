@@ -1,5 +1,6 @@
 #pragma once
 
+#include "UCodeLang/LangCore/LangTypes.hpp"
 #ifndef UCodeLangNoCompiler
 #include "../BackEndInterface.hpp"
 #include "RegistersManager.hpp"
@@ -80,7 +81,7 @@ private:
 	};
 	struct UCodeFunc
 	{
-		IRidentifierID IRName=0;
+		IRidentifierID IRName = 0;
 		Vector<Instruction> _Ins;
 
 		Optional<size_t> _Hash;
@@ -203,7 +204,9 @@ private:
 	Vector<Unique_ptr<UCodeFunc>> Funcs;
 	UCodeFunc* BuildingFunc = nullptr;
 	Optimizations _Optimizations;
-	const IRFunc* lookingatfunc= nullptr;
+	const IRFunc* lookingatfunc = nullptr;
+	Vector<size_t> ThrowJumps;
+	UnorderedMap< const IRFunc*,size_t> FuncStackSizes;
 	//code
 	bool IsPrimitive(const IRType& type)
 	{
@@ -253,7 +256,7 @@ private:
 
 	size_t GetSize(const IRInstruction* Ins)
 	{
-		return _Input->GetSize(Ins->ObjectType, Get_Settings().PtrSize ==IntSizes::Int32);
+		return _Input->GetSize(Ins->ObjectType, Get_Settings().PtrSize == IntSizes::Int32);
 	}
 	size_t GetSize(const IRStruct* Value)
 	{
@@ -271,7 +274,7 @@ private:
 	}
 	void BindBlockData(BlockData& Data, const IRBlock* V)
 	{
-		IRToBlockData.AddValue(V,Data);
+		IRToBlockData.AddValue(V, Data);
 	}
 	UAddress PushIns()
 	{
@@ -386,7 +389,7 @@ private:
 		_Registers.FreeRegister(ID);
 	}
 
-	IRlocData GetIRLocData(const IRInstruction* Ins,bool GetAddress = false);
+	IRlocData GetIRLocData(const IRInstruction* Ins, bool GetAddress = false);
 	IRlocData GetIRLocData(const IRInstruction* Ins, const IROperator& Op, bool GetAddress = false);
 	IRlocData GetIRLocData(const IROperator& Op, bool GetAddress = false);
 	void CopyValues(const IRlocData& Src, const IRlocData& Out, bool DerefSrc = false, bool DerefOut = false);
@@ -403,7 +406,14 @@ private:
 
 	RegisterID LoadOp(const IRInstruction* Ins, const IROperator& Op);
 	void LoadOpToReg(const IRInstruction* Ins, const IROperator& Op, RegisterID Out);
-	void RegToReg(IRTypes Type, RegisterID In, RegisterID Out,bool IsCopy);
+	void RegToReg(IRTypes Type, RegisterID In, RegisterID Out, bool IsCopy)
+	{
+		IRType v;
+		v._Type = Type;
+		UCodeLangAssert(Type != IRTypes::IRsymbol);
+		RegToReg(v, In, Out, IsCopy);
+	}
+	void RegToReg(IRType Type, RegisterID In, RegisterID Out, bool IsCopy);
 	void PushOpStack(const IRInstruction* Ins, const IROperator& Op);
 	void LogicalNot(IRTypes Type, RegisterID In, RegisterID Out);
 	void BuildLink(const IRidentifier& FuncName, IRFuncLink LinkType);
@@ -443,7 +453,7 @@ private:
 	void AddOffset(IRlocData& Pos, size_t Offset);
 
 	FindParsLoc GetParsLoc(const Vector<IRType>& Pars, bool SetReg = false);
-	FindParsLoc GetParsLoc(const Vector<IRPar>& Pars,bool SetReg =false);
+	FindParsLoc GetParsLoc(const Vector<IRPar>& Pars, bool SetReg = false);
 
 	AnyInt64 ToAnyInt(const IRType& ObjectType, const  IROperator& Op);
 
@@ -493,16 +503,21 @@ private:
 					return NeverNullptr(&Item);
 				}
 			}
-	}
+		}
 		UCodeLangUnreachable();
 	}
 
-	size_t GetPreCallStackOffset2(size_t ItemSize, size_t ItemStackOffset)
+	size_t GetPreCallStackOffset2(size_t ItemStackOffset)
 	{
-		
-		auto newpos = ItemSize+ItemStackOffset;
-		//newpos += ItemSize+8;//i have no idea why 8+ is needed
-		return newpos + _Stack.PushedOffset;
+		auto  par = GetPreCallPar(ItemStackOffset);
+
+		auto mainobjsize = GetSize(par->Par->type);
+
+		size_t paroffset = par->Location.Get<StackPreCall>().Offset;
+		size_t FeildOffset = ItemStackOffset - paroffset;
+		//return paroffset + mainobjsize - FeildOffset + _Stack.PushedOffset;
+		return paroffset + mainobjsize - FeildOffset;
+	
 	}
 
 	//AddDebuginfo
@@ -526,11 +541,11 @@ private:
 			_DebugInfo.Add_SetLineNumber(LineNumber, InsInBlock);
 		}
 	}
-	void Add_SetVarableName(const String& Name,VarableInfo& Info)
+	void Add_SetVarableName(const String& Name, VarableInfo& Info)
 	{
 		if (IsDebugMode())
 		{
-			_DebugInfo.Add_SetVarableName(Name,std::move(Info));
+			_DebugInfo.Add_SetVarableName(Name, std::move(Info));
 		}
 	}
 

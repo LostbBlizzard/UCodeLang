@@ -168,7 +168,7 @@ Vector<const ClassMethod*> TestRuner::GetTests(const ClassAssembly& Assembly)
 					{
 						if (auto val = Assembly.Find_Node(tag.TypeID))
 						{
-							if (StringHelper::Contains(val->FullName, "test") || StringHelper::Contains(val->FullName, "Test"))
+							if (val->FullName == "ULang:Test")
 							{
 								hastesttag = true;
 								break;

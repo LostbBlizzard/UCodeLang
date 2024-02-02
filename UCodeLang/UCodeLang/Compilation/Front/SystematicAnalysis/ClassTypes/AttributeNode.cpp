@@ -50,14 +50,13 @@ void SystematicAnalysis::OnAttributeNode(const AttributeNode& node)
 				}
 				else
 				{
-					LogError_ExpectedSymbolToBea(token, *Att, SymbolType::Tag_class);
+					//LogError_ExpectedSymbolToBea(token, *Att, SymbolType::Tag_class);
 				}
 			}
 			else
 			{
 				LogError_ExpectedSymbolToBea(token, *Att, SymbolType::Tag_class);
 			}
-			Syb.VarType = TypeSymbol(Att->ID);
 		}
 		else
 		{
@@ -69,26 +68,14 @@ void SystematicAnalysis::OnAttributeNode(const AttributeNode& node)
 		{
 			auto Tag = AttOp.value();
 
-			String functocall;
-
-			_LookingForTypes.push(TypesEnum::Void);
-			auto f = Type_GetFunc(Tag->VarType, node._Parameters);
-			_LookingForTypes.pop();
-
-			if (Tag->Type == SymbolType::Generic_Tag)
-			{
-
-			}
-			else
-			{
-				functocall = ScopeHelper::ApendedStrings(Tag->FullName, ClassConstructorfunc);
-			}
+			String functocall = ScopeHelper::ApendedStrings(Tag->FullName, ClassConstructorfunc);
+			
 			auto FuncCalls = GetSymbolsWithName(functocall,SymbolType::Func);
 			
 			
-			if (FuncCalls.size() == 0 && node._Parameters._Nodes.size())
+			if (FuncCalls.size() == 0 && node._Parameters._Nodes.size()==0)
 			{
-
+				Syb.VarType = TypeSymbol(AttOp.value()->ID);
 			}
 			else
 			{
@@ -101,6 +88,9 @@ void SystematicAnalysis::OnAttributeNode(const AttributeNode& node)
 				Optional<NeverNullPtr<Symbol>> FuncToCall;
 				if (f.Func)
 				{
+					Syb.VarType = f.Func->Pars[0].Type;
+
+
 					FuncToCall = NeverNullptr(f.SymFunc);
 
 					EvalParsInfo.resize(f.Func->Pars.size()-1);

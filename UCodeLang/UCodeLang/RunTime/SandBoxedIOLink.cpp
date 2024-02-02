@@ -1,4 +1,3 @@
-#pragma once
 #include "SandBoxedIOLink.hpp"
 #include "Interpreters/Interpreter.hpp"
 #include <mutex>

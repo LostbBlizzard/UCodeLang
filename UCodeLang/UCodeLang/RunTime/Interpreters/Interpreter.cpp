@@ -63,8 +63,14 @@ Interpreter::Return_t Interpreter::Call(const String& FunctionName)
 	
 	return Call(address.value());
 }
+
+
+thread_local Optional<InterpretorError> m;
+
 Interpreter::Return_t Interpreter::Call(UAddress address)
 {
+	m = {};
+
 	#if UCodeLangDebug
 	{
 		
@@ -145,6 +151,24 @@ Interpreter::Return_t Interpreter::Call(UAddress address)
 }
 
 
+void Interpreter::ThrowInterpreterError(String_view ErrorMsg)
+{
+	InterpretorError r;
+	PanicCalled v;
+	v.PanicMsg = ErrorMsg;
+
+	auto pc = _CPU.ProgramCounter;
+
+
+	r.ErrorType = std::move(v);
+
+	m = std::move(r);
+}
+Optional<InterpretorError> Interpreter::CheckForIntperpreterError()
+{
+	return m;
+}
+	
 #if UCodeLangGNUC || UCodeLangClang
 #define HasLabelAsValues 1
 #else
@@ -516,6 +540,9 @@ void Interpreter::Extecute(Instruction& Inst)
 		&&Ins_Await_IsDone,
 		&&Ins_Await_GetValue,
 		&&Ins_Await_FreeTask,
+			
+		//Other
+		&&Ins_SetPanicMsg,
 	};
 
 	constexpr size_t JumpTableSize = sizeof(InsJumpTable) / sizeof(InsJumpTable[0]);
@@ -1133,7 +1160,16 @@ void Interpreter::Extecute(Instruction& Inst)
 		Get_State()->AwaitFreeTask(task);
 	}
 	InsBreak();
+	InsCase(SetPanicMsg) :
+	{
+		RegisterID Ptr = Inst.Op_TwoReg.A;
+		RegisterID Size = Inst.Op_TwoReg.B;
 
+		String_view v = String_view((char*)Get_Register(Ptr).Value.AsPtr, Get_Register(Size).Value.AsUIntNative);
+
+		ThrowInterpreterError(v);
+	}
+	InsBreak();
 
 #if !UseJumpTable
 	default:

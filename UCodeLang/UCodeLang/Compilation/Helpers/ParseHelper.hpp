@@ -7,7 +7,7 @@ UCodeLangStart
 class ParseHelper
 {
 public:
-	#define ParseHelpertoIntSet(x) \
+#define ParseHelpertoIntSet(x) \
 	static bool ParseStringToInt##x(String_view string, Int##x& out) \
 	{ \
 		out = std::stoi((String)string); \
@@ -24,17 +24,17 @@ public:
 	ParseHelpertoIntSet(32);
 	ParseHelpertoIntSet(64);
 
-	static bool ParseStringTofloat32(String_view string, float32& out) 
-	{ 
-		out = std::stof((String)string); 
-		return true; 
-	} 
+	static bool ParseStringTofloat32(String_view string, float32& out)
+	{
+		out = std::stof((String)string);
+		return true;
+	}
 	static bool ParseStringTofloat64(String_view string, float64& out)
 	{
 		out = std::stod((String)string);
 		return true;
 	}
-		
+
 	static bool ParseCharliteralToChar(String_view string, char& out);
 	static bool ParseCharliteralToChar(String_view string, Utf8& out);
 	static bool ParseCharliteralToChar(String_view string, Utf16& out);

@@ -40,7 +40,7 @@ struct CompilationBackEndInfo
 		UCodeVm,
 		C11,
 		Wasm,
-		
+
 		Windows,
 		Linux,
 		MacOs,
@@ -67,7 +67,7 @@ struct CompilationBackEndInfo
 	bool IsLinux() { return Output == BackEnd::Linux; }
 	bool IsMacOs() { return Output == BackEnd::MacOs; }
 
-	bool IsX86(){ return OutputSet == InsSet::X86; }
+	bool IsX86() { return OutputSet == InsSet::X86; }
 	bool IsArm() { return OutputSet == InsSet::Arm; }
 };
 struct CompilationSettings
@@ -78,13 +78,13 @@ struct CompilationSettings
 	CompilationBackEndInfo _BackEndInfo;
 	Vector<String> _Args;
 
-	
+
 
 	void AddArgFlag(const String& FlagName)
 	{
 		_Args.push_back("--" + FlagName);
 	}
-	void AddArgValue(const String& ValueName,const String& ValueAsString)
+	void AddArgValue(const String& ValueName, const String& ValueAsString)
 	{
 		_Args.push_back("--" + ValueName + ":" + ValueAsString);
 	}
@@ -109,7 +109,7 @@ struct CompilationSettings
 		Optional<String> R;
 		for (auto& Item : _Args)
 		{
-			if (StringHelper::StartWith(Item,ValueName))
+			if (StringHelper::StartWith(Item, ValueName))
 			{
 				R = Item.substr(ValueName.size() + 1);//pass the :
 			}

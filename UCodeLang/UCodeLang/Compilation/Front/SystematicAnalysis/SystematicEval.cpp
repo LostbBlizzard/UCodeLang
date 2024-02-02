@@ -476,15 +476,28 @@ bool SystematicAnalysis::Eval_Evaluate(EvaluatedEx& Out, const ValueExpressionNo
 	break;
 	case NodeType::TypeToValueNode:
 	{
+		auto oldpasstype = _PassType;
+		_PassType = PassType::FixedTypes;
+
 		OnTypeToValueNode(*TypeToValueNode::As(node._Value.get()));
 		Eval_Set_ObjectAs(Out, _LastExpressionType);
+	
+		_PassType = oldpasstype;
+
 		return true;
 	}
 	break;
 	case NodeType::ExpressionToTypeValueNode:
 	{
+		auto oldpasstype = _PassType;
+
+		_PassType = PassType::FixedTypes;
+
 		OnExpressionToTypeValueNode(*ExpressionToTypeValueNode::As(node._Value.get()));
 		Eval_Set_ObjectAs(Out, _LastExpressionType);
+	
+		_PassType = oldpasstype;
+		
 		return true;
 	}
 	break;
@@ -772,8 +785,11 @@ Optional<SystematicAnalysis::EvaluatedEx> SystematicAnalysis::Eval_Evaluate(cons
 }
 bool SystematicAnalysis::Eval_EvaluateToAnyType(EvaluatedEx& Out, const ExpressionNodeType& node)
 {
+	//Nodes like type and typeof dont will throw an error if _PassType == PassType::Build
+	auto oldpasstype = _PassType;
+	_PassType = PassType::FixedTypes;
 	OnExpressionTypeNode(node._Value.get(), GetValueMode::Read);//check
-
+	_PassType = oldpasstype;
 
 	EvaluatedEx ex1 = Eval_MakeEx(_LastExpressionType);
 	bool CompilerRet = Eval_Evaluate_t(ex1, node._Value.get(), GetValueMode::Read);
@@ -823,7 +839,17 @@ bool SystematicAnalysis::Eval_EvalutateValidNode(EvaluatedEx& Out, const ValidNo
 }
 bool SystematicAnalysis::Eval_EvalutateFunc(EvaluatedEx& Out, const FuncCallNode& node)
 {
-	Get_FuncInfo FuncInfo = Type_GetFunc(node._FuncName, node.Parameters, Type_Get_LookingForType());
+	Get_FuncInfo FuncInfo;
+	
+	auto symid = Symbol_GetSymbolID(node);
+	if (_FuncToSyboID.HasValue(symid))
+	{
+		FuncInfo = _FuncToSyboID.GetValue(symid);
+	}
+	else
+	{
+		FuncInfo = Type_GetFunc(node._FuncName, node.Parameters, Type_Get_LookingForType());
+	}
 
 	if (Eval_CanEvalutateFuncCheck(FuncInfo))
 	{
@@ -1094,7 +1120,7 @@ bool SystematicAnalysis::Eval_EvalutateFunc(EvalFuncData& State, const NeverNull
 	const FuncInfo* funcInfo = Func->Get_Info<FuncInfo>();
 	Set_SymbolContext(funcInfo->Context.value());
 	{
-		_Table._Scope.ThisScope = Func->FullName;
+		_Table._Scope.ThisScope = funcInfo->FullName;
 		
 		const FuncNode& Body = *Func->Get_NodeInfo<FuncNode>();
 
@@ -1186,7 +1212,7 @@ bool SystematicAnalysis::EvalStore(EvalFuncData& State, const ExpressionNodeType
 								auto& frame = _Eval_FuncStackFrames.back();
 
 								auto ThisSym = Symbol_GetSymbol(
-									ScopeHelper::ApendedStrings(frame->FuncSyb->FullName, ThisSymbolName)
+									ScopeHelper::ApendedStrings(frame->FuncSyb->Get_Info<FuncInfo>()->FullName, ThisSymbolName)
 									, SymbolType::ParameterVarable).value();
 
 
@@ -1275,19 +1301,23 @@ bool SystematicAnalysis::Eval_EvalutateStatement(EvalFuncData& State, const Node
 		const AssignExpressionNode* Node = AssignExpressionNode::As(node);
 		auto& assign = Node->_ToAssign;
 
-		 OnExpressionTypeNode(assign,GetValueMode::Write);
-		 auto StoreType = _LastExpressionType;
 
-		 _LookingForTypes.push(std::move(StoreType));
-		 auto ex = Eval_Evaluate(StoreType, Node->_Expression);
-		 _LookingForTypes.pop();
+		_LookingForTypes.push(TypesEnum::Any);
+		OnExpressionTypeNode(assign, GetValueMode::Write);
+		_LookingForTypes.pop();
 
-		 if (!ex.has_value())
-		 {
-			 return false;
-		 }
-		
-		 return EvalStore(State, assign, ex.value());
+		auto StoreType = _LastExpressionType;
+
+		_LookingForTypes.push(std::move(StoreType));
+		auto ex = Eval_Evaluate(StoreType, Node->_Expression);
+		_LookingForTypes.pop();
+
+		if (!ex.has_value())
+		{
+			return false;
+		}
+
+		return EvalStore(State, assign, ex.value());
 	}
 	break;
 	default:
@@ -1331,6 +1361,21 @@ bool SystematicAnalysis::Eval_EvalutateScopedName(EvaluatedEx& Out, size_t Start
 
 			}
 
+		}
+		else if (V._Symbol->Type == SymbolType::Enum_Field)
+		{
+			const String FieldName = ScopeHelper::GetNameFromFullName(V._Symbol->FullName);
+			String enumsybfullname = V._Symbol->FullName;
+			ScopeHelper::ReMoveScope(enumsybfullname);
+			
+			auto v = Symbol_GetSymbol(enumsybfullname,SymbolType::Enum).value();
+			EnumInfo* info = v->Get_Info<EnumInfo>();
+			
+			auto field = info->GetField(FieldName).value();
+
+			Out.EvaluatedObject = field->Ex;
+			Out.Type = V.Type;
+			return true;
 		}
 
 	}

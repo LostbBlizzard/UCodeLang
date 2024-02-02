@@ -26,14 +26,14 @@ public:
 	void UpdateBackInfo(CompilationBackEndInfo& BackInfo) override;
 private:
 	String OutBuffer;
-	const IRBuilder* _Input =nullptr;
+	const IRBuilder* _Input = nullptr;
 	const IRFunc* _Func = nullptr;
 	struct ToStringState
 	{
 		UnorderedMap<IRInstruction*, String> PointerToName;
 		Vector<IRInstruction*> TepPushedParameters;
 
-		
+
 		size_t Num = 0;
 
 		String GetName(IRInstruction* Ptr);
@@ -45,13 +45,13 @@ private:
 
 	void UpdateCppLinks(UCodeLang::String& r, UCodeLang::IRBufferData* V);
 
-	void ToString(String& r, const IRFunc* Item, C11Backend::ToStringState& State,bool OutputBody = false);
+	void ToString(String& r, const IRFunc* Item, C11Backend::ToStringState& State, bool OutputBody = false);
 
-	String ToString(const IRType& Type,bool IsUnsigned = false);
+	String ToString(const IRType& Type, bool IsUnsigned = false);
 
 	String ToString(ToStringState& State, IRInstruction& Ins, IROperator& Value);
 	String ToStringBinary(ToStringState& State, IRInstruction* Ins, const char* V);
-	
+
 	String FromIDToCindentifier(IRidentifierID Value);
 
 };

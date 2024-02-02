@@ -3,6 +3,7 @@
 #include <iostream>
 #include <filesystem>
 
+#include "UCodeLang/LangCore/Version.hpp"
 
 #if UCodeLang_Platform_Windows
 #include <windows.h>
@@ -17,6 +18,12 @@
 UCodeLangStart
 
 
+LangInfo::Version LangInfo::CurrrentVersion = Version(UCodeLangMajorVersion, UCodeLangMinorVersion, UCodeLangPatchVersion);
+
+#define STR_HELPER(x) #x
+#define STR(x) STR_HELPER(x)
+
+const char* LangInfo::VersionName = STR( UCodeLangMajorVersion ) "." STR(UCodeLangMinorVersion) "." STR(UCodeLangPatchVersion);
 
 Path LangInfo::GetUCodeGlobalDirectory()
 {

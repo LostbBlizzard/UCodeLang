@@ -29,8 +29,8 @@ void X86_64IR::CleanUp(CleanUpMode Mode)
 		}
 
 	}
-	
-	
+
+
 	//if (Mode != CleanUpMode::None)
 	{
 		for (auto& Item : Funcs)
@@ -89,7 +89,7 @@ void X86_64IR::Build(BuildInfo::BuildFunc& Out, BuildState& State, const Func& V
 		State.Gen._Base._Output.ByteOutput.push_back(Item);
 	}
 
-	size_t lastepilogue =0;
+	size_t lastepilogue = 0;
 	for (auto& Item : Value.Body)
 	{
 
@@ -101,7 +101,7 @@ void X86_64IR::Build(BuildInfo::BuildFunc& Out, BuildState& State, const Func& V
 			}
 			lastepilogue = State.Gen.Size();
 		}
-		else 
+		else
 		{
 			Build(Out, State, Item);
 		}
@@ -130,7 +130,7 @@ constexpr Int64 RelocVal64 = 0;
 
 void X86_64IR::Build(BuildInfo::BuildFunc& Out, BuildState& State, const Ins& Value) const
 {
-	if (auto Val =Value.variant.Get_If<Ins::NoOp>())
+	if (auto Val = Value.variant.Get_If<Ins::NoOp>())
 	{
 
 	}
@@ -139,7 +139,7 @@ void X86_64IR::Build(BuildInfo::BuildFunc& Out, BuildState& State, const Ins& Va
 		if (auto Val2 = Val->MoveTypes.Get_If<Ins::Move::RegToReg>())
 		{
 			switch (Val2->RegSize)
-			{	
+			{
 			case Ins::InsRegSize::bits8:
 			{
 				State.Gen.mov8(Val2->Out, Val2->Src);

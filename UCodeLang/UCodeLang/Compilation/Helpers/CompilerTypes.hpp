@@ -18,7 +18,7 @@ enum class TokenType : TokenType_t
 	Left_Bracket,//[
 	Right_Bracket,//]
 	Colon,//:
-	
+
 	StartTab,//
 	EndTab,//
 
@@ -33,7 +33,7 @@ enum class TokenType : TokenType_t
 	bitwise_XOr, //^,
 	bitwise_not, //~,
 	Type,
-	
+
 	String_literal,// "String"
 	Number_literal, // 100
 	Float_literal,
@@ -152,7 +152,7 @@ enum class TokenType : TokenType_t
 	KeyWord_eval,
 
 	KeyWord_Import,//import
-	
+
 	KeyWord_TypeInfo,//typeinfo
 	KeyWord_extern,//extern
 
@@ -180,7 +180,7 @@ enum class TokenType : TokenType_t
 class TokenStringHelper
 {
 public:
-	static void PushString(String& out,TokenType V)
+	static void PushString(String& out, TokenType V)
 	{
 		const char* str = ToString(V);
 		out += str;
@@ -346,7 +346,7 @@ struct TokenValue
 	void* _Ptr;
 	String_view _String;
 	Int8 _Int8;
-	
+
 	size_t _Size_t;
 
 	TokenValue& operator=(void* ptr)
@@ -371,14 +371,14 @@ struct TokenValue
 	}
 };
 struct Token
-{ 
+{
 	TokenType Type = TokenType::Null;
 	TokenValue Value;
 
-	size_t OnLine =0;
+	size_t OnLine = 0;
 	size_t OnPos = 0;
 
-	static void PushString(String& out,const Token& T)
+	static void PushString(String& out, const Token& T)
 	{
 		switch (T.Type)
 		{
@@ -399,10 +399,10 @@ struct Token
 			TokenStringHelper::PushString(out, T.Type);
 			break;
 		}
-		
+
 	}
 
-}; 
+};
 UCodeLangEnd
 
 #endif

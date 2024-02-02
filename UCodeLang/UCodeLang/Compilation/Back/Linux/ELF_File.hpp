@@ -30,18 +30,18 @@ public:
 		//Unknown
 		None = 0x00,
 		//Relocatable file.
-		Relocatable =0x01,
+		Relocatable = 0x01,
 		//Executable file.
 		Executable = 0x02,
 		//Shared object.
-		Shared =0x03,
+		Shared = 0x03,
 		//Core file.
-		Core =0x04,
+		Core = 0x04,
 	};
 	enum class Machine :UInt16
 	{
 		Any = 0x00,
-		AMD_X86 =0x03,
+		AMD_X86 = 0x03,
 		Arm = 0x28,
 		AMD_X8664 = 0x3E,
 		Arm64 = 0xB7,
@@ -58,12 +58,12 @@ public:
 	//e_ident[EI_ABIVERSION]
 	Machine machine = Machine::Any;
 
-	UInt64 entry=0;
+	UInt64 entry = 0;
 	UInt64 ProgramheaderTableoffset = 0;
 	UInt64 SectionheaderTableoffset = 0;
 
 	//Interpretation of this field depends on the target architecture.
-	UInt32 flags=0;
+	UInt32 flags = 0;
 	//TODO e_ehsize
 
 

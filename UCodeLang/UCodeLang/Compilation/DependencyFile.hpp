@@ -18,7 +18,7 @@ public:
 		UInt64 FileLastUpdated = 0;
 		UInt64 FileSize = 0;
 		UInt64 FileHash = 0;
-		
+
 		Vector<Path> Dependencies;
 		Vector<Path> ExternDependencies;
 		void ToBytes(BitMaker& Output) const;
@@ -27,7 +27,7 @@ public:
 		{
 			for (auto& Item : Dependencies)
 			{
-				if (Item == path) 
+				if (Item == path)
 				{
 					return true;
 				}
@@ -88,7 +88,7 @@ public:
 	FileInfo* Get_Info(const Path& Path);
 	ExternalFileInfo* Get_ExternalFile_Info(const Path& Path);
 
-	
+
 	static BytesPtr ToRawBytes(const DependencyFile* Lib);
 	static bool FromBytes(DependencyFile* Lib, const BytesView& Data);
 

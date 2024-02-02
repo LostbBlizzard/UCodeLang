@@ -408,6 +408,9 @@ struct ThreadVar_Data
 };
 struct StaticArray_Data
 {
+	ReflectionCustomTypeID TypeID = {};
+	ReflectionTypeInfo BaseType;
+	size_t Count = 0;
 	~StaticArray_Data()
 	{
 
@@ -720,7 +723,17 @@ public:
 		r.Name = Name;
 		r.FullName = FullName;
 		return r.Get_GenericFunctionData();
+	}	
+	inline StaticArray_Data& AddStaticArray(const String& Name, const String& FullName = "")
+	{
+		auto V = std::make_unique<AssemblyNode>(ClassType::StaticArray);
+		Classes.push_back(std::move(V));
+		auto& r = *Classes.back();
+		r.Name = Name;
+		r.FullName = FullName;
+		return r.Get_StaticArray();
 	}
+	
 	static void PushCopyClasses(const ClassAssembly& source, ClassAssembly& Out);
 	AssemblyNode* Find_Node(const String& Name, const String& Scope ="")
 	{
@@ -911,6 +924,12 @@ public:
 
 	Vector<const ClassMethod*> Find_Funcs(const String_view& FullName) const
 	{
+		auto v = ((ClassAssembly*)this)->Find_Funcs(FullName);
+		return *(Vector<const ClassMethod*>*)&v;
+	}
+
+	Vector<const ClassMethod*> Find_FuncsUsingName(const String_view& Name) const
+	{
 		Vector<const ClassMethod*> r;
 		for (auto& Item : Classes)
 		{
@@ -918,8 +937,9 @@ public:
 			{
 				for (auto& Item2 : Item->Get_ClassData().Methods)
 				{
-					if (Item2.DecorationName == FullName
-						|| Item2.FullName == FullName)
+					if (Item2.DecorationName == Name
+						|| Item2.FullName == Name
+						|| ScopeHelper::GetNameFromFullName(Item2.FullName) == Name)
 					{
 						r.push_back(&Item2);
 					}
@@ -929,7 +949,6 @@ public:
 		}
 		return r;
 	}
-
 
 	const AssemblyNode* Find_Node(ReflectionCustomTypeID TypeID) const;
 	AssemblyNode* Find_Node(ReflectionCustomTypeID TypeID);
@@ -1272,5 +1291,24 @@ public:
 	};
 	// includes type aliases
 	Optional<InfoSpan_t> IsSpan_t(const ReflectionTypeInfo& Type) const;
+
+
+	struct InfoMap_t
+	{
+		ReflectionTypeInfo KeyType;
+		ReflectionTypeInfo MappedType;
+	};
+	// includes type aliases
+	Optional<InfoMap_t> IsMap_t(const ReflectionTypeInfo& Type) const;
+
+
+	struct InfoArray_t
+	{
+		ReflectionTypeInfo ElementType;
+		const ClassMethod* Data_Method = nullptr;//|Data[imut this&] -> ElementType[&];
+		const ClassMethod* Size_Method = nullptr;//|Size[imut this&] -> uintptr;
+	};
+	// includes type aliases
+	Optional<InfoArray_t> IsArray_t(const ReflectionTypeInfo& Type) const;
 };
 UCodeLangEnd

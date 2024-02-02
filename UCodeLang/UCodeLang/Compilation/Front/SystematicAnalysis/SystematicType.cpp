@@ -1149,7 +1149,51 @@ SystematicAnalysis::UrinaryOverLoadWith_t SystematicAnalysis::Type_HasUrinaryOve
 				{
 					EnumInfo* info = Syb->Get_Info<EnumInfo>();
 
-					if (info->Fields.size() != 2)
+					const Symbol* Resultgeneric = Symbol_GetSymbol(UCode_ResultType,SymbolType::Generic_Enum).value().value();
+					const EnumInfo* ResultgenericInfo = Resultgeneric->Get_Info<EnumInfo>();
+
+					if (info->Fields.size() != 2 || !info->VariantData.has_value())
+					{
+						return {};
+					}
+
+					if (ResultgenericInfo->_GenericData._Genericlist.size() == 2
+						&& ResultgenericInfo->Fields.size() != 2 || !ResultgenericInfo->VariantData.has_value())
+					{
+						return {};
+					}
+
+					size_t Indexval = 0;
+					size_t Indexerr = 0;
+
+					if (ResultgenericInfo->VariantData.value().Variants[0].Types.front()._CustomTypeSymbol == ResultgenericInfo->_GenericData._Genericlist[0].SybID)
+					{
+						Indexval = 0;
+						Indexerr = 1;
+					}
+					else
+					{
+						Indexval = 1;
+						Indexerr = 0;
+					}
+
+					UCodeLangAssert(Indexval != Indexerr);
+
+					auto& variantinfo = info->VariantData.value().Variants;
+
+					EnumVariantField* hasval = &variantinfo[Indexval];
+					EnumVariantField* haserr = &variantinfo[Indexerr];
+
+					if (hasval && haserr)
+					{
+						auto rettype = hasval->Types[0];
+
+
+						_LastExpressionType = rettype;//Should return rettype and not set _LastExpressionType
+
+						return { {true} };
+					}
+					else
 					{
 						return {};
 					}
@@ -1264,7 +1308,19 @@ TypeSymbolID SystematicAnalysis::Type_GetTypeID(TypesEnum Type, SymbolID SymbolI
 	case TypesEnum::CustomType:
 	{
 		auto Syb = Symbol_GetSymbol(SymbolId);
-		R = (ReflectionCustomTypeID)std::hash<String>()(Syb->FullName);
+		String ReflectionName;
+		if (Syb->Type == SymbolType::Type_StaticArray)
+		{
+			const StaticArrayInfo* info = Syb->Get_Info<StaticArrayInfo>();
+			ReflectionName = ToString(info->Type) + "[/" + std::to_string(info->Count) + "]";
+		}
+		else
+		{
+			ReflectionName = Syb->FullName;
+		}
+
+
+		R = (ReflectionCustomTypeID)std::hash<String>()(ReflectionName);
 	}
 	break;
 	default:
@@ -1368,10 +1424,16 @@ void SystematicAnalysis::Type_Convert(const TypeNode& V, TypeSymbol& Out)
 		_LastLookedAtToken = Nullableptr(V._name._ScopedName.back()._token);
 
 
-		UseGenericsNode& _generic = *V._name._ScopedName.back()._generic.get();
-		if (_generic._Values.size())
+		NullablePtr<UseGenericsNode> _generic;
+		if (V._name._ScopedName.back()._generic.get())
 		{
-			auto Val = Generic_InstantiateOrFindGenericSymbol(NeverNullptr(V._name._ScopedName.back()._token), _generic, Name);
+			_generic = V._name._ScopedName.back()._generic.get();
+		}
+		if (_generic.has_value() && _generic.value()->_Values.size())
+		{
+			const UseGenericsNode* _genericval = _generic.value().value();
+
+			auto Val = Generic_InstantiateOrFindGenericSymbol(NeverNullptr(V._name._ScopedName.back()._token), *_genericval, Name);
 			if (!Val.has_value()) { return; }
 			SybV = Val.value().value();
 		}
@@ -1766,7 +1828,7 @@ void SystematicAnalysis::Type_Convert(const TypeNode& V, TypeSymbol& Out)
 			{
 				Info.Count = 0;
 				Info.IsCountInitialized = true;
-
+				Info.IsCountError = true;
 			}
 
 			if (Symbol_HasDestructor(Info.Type))

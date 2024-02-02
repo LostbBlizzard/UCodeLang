@@ -105,6 +105,7 @@ void SystematicAnalysis::OnAliasNode(const AliasNode& node)
 		{
 			if (node._AliasType == AliasType::Type)
 			{
+				Syb.PassState = PassType::FixedTypes;
 				Type_ConvertAndValidateType(node._Type, Syb.VarType, NodeSyb_t::Any);
 			}
 			else
@@ -130,7 +131,7 @@ void SystematicAnalysis::OnAliasNode(const AliasNode& node)
 		{
 			if (node._AliasType == AliasType::Type)
 			{
-				auto& V = _Lib.Get_Assembly().AddAlias((String)ClassName, _Table._Scope.ThisScope);
+				auto& V = _Lib.Get_Assembly().AddAlias((String)ClassName, RemoveSymboolFuncOverloadMangling(_Table._Scope.ThisScope));
 				V.Type = Assembly_ConvertToType(Syb.VarType);
 
 				if (node._IsHardAlias)
@@ -141,7 +142,7 @@ void SystematicAnalysis::OnAliasNode(const AliasNode& node)
 			}
 			else
 			{
-				auto& V = _Lib.Get_Assembly().AddFuncPtr((String)ClassName, _Table._Scope.ThisScope);
+				auto& V = _Lib.Get_Assembly().AddFuncPtr((String)ClassName, RemoveSymboolFuncOverloadMangling(_Table._Scope.ThisScope));
 				const FuncPtrInfo* nodeinfo_ = Syb.Get_Info<FuncPtrInfo>();
 				V.ParsType.resize(nodeinfo_->Pars.size());
 				for (size_t i = 0; i < nodeinfo_->Pars.size(); i++)
@@ -165,8 +166,9 @@ void SystematicAnalysis::OnAliasNode(const AliasNode& node)
 				String_view(&Text[node._AliasName.token->OnPos],
 					node.EndOfClass->OnPos - node._AliasName.token->OnPos);
 
+			auto newfullname = RemoveSymboolFuncOverloadMangling(Syb.FullName);
 			GenericClass_Data& VClass = _Lib.Get_Assembly().AddGenericClass(
-				(String)ScopeHelper::GetNameFromFullName(Syb.FullName), Syb.FullName);
+				(String)ScopeHelper::GetNameFromFullName(newfullname), newfullname);
 
 			VClass.Base.Implementation = ClassStr + String(ClassBody);
 			VClass.Base.Implementation += "\n\n";

@@ -63,7 +63,7 @@ void InsHelper::SetWriteReg(Instruction& Op, RegisterID A)
 	switch (Op.OpCode)
 	{
 	case InstructionSet::bitwiseXor32:
-		InstructionBuilder::bitwise_Xor32(Op, Op.Op_ThreeReg.A,Op.Op_ThreeReg.B, A);
+		InstructionBuilder::bitwise_Xor32(Op, Op.Op_ThreeReg.A, Op.Op_ThreeReg.B, A);
 		break;
 	default:
 		UCodeLangUnreachable();

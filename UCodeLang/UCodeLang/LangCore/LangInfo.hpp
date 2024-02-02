@@ -19,8 +19,8 @@ public:
 			RevisionVersion = Revision;
 		}
 	};
-	inline static Version CurrrentVersion = Version(0,0,1);
-	static constexpr const char* VersionName = "0.0.1";
+	static Version CurrrentVersion;
+	static const char* VersionName;
 	UCodeLangAPIExport static Path GetUCodeGlobalDirectory();
 	UCodeLangAPIExport static Path GetUCodeGlobalModulesDownloads();
 	UCodeLangAPIExport static Path GetUCodeGlobalBin();

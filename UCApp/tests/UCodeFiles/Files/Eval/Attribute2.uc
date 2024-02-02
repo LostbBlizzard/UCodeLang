@@ -1,5 +1,5 @@
 $Cool<(StrSize)> tag:
- char[/(StrSize)] V;
+ char[/StrSize] V;
  |new[this&,char[/StrSize] num]:
   V = num;
 

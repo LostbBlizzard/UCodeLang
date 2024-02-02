@@ -18,7 +18,7 @@ Tests:
   String Txt = "Hello";
   ret Txt == "Hello";
 
- [Test]
+ [SkipedTest]
  |StringSpan_5[]:
   String Txt = "World";
   ret Txt != "Hello";

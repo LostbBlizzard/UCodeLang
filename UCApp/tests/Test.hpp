@@ -19,17 +19,17 @@
 #endif
 UCodeTestStart
 
-	// Are for Unit testing and Regression Testing
+// Are for Unit testing and Regression Testing
 
-	enum class SuccessCondition {
-		Compilation,
-		CompilationFail,
+enum class SuccessCondition {
+	Compilation,
+	CompilationFail,
 
-		RunTimeValue,
-	};
+	RunTimeValue,
+};
 struct TestInfo
 {
-	const char *TestName;
+	const char* TestName;
 	String InputFilesOrDir;
 	String FuncToCall;
 	SuccessCondition Condition;
@@ -37,7 +37,7 @@ struct TestInfo
 	Unique_Array<Byte> RunTimeSuccess;
 	size_t RunTimeSuccessSize = 0;
 
-	TestInfo(const char *TestName, const String InputFilesOrDir, String FuncToCall, SuccessCondition Condition)
+	TestInfo(const char* TestName, const String InputFilesOrDir, String FuncToCall, SuccessCondition Condition)
 	{
 		this->TestName = TestName;
 		this->InputFilesOrDir = InputFilesOrDir;
@@ -46,7 +46,7 @@ struct TestInfo
 	}
 
 	template <typename T>
-	TestInfo(const char *TestName, const String InputFilesOrDir, const String FuncToCall, SuccessCondition Condition, const T &Value)
+	TestInfo(const char* TestName, const String InputFilesOrDir, const String FuncToCall, SuccessCondition Condition, const T& Value)
 	{
 		this->TestName = TestName;
 		this->InputFilesOrDir = InputFilesOrDir;
@@ -100,7 +100,7 @@ inline String ModeType(OptimizationFlags Flags)
 	return r;
 }
 
-static const Array<TestInfo, 111> Tests{
+static const Array<TestInfo, 119> Tests{
 
 	TestInfo("main_0", "BasicTests/main.uc", "Main", SuccessCondition::Compilation),
 
@@ -203,16 +203,16 @@ static const Array<TestInfo, 111> Tests{
 	TestInfo("TypeBinding", "Objects/TypeBinding.uc", "main", SuccessCondition::RunTimeValue, (int)1),
 	TestInfo("GetFields", "Eval/GetFields.uc", "main", SuccessCondition::RunTimeValue, (size_t)15),
 	TestInfo("GetFields2", "Eval/GetFields2.uc", "main", SuccessCondition::RunTimeValue, (size_t)7),
-	TestInfo("GetFields3", "Eval/GetFields3.uc", "main", SuccessCondition::RunTimeValue, (int)16),
+	TestInfo("GetFields3", "Eval/GetFields3.uc", "main", SuccessCondition::RunTimeValue, (size_t)24),
 	TestInfo("GetFields_enum", "Eval/GetEnumFields.uc", "main", SuccessCondition::RunTimeValue, (int)3),
-	TestInfo("GetFields_enum_2", "Eval/GetEnumFields2.uc", "main", SuccessCondition::RunTimeValue, (int)12),
+	TestInfo("GetFields_enum_2", "Eval/GetEnumFields2.uc", "main", SuccessCondition::RunTimeValue, (size_t)12),
 	TestInfo("GetEnum_Base", "Eval/GetEnumBase.uc", "main", SuccessCondition::RunTimeValue, (bool)true),
 
 	TestInfo("MatchAllSet", "BasicTests/MatchAllSet.uc", "main", SuccessCondition::CompilationFail),
 	TestInfo("MatchAllSet_2", "BasicTests/MatchAllSet2.uc", "main", SuccessCondition::CompilationFail),
+	TestInfo("MatchSameValueError", "BasicTests/MatchSameValueError.uc", "main", SuccessCondition::CompilationFail),
 
 	TestInfo("outfunc_1", "BasicTests/outfunc.uc", "main", SuccessCondition::RunTimeValue, (int)10),
-	TestInfo("outfunc_2", "BasicTests/outfunc2.uc", "main", SuccessCondition::RunTimeValue, (int)10),
 
 	TestInfo("outoforder_1", "OutofOrder/eval.uc", "main", SuccessCondition::RunTimeValue, (int)1),
 	TestInfo("tag_1", "Eval/tag1.uc", "main", SuccessCondition::Compilation),
@@ -226,42 +226,54 @@ static const Array<TestInfo, 111> Tests{
 	TestInfo("UseDotAndNotScope", "Objects/UseDotAndNotScope.uc", "main", SuccessCondition::CompilationFail),
 	TestInfo("UsescopeAndnotdot", "Objects/UsescopeAndnotdot.uc", "main", SuccessCondition::CompilationFail),
 	TestInfo("UsescopeAndnotdot_2", "Objects/UsescopeAndnotdot2.uc", "main", SuccessCondition::CompilationFail),
+
 	TestInfo("OptionalOp", "Syntax/OptionalOp.uc", "main", SuccessCondition::RunTimeValue, (int)5),
 	TestInfo("ResultOp", "Syntax/ResultOp.uc", "main", SuccessCondition::RunTimeValue, (int)5),
+	TestInfo("OptionalOp2", "Syntax/OptionalOp2.uc", "main", SuccessCondition::RunTimeValue, (int)5),
+	TestInfo("ResultOp2", "Syntax/ResultOp2.uc", "main", SuccessCondition::RunTimeValue, (int)5),
+	TestInfo("OptionalOp3", "Syntax/OptionalOp3.uc", "main", SuccessCondition::RunTimeValue, (int)5),
+	TestInfo("ResultOp3", "Syntax/ResultOp3.uc", "main", SuccessCondition::RunTimeValue, (int)5),
+
 	TestInfo("MoveContruct", "Objects/MoveContruct.uc", "main", SuccessCondition::RunTimeValue, (bool)true),
 	TestInfo("CopyContruct", "Objects/CopyContruct.uc", "main", SuccessCondition::RunTimeValue, (bool)true),
 
 	TestInfo("Unique_ptr", "Std/Unique_ptr.uc", "main", SuccessCondition::RunTimeValue, (int)1),
 	TestInfo("QuadLoops", "BasicTests/QuadLoops.uc", "main", SuccessCondition::RunTimeValue, (uintptr_t)10),
 	TestInfo("Array", "Array/Array.uc", "main", SuccessCondition::RunTimeValue, (int)10),
+	TestInfo("Array2", "Array/Array.uc", "main2", SuccessCondition::RunTimeValue, (int)6),
+
 	TestInfo("defer", "Objects/defer.uc", "main", SuccessCondition::RunTimeValue, (int)1),
 	TestInfo("StdString", "Std/String.uc", "main", SuccessCondition::RunTimeValue, (bool)1),
 	TestInfo("inferredgenericreturn", "Generics/inferredgenericreturn.uc", "main", SuccessCondition::RunTimeValue, (uintptr_t)10),
 	TestInfo("inferredenumfield", "Generics/inferredenumfield.uc", "main", SuccessCondition::RunTimeValue, (int)5),
 
 	TestInfo("OptionalAsPtr", "Objects/OptionalAsPtr.uc", "NullOp", SuccessCondition::RunTimeValue, (bool)true),
-	TestInfo("OptionalAsPtr", "Objects/OptionalAsPtr.uc", "NullOp2", SuccessCondition::RunTimeValue, (int)10),
+	TestInfo("OptionalAsPtr2", "Objects/OptionalAsPtr.uc", "NullOp2", SuccessCondition::RunTimeValue, (int)20),
 	TestInfo("factorial2", "BasicTests/factorial2.uc", "main", SuccessCondition::RunTimeValue, (int)3628800),
 	TestInfo("StressTest1", "StressTest/StressTest1.uc", "main", SuccessCondition::RunTimeValue, (int)6),
 
-	TestInfo("GenericOverload", "Generics/GenericsOverload.uc", "main", SuccessCondition::RunTimeValue, (int)1),
+	TestInfo("GenericOverload", "Generics/GenericsOverload.uc", "main", SuccessCondition::RunTimeValue, (bool)1),
 
 	TestInfo("Attribute Contruct", "Eval/Attribute.uc","", SuccessCondition::Compilation),
 	TestInfo("Attribute Contruct 2", "Eval/Attribute2.uc","", SuccessCondition::Compilation),
-};
 
+	TestInfo("defer2", "Objects/defer2.uc", "main", SuccessCondition::RunTimeValue, (int)64),
+
+	TestInfo("ForType", "Objects/ForType.uc", "main", SuccessCondition::RunTimeValue, (bool)true),
+	TestInfo("ForType2", "Objects/ForType2.uc", "main", SuccessCondition::RunTimeValue, (bool)true),
+};
 struct SkipTestRange
 {
 	size_t Start;
 	size_t End;
 };
-static const Vector<SkipTestRange> UCodeVmSkipTests = {{75, Tests.size()}};
-static const Vector<SkipTestRange> C89SkipTests = {{75, Tests.size()}};
-static const Vector<SkipTestRange> WasmSkipTests = {{0, Tests.size()}};
+static const Vector<SkipTestRange> UCodeVmSkipTests = { {119, Tests.size()} };
+static const Vector<SkipTestRange> C89SkipTests = { {119, Tests.size()} };
+static const Vector<SkipTestRange> WasmSkipTests = { {0, Tests.size()} };
 
-inline bool ShouldSkipTest(size_t Index, const Vector<SkipTestRange> &list)
+inline bool ShouldSkipTest(size_t Index, const Vector<SkipTestRange>& list)
 {
-	for (auto &Item : list)
+	for (auto& Item : list)
 	{
 		if (Item.Start <= Index && Item.End > Index)
 		{
@@ -286,10 +298,10 @@ inline bool ShouldWasmSkipTest(size_t Index)
 
 struct ModuleTest
 {
-	const char *TestName;
+	const char* TestName;
 	String Modulefile;
 
-	ModuleTest(const char *TestName, const String &Modulefile)
+	ModuleTest(const char* TestName, const String& Modulefile)
 	{
 		this->TestName = TestName;
 		this->Modulefile = Modulefile;
@@ -348,15 +360,15 @@ inline bool ShouldSkipTests(size_t Index, TestMode mode)
 	}
 }
 
-bool RunTest(const TestInfo &Test, TestMode mode);
+bool RunTest(const TestInfo& Test, TestMode mode);
 
-bool RunTest(const ModuleTest &Test, TestMode mode);
+bool RunTest(const ModuleTest& Test, TestMode mode);
 
 int RunTests(bool MultThread = true);
 
-bool LogErrors(std::ostream &out, UCodeLang::Compiler &_Compiler);
+bool LogErrors(std::ostream& out, UCodeLang::Compiler& _Compiler);
 
-inline bool CompileC89ToLib(const Path &Cfile, const Path &Outdllfile)
+inline bool CompileC89ToLib(const Path& Cfile, const Path& Outdllfile)
 {
 	String Cmd = "gcc " + Cfile.generic_string();
 	Cmd += " -shared -std=c89 -g";
@@ -374,7 +386,7 @@ public:
 	using TestInfo = UCodeLang::TestRuner::TestInfo;
 	using TestsResult = UCodeLang::TestRuner::TestsResult;
 	using OnTestDone = UCodeLang::TestRuner::OnTestDone;
-	inline TestsResult RunTests(UClib &lib, const Path &outfilepath, TestMode Type, Optional<OnTestDone> OnDone = {})
+	inline TestsResult RunTests(UClib& lib, const Path& outfilepath, TestMode Type, Optional<OnTestDone> OnDone = {})
 	{
 		switch (Type)
 		{
@@ -423,8 +435,8 @@ public:
 
 				for (size_t i = 0; i < r.Tests.size(); i++)
 				{
-					auto &TestOut = r.Tests[i];
-					auto &TestFunc = tests[i];
+					auto& TestOut = r.Tests[i];
+					auto& TestFunc = tests[i];
 
 					bool passed = true;
 

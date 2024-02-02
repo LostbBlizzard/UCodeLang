@@ -987,7 +987,8 @@ struct IndexedExpresionNode :Node
 
 	}
 	AddforNode(IndexedExpresionNode);
-
+	
+	const Token* _token;
 	ExpressionNodeType _SourceExpression;// ex[SomeEx]
 	ExpressionNodeType _IndexExpression;// SomeVar[ex]
 };
@@ -1125,6 +1126,8 @@ struct PanicNode :Node
 	{
 
 	}
+
+	const Token* _KeyWord = nullptr;
 	ExpressionNodeType  _StringExpression;
 	AddforNode(PanicNode);
 };
@@ -1295,6 +1298,7 @@ struct MatchStatementArm
 
 struct MatchStatement : Node
 {
+	const Token* _Token = nullptr;
 	ExpressionNodeType _Expression;
 	Vector<MatchStatementArm> _Arms;
 	Optional<StatementsNode> _InvaidCase;
@@ -1314,6 +1318,7 @@ struct MatchExpressionArm
 };
 struct MatchExpression : Node
 {
+	const Token* _Token = nullptr;
 	ExpressionNodeType _Expression;
 	Vector<MatchExpressionArm> _Arms;
 	Optional<ExpressionNodeType> _InvaidCase;
@@ -1433,4 +1438,21 @@ struct UnaryExpressionNode :Node
 	ExpressionNodeType _Value0;
 	const Token* _UnaryOp = nullptr;
 };
+
+struct ForTypeNode :Node
+{
+	ForTypeNode() : Node(NodeType::ForTypeNode)
+	{
+
+	}
+	ForTypeNode(ForTypeNode&& Source) = default;
+	AddforNode(ForTypeNode);
+
+	Vector<Unique_ptr<FuncNode>> _Nodes;
+
+	TypeNode _typetoaddto;
+	GenericValuesNode _generic;
+	const Token* EndOfClass = nullptr;
+};
+
 UCodeLangFrontEnd

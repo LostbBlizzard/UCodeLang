@@ -160,7 +160,14 @@ void SystematicAnalysis::OnReadVariable(const ReadVariableNode& nod)
 				}
 				else if (LookIsAddress == true && AmIsAddress == true)
 				{
-					_IR_LastExpressionField = IR_Build_Member_GetValue(V);
+					if (_GetExpressionMode.top() == GetValueMode::ReadAndWrite) 
+					{
+						_IR_LastExpressionField = IR_Build_Member_AsValue(V);
+					}
+					else
+					{
+						_IR_LastExpressionField = IR_Build_Member_GetValue(V);
+					}
 				}
 				else if (LookIsAddress == false && AmIsAddress == false)
 				{
@@ -476,7 +483,7 @@ bool SystematicAnalysis::Symbol_MemberTypeSymbolFromVar(size_t Start, size_t End
 			if (Type_IsUnMapType(*ObjectType))
 			{
 				Out.Type = *Func->GetObjectForCall();
-				Out._Symbol = Symbol_GetSymbol(ScopeHelper::ApendedStrings(Symbol_GetSymbol(Func)->FullName, ThisSymbolName), SymbolType::ParameterVarable)
+				Out._Symbol = Symbol_GetSymbol(ScopeHelper::ApendedStrings(Func->FullName, ThisSymbolName), SymbolType::ParameterVarable)
 					.value().value();
 
 
@@ -512,7 +519,7 @@ bool SystematicAnalysis::Symbol_MemberTypeSymbolFromVar(size_t Start, size_t End
 
 				Out.Type = *Func->GetObjectForCall();
 				Out._Symbol =
-					Symbol_GetSymbol(ScopeHelper::ApendedStrings(Symbol_GetSymbol(Func)->FullName, ThisSymbolName), SymbolType::ParameterVarable)
+					Symbol_GetSymbol(ScopeHelper::ApendedStrings(Func->FullName, ThisSymbolName), SymbolType::ParameterVarable)
 					.value().value();
 
 
@@ -609,7 +616,11 @@ bool SystematicAnalysis::Symbol_MemberTypeSymbolFromVar(size_t Start, size_t End
 		if (_Varable.size())
 		{
 			auto& Data = _Varable.top();
-			Data._UsedSymbols.push_back(Out._Symbol);
+
+			if (Out._Symbol->Type == SymbolType::ParameterVarable || Out._Symbol->Type == SymbolType::StackVarable) 
+			{
+				Data._UsedSymbols.push_back(Out._Symbol);
+			}
 		}
 		return true;
 	}
@@ -1044,7 +1055,7 @@ bool SystematicAnalysis::Symbol_StepGetMemberTypeSymbolFromVar(const ScopedNameN
 					Symbol_AccessCheck(Out._Symbol, token);
 				}
 
-				if (TypeAsSymbol->Type != SymbolType::Type_class)
+				if (!(TypeAsSymbol->Type == SymbolType::Type_class || TypeAsSymbol->Type == SymbolType::Tag_class))
 				{
 					LogError_CantFindVarMemberError(ItemToken, ItemTokenString, Out.Type);
 
@@ -1052,7 +1063,7 @@ bool SystematicAnalysis::Symbol_StepGetMemberTypeSymbolFromVar(const ScopedNameN
 					Out.Type = TypesEnum::Null;
 					return false;
 				}
-				ClassInfo* CInfo = TypeAsSymbol->Get_Info<ClassInfo>();
+				ClassInfo* CInfo = TypeAsSymbol->Type == SymbolType::Type_class  ? TypeAsSymbol->Get_Info<ClassInfo>() : TypeAsSymbol->Get_Info<TagInfo>();
 
 
 				auto FeldInfo = CInfo->GetField(ItemTokenString);

@@ -8,19 +8,19 @@ UCodeLangStart
 class RegistersManager
 {
 public:
-	
-	
-	struct RegisterInfo 
+
+
+	struct RegisterInfo
 	{
-		Optional<Variant<AnyInt64,const IRInstruction*, IROperator, IRAndOperator>> Types;
+		Optional<Variant<AnyInt64, const IRInstruction*, IROperator, IRAndOperator>> Types;
 	};
-	
+
 	RegistersManager();
 	~RegistersManager();
 
 	void Reset();
 
-	static constexpr size_t RegisterSize = (RegisterID_t)RegisterID::EndRegister - (RegisterID_t)RegisterID::StartRegister+1;
+	static constexpr size_t RegisterSize = (RegisterID_t)RegisterID::EndRegister - (RegisterID_t)RegisterID::StartRegister + 1;
 	Array<RegisterInfo, RegisterSize> Registers;
 
 	auto& GetInfo(RegisterID id)
@@ -40,9 +40,9 @@ public:
 			if (Info.Types.has_value())
 			{
 				auto& Value = Info.Types.value();
-				if (auto IR = Value.Get_If<const IRInstruction*>()) 
+				if (auto IR = Value.Get_If<const IRInstruction*>())
 				{
-					if (*IR == IRField) 
+					if (*IR == IRField)
 					{
 						return (RegisterID)i;
 					}
@@ -90,7 +90,7 @@ public:
 		}
 		return {};
 	}
-	
+
 
 	Optional<RegisterID> GetFreeRegister()
 	{
@@ -105,14 +105,14 @@ public:
 		return {};
 	}
 
-	
-	void SetRegister(RegisterID id,AnyInt64 Value)
+
+	void SetRegister(RegisterID id, AnyInt64 Value)
 	{
 		auto& Info = Registers[(size_t)id];
 		Info.Types = Value;
 	}
 
-	void SetRegister(RegisterID id,const IRInstruction* Value)
+	void SetRegister(RegisterID id, const IRInstruction* Value)
 	{
 		auto& Info = Registers[(size_t)id];
 		Info.Types = Value;
@@ -135,18 +135,18 @@ class StaticMemoryManager
 public:
 	struct StaticMemInfo
 	{
-		size_t Offset=0;
+		size_t Offset = 0;
 	};
 	UnorderedMap<IRidentifierID, StaticMemInfo> _List;
 };
 struct StackItem
 {
 	size_t Offset = 0;
-	Variant<const IRInstruction*,IROperator, IRAndOperator> IR;
+	Variant<const IRInstruction*, IROperator, IRAndOperator> IR;
 
 	StackItem(
 		size_t offset, const IRInstruction* ir)
-		:Offset(offset),IR(ir)
+		:Offset(offset), IR(ir)
 	{
 
 	}
@@ -154,7 +154,7 @@ struct StackItem
 		size_t offset, const IRAndOperator& ir)
 		:Offset(offset), IR(ir)
 	{
-		
+
 	}
 };
 struct StackInfo
@@ -171,15 +171,15 @@ struct StackInfo
 		Reupdates.clear();
 	}
 	Vector<Unique_ptr<StackItem>> Items;
-	struct StackOffsetReUpdate 
+	struct StackOffsetReUpdate
 	{
 		size_t InsIndex = 0;
-		
+
 		bool PostFunc = true;
 		size_t StackOffset = 0;
 	};
 	Vector<StackOffsetReUpdate> Reupdates;
-	void AddReUpdatePreFunc(size_t InsIndex,size_t StackOffset)
+	void AddReUpdatePreFunc(size_t InsIndex, size_t StackOffset)
 	{
 		Reupdates.push_back({ InsIndex,false,StackOffset });
 	}
@@ -235,7 +235,7 @@ struct StackInfo
 
 	NeverNullPtr<StackItem> Add(const IRInstruction* IR, size_t Offset)
 	{
-		return Items.emplace_back(std::make_unique<StackItem>(Offset,IR)).get();
+		return Items.emplace_back(std::make_unique<StackItem>(Offset, IR)).get();
 	}
 	NeverNullPtr<StackItem> Add(const IRAndOperator& IR, size_t Offset)
 	{

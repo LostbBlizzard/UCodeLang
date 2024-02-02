@@ -329,11 +329,11 @@ void AppObject::DrawTestMenu()
     using TestMode = ULangTest::TestMode;
     struct TestInfo
     {
-        TestMode Testmode = TestMode::UCodeLangBackEnd;
-       // size_t MinTestIndex = 75;
-       // size_t MaxTestCount = 85;//;//ULangTest::Tests.size();
-       size_t MinTestIndex = 0;
-       size_t MaxTestCount = 15;//;//ULangTest::Tests.size();
+       TestMode Testmode = TestMode::UCodeLangBackEnd;
+       size_t MinTestIndex = 119;
+       size_t MaxTestCount = 119;//;//ULangTest::Tests.size();
+       //size_t MinTestIndex = 0;
+       //size_t MaxTestCount = 15;//;//ULangTest::Tests.size();
 
 
         size_t ModuleIndex = 0;
@@ -1663,6 +1663,7 @@ void AppObject::DrawTestMenu()
                 {
                     _TestCompiler.Set_BackEnd(UCodeLang::WasmBackEnd::MakeObject);
                 }
+                /*
                 auto out = f.BuildModule(_TestCompiler, UCodeLang::ModuleIndex::GetModuleIndex());
 
                 if (out.CompilerRet.IsValue()) 
@@ -1676,6 +1677,7 @@ void AppObject::DrawTestMenu()
                     Outpath = out.OutputItemPath;
                     mode = TestWindowData.Testmode;
                 }
+                */
             }
 
             if (ImGui::Button("Build StandardLibrary"))

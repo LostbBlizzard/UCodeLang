@@ -33,10 +33,10 @@ public:
 		CompilationSuccess(NeverNullPtr<UClib> OutPut, BytesPtr&& OutFile)
 			: OutPut(OutPut)
 		{
-			this->OutFile =std::move(OutFile);
+			this->OutFile = std::move(OutFile);
 		}
 	};
-	using CompilerRet = Result<CompilationSuccess,NeverNullPtr<CompilationErrors>>;
+	using CompilerRet = Result<CompilationSuccess, NeverNullPtr<CompilationErrors>>;
 
 	struct CompilerPathData
 	{
@@ -48,27 +48,27 @@ public:
 	{
 		Vector<Path> Files;
 	};
-	
-	
+
+
 	UCodeLangAPIExport CompilerRet CompileText(const String_view& Text, const ExternalFiles& ExternalFiles = {});
 	UCodeLangAPIExport static String GetTextFromFile(const Path& path);
 	UCodeLangAPIExport static BytesPtr GetBytesFromFile(const Path& path);
 	UCodeLangForceinline CompilerRet CompileFileToLib(const Path& path, const ExternalFiles& ExternalFiles = {})
 	{
-		return  CompileText(GetTextFromFile(path),ExternalFiles);
+		return  CompileText(GetTextFromFile(path), ExternalFiles);
 	}
 	UCodeLangAPIExport CompilerRet CompilePathToObj(const Path& path, const Path& OutLib, const ExternalFiles& ExternalFiles = {});
-	
-	
-	
+
+
+
 	UCodeLangAPIExport CompilerRet CompileFiles(const CompilerPathData& Data, const ExternalFiles& ExternalFiles = {});
 
 
 	UCodeLangAPIExport CompilerRet CompileFiles_UseIntDir(const CompilerPathData& Data, const ExternalFiles& ExternalFiles = {});
-	
+
 	UCodeLangAPIExport BytesPtr OpenFile(const LangDefInfo::FileInfo* FInfo, const Path& path);
 
-	
+
 	UCodeLangForceinline UCodeLang::CompilationErrors& Get_Errors()
 	{
 		return _Errors;

@@ -85,6 +85,162 @@ void SystematicAnalysis::OnFuncCallNode(const FuncCallNode& node)
 		}
 	}
 }
+void SystematicAnalysis::IR_Build_EnumOut(NeverNullPtr<Symbol> EnumSymbol, IRInstruction* ThisEnum, size_t EnumIndex, const ValueParametersNode& Pars, size_t StartIndex)
+{
+	EnumInfo* EnumSybInfo = EnumSymbol.value()->Get_Info<EnumInfo>();
+	auto& VariantData = EnumSybInfo->VariantData.value();
+
+	EnumFieldInfo& EnumFieldinfo = EnumSybInfo->Fields[EnumIndex];
+	EnumVariantField& EnumVariantFieldData = VariantData.Variants[EnumIndex];
+
+	if (EnumSybInfo->IsOptionalAddress())
+	{
+		IRInstruction* ThisObj = ThisEnum;
+		IRInstruction* BoolObj = nullptr;
+		
+
+
+		IRInstruction* ThisobjV = nullptr;
+		if (_LastExpressionType.IsAddress())
+		{
+			auto readtype = _LastExpressionType;
+			readtype._IsAddress = false;
+
+			ThisobjV = _IR_LookingAtIRBlock->NewLoad_Dereferenc(ThisObj, IR_ConvertToIRType(readtype));
+		}
+		else
+		{
+			ThisobjV = ThisObj;
+		}
+
+		auto nullptrval = IR_Load_UIntptr(0);
+		BoolObj = EnumVariantFieldData.Types.size() ? _IR_LookingAtIRBlock->NewC_NotEqualto(ThisobjV, nullptrval) : _IR_LookingAtIRBlock->NewC_Equalto(ThisobjV, nullptrval);
+
+		_LastExpressionType = TypeSymbol(TypesEnum::Bool);
+		_IR_LastExpressionField = BoolObj;
+
+		for (size_t i = StartIndex; i < Pars._Nodes.size(); i++)
+		{
+			auto& Item = Pars._Nodes[i];
+			OutExpression* outEx = OutExpression::As(Item.get());
+			SymbolID ID = Symbol_GetSymbolID(outEx);
+
+
+			auto& Syb = _Table.GetSymbol(ID);
+			IRInstruction* ItemMember;
+
+
+			ItemMember = ThisobjV;
+
+
+
+			Syb.IR_Ins = ItemMember;
+		}
+	}
+	else
+	{
+		IRInstruction* ThisObj = ThisEnum;
+		IRInstruction* BoolObj = nullptr;
+
+		auto Key = LoadEvaluatedEx(EnumFieldinfo.Ex, EnumSybInfo->Basetype);
+
+
+
+		auto Member = _IR_LookingAtIRBlock->New_Member_Dereference(ThisObj, IR_ConvertToIRType(EnumSymbol.value()->ID), EnumVarantKeyIndex);
+
+		auto ObjUnion = _IR_LookingAtIRBlock->New_Member_Dereference(ThisObj, IR_ConvertToIRType(EnumSymbol.value()->ID), EnumVarantUnionIndex);
+
+
+		if (Type_IsPrimitiveNotIncludingPointers(EnumSybInfo->Basetype))
+		{
+			BoolObj = _IR_LookingAtIRBlock->NewC_Equalto(Member, Key);
+		}
+		else
+		{
+			UCodeLangUnreachable();
+		}
+
+
+		IRStruct* UnionStruct = nullptr;
+		{
+			String UnionName = Str_GetEnumVariantUnionName(EnumSybInfo->FullName);
+			IRidentifierID UnionID = _IR_Builder.ToID(UnionName);
+			UnionStruct = _IR_Builder.GetSymbol(UnionID)->Get_ExAs<IRStruct>();
+		}
+
+		IRStruct* VStruct = nullptr;
+		if (EnumVariantFieldData.ClassSymbol.has_value())
+		{
+			TypeSymbol VSyb = TypeSymbol(EnumVariantFieldData.ClassSymbol.value());
+			VStruct = _IR_Builder.GetSymbol(IR_ConvertToIRType(VSyb)._symbol)->Get_ExAs<IRStruct>();
+		}
+
+		for (size_t i = StartIndex; i < Pars._Nodes.size(); i++)
+		{
+			auto& Item = Pars._Nodes[i];
+			OutExpression* outEx = OutExpression::As(Item.get());
+			SymbolID ID = Symbol_GetSymbolID(outEx);
+
+
+			auto& Syb = _Table.GetSymbol(ID);
+			IRInstruction* ItemMember;
+
+			Optional<size_t> IRFelidIndex;
+			for (size_t i = 0; i < EnumIndex + 1; i++)
+			{
+				auto& VData = EnumSybInfo->VariantData.value().Variants[i];
+				if (VData.Types.size())
+				{
+					IRFelidIndex = IRFelidIndex.has_value() ? IRFelidIndex.value() + 1 : 0;
+				}
+			}
+
+			if (EnumVariantFieldData.ClassSymbol.has_value())
+			{
+				auto Struct = _IR_LookingAtIRBlock->New_Member_Access(ObjUnion, UnionStruct, IRFelidIndex.value());
+				ItemMember = _IR_LookingAtIRBlock->New_Member_Access(Struct, VStruct, i - StartIndex);
+			}
+			else
+			{
+				ItemMember = _IR_LookingAtIRBlock->New_Member_Access(ObjUnion, UnionStruct, IRFelidIndex.value());
+
+			}
+
+			Syb.IR_Ins = ItemMember;
+		}
+
+		_LastExpressionType = TypeSymbol(TypesEnum::Bool);
+		_IR_LastExpressionField = BoolObj;
+	}
+}
+void SystematicAnalysis::IR_Build_EnumOut(NeverNullPtr<Symbol> EnumSymbol, size_t EnumIndex, const ValueParametersNode& Pars)
+{
+	EnumInfo* EnumSybInfo = EnumSymbol.value()->Get_Info<EnumInfo>();
+	auto& VariantData = EnumSybInfo->VariantData.value();
+
+	EnumFieldInfo& EnumFieldinfo = EnumSybInfo->Fields[EnumIndex];
+	EnumVariantField& EnumVariantFieldData = VariantData.Variants[EnumIndex];
+
+
+	IRInstruction* ThisObj = nullptr;
+	{
+		TypeSymbol Par = EnumSymbol.value()->ID;
+		Par._IsAddress = true;
+
+		auto& Item = Pars._Nodes[0];
+
+		_LookingForTypes.push(Par);
+
+		OnExpressionTypeNode(Item.get(), GetValueMode::Read);
+		IR_Build_ImplicitConversion(_IR_LastExpressionField, _LastExpressionType, Par);
+
+		ThisObj = _IR_LastExpressionField;
+
+		_LookingForTypes.pop();
+	}
+	IR_Build_EnumOut(EnumSymbol,ThisObj, EnumIndex, Pars, 1);
+
+}
 void SystematicAnalysis::IR_Build_FuncCall(Get_FuncInfo Func, const ScopedNameNode& Name, const ValueParametersNode& Pars)
 {
 	if (_PassType != PassType::BuidCode) { return; }
@@ -140,8 +296,8 @@ void SystematicAnalysis::IR_Build_FuncCall(Get_FuncInfo Func, const ScopedNameNo
 		else PrimitiveTypeCall(float32TypeName, TypesEnum::float32, _IR_LastExpressionField = _IR_LookingAtIRBlock->NewLoad((float32)0))
 		else PrimitiveTypeCall(float64TypeName, TypesEnum::float64, _IR_LastExpressionField = _IR_LookingAtIRBlock->NewLoad((float64)0))
 
-		else PrimitiveTypeCall(UintPtrTypeName, TypesEnum::uIntPtr, _IR_LastExpressionField = _IR_LookingAtIRBlock->NewLoad((UInt64)0))
-		else PrimitiveTypeCall(SintPtrTypeName, TypesEnum::sIntPtr, _IR_LastExpressionField = _IR_LookingAtIRBlock->NewLoad(((UInt64)0)))
+		else PrimitiveTypeCall(UintPtrTypeName, TypesEnum::uIntPtr, _IR_LastExpressionField = IR_Load_UIntptr(0))
+		else PrimitiveTypeCall(SintPtrTypeName, TypesEnum::sIntPtr, _IR_LastExpressionField = IR_Load_SIntptr(0))
 
 
 	}
@@ -160,167 +316,20 @@ void SystematicAnalysis::IR_Build_FuncCall(Get_FuncInfo Func, const ScopedNameNo
 				auto EnumSymbol = Symbol_GetSymbol(EnumClassFullName, SymbolType::Enum);
 				if (EnumSymbol)
 				{
-					EnumInfo* EnumSybInfo = EnumSymbol.value()->Get_Info<EnumInfo>();
-					auto& VariantData = EnumSybInfo->VariantData.value();
-					size_t EnumIndex = EnumSybInfo->GetFieldIndex(ScopeHelper::GetNameFromFullName(ScopedName)).value();
-
-					EnumFieldInfo& EnumFieldinfo = EnumSybInfo->Fields[EnumIndex];
-					EnumVariantField& EnumVariantFieldData = VariantData.Variants[EnumIndex];
-
 					if (Func.ThisPar == Get_FuncInfo::ThisPar_t::NoThisPar_GetValue_EnumVariant)
 					{
-						if (EnumSybInfo->IsOptionalAddress())
-						{
-							IRInstruction* ThisObj = nullptr;
-							IRInstruction* BoolObj = nullptr;
-							{
-								TypeSymbol Par = EnumSymbol.value()->ID;
-								Par._IsAddress = true;
-
-								auto& Item = Pars._Nodes[0];
-
-								_LookingForTypes.push(Par);
-
-								OnExpressionTypeNode(Item.get(), GetValueMode::Read);
-								IR_Build_ImplicitConversion(_IR_LastExpressionField, _LastExpressionType, Par);
-
-								ThisObj = _IR_LastExpressionField;
-
-								_LookingForTypes.pop();
-							}
-
-							
-							IRInstruction* ThisobjV = nullptr;
-							if (_LastExpressionType.IsAddress())
-							{
-								auto readtype = _LastExpressionType;
-								readtype._IsAddress = false;
-
-								ThisobjV = _IR_LookingAtIRBlock->NewLoad_Dereferenc(ThisObj, IR_ConvertToIRType(readtype));
-							}
-							else
-							{
-								ThisobjV = ThisObj;
-							}
-
-							auto nullptrval = IR_Load_UIntptr(0);
-							BoolObj = EnumVariantFieldData.Types.size() ? _IR_LookingAtIRBlock->NewC_NotEqualto(ThisobjV, nullptrval) : _IR_LookingAtIRBlock->NewC_Equalto(ThisobjV, nullptrval);
-
-							_LastExpressionType = TypeSymbol(TypesEnum::Bool);
-							_IR_LastExpressionField = BoolObj;
-
-							for (size_t i = 1; i < Pars._Nodes.size(); i++)
-							{
-								auto& Item = Pars._Nodes[i];
-								OutExpression* outEx = OutExpression::As(Item.get());
-								SymbolID ID = Symbol_GetSymbolID(outEx);
-
-
-								auto& Syb = _Table.GetSymbol(ID);
-								IRInstruction* ItemMember;
-
-								
-								ItemMember = ThisobjV;
-
-								
-
-								Syb.IR_Ins = ItemMember;
-							}
-						}
-						else 
-						{
-							IRInstruction* ThisObj = nullptr;
-							IRInstruction* BoolObj = nullptr;
-							{
-								TypeSymbol Par = EnumSymbol.value()->ID;
-								Par._IsAddress = true;
-
-								auto& Item = Pars._Nodes[0];
-
-								_LookingForTypes.push(Par);
-
-								OnExpressionTypeNode(Item.get(), GetValueMode::Read);
-								IR_Build_ImplicitConversion(_IR_LastExpressionField, _LastExpressionType, Par);
-
-								ThisObj = _IR_LastExpressionField;
-
-								_LookingForTypes.pop();
-							}
-
-
-							auto Key = LoadEvaluatedEx(EnumFieldinfo.Ex, EnumSybInfo->Basetype);
-
-
-
-							auto Member = _IR_LookingAtIRBlock->New_Member_Dereference(ThisObj, IR_ConvertToIRType(EnumSymbol.value()->ID), EnumVarantKeyIndex);
-
-							auto ObjUnion = _IR_LookingAtIRBlock->New_Member_Dereference(ThisObj, IR_ConvertToIRType(EnumSymbol.value()->ID), EnumVarantUnionIndex);
-
-
-							if (Type_IsPrimitiveNotIncludingPointers(EnumSybInfo->Basetype))
-							{
-								BoolObj = _IR_LookingAtIRBlock->NewC_Equalto(Member, Key);
-							}
-							else
-							{
-								UCodeLangUnreachable();
-							}
-
-
-							IRStruct* UnionStruct = nullptr;
-							{
-								String UnionName = Str_GetEnumVariantUnionName(EnumSybInfo->FullName);
-								IRidentifierID UnionID = _IR_Builder.ToID(UnionName);
-								UnionStruct = _IR_Builder.GetSymbol(UnionID)->Get_ExAs<IRStruct>();
-							}
-
-							IRStruct* VStruct = nullptr;
-							if (EnumVariantFieldData.ClassSymbol.has_value())
-							{
-								TypeSymbol VSyb = TypeSymbol(EnumVariantFieldData.ClassSymbol.value());
-								VStruct = _IR_Builder.GetSymbol(IR_ConvertToIRType(VSyb)._symbol)->Get_ExAs<IRStruct>();
-							}
-
-							for (size_t i = 1; i < Pars._Nodes.size(); i++)
-							{
-								auto& Item = Pars._Nodes[i];
-								OutExpression* outEx = OutExpression::As(Item.get());
-								SymbolID ID = Symbol_GetSymbolID(outEx);
-
-
-								auto& Syb = _Table.GetSymbol(ID);
-								IRInstruction* ItemMember;
-
-								Optional<size_t> IRFelidIndex;
-								for (size_t i = 0; i < EnumIndex + 1; i++)
-								{
-									auto& VData = EnumSybInfo->VariantData.value().Variants[i];
-									if (VData.Types.size())
-									{
-										IRFelidIndex = IRFelidIndex.has_value() ? IRFelidIndex.value() + 1 : 0;
-									}
-								}
-
-								if (EnumVariantFieldData.ClassSymbol.has_value())
-								{
-									auto Struct = _IR_LookingAtIRBlock->New_Member_Access(ObjUnion, UnionStruct, IRFelidIndex.value());
-									ItemMember = _IR_LookingAtIRBlock->New_Member_Access(Struct, VStruct, i - 1);
-								}
-								else
-								{
-									ItemMember = _IR_LookingAtIRBlock->New_Member_Access(ObjUnion, UnionStruct, IRFelidIndex.value());
-
-								}
-
-								Syb.IR_Ins = ItemMember;
-							}
-
-							_LastExpressionType = TypeSymbol(TypesEnum::Bool);
-							_IR_LastExpressionField = BoolObj;
-						}
+						EnumInfo* EnumSybInfo = EnumSymbol.value()->Get_Info<EnumInfo>();
+						IR_Build_EnumOut(EnumSymbol.value(), EnumSybInfo->GetFieldIndex(ScopeHelper::GetNameFromFullName(ScopedName)).value(), Pars);
 					}
 					else
 					{
+						EnumInfo* EnumSybInfo = EnumSymbol.value()->Get_Info<EnumInfo>();
+						auto& VariantData = EnumSybInfo->VariantData.value();
+						size_t EnumIndex = EnumSybInfo->GetFieldIndex(ScopeHelper::GetNameFromFullName(ScopedName)).value();
+
+						EnumFieldInfo& EnumFieldinfo = EnumSybInfo->Fields[EnumIndex];
+						EnumVariantField& EnumVariantFieldData = VariantData.Variants[EnumIndex];
+
 						if (EnumSybInfo->IsOptionalAddress())
 						{
 							auto& FuncParInfo = EnumVariantFieldData.Types[0];
@@ -335,7 +344,7 @@ void SystematicAnalysis::IR_Build_FuncCall(Get_FuncInfo Func, const ScopedNameNo
 
 							_LookingForTypes.pop();
 						}
-						else 
+						else
 						{
 							auto ID = _IR_Builder.ToID(EnumSybInfo->FullName);
 
@@ -354,7 +363,7 @@ void SystematicAnalysis::IR_Build_FuncCall(Get_FuncInfo Func, const ScopedNameNo
 								IRidentifierID UnionID = _IR_Builder.ToID(UnionName);
 
 								Optional<size_t> IRFelidIndex;
-								for (size_t i = 0; i < EnumIndex+1; i++)
+								for (size_t i = 0; i < EnumIndex + 1; i++)
 								{
 									auto& VData = EnumSybInfo->VariantData.value().Variants[i];
 									if (VData.Types.size())
@@ -750,21 +759,21 @@ void SystematicAnalysis::IR_Build_FuncCall(Get_FuncInfo Func, const ScopedNameNo
 
 	if (_LookingForTypes.size() && Type_Get_LookingForType().IsnotAn(TypesEnum::Void) && PushIRStackRet)//constructors are just void functions so just set last as the input this
 	{
+		if (ScopeHelper::GetNameFromFullName(Syb->FullName) == ClassConstructorfunc) {
+			_IR_LastExpressionField = PushIRStackRet;
+			_LastExpressionType = Func.Func->Pars.front().Type;
 
-		_IR_LastExpressionField = PushIRStackRet;
-		_LastExpressionType = Func.Func->Pars.front().Type;
 
+			if (Type_Get_LookingForType().IsAddress())
+			{
+				_IR_LastExpressionField = _IR_LookingAtIRBlock->NewLoadPtr(_IR_LastExpressionField);
+			}
+			else
+			{
+				_LastExpressionType._IsAddress = false;
+			}
 
-		if (Type_Get_LookingForType().IsAddress())
-		{
-			_IR_LastExpressionField = _IR_LookingAtIRBlock->NewLoadPtr(_IR_LastExpressionField);
 		}
-		else
-		{
-			_LastExpressionType._IsAddress = false;
-		}
-
-
 	}
 	else
 	{
@@ -994,6 +1003,244 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 	Vector<ParInfo> Infer;
 	bool Inferautopushtis = false;
 
+	{//for type
+		auto fortypeSyms = GetSymbolsWithName(ForTypeScope, SymbolType::ForType);
+
+		TypeSymbol maintype;
+
+		if (ThisParType == Get_FuncInfo::ThisPar_t::PushFromScopedName)
+		{
+			auto v = _ThisType;
+			v._IsAddress = false;
+			maintype = v;
+		}
+		else
+		{
+			auto scope = ScopedName;
+			ScopeHelper::ReMoveScope(scope);
+			auto v = Symbol_GetSymbol(scope, SymbolType::Type);
+
+			if (auto val = v.value_unchecked())
+			{
+				maintype = val->VarType;
+			}
+		}
+
+		if (auto maintypesym = Symbol_GetSymbol(maintype).value_unchecked()) 
+		{
+			String mytypestr = ToString(maintype);
+			
+			for (auto& Item : fortypeSyms)
+			{
+				if (Item->Type == SymbolType::ForType)
+				{
+					Symbol_Update_ForType_ToFixedTypes(Item);
+
+					bool isreferringtomytype = false;
+
+					auto fortype = Item->VarType;
+
+					isreferringtomytype = Type_AreTheSame(maintype, fortype);
+
+					if (isreferringtomytype)
+					{
+						ForTypeInfo* info = Item->Get_Info<ForTypeInfo>();
+
+						for (auto& Item : info->Funcs)
+						{
+							Symbols.push_back(Item);
+						}
+					}
+				}
+				else if (Item->Type == SymbolType::GenericForType)
+				{
+
+
+					Symbol_Update_ForType_ToFixedTypes(Item);
+
+					ForTypeInfo* info = Item->Get_Info<ForTypeInfo>();
+					const ForTypeNode* fornod = Item->Get_NodeInfo<ForTypeNode>();
+
+					String GennericName;
+
+					fornod->_typetoaddto._name.GetScopedName(GennericName);
+
+					if (StringHelper::Contains(mytypestr, GennericName))
+					{
+						NullablePtr<Symbol> forgeneric;
+						NullablePtr<Symbol> FindSym;
+						{
+							auto OldContext = SaveAndMove_SymbolContext();
+							Set_SymbolContext(info->Context.value());
+
+							FindSym = Symbol_GetSymbol(GennericName, SymbolType::Generic_class);
+
+							Set_SymbolContext(std::move(OldContext));
+						}
+
+						auto fortypetoken = NeverNullptr(fornod->_typetoaddto._name._ScopedName.front()._token);
+
+						if (!FindSym.has_value())
+						{
+							LogError_CantFindSymbolError(fortypetoken, GennericName);
+
+							return {};
+						}
+
+						auto foundsym = FindSym.value();
+
+						bool isgennerictype = (foundsym->Type == SymbolType::Generic_Alias
+							|| foundsym->Type == SymbolType::Generic_class
+							|| foundsym->Type == SymbolType::Generic_Enum);
+						//TODO Generic_traits
+
+
+						if (!isgennerictype)
+						{
+							LogError(ErrorCodes::InValidType, "The Symbol '" + foundsym->FullName + "' in for type must be an generic type", fortypetoken);
+
+							return {};
+						}
+
+						NeverNullPtr<Generic> GenericData;
+						NeverNullPtr<Generic> MyBaseTypeGenericData;
+
+
+						NeverNullPtr<Symbol> mytypebasesymbol;
+						{
+							String scope = mytypestr;
+
+							{
+								size_t gwnericcount = 0;
+								for (int i = scope.size() - 1; i >= 0; i--)
+								{
+									char item = scope[i];
+
+									if (item == '<')
+									{
+										gwnericcount--;
+
+										if (gwnericcount == 0)
+										{
+											scope = scope.substr(0, scope.size() - i);
+											break;
+										}
+									}
+									else if (item == '>')
+									{
+										gwnericcount++;
+									}
+
+
+								}
+							}
+
+							mytypebasesymbol = Symbol_GetSymbol(scope, SymbolType::Type).value();
+						}
+
+						switch (mytypebasesymbol->Type)
+						{
+						case SymbolType::Generic_Alias:
+							MyBaseTypeGenericData = NeverNullptr(&mytypebasesymbol->Get_Info<Generic_AliasInfo>()->_GenericData);
+							break;
+						case SymbolType::Generic_class:
+							MyBaseTypeGenericData = NeverNullptr(&mytypebasesymbol->Get_Info<ClassInfo>()->_GenericData);
+							break;
+						case SymbolType::Generic_Enum:
+							MyBaseTypeGenericData = NeverNullptr(&mytypebasesymbol->Get_Info<EnumInfo>()->_GenericData);
+							break;
+						default:
+							continue;
+							break;
+						}
+
+						switch (foundsym->Type)
+						{
+						case SymbolType::Generic_Alias:
+							GenericData = NeverNullptr(&foundsym->Get_Info<Generic_AliasInfo>()->_GenericData);
+							break;
+						case SymbolType::Generic_class:
+							GenericData = NeverNullptr(&foundsym->Get_Info<ClassInfo>()->_GenericData);
+							break;
+						case SymbolType::Generic_Enum:
+							GenericData = NeverNullptr(&foundsym->Get_Info<EnumInfo>()->_GenericData);
+							break;
+						default:
+							UCodeLangUnreachable();
+							break;
+						}
+
+
+						size_t myTypeGenericCount = MyBaseTypeGenericData->GetMinimumCount();
+						size_t foundGenericCount = GenericData->GetMinimumCount();
+
+						if (myTypeGenericCount != foundGenericCount)
+						{
+							LogError_CanIncorrectGenericCount(fortypetoken, foundsym->FullName, myTypeGenericCount, foundGenericCount);
+							return {};
+						}
+
+						for (size_t i = 0; i < myTypeGenericCount; i++)
+						{
+							auto& mygen = MyBaseTypeGenericData->_Genericlist[i];
+							auto& foundgen = GenericData->_Genericlist[i];
+
+							if (mygen.IsConstantExpression() != foundgen.IsConstantExpression())
+							{
+								LogError(ErrorCodes::TreeAnalyerError, "Generic type/Generic Constant miss match on '" + std::to_string(i) + "' generic element", fortypetoken);
+								return {};
+							}
+						}
+
+						Vector<TypeSymbol> generics;
+
+						UCodeLangAssert(!GenericData->IsPack());
+						for (auto& item : MyBaseTypeGenericData->_Genericlist)
+						{
+							String GenericAliasName;
+
+							{
+								auto v = Symbol_GetSymbol(item.SybID);
+								GenericAliasName = ScopeHelper::GetNameFromFullName(v->FullName);
+							}
+
+							NeverNullPtr<Symbol> mytypegenericalias;
+							{
+								String scope = ScopeHelper::ApendedStrings(mytypestr, GenericAliasName);
+
+								mytypegenericalias = Symbol_GetSymbol(scope, SymbolType::Any).value();
+							}
+
+							generics.push_back(TypeSymbol(mytypegenericalias->VarType));
+						}
+
+					
+						auto newsymname = Generic_SymbolGenericFullName(Item, generics);
+						auto hasthisformade = Symbol_GetSymbol(newsymname,SymbolType::ForType);
+
+						if (!hasthisformade.has_value())
+						{
+							Generic_TypeInstantiate_ForType(NeverNullptr(Item), generics);
+							hasthisformade = Symbol_GetSymbol(newsymname,SymbolType::ForType);
+						}
+		
+						{
+							ForTypeInfo* info = hasthisformade.value()->Get_Info<ForTypeInfo>();
+
+							for (auto& Item : info->Funcs)
+							{
+								Symbols.push_back(Item);
+							}
+						}
+	
+					}
+
+				}
+
+			}
+		}
+	}
+
 	{
 
 		for (auto& Item : Symbols)
@@ -1191,6 +1438,30 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 
 				}
 			}
+			else if (Item->Type == SymbolType::Generic_Tag)
+			{
+				TagInfo* V = Item->Get_Info<TagInfo>();
+				Symbol_Update_ClassSym_ToFixedTypes(Item);
+				String Scope = V->FullName;
+				ScopeHelper::GetApendedString(Scope, GenericTestStr);
+				ScopeHelper::GetApendedString(Scope, ClassConstructorfunc);
+				
+				auto ConstructorSymbols = GetSymbolsWithName(Scope, SymbolType::Any);
+
+
+				for (auto& Item2 : ConstructorSymbols)
+				{
+					FuncInfo* Info = Item2->Get_Info<FuncInfo>();
+					bool PushThisPar = Info->IsObjectCall();
+
+					size_t parcount = PushThisPar ? Pars._Nodes.size() + 1 : Pars._Nodes.size();
+					if (Info->Pars.size() == parcount) {
+						Infer = Info->Pars;
+						Inferautopushtis = PushThisPar;
+					}
+				}
+			}
+
 		}
 	}
 
@@ -2147,6 +2418,264 @@ StartSymbolsLoop:
 				}
 			}
 		}
+		else if (Item->Type == SymbolType::Generic_Tag)
+		{
+			Symbol_Update_ClassSym_ToFixedTypes(Item);
+			TagInfo* V = Item->Get_Info<TagInfo>();
+
+			const TagTypeNode& node = *Item->Get_NodeInfo<TagTypeNode>();
+			
+			NullablePtr<Symbol>  classsymop;
+			/*
+			auto classsybOp = Generic_InstantiateOrFindGeneric_Class(
+				NeverNullptr(Name._ScopedName.front()._token),
+				Item,
+				node._generic, V->_GenericData, *Generics);
+
+			if (classsybOp.has_value())
+			{
+				auto classsyb = classsybOp.value();
+				String Scope = classsyb->FullName;
+				ScopeHelper::GetApendedString(Scope, ClassConstructorfunc);
+
+				auto ConstructorSymbols = GetSymbolsWithName(Scope, SymbolType::Any);
+
+
+				for (auto& Item2 : ConstructorSymbols)
+				{
+					if (Item2->Type == SymbolType::Func)
+					{
+						FuncInfo* Info = Item2->Get_Info<FuncInfo>();
+						bool PushThisPar = Info->IsObjectCall();
+					}
+				}
+			}
+			*/
+			{
+				String Scope = V->FullName;
+				ScopeHelper::GetApendedString(Scope, GenericTestStr);
+				ScopeHelper::GetApendedString(Scope, ClassConstructorfunc);
+
+				auto ConstructorSymbols = GetSymbolsWithName(Scope, SymbolType::Any);
+				for (auto& FuncItem : ConstructorSymbols)
+				{
+					if (FuncItem->Type == SymbolType::Func)
+					{
+						const FuncInfo* finfo = FuncItem->Get_Info<FuncInfo>();
+						const FuncNode* fnode = FuncItem->Get_NodeInfo<FuncNode>();
+
+						Vector<Variant<TypeSymbol, EvaluatedEx>> genericinput;
+						genericinput.resize(V->_GenericData.GetMinimumCount());
+
+						for (size_t i = 1; i < finfo->Pars.size(); i++)
+						{
+							auto& Par = finfo->Pars[i];
+							auto& ParNode = fnode->_Signature._Parameters._Parameters[i];
+							auto& InputType = ValueTypes[i - 1];
+
+							Optional<size_t> GenericExIndex;
+
+							{
+								for (auto& Item : ParNode._Type._name._ScopedName)
+								{
+									if (ParNode._Type._node.get())
+									{
+										auto n = ExpressionNodeType::As(ParNode._Type._node.get());
+										if (n->_Value->Get_Type() == NodeType::ValueExpressionNode)
+										{
+											auto vn = ValueExpressionNode::As(n->_Value.get());
+
+											if (vn->_Value->Get_Type() == NodeType::ReadVariableNode)
+											{
+												auto readvarnode = ReadVariableNode::As(vn->_Value.get());
+
+												String varname;
+												readvarnode->_VariableName.GetScopedName(varname);
+
+
+												for (size_t i = 0; i < node._generic._Values.size(); i++)
+												{
+													auto& g = node._generic._Values[i];
+
+													if (varname == g.AsStringView())
+													{
+														GenericExIndex = i;
+														break;
+													}
+												}
+											}
+										}
+										if (GenericExIndex.has_value())
+										{
+											break;
+										}
+									}
+								}
+							}
+
+
+							if (GenericExIndex.has_value())
+							{
+								auto gindex = GenericExIndex.value();
+								auto insym = Symbol_GetSymbol(InputType.Type);
+								auto parsym = Symbol_GetSymbol(Par.Type);
+
+								if (insym.has_value() && parsym.has_value())
+								{
+									auto in = insym.value();
+									auto pa = parsym.value();
+
+									if (in->Type == pa->Type && in->Type == SymbolType::Type_StaticArray)
+									{
+										StaticArrayInfo* ininfo = in->Get_Info<StaticArrayInfo>();
+
+										auto v = Eval_MakeEx(TypesEnum::uIntPtr);
+										if (_Settings->PtrSize == IntSizes::Int32)
+										{
+											Eval_Set_ObjectAs(v, (UInt32)ininfo->Count);
+										}
+										else
+										{
+											Eval_Set_ObjectAs(v, (UInt64)ininfo->Count);
+										}
+
+										genericinput[gindex] = std::move(v);
+									}
+								}
+							}
+						}
+
+
+						bool isgenericok = false;
+
+						UCodeLangAssert(!V->_GenericData.IsPack());
+
+						if (genericinput.size() == V->_GenericData._Genericlist.size())
+						{
+							isgenericok = true;
+							for (size_t i = 0; i < genericinput.size(); i++)
+							{
+								auto& ginput = genericinput[i];
+								auto& glist = V->_GenericData._Genericlist[i];
+
+								bool isginputEx = ginput.Is<EvaluatedEx>();
+								bool isglistEx = glist.IsConstantExpression();
+
+								if (isginputEx != isglistEx)
+								{
+									isgenericok = false;
+									break;
+								}
+							}
+						}
+
+
+						if (isgenericok)
+						{
+							Vector<TypeSymbol> in;
+							in.resize(genericinput.size());
+
+							for (size_t i = 0; i < genericinput.size(); i++)
+							{
+								auto& input = genericinput[i];
+								TypeSymbol t;
+
+								if (auto tep = input.Get_If<TypeSymbol>())
+								{
+									t = *tep;
+								}
+								else
+								{
+									auto& v = input.Get< EvaluatedEx>();
+
+									auto& sym = Symbol_AddSymbol(SymbolType::ConstantExpression, "", "", AccessModifierType::Private);
+									_Table.AddSymbolID(sym, Symbol_GetSymbolID(&sym));
+
+									ConstantExpressionInfo* info = new ConstantExpressionInfo();
+
+									info->Ex = std::move(v.EvaluatedObject);
+									sym.VarType = v.Type;
+
+									sym.Info.reset(info);
+
+									t = TypeSymbol(sym.ID);
+								}
+
+								in[i] = t;
+							}
+
+							String NewName = Generic_SymbolGenericFullName(Item, in);
+							auto FuncIsMade = Symbol_GetSymbol(NewName, SymbolType::Tag_class);
+
+							if (!FuncIsMade)
+							{
+								Generic_TypeInstantiate_Tag(Item, in);
+							}
+
+							auto newtagsym = FuncIsMade ? FuncIsMade : Symbol_GetSymbol(NewName, SymbolType::Tag_class);
+
+
+							classsymop = newtagsym;
+						}
+					}
+				}
+			}
+
+			if (classsymop.has_value())
+			{
+				auto classsyb = classsymop.value();
+				String Scope = classsyb->FullName;
+				ScopeHelper::GetApendedString(Scope, ClassConstructorfunc);
+
+				auto ConstructorSymbols = GetSymbolsWithName(Scope, SymbolType::Any);
+
+
+				for (auto& Item2 : ConstructorSymbols)
+				{
+					if (Item2->Type == SymbolType::Func)
+					{
+						if (Item2->Type == SymbolType::Func)
+						{
+							FuncInfo* Info = Item2->Get_Info<FuncInfo>();
+							bool PushThisPar = Info->IsObjectCall();
+
+
+							if (PushThisPar)
+							{
+								TypeSymbol V;
+								V.SetType(classsyb->ID);
+								V.SetAsAddress();
+								ValueTypes.insert(ValueTypes.begin(), { false,V });
+							}
+
+							IsCompatiblePar CMPPar;
+							CMPPar.SetAsFuncInfo(Item2);
+
+							bool Compatible = Type_IsCompatible(CMPPar, ValueTypes, _ThisTypeIsNotNull, NeverNullptr(Name._ScopedName.back()._token));
+
+							if (PushThisPar)
+							{
+								ValueTypes.erase(ValueTypes.begin());
+							}
+
+							if (!Compatible)
+							{
+								continue;
+							}
+
+							{
+								r = Info;
+								FuncSymbol = Item2;
+								T = SymbolType::FuncCall;
+								OkFunctions.push_back({ PushThisPar ? Get_FuncInfo::ThisPar_t::OnIRlocationStack : ThisParType,r,FuncSymbol });
+							}
+						}
+					}
+				}
+			}
+
+
+		}
 	ContinueOutloop:continue;
 	}
 	if (OkFunctions.size() == 0)
@@ -2547,7 +3076,114 @@ Optional< Optional<SystematicAnalysis::Get_FuncInfo>> SystematicAnalysis::Type_F
 		}
 	}
 
-	return { {} };
+	bool cangenericinputbeused = false;
+
+	bool isinputcountgood = false;
+	
+	if (IsParPack)
+	{	
+		isinputcountgood = true;
+	}
+	else
+	{
+		isinputcountgood = GenericInput.size() == Info->_GenericData._Genericlist.size();
+	}
+
+	if (isinputcountgood)
+	{
+		cangenericinputbeused = true;
+
+		const FuncNode* fnode = Item->Get_NodeInfo<FuncNode>();
+
+		const auto& fpars = fnode->_Signature._Parameters._Parameters;		
+		const auto& fInput = GenericInput;
+		const auto& fgenericnode = fnode->_Signature._generic;
+
+		//We cant use Type_Convert because if Generic it will generate unneeded IR,Symbols.
+		// if cangenericinputbeused becomes false
+		// and have a way to roleback would be a headache
+		// so we just lazy attempt Convert compare the possible Symbol name with the Par.
+
+		//Lambda because it's never used any were else
+		std::function<Optional<String>(const TypeNode&)> lazyattemp;
+
+		
+		lazyattemp = [this,&lazyattemp,&fInput,&fgenericnode,&fpars](const TypeNode& node) -> Optional<String>
+		{
+				if (node._name._ScopedName.back()._token->Type== TokenType::Name)
+				{
+					String fullname;
+					node._name.GetScopedName(fullname);
+
+					for (size_t i = 0; i < fgenericnode._Values.size(); i++)
+					{
+						auto& gnode = fgenericnode._Values[i];
+						auto& fin = fInput[i];
+
+						if (gnode.AsString() == fullname)
+						{
+							return ToString(fin);
+						}
+					}
+					
+					auto sym = Symbol_GetSymbol(fullname, SymbolType::Type);
+					if (sym)
+					{
+						const auto typegenics = node._name._ScopedName.back()._generic.get();
+						bool hasgenics = typegenics ?  typegenics->_Values.size() : 0;
+
+						if (hasgenics)
+						{
+							fullname += "<";
+
+							for (auto& Item : typegenics->_Values)
+							{
+								fullname += lazyattemp(Item).value_or("");
+
+								if (&Item != &typegenics->_Values.back())
+								{
+									fullname += ",";
+								}
+							}
+
+
+							fullname += ">";
+						}
+						return fullname;
+					}
+				}
+				return {};
+		};
+
+		for (size_t i = 0; i < fpars.size(); i++)
+		{
+			auto& Item = fpars[i];
+			auto& Par = ValueTypes[i].Type;
+			auto sym = lazyattemp(Item._Type);
+
+			if (sym.has_value())
+			{
+				auto symname = sym.value();
+				auto parname = ToString(Par);
+				
+				if (symname != parname)
+				{
+					cangenericinputbeused = false;
+					break;
+				}
+			}
+		}
+
+	
+	}
+
+	if (cangenericinputbeused) {
+		return { {} };
+	}
+	else
+	{
+		return {};
+	}
 }
 SystematicAnalysis::Get_FuncInfo SystematicAnalysis::Symbol_GetEnumVariantFunc(NeverNullPtr<Symbol> EnumSyb, size_t FieldIndex, NeverNullPtr<Symbol> EnumFieldSyb, const ValueParametersNode& Pars, const NeverNullPtr<Token> Token, const Vector<ParInfo>& ValueTypes)
 {
@@ -2792,6 +3428,28 @@ void SystematicAnalysis::IR_Build_DestructorCall(const ObjectToDrop& Object)
 				ValueParametersNode Vtemp;
 				IR_Build_FuncCall(Object.Type, FuncInfo, Vtemp);
 
+
+				if (_IR_LastExpressionField->Type == IRInstructionType::Call)
+				{
+					if (Object._Object != nullptr)
+					{
+						Optional<size_t> FieldIndex;
+
+						for (size_t i = 0; i < _IR_LookingAtIRBlock->Instructions.size(); i++)
+						{
+							auto& Item = _IR_LookingAtIRBlock->Instructions[i];
+
+							if (Item.get() == Object._Object)
+							{
+								FieldIndex = i;
+								break;
+							}
+						}
+
+						_IR_LastExpressionField->Type = IRInstructionType::CleanupFuncCall;
+						_IR_LastExpressionField->B = IROperator(AnyInt64(FieldIndex.value()));
+					}
+				}
 
 				_IR_IRlocations.pop();
 			}

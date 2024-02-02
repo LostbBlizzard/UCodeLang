@@ -10,7 +10,7 @@ UCodeLangStart
 class LLVMBackEnd : BackEndObject
 {
 public:
-	LLVMBackEnd(){}
+	LLVMBackEnd() {}
 	~LLVMBackEnd() {}
 
 	void Reset() override;
@@ -21,9 +21,9 @@ public:
 	static BackEndObject* MakeObject() { return new LLVMBackEnd(); }
 	void UpdateBackInfo(CompilationBackEndInfo& BackInfo) override;
 private:
-	const IRBuilder* _Input =nullptr;
+	const IRBuilder* _Input = nullptr;
 	String _OutStr;
-	
+
 	void OnFunc(const IRFunc* Func);
 	String ToString(const IRType& Type);
 };
