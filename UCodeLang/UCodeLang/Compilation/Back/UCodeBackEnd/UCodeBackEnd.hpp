@@ -507,12 +507,17 @@ private:
 		UCodeLangUnreachable();
 	}
 
-	size_t GetPreCallStackOffset2(size_t ItemSize, size_t ItemStackOffset)
+	size_t GetPreCallStackOffset2(size_t ItemStackOffset)
 	{
+		auto  par = GetPreCallPar(ItemStackOffset);
 
-		auto newpos = ItemSize + ItemStackOffset;
-		//newpos += ItemSize+8;//i have no idea why 8+ is needed
-		return newpos + _Stack.PushedOffset;
+		auto mainobjsize = GetSize(par->Par->type);
+
+		size_t paroffset = par->Location.Get<StackPreCall>().Offset;
+		size_t FeildOffset = ItemStackOffset - paroffset;
+		//return paroffset + mainobjsize - FeildOffset + _Stack.PushedOffset;
+		return paroffset + mainobjsize - FeildOffset;
+	
 	}
 
 	//AddDebuginfo

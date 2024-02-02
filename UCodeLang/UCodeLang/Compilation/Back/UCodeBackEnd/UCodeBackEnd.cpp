@@ -3443,15 +3443,7 @@ RegisterID UCodeBackEndObject::MakeIntoRegister(const IRlocData& Value, Optional
 		else
 		{
 			auto Val2 = Value.Info.Get_If<IRlocData_StackPre>();
-
-			auto  par = GetPreCallPar(Val2->offset);
-
-			auto mainobjsize = GetSize(par->Par->type);
-			
-			size_t paroffset =par->Location.Get<StackPreCall>().Offset;
-			size_t FeildOffset = Val2->offset - paroffset;
-
-			_Stack.AddReUpdatePreFunc(PushIns(),paroffset + mainobjsize - FeildOffset);
+			_Stack.AddReUpdatePreFunc(PushIns(),GetPreCallStackOffset2(Val2->offset));
 		}
 		return Tep;
 	}
@@ -3594,14 +3586,7 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetPointerOf(const IRlocData& 
 		}
 		else if (auto Val2 = Value.Info.Get_If<IRlocData_StackPre>())
 		{
-			auto  par = GetPreCallPar(Val2->offset);
-
-			auto mainobjsize = GetSize(par->Par->type);
-			
-			size_t paroffset =par->Location.Get<StackPreCall>().Offset;
-			size_t FeildOffset = Val2->offset - paroffset;
-
-			_Stack.AddReUpdatePreFunc(PushIns(),paroffset + mainobjsize - FeildOffset);	
+			_Stack.AddReUpdatePreFunc(PushIns(),GetPreCallStackOffset2(Val2->offset));	
 		}
 		else
 		{
@@ -4928,14 +4913,7 @@ void UCodeBackEndObject::MoveRegInValue(RegisterID Value, const IRlocData& To, s
 			break;
 		}
 
-		auto  par = GetPreCallPar(Val->offset);
-
-		auto mainobjsize = GetSize(par->Par->type);
-			
-		size_t paroffset =par->Location.Get<StackPreCall>().Offset;
-		size_t FeildOffset = Val->offset - paroffset;
-	
-		_Stack.AddReUpdatePreFunc(PushIns(),paroffset + mainobjsize - FeildOffset);
+		_Stack.AddReUpdatePreFunc(PushIns(),GetPreCallStackOffset2(Val->offset));
 	}
 	else if (auto Val = To.Info.Get_If<IRlocData_StaticPos>())
 	{
@@ -5047,15 +5025,7 @@ void UCodeBackEndObject::MoveValueInReg(const IRlocData& Value, size_t Offset, R
 		else
 		{
 			auto Val2 = Value.Info.Get_If<IRlocData_StackPre>();
-
-			auto  par = GetPreCallPar(Val2->offset);
-
-			auto mainobjsize = GetSize(par->Par->type);
-			
-			size_t paroffset =par->Location.Get<StackPreCall>().Offset;
-			size_t FeildOffset = Val2->offset - paroffset;
-			
-			_Stack.AddReUpdatePreFunc(PushIns(), paroffset + mainobjsize - FeildOffset);
+			_Stack.AddReUpdatePreFunc(PushIns(),GetPreCallStackOffset2(Val2->offset));
 		}
 	}
 	else if (auto Val = Value.Info.Get_If<IRlocData_StaticPos>())
