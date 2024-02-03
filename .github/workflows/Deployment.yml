@@ -61,13 +61,6 @@ jobs:
       - name: Run Premake
         run: ./VS_2019.bat
 
-      - name: Restore cached objs
-        id: cache-objs-restore
-        uses: actions/cache/restore@v3
-        with:
-          path: ./Output
-          key: ${{ runner.os }}-deployment
-
       - name: Build 64 bit
         run: ./premake.bat build_published
 
@@ -77,14 +70,6 @@ jobs:
 
       - name: Build installer
         run: ./premake.bat buildinstaller
-
-      - name: Save cached Objs
-        if: always()
-        id: cache-Objs-save
-        uses: actions/cache/save@v3
-        with:
-          path: ./Output
-          key: ${{ steps.cache-objs-restore.outputs.cache-primary-key }}
 
       - name: Archive Output
         uses: actions/upload-artifact@v4
@@ -113,13 +98,6 @@ jobs:
 
       - name: Run Premake
         run: ./GNU_Make.sh
-
-      - name: Restore cached objs
-        id: cache-objs-restore
-        uses: actions/cache/restore@v3
-        with:
-          path: ./Output
-          key: ${{ runner.os }}-deployment
 
       - name: Build 64 bit
         run: ./premake.sh build_published
@@ -159,23 +137,8 @@ jobs:
       - name: Run Premake
         run: ./GNU_Make.sh
 
-      - name: Restore cached objs
-        id: cache-objs-restore
-        uses: actions/cache/restore@v3
-        with:
-          path: ./Output
-          key: ${{ runner.os }}-deployment
-
       - name: Build 
         run: ./premake.sh build_published
-
-      - name: Save cached 
-        if: always()
-        id: cache-Objs-save
-        uses: actions/cache/save@v3
-        with:
-         path: ./Output
-         key: ${{ steps.cache-objs-restore.outputs.cache-primary-key }}
 
       - name: Archive Output
         uses: actions/upload-artifact@v4
