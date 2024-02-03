@@ -495,7 +495,7 @@ group "UCodeAPIs"
    prebuildcommands  
    {
     UCPathExe.." index %{prj.location}",
-    --UCPathExe.." build %{prj.location}"
+    UCPathExe.." build %{prj.location}"
    }
   
  project "NStandardLibrary"
@@ -520,7 +520,7 @@ group "UCodeAPIs"
    prebuildcommands 
    {
     UCPathExe.." index %{prj.location}",
-    --UCPathExe.." build %{prj.location}"
+    UCPathExe.." build %{prj.location}"
    }
  project "CompilerAPI"
   location "UCodeAPI/CompilerAPI"
@@ -544,7 +544,7 @@ group "UCodeAPIs"
    prebuildcommands 
    {
      UCPathExe.." index %{prj.location}",
-     --UCPathExe.." build %{prj.location}"
+     UCPathExe.." build %{prj.location}"
    }
  project "BuildSystem"
    location "UCodeAPI/BuildSystem"
@@ -567,7 +567,7 @@ group "UCodeAPIs"
     prebuildcommands 
     {
      UCPathExe.." index %{prj.location}",
-     --UCPathExe.." build %{prj.location}"
+     UCPathExe.." build %{prj.location}"
     }
  
 function executeorexit(str)
