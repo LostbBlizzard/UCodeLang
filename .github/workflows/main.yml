@@ -31,27 +31,11 @@ jobs:
     - name: Run Premake
       run: ./VS_2019.bat
 
-
-    - name: Restore cached objs
-      if: always()
-      id: cache-objs-restore
-      uses: actions/cache/restore@v3
-      with:
-        path: ./Output
-        key: ${{ runner.os }}-cl-1
-
     - name: Build 64 bit
       run: ./premake.bat build
 
     - name: Build 32 bit
       run: ./premake.bat build_32bit
-
-    - name: Save cached Objs
-      id: cache-Objs-save
-      uses: actions/cache/save@v3
-      with:
-        path: ./Output
-        key: ${{ steps.cache-objs-restore.outputs.cache-primary-key }}
 
     - name: RunTests for 64 bit
       run: ./premake.bat test
@@ -76,23 +60,8 @@ jobs:
     - name: Run Premake
       run: ./GNU_Make.sh
     
-    - name: Restore cached objs
-      id: cache-objs-restore
-      uses: actions/cache/restore@v3
-      with:
-        path: ./Output
-        key: ${{ runner.os }}-cl-1inux
-
     - name: Build 64 bit
       run: ./premake.sh build
-
-    - name: Save cached Objs
-      if: always()
-      id: cache-Objs-save
-      uses: actions/cache/save@v3
-      with:
-        path: ./Output
-        key: ${{ steps.cache-objs-restore.outputs.cache-primary-key }}
 
     - name: RunTests for 64 bit
       run: ./premake.sh test
@@ -114,23 +83,8 @@ jobs:
     - name: Run Premake
       run: ./GNU_Make.sh
 
-    - name: Restore cached objs
-      id: cache-objs-restore
-      uses: actions/cache/restore@v3
-      with:
-        path: ./Output
-        key: ${{ runner.os }}-cl-1
-
     - name: Build 
       run: ./premake.sh build
-
-    - name: Save cached Objs
-      if: always()
-      id: cache-Objs-save
-      uses: actions/cache/save@v3
-      with:
-        path: ./Output
-        key: ${{ steps.cache-objs-restore.outputs.cache-primary-key }}
 
     - name: RunTests
       run: ./premake.sh test
@@ -148,28 +102,12 @@ jobs:
     - name: Run Premake Install
       uses: mymindstorm/setup-emsdk@v13
 
-
     - name: Run Premake
       run: ./GNU_Make.sh
     
-    - name: Restore cached objs
-      id: cache-objs-restore
-      uses: actions/cache/restore@v3
-      with:
-        path: ./Output
-        key: ${{ runner.os }}-cl-wasm
-
     - name: Build Wasm
       run: ./premake.sh web_build
-
-    - name: Save cached Objs
-      if: always()
-      id: cache-Objs-save
-      uses: actions/cache/save@v3
-      with:
-        path: ./Output
-        key: ${{ steps.cache-objs-restore.outputs.cache-primary-key }}
-  
+ 
   clang-android-build:
    if: 'false'
    runs-on: ubuntu-latest
@@ -187,24 +125,9 @@ jobs:
     - name: Run Premake
       run: ./GNU_Make.sh
     
-    - name: Restore cached objs
-      id: cache-objs-restore
-      uses: actions/cache/restore@v3
-      with:
-        path: ./Output
-        key: ${{ runner.os }}-cl-android
-
     - name: Build (Arm64)
       run: ./premake.sh web_build
-
-    - name: Save cached Objs
-      if: always()
-      id: cache-Objs-save
-      uses: actions/cache/save@v3
-      with:
-        path: ./Output
-        key: ${{ steps.cache-objs-restore.outputs.cache-primary-key }}
-  
+ 
   clang-ios-build:
    if: 'false'
    runs-on: "macos-latest"
@@ -221,21 +144,5 @@ jobs:
     - name: Run Premake
       run: ./GNU_Make.sh
     
-    - name: Restore cached objs
-      id: cache-objs-restore
-      uses: actions/cache/restore@v3
-      with:
-        path: ./Output
-        key: ${{ runner.os }}-cl-ios
-
     - name: Build
       run: ./premake.sh ios_build
-
-    - name: Save cached Objs
-      if: always()
-      id: cache-Objs-save
-      uses: actions/cache/save@v3
-      with:
-        path: ./Output
-        key: ${{ steps.cache-objs-restore.outputs.cache-primary-key }}
-
