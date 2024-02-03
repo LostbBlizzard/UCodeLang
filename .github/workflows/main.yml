@@ -54,6 +54,9 @@ jobs:
        chmod +x ./InstallTools.sh
        chmod +x ./GNU_Make.sh
 
+    - name: Setup upterm session
+      uses: lhotari/action-upterm@v1
+
     - name: Run Premake Install
       run: ./InstallTools.sh
 
