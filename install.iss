@@ -45,7 +45,16 @@ Source: "UCodeAPI\StandardLibrary\LICENSE.txt"; DestDir: "{app}\module\StandardL
 
 Source: "UCodeAPI\NStandardLibrary\*.uc"; DestDir: "{app}\module\NStandardLibrary"; Flags: ignoreversion recursesubdirs
 Source: "UCodeAPI\NStandardLibrary\*.ucm"; DestDir: "{app}\module\NStandardLibrary"; Flags: ignoreversion recursesubdirs
-Source: "UCodeAPI\NStandardLibrary\LICENSE.txt"; DestDir: "{app}\module\StandardLibrary"; Flags: ignoreversion
+Source: "UCodeAPI\NStandardLibrary\LICENSE.txt"; DestDir: "{app}\module\NStandardLibrary"; Flags: ignoreversion
+
+Source: "UCodeAPI\BuildSystem\*.ucm"; DestDir: "{app}\module\BuildSystem"; Flags: ignoreversion recursesubdirs
+Source: "UCodeAPI\BuildSystem\*.uc"; DestDir: "{app}\module\BuildSystem"; Flags: ignoreversion recursesubdirs
+Source: "UCodeAPI\BuildSystem\LICENSE.txt"; DestDir: "{app}\module\BuildSystem"; Flags: ignoreversion
+
+Source: "UCodeAPI\CompilerAPI\*.uc"; DestDir: "{app}\module\CompilerAPI"; Flags: ignoreversion recursesubdirs
+Source: "UCodeAPI\CompilerAPI\*.ucm"; DestDir: "{app}\module\CompilerAPI"; Flags: ignoreversion recursesubdirs
+Source: "UCodeAPI\CompilerAPI\LICENSE.txt"; DestDir: "{app}\module\CompilerAPI"; Flags: ignoreversion
+
 
 Source: "UCodeDocumentation\src\*.md"; DestDir: "{app}\docs"; Flags: ignoreversion recursesubdirs
 
@@ -119,6 +128,10 @@ end;
 
 Filename: "{app}\bin\{#MyAppExeName}"; Parameters: "index {app}\module\StandardLibrary"
 Filename: "{app}\bin\{#MyAppExeName}"; Parameters: "index {app}\module\NStandardLibrary"
+Filename: "{app}\bin\{#MyAppExeName}"; Parameters: "index {app}\module\BuildSystem"
+Filename: "{app}\bin\{#MyAppExeName}"; Parameters: "index {app}\module\CompilerAPI"
+
+
 
 Filename: "{app}\bin\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
 
