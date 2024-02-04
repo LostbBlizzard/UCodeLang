@@ -1009,6 +1009,27 @@ function mysplit(inputstr, sep)
         return t
 end
 
+local function replacetextinfile(file_path, stringtomatch, replacement)
+    local file = io.open(file_path, "r")  
+    if not file then
+        print("Error: File not found or unable to open.")
+        return
+    end
+
+    local content = file:read("*a")  
+    file:close()  
+    
+    local modified_content = content:gsub(stringtomatch, replacement)
+
+    local new_file = io.open(file_path, "w")
+    if not new_file then
+        print("Error: Unable to write to file.")
+        return
+    end
+    new_file:write(modified_content)
+    new_file:close()
+end
+
 newaction {
     trigger = "updateverion",
     description = "updates the verion number",
@@ -1040,14 +1061,16 @@ newaction {
 
         file:close()
 
-
-
-
-
-
         --install.sh
+        replacetextinfile("./install.sh","VersionMajor",major)
+        replacetextinfile("./install.sh","VersionMinor",minor)
+        replacetextinfile("./install.sh","VersionPatch",patch)
 
         --install.iss
+        replacetextinfile("./install.iss","VersionMajor",major)
+        replacetextinfile("./install.iss","VersionMinor",minor)
+        replacetextinfile("./install.iss","VersionPatch",patch)
+
 
 
     end
