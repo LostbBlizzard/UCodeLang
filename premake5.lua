@@ -1013,22 +1013,41 @@ newaction {
     trigger = "updateverion",
     description = "updates the verion number",
     execute = function ()
-        local major = 0
-        local minor = 0
-        local patch = 0
+        local major = "0"
+        local minor = "0"
+        local patch = "0"
 
         local veriontext = readAll("version.txt")
         local verionspit = mysplit(veriontext,".");
 
-        major = tonumber(verionspit[1])
+        major = verionspit[1]
 
-        major = tonumber(verionspit[2])
+        major = verionspit[2]
 
-        patch = tonumber(verionspit[3])
+        patch = verionspit[3]
 
         print("updating source files to " .. major .. "." .. minor .. "." .. patch)
 
-        -- Version.hpp
+        --Version.hpp
+        local file = io.open("./UCodeLang/UCodeLang/LangCore/Version.hpp","w")
+
+        file:write("#pragma once\n")
+        file:write("#define UCodeLangMajorVersion " .. major .. "\n")
+        file:write("#define UCodeLangMinorVersion " .. minor .. "\n")
+        file:write("#define UCodeLangPatchVersion " .. patch .. "")
+        
+        file:write("#define UCodeLangVersionNumber (UCodeLangMajorVersion << 16) + (UCodeLangMinorVersion << 8) + UCodeLangPatchVersion")
+
+        file:close()
+
+
+
+
+
+
+        --install.sh
+
+        --install.iss
 
 
     end
