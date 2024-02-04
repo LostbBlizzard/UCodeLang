@@ -104,7 +104,7 @@ jobs:
       - name: Version Setup
         run: | 
          echo ${{ inputs.VersionNumber }} > ./version.txt 
-         ./premake.bat updateverion 
+         ./premake.sh updateverion 
 
       - name: Run Premake
         run: ./GNU_Make.sh
@@ -147,7 +147,7 @@ jobs:
       - name: Version Setup
         run: | 
          echo ${{ inputs.VersionNumber }} > ./version.txt 
-         ./premake.bat updateverion 
+         ./premake.sh updateverion 
 
       - name: Run Premake
         run: ./GNU_Make.sh
