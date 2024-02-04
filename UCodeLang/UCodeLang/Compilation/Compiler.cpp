@@ -280,6 +280,19 @@ Compiler::CompilerRet Compiler::CompileFiles(const CompilerPathData& Data, const
 			Files.push_back(_FrontEndObject->LoadExternFile(Item));
 		}
 
+
+		std::cout << "list:" << std::endl;
+		for (auto& item : Files)
+		{
+			std::cout << item->FileName;
+		}
+
+		std::sort(Files.begin(), Files.end(), [](const Unique_ptr<FileNode_t>& A, const Unique_ptr<FileNode_t>& B)
+		{
+			return A->FileName.compare(B->FileName) < 0;
+		});
+
+
 		_FrontEndObject->BuildIR(Files);
 
 
@@ -967,6 +980,17 @@ Compiler::CompilerRet Compiler::CompileFiles_UseIntDir(const CompilerPathData& D
 		}
 		//else
 		{
+			std::cout << "list:" << std::endl;
+		for (auto& item : Files)
+		{
+			std::cout << item->FileName << "\n";
+		}
+
+		std::sort(Files.begin(), Files.end(), [](const FileNode_t* A, const FileNode_t* B)
+		{
+			return A->FileName.compare(B->FileName) < 0;
+		});
+
 			_FrontEndObject->BuildIR(Files);
 
 			if (!_Errors.Has_Errors())
