@@ -713,7 +713,7 @@ newaction {
     execute = function ()
         
         if os.istarget("linux") then
-         executeorexit("make UCodelangCL -j4")
+         executeorexit("make UCodelangCL -j(nproc)")
         end
 
         if os.istarget("windows") then
@@ -721,7 +721,7 @@ newaction {
         end
         
         if os.istarget("macosx") then
-         executeorexit("make UCodelangCL -j4")
+         executeorexit("make UCodelangCL -j(nproc)")
         end
     end
 }
@@ -731,7 +731,7 @@ newaction {
     execute = function ()
         
         if os.istarget("linux") then
-         executeorexit("make -j4")
+         executeorexit("make -j$(nproc)")
         end
 
         if os.istarget("windows") then
@@ -739,7 +739,7 @@ newaction {
         end
         
         if os.istarget("macosx") then
-         executeorexit("make -j4")
+         executeorexit("make -j$(nproc)")
         end
     end
 }
@@ -749,7 +749,7 @@ newaction {
     execute = function ()
         
         if os.istarget("linux") then
-         executeorexit("make config=debug_linux32 -j4")
+         executeorexit("make config=debug_linux32 -j$(nproc)")
         end
 
         if os.istarget("windows") then
@@ -757,7 +757,7 @@ newaction {
         end
         
         if os.istarget("macosx") then
-         executeorexit("make -j4")
+         executeorexit("make -j$(nproc)")
         end
     end
 }
@@ -767,7 +767,7 @@ newaction {
     execute = function ()
         
         if os.istarget("linux") then
-         executeorexit("make config=published_linux64 -j4")
+         executeorexit("make config=published_linux64 -j$(nproc)")
         end
 
         if os.istarget("windows") then
@@ -775,7 +775,7 @@ newaction {
         end
         
         if os.istarget("macosx") then
-         executeorexit("make config=published_macos -j4")
+         executeorexit("make config=published_macos -j$(nproc)")
         end
     end
 }
@@ -785,7 +785,7 @@ newaction {
     execute = function ()
         
         if os.istarget("linux") then
-         executeorexit("make config=published_linux32 -j4")
+         executeorexit("make config=published_linux32 -j$(nproc)")
         end
 
         if os.istarget("windows") then
@@ -793,7 +793,7 @@ newaction {
         end
         
         if os.istarget("macosx") then
-         executeorexit("make config=published_macos -j4")
+         executeorexit("make config=published_macos -j$(nproc)")
         end
     end
 }
@@ -884,7 +884,7 @@ newaction {
     execute = function ()
 
         if os.istarget("linux") then
-         executeorexit("source ./emsdk_env.sh;emmake make config=debug_web -j4")
+         executeorexit("source ./emsdk_env.sh;emmake make config=debug_web -j$(nproc)")
         end
 
         if os.istarget("windows") then
@@ -892,7 +892,7 @@ newaction {
         end
         
         if os.istarget("macosx") then
-         executeorexit("source ./emsdk_env.sh;emmake make config=debug_web -j4")
+         executeorexit("source ./emsdk_env.sh;emmake make config=debug_web -j$(nproc)")
         end
     end
 }
@@ -903,15 +903,15 @@ newaction {
         print("installing wasm tools for " .. os.target())
         
         if os.istarget("linux") then
-         executeorexit("emmake make config=published_web -j4")
+         executeorexit("emmake make config=published_web -j$(nproc)")
         end
 
         if os.istarget("windows") then
-         executeorexit("emmake make config=published_web -j4")
+         executeorexit("emmake make config=published_web -j$(nproc)")
         end
         
         if os.istarget("macosx") then
-         executeorexit("emmake make config=published_web -j4")
+         executeorexit("emmake make config=published_web -j$(nproc)")
         end
     end
 }
@@ -921,15 +921,15 @@ newaction {
     execute = function ()
 
         if os.istarget("linux") then
-         executeorexit("emmake make UCodeIDE config=debug_web -j4")
+         executeorexit("emmake make UCodeIDE config=debug_web -j$(nproc)")
         end
 
         if os.istarget("windows") then
-         executeorexit("emmake make UCodeIDE config=debug_web -j4")
+         executeorexit("emmake make UCodeIDE config=debug_web -j$(nproc)")
         end
         
         if os.istarget("macosx") then
-         executeorexit("emmake make UCodeIDE config=debug_web -j4")
+         executeorexit("emmake make UCodeIDE config=debug_web -j$(nproc)")
         end
     end
 }
