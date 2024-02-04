@@ -201,6 +201,11 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
+      - name: Version Setup
+        run: | 
+         echo ${{ inputs.VersionNumber }} > ./version.txt 
+         ./premake.sh updateverion 
+
       - name: Download all workflow run artifacts
         uses: actions/download-artifact@v4
 
@@ -234,7 +239,17 @@ jobs:
           asset_path: ./UCodeLang/UCodeLang/UCodeLangCAPI.h
           asset_name: UCodeLangCAPI.h
           asset_content_type: text/plain
-          
+      
+      - name: Upload Unix Setup
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./install.sh
+          asset_name: install.sh
+          asset_content_type: text/plain  
+      
       - name: Upload Windows Setup
         uses: actions/upload-release-asset@v1
         env:
@@ -274,8 +289,7 @@ jobs:
           asset_path: ./Output_Windows/UCodeLanguageSever/Win64/Published/uclanglsp.exe
           asset_name: uclanglsp-win64.exe
           asset_content_type: application/octet-stream 
-
-      
+ 
       - name: Upload UCodeLangLibWindows32
         if: ${{ inputs.IsPreRelease == false}}
         uses: actions/upload-release-asset@v1
@@ -309,7 +323,6 @@ jobs:
           asset_name: uclanglsp-win32.exe
           asset_content_type: application/octet-stream 
       
-
       - name: Upload UCodeLangLibLinux64
         uses: actions/upload-release-asset@v1
         env:
@@ -339,7 +352,6 @@ jobs:
           asset_path: ./Output_Linux/UCodeLanguageSever/linux64/Published/uclanglsp
           asset_name: uclanglsp-linux64
           asset_content_type: application/octet-stream 
-
 
       - name: Upload UCodeLangLibMacOS
         uses: actions/upload-release-asset@v1
