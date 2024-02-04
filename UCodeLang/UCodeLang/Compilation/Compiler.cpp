@@ -281,12 +281,10 @@ Compiler::CompilerRet Compiler::CompileFiles(const CompilerPathData& Data, const
 		}
 
 
-		std::cout << "list:" << std::endl;
-		for (auto& item : Files)
-		{
-			std::cout << item->FileName;
-		}
-
+		//we do this because i want the same types of crashes on diffents OS.
+		// I Should sort this for whatever unix decide to sort their files so i can find the bug
+		// but i lost a full day trying to fix this problem because even on the github actions can change the order of the
+		// files makeing a bug i could not reproduce on my system.
 		std::sort(Files.begin(), Files.end(), [](const Unique_ptr<FileNode_t>& A, const Unique_ptr<FileNode_t>& B)
 		{
 			return A->FileName.compare(B->FileName) < 0;
@@ -980,16 +978,17 @@ Compiler::CompilerRet Compiler::CompileFiles_UseIntDir(const CompilerPathData& D
 		}
 		//else
 		{
-			std::cout << "list:" << std::endl;
-		for (auto& item : Files)
-		{
-			std::cout << item->FileName << "\n";
-		}
-
-		std::sort(Files.begin(), Files.end(), [](const FileNode_t* A, const FileNode_t* B)
-		{
-			return A->FileName.compare(B->FileName) < 0;
-		});
+		
+	
+			//we do this because i want the same types of crashes on diffents OS.
+			// I Should sort this for whatever unix decide to sort their files so i can find the bug
+			// but i lost a full day trying to fix this problem because even on the github actions can change the order of the
+			// files makeing a bug i could not reproduce on my system.	
+			
+			std::sort(Files.begin(), Files.end(), [](const FileNode_t* A, const FileNode_t* B)
+			{
+				return A->FileName.compare(B->FileName) < 0;
+			});
 
 			_FrontEndObject->BuildIR(Files);
 
