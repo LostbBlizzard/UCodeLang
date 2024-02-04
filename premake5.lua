@@ -991,3 +991,43 @@ newaction {
         end
     end
 }
+
+function readAll(file)
+    local f = assert(io.open(file, "rb"))
+    local content = f:read("*all")
+    f:close()
+    return content
+end
+function mysplit(inputstr, sep)
+        if sep == nil then
+                sep = "%s"
+        end
+        local t={}
+        for str in string.gmatch(inputstr, "([^"..sep.."]+)") do
+                table.insert(t, str)
+        end
+        return t
+end
+
+newaction {
+    trigger = "updateverion",
+    description = "updates the verion number",
+    execute = function ()
+        local major = 0
+        local minor = 0
+        local patch = 0
+
+        local veriontext = readAll("version.txt")
+        local verionspit = mysplit(veriontext,".");
+
+        major = tonumber(verionspit[1])
+
+        major = tonumber(verionspit[2])
+
+        patch = tonumber(verionspit[3])
+
+        print("updating source files to " .. major .. "." .. minor .. "." .. patch)
+
+    
+    end
+}
