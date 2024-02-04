@@ -1045,7 +1045,7 @@ newaction {
 
         major = verionspit[2]
 
-        patch = verionspit[3]
+        patch = string.sub(verionspit[3],0,string.len(verionspit[3]) - 2)
 
         print("updating source files to " .. major .. "." .. minor .. "." .. patch)
 
@@ -1055,21 +1055,22 @@ newaction {
         file:write("#pragma once\n")
         file:write("#define UCodeLangMajorVersion " .. major .. "\n")
         file:write("#define UCodeLangMinorVersion " .. minor .. "\n")
-        file:write("#define UCodeLangPatchVersion " .. patch .. "")
+        file:write("#define UCodeLangPatchVersion " .. patch .. "\n\n")
+   
         
         file:write("#define UCodeLangVersionNumber (UCodeLangMajorVersion << 16) + (UCodeLangMinorVersion << 8) + UCodeLangPatchVersion")
 
         file:close()
 
         --install.sh
-        replacetextinfile("./install.sh","VersionMajor",major)
-        replacetextinfile("./install.sh","VersionMinor",minor)
-        replacetextinfile("./install.sh","VersionPatch",patch)
+        replacetextinfile("./install.sh","#VersionMajor#",major)
+        replacetextinfile("./install.sh","#VersionMinor#",minor)
+        replacetextinfile("./install.sh","#VersionPatch#",patch)
 
         --install.iss
-        replacetextinfile("./install.iss","VersionMajor",major)
-        replacetextinfile("./install.iss","VersionMinor",minor)
-        replacetextinfile("./install.iss","VersionPatch",patch)
+        replacetextinfile("./install.iss","#VersionMajor#",major)
+        replacetextinfile("./install.iss","#VersionMinor#",minor)
+        replacetextinfile("./install.iss","#VersionPatch#",patch)
 
 
 
