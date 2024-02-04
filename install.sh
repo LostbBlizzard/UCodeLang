@@ -1,53 +1,65 @@
 #!/usr/bin/env bash
+ucodelangdir = "$HOME/.ucodelang"
+ucodebindir = "$ucodelangdir/bin"
+ucodemoddir = "$ucodelangdir/modules"
+ucodedocdir = "$ucodelangdir/doc"
 
-cd "$HOME"
-mkdir -p "$HOME/.ucodelang"
+ucodelangtepdir ="$ucodelangdir/tep"
+packeddir = "$ucodelangtepdir/packed"
 
-mkdir -p "$HOME/.ucodelang/bin"
 
-cd "$HOME/.ucodelang/bin"
+mkdir -p "$ucodelangdir"
+mkdir -p "$ucodebindir"
+mkdir -p "$ucodelangtepdir"
+mkdir -p "$HOME/.ucodelang/modules"
 
 if [ "$(uname)" = "Darwin" ];  
 then
-curl -LJO https://github.com/LostbBlizzard/UCodeLang/releases/download/Release-#VersionMajor#.#VersionMinor#.#VersionPatch#/uclang-macos
-
-mv uclang-macos uclang
-chmod +x uclang
-
-curl -LJO https://github.com/LostbBlizzard/UCodeLang/releases/download/Release-#VersionMajor#.#VersionMinor#.#VersionPatch#/uclanglsp-macos
-
-mv uclanglsp-macos uclanglsp
-
-chmod +x uclanglsp
 
 elif [ "$(uname)" = "Linux" ]; 
 then
 
-curl -LJO https://github.com/LostbBlizzard/UCodeLang/releases/download/Release-#VersionMajor#.#VersionMinor#.#VersionPatch#/uclang-linux64
+fi
+# download ULangPacked to ~/.ucodelang/tep/ULangPacked.tar.gz
 
-mv uclang-linux64 uclang
-chmod +x uclang
 
-curl -LJO https://github.com/LostbBlizzard/UCodeLang/releases/download/Release-#VersionMajor#.#VersionMinor#.#VersionPatch#/uclanglsp-linux64
+tar -xvf $ucodelangtepdir/ULangPacked.tar.gz -C $packeddir
 
-mv uclanglsp-linux64 uclanglsp
+mv $packeddir/LICENSE.txt $ucodelangdir/LICENSE.txt
 
-chmod +x uclanglsp
+# Standard Librarys
 
-echo ""
+mv $packed/UCodeAPI/StandardLibrary $ucodemoddir/StandardLibrary
+
+mv $packed/UCodeAPI/NStandardLibrary $ucodemoddir/NStandardLibrary
+
+mv $packed/UCodeAPI/BuildSystem $ucodemoddir/BuildSystem
+
+mv $packed/UCodeAPI/CompilerAPI $ucodemoddir/CompilerAPI
+
+# docs
+
+mv $packed/Output/UCodeDocumentation $ucodedocdir
+
+# bin
+
+if [ "$(uname)" = "Darwin" ];  
+then
+
+mv $packed/Output/UCodelangCL/MacOS/Published/uclang $ucodebindir/uclang
+
+mv $packed/Output/UCodeLanguageSever/MacOS/Published/uclanglsp $ucodebindir/uclanglsp
+
+elif [ "$(uname)" = "Linux" ]; 
+then
+
+mv $packed/Output/UCodelangCL/linux64/Published/uclang $ucodebindir/uclang
+
+mv $packed/Output/UCodeLanguageSever/linux64/Published/uclanglsp $ucodebindir/uclanglsp
 
 fi
 
-mkdir -p "$HOME/.ucodelang/modules"
-
-cd "$HOME/.ucodelang/modules"
-
-mkdir ./gitprojecttep/
-git clone https://github.com/LostbBlizzard/UCodeLang ./gitprojecttep
-cp -r ./gitprojecttep/UCodeAPI/StandardLibrary ./
-cp -r ./gitprojecttep/UCodeAPI/NStandardLibrary ./
-
-rm -f -r ./gitprojecttep/ 
+# add to path
 
 if ! grep -Fxq "export PATH=$HOME/.ucodelang/bin" $HOME/.bashrc
 then
@@ -60,11 +72,16 @@ then
  echo "export PATH=$HOME/.ucodelang/bin" >> $HOME/.profile
 fi
 
-cd "$HOME/.ucodelang/bin"
+#setup StandardLibrarys
 
-./uclang index "$HOME/.ucodelang/modules/StandardLibrary"
+$ucodebindir/uclang index $ucodemoddir/StandardLibrary
 
-./uclang index "$HOME/.ucodelang/modules/NStandardLibrary"
+$ucodebindir/uclang index $ucodemoddir/NStandardLibrary
 
+$ucodebindir/uclang index $ucodemoddir/BuildSystem
+
+$ucodebindir/uclang index $ucodemoddir/CompilerAPI
+
+rmdir $ucodelangtepdir
 
 echo "installation of 'ucodelang' is complete try using \"uclang -help\"";
