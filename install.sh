@@ -9,12 +9,12 @@ cd "$HOME/.ucodelang/bin"
 
 if [ "$(uname)" = "Darwin" ];  
 then
-curl -LJO https://github.com/LostbBlizzard/UCodeLang/releases/download/Release-0.0.6/uclang-macos
+curl -LJO https://github.com/LostbBlizzard/UCodeLang/releases/download/Release-[#VersionMajor#].[#VersionMinor#].[#VersionPatch#]/uclang-macos
 
 mv uclang-macos uclang
 chmod +x uclang
 
-curl -LJO https://github.com/LostbBlizzard/UCodeLang/releases/download/Release-0.0.6/uclanglsp-macos
+curl -LJO https://github.com/LostbBlizzard/UCodeLang/releases/download/Release-[#VersionMajor#].[#VersionMinor#].[#VersionPatch#]/uclanglsp-macos
 
 mv uclanglsp-macos uclanglsp
 
@@ -23,12 +23,12 @@ chmod +x uclanglsp
 elif [ "$(uname)" = "Linux" ]; 
 then
 
-curl -LJO https://github.com/LostbBlizzard/UCodeLang/releases/download/Release-0.0.6/uclang-linux64
+curl -LJO https://github.com/LostbBlizzard/UCodeLang/releases/download/Release-[#VersionMajor#].[#VersionMinor#].[#VersionPatch#]/uclang-linux64
 
 mv uclang-linux64 uclang
 chmod +x uclang
 
-curl -LJO https://github.com/LostbBlizzard/UCodeLang/releases/download/Release-0.0.6/uclanglsp-linux64
+curl -LJO https://github.com/LostbBlizzard/UCodeLang/releases/download/Release-[#VersionMajor#].[#VersionMinor#].[#VersionPatch#]/uclanglsp-linux64
 
 mv uclanglsp-linux64 uclanglsp
 

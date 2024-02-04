@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "UCodeLang"
-#define MyAppVersion "0.1"
+#define MyAppVersion "[#VersionMajor#].[#VersionMinor#].[#VersionPatch#]"
 #define MyAppPublisher "LostbBlizzard"
 #define MyAppURL "https://github.com/LostbBlizzard/UCodeLang"
 #define MyAppExeName "uclang.exe"
