@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-
+set -e
 
 ucodelangdir="$HOME/.ucodelang"
 ucodebindir="$ucodelangdir/bin"
@@ -17,19 +17,24 @@ mkdir -p "$HOME/.ucodelang/modules"
 if [ "$(uname)" = "Darwin" ];  
 then
 
-echo "download"
+curl -LJO https://github.com/LostbBlizzard/UCodeLang/releases/download/Release-#VersionMajor#.#VersionMinor#.#VersionPatch#/ULangPackedMacOS.tar.gz
+
+mv ULangPackedMacOS.tar.gz $ucodelangtepdir/ULangPacked.tar.gz
 
 elif [ "$(uname)" = "Linux" ]; 
 then
 
-echo "download"
+curl -LJO https://github.com/LostbBlizzard/UCodeLang/releases/download/Release-#VersionMajor#.#VersionMinor#.#VersionPatch#/ULangPackedLinux.tar.gz
+
+mv ULangPackedLinux.tar.gz $ucodelangtepdir/ULangPacked.tar.gz
+
 
 fi
 # download ULangPacked to ~/.ucodelang/tep/ULangPacked.tar.gz
 
 mkdir -p $packeddir
 
-tar -xvf $ucodelangtepdir/ULangPacked.tar.gz -C $packeddir
+tar -xf $ucodelangtepdir/ULangPacked.tar.gz -C $packeddir
 
 mv $packeddir/LICENSE.txt $ucodelangdir/LICENSE.txt
 
@@ -88,6 +93,6 @@ $ucodebindir/uclang index $ucodemoddir/BuildSystem
 
 $ucodebindir/uclang index $ucodemoddir/CompilerAPI
 
-rmdir -r -f $ucodelangtepdir
+rm -r -f $ucodelangtepdir
 
 echo "installation of 'ucodelang' is complete try using \"uclang -help\"";
