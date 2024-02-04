@@ -1076,3 +1076,21 @@ newaction {
 
     end
 }
+
+newaction {
+    trigger = "zipforunix",
+    description = "makes a zip file for install.sh to use",
+    execute = function ()
+        local files = "./LICENSE.txt ./UCodeAPI ./Output/UCodeDocumentation " 
+        
+        if os.istarget("linux") then
+        
+            files = files .. "./Output/UCodelangCL/linux64/Published/uclang " .. "./Output/UCodeLanguageSever/linux64/Published/uclanglsp "
+        
+        end
+
+        executeorexit("tar -czvf ./Output/ULangPacked.tar.gz " .. files)
+        
+
+    end
+}
