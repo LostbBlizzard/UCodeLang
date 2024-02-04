@@ -52,6 +52,11 @@ jobs:
       - name: Add MSBuild to PATH
         uses: microsoft/setup-msbuild@v1.0.2
 
+      - name: Version Setup
+        run: | 
+         echo ${{ inputs.VersionNumber }} > ./version.txt 
+         ./premake.bat updateverion
+
       - name: Run Premake Install
         run: ./InstallTools.bat
 
@@ -96,6 +101,11 @@ jobs:
       - name: Run Premake Install
         run: ./InstallTools.sh
 
+      - name: Version Setup
+        run: | 
+         echo ${{ inputs.VersionNumber }} > ./version.txt 
+         ./premake.bat updateverion 
+
       - name: Run Premake
         run: ./GNU_Make.sh
 
@@ -133,6 +143,11 @@ jobs:
 
       - name: Run Premake Install
         run: ./InstallTools.sh
+
+      - name: Version Setup
+        run: | 
+         echo ${{ inputs.VersionNumber }} > ./version.txt 
+         ./premake.bat updateverion 
 
       - name: Run Premake
         run: ./GNU_Make.sh
