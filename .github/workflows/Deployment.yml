@@ -52,6 +52,11 @@ jobs:
       - name: Add MSBuild to PATH
         uses: microsoft/setup-msbuild@v1.0.2
 
+      - name: Version Setup
+        run: | 
+         echo ${{ inputs.VersionNumber }} > ./version.txt 
+         ./premake.bat updateverion
+
       - name: Run Premake Install
         run: ./InstallTools.bat
 
@@ -96,19 +101,21 @@ jobs:
       - name: Run Premake Install
         run: ./InstallTools.sh
 
+      - name: Version Setup
+        run: | 
+         echo ${{ inputs.VersionNumber }} > ./version.txt 
+         ./premake.sh updateverion 
+
       - name: Run Premake
         run: ./GNU_Make.sh
 
       - name: Build 64 bit
         run: ./premake.sh build_published
 
-      - name: Save cached Objs
-        if: always()
-        id: cache-Objs-save
-        uses: actions/cache/save@v3
-        with:
-          path: ./Output
-          key: ${{ steps.cache-objs-restore.outputs.cache-primary-key }}
+      - name: Make packedfiles for unix
+        run: |
+         ./premake.sh build_Docs
+         ./premake.sh zipforunix 
 
       - name: Archive Output
         uses: actions/upload-artifact@v4
@@ -118,6 +125,7 @@ jobs:
            Output/UCodelangCL
            Output/UCodeLanguageSever
            Output/UCodeLang
+           Output/ULangPacked.tar.gz 
           retention-days: 1
 
   build-MacOS:
@@ -134,12 +142,22 @@ jobs:
       - name: Run Premake Install
         run: ./InstallTools.sh
 
+      - name: Version Setup
+        run: | 
+         echo ${{ inputs.VersionNumber }} > ./version.txt 
+         ./premake.sh updateverion 
+
       - name: Run Premake
         run: ./GNU_Make.sh
 
       - name: Build 
         run: ./premake.sh build_published
-
+     
+      - name: Make packedfiles for unix
+        run: |
+         ./premake.sh build_Docs
+         ./premake.sh zipforunix
+     
       - name: Archive Output
         uses: actions/upload-artifact@v4
         with:
@@ -148,6 +166,7 @@ jobs:
            Output/UCodelangCL
            Output/UCodeLanguageSever
            Output/UCodeLang
+           Output/ULangPacked.tar.gz
           retention-days: 1
 
   build-Extensions:
@@ -186,6 +205,11 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
+      - name: Version Setup
+        run: | 
+         echo ${{ inputs.VersionNumber }} > ./version.txt 
+         ./premake.sh updateverion 
+
       - name: Download all workflow run artifacts
         uses: actions/download-artifact@v4
 
@@ -219,7 +243,37 @@ jobs:
           asset_path: ./UCodeLang/UCodeLang/UCodeLangCAPI.h
           asset_name: UCodeLangCAPI.h
           asset_content_type: text/plain
-          
+      
+      - name: Upload Unix Setup
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./install.sh
+          asset_name: install.sh
+          asset_content_type: text/plain  
+      
+      - name: Upload ULangPackedMacOS 
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./Output_MacOS/ULangPacked.tar.gz
+          asset_name: ULangPackedMacOS.tar.gz
+          asset_content_type: application/gzip  
+      
+      - name: Upload ULangPackedLinux 
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./Output_Linux/ULangPacked.tar.gz
+          asset_name: ULangPackedLinux.tar.gz
+          asset_content_type: application/gzip  
+      
       - name: Upload Windows Setup
         uses: actions/upload-release-asset@v1
         env:
@@ -259,8 +313,7 @@ jobs:
           asset_path: ./Output_Windows/UCodeLanguageSever/Win64/Published/uclanglsp.exe
           asset_name: uclanglsp-win64.exe
           asset_content_type: application/octet-stream 
-
-      
+ 
       - name: Upload UCodeLangLibWindows32
         if: ${{ inputs.IsPreRelease == false}}
         uses: actions/upload-release-asset@v1
@@ -294,7 +347,6 @@ jobs:
           asset_name: uclanglsp-win32.exe
           asset_content_type: application/octet-stream 
       
-
       - name: Upload UCodeLangLibLinux64
         uses: actions/upload-release-asset@v1
         env:
@@ -324,7 +376,6 @@ jobs:
           asset_path: ./Output_Linux/UCodeLanguageSever/linux64/Published/uclanglsp
           asset_name: uclanglsp-linux64
           asset_content_type: application/octet-stream 
-
 
       - name: Upload UCodeLangLibMacOS
         uses: actions/upload-release-asset@v1

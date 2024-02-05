@@ -9,7 +9,7 @@ You may use the [Playground](https://lostbblizzard.github.io/UCodeLang/UCodeIDE/
 
 Run The following in your terminal to install on linux/MacOs.
 ```
-curl https://raw.githubusercontent.com/LostbBlizzard/UCodeLang/master/install.sh | sh
+curl -L https://github.com/LostbBlizzard/UCodeLang/releases/latest/download/install.sh | sh
 ```
 
 Or Download the [Installer](https://github.com/LostbBlizzard/UCodeLang/releases/latest/download/UCodeLangSetup.exe) on the [latest release](https://github.com/LostbBlizzard/UCodeLang/releases/latest) for Windows.
