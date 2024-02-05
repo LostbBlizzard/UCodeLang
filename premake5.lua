@@ -1009,7 +1009,7 @@ function mysplit(inputstr, sep)
         return t
 end
 
-local function replacetextinfile(file_path, stringtomatch, replacement)
+function replacetextinfile(file_path, stringtomatch, replacement)
     local file = io.open(file_path, "r")  
     if not file then
         print("Error: File not found or unable to open.")
@@ -1030,6 +1030,37 @@ local function replacetextinfile(file_path, stringtomatch, replacement)
     new_file:close()
 end
 
+function isdigit(char)
+
+ if char == '0' or char == '1' or char == '2'
+    or  char == '3' or char == '4' or char == '5'
+    or char == '6' or char == '6' or char == '7' or char == '8'
+    or char == '8' or char == '9' 
+ then
+    return true
+ else
+    return false
+ end 
+
+end
+
+function keeponlyfirstnumberpart(str)
+   local r = ""
+
+   for i=1, string.len(str) do 
+    
+    local cha = str:sub(i,i)--lua cant index strings? why
+
+    if not isdigit(cha) then
+        break
+    end
+
+    r = r .. cha
+   end
+
+   return r
+end 
+
 newaction {
     trigger = "updateverion",
     description = "updates the verion number",
@@ -1045,7 +1076,7 @@ newaction {
 
         major = verionspit[2]
 
-        patch = string.sub(verionspit[3],0,string.len(verionspit[3]) - 2)
+        patch = keeponlyfirstnumberpart(verionspit[3])
 
         print("updating source files to " .. major .. "." .. minor .. "." .. patch)
 
