@@ -179,7 +179,7 @@ If you need static typing and C++ low-level ness but ok to have a Garbage Collec
 
 Run The following in your terminal to install on linux/MacOs.
 ```
-curl https://raw.githubusercontent.com/LostbBlizzard/UCodeLang/master/install.sh | sh
+curl -L https://github.com/LostbBlizzard/UCodeLang/releases/latest/download/install.sh | sh
 ```
 
 Or Download and run the [UCodeLangSetup.exe](https://github.com/LostbBlizzard/UCodeLang/releases/latest/download/UCodeLangSetup.exe) on the [latest release](https://github.com/LostbBlizzard/UCodeLang/releases/latest) for Windows.
