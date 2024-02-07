@@ -85,6 +85,7 @@ jobs:
            Output/UCodeLanguageSever
            Output/UCodeLang
            Output/UCodeLangSetup.exe
+           !Output/int
           retention-days: 1
 
   build-Linux:
@@ -126,6 +127,7 @@ jobs:
            Output/UCodeLanguageSever
            Output/UCodeLang
            Output/ULangPacked.tar.gz 
+           !Output/int
           retention-days: 1
 
   build-MacOS:
@@ -167,6 +169,7 @@ jobs:
            Output/UCodeLanguageSever
            Output/UCodeLang
            Output/ULangPacked.tar.gz
+           !Output/int 
           retention-days: 1
 
   build-Extensions:
