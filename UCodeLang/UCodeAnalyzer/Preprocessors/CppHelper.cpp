@@ -1405,6 +1405,7 @@ void CppHelper::DoVarableOrFunc(size_t StartIndex,const String& Keywordlet, size
 			else
 			{
 				i++;
+				MovePassSpace(i, FileText);
 			}
 		}
 		func.IsStatic = IsStatic;
