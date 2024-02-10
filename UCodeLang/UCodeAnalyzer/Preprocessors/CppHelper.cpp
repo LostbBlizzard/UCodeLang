@@ -166,7 +166,7 @@ bool CppHelper::ParseCppfileAndOutULang(const Path& SrcCpp,const Path& CppLinkFi
 }
 bool IsPathSeparator(Path::value_type _char)
 {
-	return _char == '/' || Path::preferred_separator;
+	return _char == '/' || _char == Path::preferred_separator;
 }
 bool CppHelper::ParseCppfileAndOutULangDir(const Path& CppDir, const Path& CppLinkFile, const Path& ULangOut)
 {
