@@ -164,7 +164,10 @@ bool CppHelper::ParseCppfileAndOutULang(const Path& SrcCpp,const Path& CppLinkFi
 
 	return true;
 }
-
+bool IsPathSeparator(Path::value_type _char)
+{
+	return _char == '/' || Path::preferred_separator;
+}
 bool CppHelper::ParseCppfileAndOutULangDir(const Path& CppDir, const Path& CppLinkFile, const Path& ULangOut)
 {
 	const char* FileExts[] = { ".hpp",".h" };
@@ -276,7 +279,7 @@ bool CppHelper::ParseCppfileAndOutULangDir(const Path& CppDir, const Path& CppLi
 					break;
 				}
 			}
-			if (basepath.size() && basepath.back() == Path::preferred_separator)
+			if (basepath.size() && IsPathSeparator(basepath.back()))
 			{
 				basepath.pop_back();
 			}
@@ -292,7 +295,7 @@ bool CppHelper::ParseCppfileAndOutULangDir(const Path& CppDir, const Path& CppLi
 				}
 			}
 			auto rel = file.path.native().substr(basepath.size());
-			if (rel.front() == Path::preferred_separator)
+			if (IsPathSeparator(rel.front()))
 			{
 				rel = rel.substr(1);
 			}
