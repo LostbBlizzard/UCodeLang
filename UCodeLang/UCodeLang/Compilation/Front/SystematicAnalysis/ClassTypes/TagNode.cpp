@@ -121,7 +121,20 @@ void SystematicAnalysis::OnTag(const TagTypeNode& node)
 		}
 		else
 		{
+			String_view Text = _LookingAtFile->FileText;
 
+			String ClassStr = "$";
+			ClassStr += node._AttributeName.token->Value._String;
+
+			String_view ClassBody =
+				String_view(&Text[node._AttributeName.token->OnPos],
+					node.EndOfClass->OnPos - node._AttributeName.token->OnPos);
+
+			GenericClass_Data& VClass = _Lib.Get_Assembly().AddGenericClass((String)ScopeHelper::GetNameFromFullName(Syb.FullName), Syb.FullName);
+
+			VClass.Base.Implementation = ClassStr + String(ClassBody);
+			VClass.Base.Implementation += "\n\n";
+			
 		}
 	}
 
