@@ -796,6 +796,7 @@ struct TagTypeNode :Node
 	GenericValuesNode _generic;
 	AccessModifierType _Access = AccessModifierType::Default;
 	bool _IsExport = false;
+	const Token* EndOfClass = nullptr;
 
 	TagTypeNode(TagTypeNode&& source) = default;
 	TagTypeNode& operator=(TagTypeNode&& source) = default;

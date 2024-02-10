@@ -3348,6 +3348,8 @@ EndLoop:
 	AttributeEnd();
 	auto EndToken = TryGetToken(); TokenTypeCheck(EndToken, TokenType::EndTab);
 	NextToken();
+	output->EndOfClass = EndToken;
+
 
 	return GotNodeType::Success;
 }
