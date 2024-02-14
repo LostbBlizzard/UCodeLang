@@ -15,31 +15,11 @@ on:
         type: boolean
         default: true
       
-      LanguageChangelog:
-        description: 'The Main Change Log'
-        required: true
-        type: string
-        default: 'added: fixed: removed:'
-
-      ImplementerChangelog:
-        description: 'The Change Log for implmenters(People who use this as a Scripting Lang Lib)'
-        required: true
-        type: string
-        default: 'added: fixed: removed:'
-
-
       UploadToVSMarketPlace:
         description: 'Upload To VS MarketPlace'
         required: true
         type: boolean
         default: false
-
-      LSPChangelog:
-        description: 'The Change Log for Editor Extenions'
-        required: true
-        type: string
-        default: 'added: fixed: removed:'
-
 
 jobs:
   
@@ -216,6 +196,12 @@ jobs:
       - name: Download all workflow run artifacts
         uses: actions/download-artifact@v4
 
+      - name: Read change log
+        uses: andstor/file-reader-action@v1
+          id: "read_file"
+          with:
+          path: "changelog.md"      
+      
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
@@ -223,16 +209,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
         with:
           release_name: Release ${{ inputs.VersionNumber }}
-          body: |
-            LanguageChangelog Changelog:
-            ${{ inputs.LanguageChangelog }}
-
-            Implementers Changelog:
-            ${{ inputs.ImplementerChangelog }}
-
-            LSP Changelog:
-            ${{ inputs.LSPChangelog }}
-
+          body: "${ steps.read_file.outputs.contents }"
           draft: false
           prerelease: ${{ inputs.IsPreRelease }}
           tag_name: Release-${{ inputs.VersionNumber }}
