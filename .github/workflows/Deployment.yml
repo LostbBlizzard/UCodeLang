@@ -198,8 +198,8 @@ jobs:
 
       - name: Read change log
         uses: andstor/file-reader-action@v1
-          id: "read_file"
-          with:
+        id: "read_file"
+        with:
           path: "changelog.md"      
       
       - name: Create Release
