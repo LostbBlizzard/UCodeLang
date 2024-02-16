@@ -56,6 +56,51 @@ public:
 		}
 		return true;
 	}
+
+	static Vector<String_view> Split(const String_view Base, const String_view spliter)
+	{
+		Vector<String_view> r;
+		Split(Base, spliter, r);
+		return r;
+	}
+	static void Split(const String_view Base, const String_view spliter, Vector<String_view>& out)
+	{
+		out.clear();
+
+		size_t startindex = 0;
+		size_t splitstart = 0;
+		size_t splitercount = 0;
+		for (size_t i = 0; i < Base.size(); i++)
+		{
+			char basechar = Base[i];
+
+			if (spliter[splitercount] == basechar)
+			{
+				splitercount++;
+
+				if (splitercount == spliter.size())
+				{
+					String_view n = Base.substr(startindex, i - splitstart);
+
+					out.push_back(n);
+					splitercount = 0;
+					splitstart = i + 1;
+				}
+			}
+			else
+			{
+				splitercount = 0;
+			}
+		}
+
+		if (out.size())
+		{
+			String_view n = Base.substr(splitstart, Base.size() - splitstart);
+
+			out.push_back(n);
+
+		}
+	}
 };
 
 
