@@ -229,6 +229,11 @@ String_view GetPath(String_view& Line)
 #define AppPrint(x) *_This.output << x;
 #define AppPrintin(x) *_This.output << x << std::endl;
 
+#define AppErr(x) std::cerr << x;
+#define AppErrin(x) std::cerr << x << std::endl;
+
+Path BuildOutputPath;
+
 void ParseLine(String_view& Line)
 {
 	namespace fs = std::filesystem;
@@ -271,7 +276,32 @@ void ParseLine(String_view& Line)
 		}
 
 
-	
+		Optional<Path> CopyOutput;
+		bool PrintOutpath =UCodeLang::StringHelper::Contains(Line,"-p");
+
+		if (!PrintOutpath)
+		{
+			bool isflag = false;
+			for (size_t i = 0; i < Line.size(); i++)
+			{
+				auto& Item = Line[i];
+
+				if (Item == '-')
+				{
+					isflag = true;
+				}
+				else
+				{
+					if (isflag && Item == 'o')
+					{
+						String_view newline = Line.substr(i+1);
+						CopyOutput = GetPath(newline);
+					}
+					isflag = false;
+				}
+			}
+		}
+
 		{
 			bool useO0 = UCodeLang::StringHelper::Contains(Line, "-O0");
 			bool use01 = UCodeLang::StringHelper::Contains(Line, "-O1");
@@ -328,7 +358,7 @@ void ParseLine(String_view& Line)
 				{
 					#ifdef UCodeLang_HasNoNativeULangBackEnd
 					_This.ExeRet = EXIT_FAILURE;
-					AppPrintin("There is no Native-UCodeVM backend for this CPU");
+					AppErrin("There is no Native-UCodeVM backend for this CPU");
 					#else
 					_Compiler.Set_BackEnd(UCodeLang::NativeULangBackEnd::MakeObject);
 					#endif
@@ -353,7 +383,7 @@ void ParseLine(String_view& Line)
 				{
 					#ifdef UCodeLang_HasNoPlatformBackEndBackEnd 
 					_This.ExeRet = EXIT_FAILURE;
-					AppPrintin("There is no Native-Platform backend for this Operating System");
+					AppErrin("There is no Native-Platform backend for this Operating System");
 					#else
 					_Compiler.Set_BackEnd(UCodeLang::NativePlatformBackEnd::MakeObject);
 					#endif
@@ -405,13 +435,35 @@ void ParseLine(String_view& Line)
 				}
 			}
 		}
+
 		if (!buildfile(_PathAsPath, _Compiler))
 		{
+			AppErrin(_Compiler.Get_Errors().ToString());
 			_This.ExeRet = EXIT_FAILURE;
 		}
 		else
 		{
-			AppPrintin(_Compiler.Get_Errors().ToString());
+			if (PrintOutpath)
+			{
+				AppPrintin(BuildOutputPath);
+			}
+			else if (CopyOutput.has_value())
+			{
+				auto& srcpath = BuildOutputPath;
+				auto& outpath = CopyOutput.value();
+
+				using recursive_directory_iterator = std::filesystem::recursive_directory_iterator;
+				for (const auto& dirEntry : recursive_directory_iterator(srcpath))
+				{
+					auto filepath = dirEntry.path();
+					auto relpath = filepath.native().substr(srcpath.native().size());
+					auto outfilepath = outpath;
+					outfilepath += relpath;
+				
+					std::filesystem::create_directories(outfilepath.parent_path());
+					std::filesystem::copy(filepath, outfilepath,std::filesystem::copy_options::overwrite_existing);
+				}
+			}
 			_This.ExeRet = EXIT_SUCCESS;
 		}
 	}
@@ -458,19 +510,14 @@ void ParseLine(String_view& Line)
 	{
 		UCodeLang::ModuleIndex f = UCodeLang::ModuleIndex::GetModuleIndex();
 
-		String ret;
-		ret += "[";
 		for (auto& Item : f._IndexedFiles)
 		{
-			ret += Item._ModuleFullPath.generic_string();
 			if (&Item != &f._IndexedFiles.back())
 			{
-				ret += ',';
+				AppPrintin(Item._ModuleFullPath.generic_string());
 			}
 		}
-		ret += "]";
 
-		AppPrintin(Path(ret));
 	}
 	else if (Word1 == "path")
 	{
@@ -485,7 +532,7 @@ void ParseLine(String_view& Line)
 		exepath = std::filesystem::canonical("/proc/self/exe").native();
 		#endif 
 
-		* _This.output << Path(exepath) << '\n';
+		AppPrintin(Path(exepath).generic_string());
 	}
 	else if (Word1 == "globalpath")
 	{
@@ -537,8 +584,6 @@ void ParseLine(String_view& Line)
 
 		if (OwnerName.size() == 0)
 		{
-			//system("git config user.name");
-
 			*_This.output << "Enter Owner/Author Name:";
 
 			std::getline(*_This.Input, TepNameBuffer);
@@ -898,7 +943,7 @@ void ParseLine(String_view& Line)
 		{
 			auto& lib = libop.value();
 
-			*_This.output << _Compiler.Get_Errors().ToString();
+			AppErrin(_Compiler.Get_Errors().ToString());
 			AppPrintin("Runing Tests:");
 			
 
@@ -1110,7 +1155,7 @@ void ParseLine(String_view& Line)
 
 						if (isreadingpars)
 						{
-							AppPrintin("missing ')'");
+							AppErrin("missing ')'");
 							return;
 						}
 					}
@@ -1211,7 +1256,6 @@ void ParseLine(String_view& Line)
 
 
 					
-					AppPrintin("Returned:");
 					if (tooutjson)
 					{
 						AppPrintin(ClassAssembly::ToStringJson(v,Assembly,is32mode));
@@ -1223,22 +1267,22 @@ void ParseLine(String_view& Line)
 				}
 				else
 				{
-					AppPrint("Cant find function '" << functocall << '[');
+					AppErr("Cant find function '" << functocall << '[');
 					for (auto& Item : Pars)
 					{
-						AppPrint(ClassAssembly::ToString(Item.GetType(),Assembly));
+						AppErr(ClassAssembly::ToString(Item.GetType(),Assembly));
 						if (&Item != &Pars.back())
 						{
-							AppPrint(',');
+							AppErr(',');
 						}
 					}
-					AppPrintin("]\'");
+					AppErr("]\'");
 				}
 			}
 		}
 		else
 		{
-			AppPrintin("Cant find file '" << filetorun << '\'');
+			AppErrin("Cant find file '" << filetorun << '\'');
 			_This.ExeRet = EXIT_FAILURE;
 		}
 	}
@@ -1279,7 +1323,7 @@ void ParseLine(String_view& Line)
 			UCodeLang::ModuleFile module;
 			if (!UCodeLang::ModuleFile::FromFile(&module, _PathAsPath))
 			{
-				*_This.output << "Cant Open module file\n";
+				AppErrin("Cant Open module file");
 				_This.ExeRet = EXIT_FAILURE;
 			}
 			else
@@ -1289,7 +1333,7 @@ void ParseLine(String_view& Line)
 		}
 		else
 		{
-			AppPrintin("Cant find Path '" << _PathAsPath << "'");
+			AppErrin("Cant find Path '" << _PathAsPath << "'");
 		}
 
 		if (modfile.has_value())
@@ -1299,7 +1343,7 @@ void ParseLine(String_view& Line)
 
 			bool ok = mod.DownloadModules(_ModuleIndex, [](String Msg)
 			{
-					AppPrintin(Msg);
+				AppErrin(Msg);
 			});
 ;
 			if (ok)
@@ -1321,7 +1365,7 @@ void ParseLine(String_view& Line)
 			_PathAsPath = std::filesystem::current_path();
 			_Path = _PathAsPath.generic_string();
 		}
-		bool hasoutfile = StringHelper::Contains(Line, ">>");
+		bool hasoutfile = StringHelper::Contains(Line, "-o");
 		Unique_ptr<std::ofstream> outfile;
 		if (hasoutfile)
 		{
@@ -1329,11 +1373,11 @@ void ParseLine(String_view& Line)
 			for (size_t i = 0; i < Line.size(); i++)
 			{
 				auto charV = Line[i];
-				if (charV == '>')
+				if (charV == '-')
 				{
 					passedpipe = true;
 				}
-				else if (passedpipe == true)
+				else if (passedpipe == true && charV == 'o')
 				{
 					Line = Line.substr(i);
 					break;
@@ -1354,7 +1398,7 @@ void ParseLine(String_view& Line)
 				Optional<UClib> libop;
 				if (!buildfile2(_PathAsPath, _Compiler, libop))
 				{
-					AppPrintin(_Compiler.Get_Errors().ToString());
+					AppErrin(_Compiler.Get_Errors().ToString());
 					_This.ExeRet = EXIT_FAILURE;
 				}
 				else
@@ -1372,7 +1416,7 @@ void ParseLine(String_view& Line)
 					Optional<UClib> libop;
 					if (!buildfile2(_PathAsPath, _Compiler, libop))
 					{
-						AppPrintin(_Compiler.Get_Errors().ToString());
+						AppErrin(_Compiler.Get_Errors().ToString());
 						_This.ExeRet = EXIT_FAILURE;
 					}
 					else 
@@ -1393,7 +1437,7 @@ void ParseLine(String_view& Line)
 					}
 					else
 					{
-						AppPrintin("Cant Open " << _PathAsPath);
+						AppErrin("Cant Open " << _PathAsPath);
 						_This.ExeRet = EXIT_FAILURE;
 
 					}
@@ -1408,27 +1452,27 @@ void ParseLine(String_view& Line)
 					}
 					else
 					{
-						AppPrintin("Cant Open " << _PathAsPath);
+						AppErrin("Cant Open " << _PathAsPath);
 						_This.ExeRet = EXIT_FAILURE;
 
 					}
 				}
 				else
 				{
-					AppPrintin("Unknown file type" << _PathAsPath);
-					AppPrintin("Must be .uc,.uo,.ulib,.udll,.uir,.ucm");
+					AppErrin("Unknown file type" << _PathAsPath);
+					AppErrin("Must be .uc,.uo,.ulib,.udll,.uir,.ucm");
 					_This.ExeRet = EXIT_FAILURE;
 				}
 			}
 			else
 			{
-				AppPrintin("file path must be file or directory.");
+				AppErrin("file path must be file or directory.");
 				_This.ExeRet = EXIT_FAILURE;
 			}
 		}
 		else
 		{
-			AppPrintin("file path must exits.");
+			AppErrin("file path must exits.");
 			_This.ExeRet = EXIT_FAILURE;
 		}
 
@@ -1550,7 +1594,7 @@ void ParseLine(String_view& Line)
 		
 			if (filesremoved)
 			{
-				AppPrintin("--cleaned" << Item._ModuleFullPath);
+				AppPrintin("cleaned:" << Item._ModuleFullPath);
 			}
 		}
 
@@ -1572,7 +1616,7 @@ void ParseLine(String_view& Line)
 				m.value().BuildModule(_Compiler, f,false,
 					[](UCodeLang::String l)
 					{
-						AppPrintin(l);
+						AppErrin(l);
 					});
 			}
 		}
@@ -1635,26 +1679,26 @@ void ParseLine(String_view& Line)
 	}
 	else if (Word1 == "--new")
 	{
-		AppPrintin("use \"new\" and not \"--new\"");
+		AppErrin("use \"new\" and not \"--new\"");
 
 
 		_This.ExeRet = EXIT_FAILURE;
 	}
 	else if (Word1 == "--run")
 	{
-		AppPrintin("use \"run\" and not \"--run\"");
+		AppErrin("use \"run\" and not \"--run\"");
 
 		_This.ExeRet = EXIT_FAILURE;
 	}
 	else if (Word1 == "--help")
 	{
-		AppPrintin("use \"help\" and not \"--help\"\n");
+		AppErrin("use \"help\" and not \"--help\"\n");
 
 		_This.ExeRet = EXIT_FAILURE;
 	}
 	else
 	{
-		AppPrintin("bad command use the \"help\" command for help");
+		AppErrin("bad command use the \"help\" command for help");
 		//TokenCheck(Word1);
 	}
 }
@@ -1677,15 +1721,18 @@ bool buildfile2(UCodeLang::Path& filetorun, UCodeLang::Compiler& _Compiler, UCod
 			UCodeLang::ModuleFile module;
 			if (!UCodeLang::ModuleFile::FromFile(&module, modulepath))
 			{
-				*_This.output << "Cant Open module file\n";
+				AppErrin("Cant Open module file");
 				_This.ExeRet = EXIT_FAILURE;
 			}
-			else {
-				bool ItWorked = module.BuildModule(_Compiler, _ModuleIndex,false, [](String msg)
+			else 
+			{
+
+				UCodeLang::ModuleFile::ModuleRet ItWorked = module.BuildModule(_Compiler, _ModuleIndex, false, [](String msg)
 					{
-						AppPrintin(msg);
-					}).CompilerRet.IsValue();
-				if (!ItWorked)
+						AppErrin(msg);
+					});
+
+				if (ItWorked.CompilerRet.IsError())
 				{
 
 					for (auto& Item : _Compiler.Get_Errors().Get_Errors())
@@ -1702,11 +1749,11 @@ bool buildfile2(UCodeLang::Path& filetorun, UCodeLang::Compiler& _Compiler, UCod
 						{
 							print_color(color_white);
 						}
-						else 
+						else
 						{
 							print_color(color_white);
 						}
-						AppPrintin(Item.ToString());
+						AppErrin(Item.ToString());
 					}
 					print_color_reset();
 
@@ -1715,8 +1762,9 @@ bool buildfile2(UCodeLang::Path& filetorun, UCodeLang::Compiler& _Compiler, UCod
 				else
 				{
 					r = true;
-					if (allwaysoutputfile == false) {
-						Path uclibpath = module.GetPaths(_Compiler).OutFile;
+					if (allwaysoutputfile == false) 
+					{
+						Path uclibpath = ItWorked.OutputItemPath;
 
 						UClib v;
 						if (UClib::FromFile(&v, uclibpath))
@@ -1724,6 +1772,7 @@ bool buildfile2(UCodeLang::Path& filetorun, UCodeLang::Compiler& _Compiler, UCod
 							outlibOp = std::move(v);
 						}
 					}
+					BuildOutputPath = ItWorked.OutputItemPath.parent_path();
 				}
 			}
 		}
@@ -1737,8 +1786,7 @@ bool buildfile2(UCodeLang::Path& filetorun, UCodeLang::Compiler& _Compiler, UCod
 			bool ItWorked = _Compiler.CompileFiles_UseIntDir(v).IsValue();
 			if (!ItWorked)
 			{
-				*_This.output << "Compiler Fail:\n";
-				*_This.output << _Compiler.Get_Errors().ToString();
+				AppErrin(_Compiler.Get_Errors().ToString());
 				_This.ExeRet = EXIT_FAILURE;
 			}
 			else
@@ -1751,6 +1799,7 @@ bool buildfile2(UCodeLang::Path& filetorun, UCodeLang::Compiler& _Compiler, UCod
 						outlibOp = std::move(lib);
 					}
 				}
+				BuildOutputPath = v.OutFile;
 			}
 		}
 	}
@@ -1761,13 +1810,14 @@ bool buildfile2(UCodeLang::Path& filetorun, UCodeLang::Compiler& _Compiler, UCod
 		
 		if (!ItWorked)
 		{
-			*_This.output << _Compiler.Get_Errors().ToString();
+			AppErrin(_Compiler.Get_Errors().ToString());
 			_This.ExeRet = EXIT_FAILURE;
 		}
 		else
 		{
 			r = true;
-			if (allwaysoutputfile == false) {
+			if (allwaysoutputfile == false) 
+			{
 				UClib lib;
 				if (UClib::FromFile(&lib, v))
 				{
@@ -1783,34 +1833,34 @@ bool buildfile2(UCodeLang::Path& filetorun, UCodeLang::Compiler& _Compiler, UCod
 		UCodeLang::ModuleFile module;
 		if (!UCodeLang::ModuleFile::FromFile(&module, filetorun))
 		{
-			*_This.output << "Cant Open module file\n";
+			AppErrin("Cant Open module file");
 			_This.ExeRet = EXIT_FAILURE;
 		}
-		else 
+		else
 		{
-			bool ItWorked = module.BuildModule(_Compiler, _ModuleIndex,false, [](String msg)
+			auto ItWorked = module.BuildModule(_Compiler, _ModuleIndex, false, [](String msg)
 				{
-					AppPrintin(msg);
-				}).CompilerRet.IsValue();
-			if (!ItWorked)
-			{
-				*_This.output << "Compiler Fail:\n";
-				*_This.output << _Compiler.Get_Errors().ToString();
-				_This.ExeRet = EXIT_FAILURE;
+					AppErrin(msg);
+				});
 
-				
+			if (ItWorked.CompilerRet.IsError())
+			{
+				AppErrin(_Compiler.Get_Errors().ToString());
+				_This.ExeRet = EXIT_FAILURE;
 			}
 			else
 			{
 				Path uclibpath = module.GetPaths(_Compiler).OutFile;
 				r = true;
-				if (allwaysoutputfile == false) {
+				if (allwaysoutputfile == false)
+				{
 					UClib v;
 					if (UClib::FromFile(&v, uclibpath))
 					{
 						outlibOp = std::move(v);
 					}
 				}
+				BuildOutputPath = ItWorked.OutputItemPath.parent_path();
 			}
 		}
 	}
@@ -1827,22 +1877,21 @@ bool buildfile2(UCodeLang::Path& filetorun, UCodeLang::Compiler& _Compiler, UCod
 			{
 				Path outpath = filetorun.native() + Path(UCodeLang::FileExt::LibWithDot).native();
 
-				*_This.output << _Compiler.Get_Errors().ToString();
+				AppErrin(_Compiler.Get_Errors().ToString());
 				if (UClib::ToFile(&lib, outpath))
 				{
 					_This.ExeRet = EXIT_SUCCESS;
 				}
 				else
 				{
-					*_This.output << "Cant Write File:\n";
+					AppErrin("Cant Write File");
 					_This.ExeRet = EXIT_FAILURE;
 				}
 			}
 		}
 		else
 		{
-			*_This.output << "Compiler Fail:\n";
-			*_This.output << _Compiler.Get_Errors().ToString();
+			AppErrin(_Compiler.Get_Errors().ToString());
 			_This.ExeRet = EXIT_FAILURE;
 		}
 	}
@@ -1854,12 +1903,12 @@ bool buildfile2(UCodeLang::Path& filetorun, UCodeLang::Compiler& _Compiler, UCod
 	}
 	else
 	{
-		AppPrintin("file type must be .uc,.ucm,.uirtxt,.uasm '" << filetorun << '\'');
+		AppErrin("file type must be .uc,.ucm,.uirtxt,.uasm '" << filetorun << '\'');
 	}
 	return r;
 }
 
 void TokenCheck(const UCodeLang::String_view& Word1)
 {
-	*_This.output << "bad Token '" << Word1 << "'" << std::endl;
+	AppErrin("bad Token '" << Word1 << "'");
 }
