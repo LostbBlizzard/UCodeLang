@@ -293,14 +293,136 @@ bool ModuleFile::DownloadModules(const ModuleIndex& Modules, Optional<LogOut> Lo
 		if (!file.has_value() && Item.WebLink)
 		{
 			const auto& WebLink = Item.WebLink.value();
+			auto outdir = LangInfo::GetUCodeGlobalModulesDownloads() / Item.Identifier.AuthorName / Item.Identifier.ModuleName;
+			String versionstr = std::to_string(Item.Identifier.MajorVersion) + "." + std::to_string(Item.Identifier.MinorVersion) + "." + std::to_string(Item.Identifier.RevisionVersion);
+			outdir /= versionstr;
 
-			bool isgithub = StringHelper::StartWith(WebLink, "https://github.com");
+			String modid = ModuleFile::ToName(Item.Identifier);
 
-			if (LogsOut.has_value())
+			if (!std::filesystem::exists(outdir)) 
 			{
-				(*LogsOut)("Download Modules is not added yet");
+				std::filesystem::create_directories(outdir);
+
+				
+				Vector<String> VaildGitTags;
+				{
+					VaildGitTags.push_back(versionstr);
+					VaildGitTags.push_back("v" + versionstr);
+				}
+
+				bool ok = false;
+				for (auto& Item : VaildGitTags) 
+				{
+					String Cmd = "git clone ";
+
+					Cmd += WebLink + " --branch " + Item + " " + outdir.generic_string();
+					if (LogsOut.has_value())
+					{
+						(*LogsOut)("trying to download " + modid + " from " + WebLink);
+					}
+					
+					ok = system(Cmd.c_str()) == EXIT_SUCCESS;
+					if (ok) { break; }
+				}
+				
+
+				if (ok)
+				{
+					//TODO add suport for monorepos. one git with many UCodeModules.
+					auto modulefilepath = outdir / ModuleFile::FileNameWithExt;
+
+					if (!std::filesystem::exists(modulefilepath))
+					{
+						if (LogsOut.has_value())
+						{
+							(*LogsOut)(String("cant find ") +  ModuleFile::FileNameWithExt + " in " + WebLink);
+						}
+
+						std::filesystem::remove_all(outdir);
+						return false;
+					}
+
+					ModuleFile modulef;
+					if (!modulef.FromFile(&modulef, modulefilepath))
+					{
+						if (LogsOut.has_value())
+						{
+							(*LogsOut)(String("cant open/parse ") + ModuleFile::FileNameWithExt + " in " + WebLink);
+						}
+
+						std::filesystem::remove_all(outdir);
+						return false;
+					}
+
+					bool arenotthesame = false;
+					
+					if (modulef.ModuleName.AuthorName != Item.Identifier.AuthorName)
+					{
+						if (LogsOut.has_value())
+						{
+							(*LogsOut)(String("AuthorNames do not match in ") + ModuleFile::FileNameWithExt + " from " + WebLink);
+						}
+						arenotthesame = true;
+					}
+
+					if (modulef.ModuleName.ModuleName != Item.Identifier.ModuleName)
+					{
+						if (LogsOut.has_value())
+						{
+							(*LogsOut)(String("AuthorNames do not match in ") + ModuleFile::FileNameWithExt + " from " + WebLink);
+						}
+						arenotthesame = true;
+					}
+					
+					if (modulef.ModuleName.MajorVersion != Item.Identifier.MajorVersion)
+					{
+						if (LogsOut.has_value())
+						{
+							(*LogsOut)(String("MajorVerion do not match in ") + ModuleFile::FileNameWithExt + " from " + WebLink);
+						}
+						arenotthesame = true;
+					}	
+					
+					if (modulef.ModuleName.MinorVersion != Item.Identifier.MinorVersion)						
+					{
+						if (LogsOut.has_value())
+						{
+							(*LogsOut)(String("MinorVerion do not match in ") + ModuleFile::FileNameWithExt + " from " + WebLink);
+						}
+						arenotthesame = true;
+					}
+					
+					if (modulef.ModuleName.RevisionVersion != Item.Identifier.RevisionVersion)						
+					{
+						if (LogsOut.has_value())
+						{
+							(*LogsOut)(String("RevisonVersion do not match in ") + ModuleFile::FileNameWithExt + " from " + WebLink);
+						}
+						arenotthesame = true;
+					}
+
+					if (!arenotthesame)
+					{
+						std::filesystem::remove_all(outdir);
+						return false;	
+					}
+					else
+					{
+						auto mod = ModuleIndex::GetModuleIndex();
+						mod.AddModueToList(modulefilepath);
+						ModuleIndex::SaveModuleIndex(mod);
+						return true;
+					}
+				}
+				else
+				{
+					if (LogsOut.has_value()) 
+					{
+						(*LogsOut)("failed to download " + modid);
+					}
+				}
+				return false;
 			}
-			return false;
 		}
 	}
 
