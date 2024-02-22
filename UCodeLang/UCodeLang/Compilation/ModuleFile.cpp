@@ -284,155 +284,6 @@ String ModuleFile::ToName(const ModuleIdentifier& ID)
 	R += ID.AuthorName;
 	return R;
 }
-bool ModuleFile::DownloadModules(const ModuleIndex& Modules, Optional<LogOut> LogsOut)
-{
-
-	for (auto& Item : ModuleDependencies)
-	{
-		auto file = Modules.FindFile(Item.Identifier);
-		if (!file.has_value() && Item.WebLink)
-		{
-			const auto& WebLink = Item.WebLink.value();
-			auto outdir = LangInfo::GetUCodeGlobalModulesDownloads() / Item.Identifier.AuthorName / Item.Identifier.ModuleName;
-			String versionstr = std::to_string(Item.Identifier.MajorVersion) + "." + std::to_string(Item.Identifier.MinorVersion) + "." + std::to_string(Item.Identifier.RevisionVersion);
-			outdir /= versionstr;
-
-			String modid = ModuleFile::ToName(Item.Identifier);
-
-			if (!std::filesystem::exists(outdir)) 
-			{
-				std::filesystem::create_directories(outdir);
-
-				
-				Vector<String> VaildGitTags;
-				{
-					VaildGitTags.push_back(versionstr);
-					VaildGitTags.push_back("v" + versionstr);
-				}
-
-				bool ok = false;
-				for (auto& Item : VaildGitTags) 
-				{
-					String Cmd = "git clone ";
-
-					Cmd += WebLink + " --branch " + Item + " " + outdir.generic_string();
-					if (LogsOut.has_value())
-					{
-						(*LogsOut)("trying to download " + modid + " from " + WebLink);
-					}
-					
-					ok = system(Cmd.c_str()) == EXIT_SUCCESS;
-					if (ok) { break; }
-				}
-				
-
-				if (ok)
-				{
-					//TODO add suport for monorepos. one git with many UCodeModules.
-					auto modulefilepath = outdir / ModuleFile::FileNameWithExt;
-
-					if (!std::filesystem::exists(modulefilepath))
-					{
-						if (LogsOut.has_value())
-						{
-							(*LogsOut)(String("cant find ") +  ModuleFile::FileNameWithExt + " in " + WebLink);
-						}
-
-						std::filesystem::remove_all(outdir);
-						return false;
-					}
-
-					ModuleFile modulef;
-					if (!modulef.FromFile(&modulef, modulefilepath))
-					{
-						if (LogsOut.has_value())
-						{
-							(*LogsOut)(String("cant open/parse ") + ModuleFile::FileNameWithExt + " in " + WebLink);
-						}
-
-						std::filesystem::remove_all(outdir);
-						return false;
-					}
-
-					bool arenotthesame = false;
-					
-					if (modulef.ModuleName.AuthorName != Item.Identifier.AuthorName)
-					{
-						if (LogsOut.has_value())
-						{
-							(*LogsOut)(String("AuthorNames do not match in ") + ModuleFile::FileNameWithExt + " from " + WebLink);
-						}
-						arenotthesame = true;
-					}
-
-					if (modulef.ModuleName.ModuleName != Item.Identifier.ModuleName)
-					{
-						if (LogsOut.has_value())
-						{
-							(*LogsOut)(String("AuthorNames do not match in ") + ModuleFile::FileNameWithExt + " from " + WebLink);
-						}
-						arenotthesame = true;
-					}
-					
-					if (modulef.ModuleName.MajorVersion != Item.Identifier.MajorVersion)
-					{
-						if (LogsOut.has_value())
-						{
-							(*LogsOut)(String("MajorVerion do not match in ") + ModuleFile::FileNameWithExt + " from " + WebLink);
-						}
-						arenotthesame = true;
-					}	
-					
-					if (modulef.ModuleName.MinorVersion != Item.Identifier.MinorVersion)						
-					{
-						if (LogsOut.has_value())
-						{
-							(*LogsOut)(String("MinorVerion do not match in ") + ModuleFile::FileNameWithExt + " from " + WebLink);
-						}
-						arenotthesame = true;
-					}
-					
-					if (modulef.ModuleName.RevisionVersion != Item.Identifier.RevisionVersion)						
-					{
-						if (LogsOut.has_value())
-						{
-							(*LogsOut)(String("RevisonVersion do not match in ") + ModuleFile::FileNameWithExt + " from " + WebLink);
-						}
-						arenotthesame = true;
-					}
-
-					if (!arenotthesame)
-					{
-						std::filesystem::remove_all(outdir);
-						return false;	
-					}
-					else
-					{
-						auto mod = ModuleIndex::GetModuleIndex();
-						mod.AddModueToList(modulefilepath);
-						ModuleIndex::SaveModuleIndex(mod);
-						return true;
-					}
-				}
-				else
-				{
-					if (LogsOut.has_value()) 
-					{
-						(*LogsOut)("failed to download " + modid);
-					}
-				}
-				return false;
-			}
-		}
-	}
-
-	return true;
-}
-ModuleFile::ModuleRet ModuleFile::BuildModule(Compiler& Compiler, const ModuleIndex& Modules, bool IsSubModule, Optional<LogOut> LogsOut)
-{
-	
-}
-
 void ModuleFile::BuildModuleDependencies(
 	const ModuleIndex& Modules,
 	CompilationErrors& Errs, bool& Err,
@@ -504,7 +355,7 @@ void ModuleFile::BuildModuleDependencies(
 
 		auto t = tasks.AddTask(func, {});
 		t.Run();
-		modtasks.push_back(t);
+		modtasks.push_back(TaskManger::Task<TaskR>(std::move(t)));
 	}
 
 
@@ -525,7 +376,7 @@ void ModuleFile::BuildModuleDependencies(
 
 		if (r.Outpath.has_value())
 		{
-			externfilesoutput.Files.push_back(r.Outpath.value());
+			externfilesoutput.Files.push_back(std::move(r.Outpath.value()));
 		}
 	}
 	Err = haveErr;
@@ -747,6 +598,8 @@ bool ModuleFile::DownloadModules(const ModuleIndex& Modules, Optional<LogOut> Lo
 						return false;
 					}
 				}
+
+				UCodeLangUnreachable();
 			};
 		
 		auto task = tasks.AddTask(func, {});
@@ -850,7 +703,7 @@ ModuleFile::ModuleRet ModuleFile::BuildModule(Compiler& Compiler, const ModuleIn
 											(*LogsOut)("Building:" + this->ModuleName.ModuleName);
 										});
 								}
-								CompilerRet.CompilerRet = Compiler.CompileFiles_UseIntDir(paths, ExternFiles);
+								CompilerRet.CompilerRet = Compiler.CompileFiles_UseIntDir(paths, ExternFiles,tasks);
 								return CompilerRet.CompilerRet.IsValue();
 							};
 
@@ -937,7 +790,7 @@ ModuleFile::ModuleRet ModuleFile::BuildModule(Compiler& Compiler, const ModuleIn
 						Compiler.Get_Settings().AddArgValue("StartingNameSpace", ModuleNameSpace);
 					}
 
-					CompilerRet.CompilerRet = Compiler.CompileFiles_UseIntDir(paths, ExternFiles);
+					CompilerRet.CompilerRet = Compiler.CompileFiles_UseIntDir(paths, ExternFiles,tasks);
 				}
 
 				Compiler.Get_Settings() = OldSettings;
@@ -1028,7 +881,7 @@ Version: 0:0:0)";
 
 		buildfileDependencies = std::move(mod.ModuleDependencies);
 
-		if (!mod.DownloadModules(Modules, LogsOut))
+		if (!mod.DownloadModules(Modules, LogsOut,tasks))
 		{
 			ModuleRet CompilerRet = Compiler::CompilerRet(NeverNullptr(&Compiler.Get_Errors()));
 			return CompilerRet;
@@ -1046,7 +899,7 @@ Version: 0:0:0)";
 
 	if (Err == false)
 	{
-		auto buildscriptinfo = Compiler.CompileText(filetext, buildExternFiles);//TODO cash this file to avoid full builds
+		auto buildscriptinfo = Compiler.CompileText(filetext, buildExternFiles,tasks);//TODO cash this file to avoid full builds
 
 		if (buildscriptinfo.IsValue())
 		{

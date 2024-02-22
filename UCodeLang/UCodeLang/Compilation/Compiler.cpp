@@ -17,7 +17,7 @@
 UCodeLangStart
 
 
-Compiler::CompilerRet Compiler::CompileText(const String_view& Text, const ExternalFiles& ExternalFiles)
+Compiler::CompilerRet Compiler::CompileText(const String_view& Text, const ExternalFiles& ExternalFiles,TaskManger& tasks)
 {
 	//
 	CompilerRet error = NeverNullptr(&_Errors);
@@ -137,7 +137,7 @@ BytesPtr Compiler::GetBytesFromFile(const Path& path)
 
 	return r;
 }
-Compiler::CompilerRet Compiler::CompilePathToObj(const Path& path, const Path& OutLib, const ExternalFiles& ExternalFiles)
+Compiler::CompilerRet Compiler::CompilePathToObj(const Path& path, const Path& OutLib, const ExternalFiles& ExternalFiles,TaskManger& tasks)
 {
 	if (_FrontEndObject == nullptr)
 	{
@@ -177,7 +177,7 @@ Compiler::CompilerRet Compiler::CompilePathToObj(const Path& path, const Path& O
 namespace fs = std::filesystem;
 
 
-Compiler::CompilerRet Compiler::CompileFiles(const CompilerPathData& Data, const ExternalFiles& ExternalFiles)
+Compiler::CompilerRet Compiler::CompileFiles(const CompilerPathData& Data, const ExternalFiles& ExternalFiles,TaskManger& tasks)
 {
 
 
@@ -363,7 +363,7 @@ UInt64 GetFileHash(BytesView bytes)
 	return BitsHash;
 }
 
-Compiler::CompilerRet Compiler::CompileFiles_UseIntDir(const CompilerPathData& Data, const ExternalFiles& ExternalFiles)
+Compiler::CompilerRet Compiler::CompileFiles_UseIntDir(const CompilerPathData& Data, const ExternalFiles& ExternalFiles,TaskManger& tasks)
 {
 #define LogCopilerBuildState 0
 	enum class MyEnumClass :UInt8

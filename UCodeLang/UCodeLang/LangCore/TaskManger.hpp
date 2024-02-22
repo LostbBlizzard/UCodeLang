@@ -95,8 +95,7 @@ public:
 	{
 		_mutex.lock();
 		UCodeLangDefer(_mutex.unlock());
-		auto r = call(_Item);
-		return r;
+		return call(_Item);
 	}
 
 	template<typename R>
@@ -104,8 +103,7 @@ public:
 	{
 		_mutex.lock();
 		UCodeLangDefer(_mutex.unlock());
-		auto r = call(_Item);
-		return r;
+		return call(_Item);
 	}
 
 	UCodeLangForceinline void Lock(std::function<void(T& val)> call)
@@ -147,8 +145,7 @@ public:
 		if (_mutex.try_lock())
 		{
 			UCodeLangDefer(_mutex.unlock());
-			auto r = call(_Item);
-			return r;
+			return call(_Item);
 		}
 		return Optional<R>();
 	}
@@ -158,8 +155,7 @@ public:
 	{	
 		if (_mutex.try_lock()) {
 			UCodeLangDefer(_mutex.unlock());
-			auto r = call(_Item);
-			return r;
+			return call(_Item);
 		}
 		return Optional<R>();	
 	}
@@ -183,7 +179,16 @@ private:
 	struct WorkerData
 	{
 		Vector<TaskID> TaskToID;
-		std::condition_variable UpdateWorker;
+		Unique_ptr<std::condition_variable> UpdateWorker;
+		WorkerData()
+		{
+			UpdateWorker = std::make_unique<std::condition_variable>();
+		}
+		WorkerData(const WorkerData&) = delete;
+		WorkerData& operator=(const WorkerData&) = delete;
+
+		WorkerData(WorkerData&&) noexcept = default;
+		WorkerData& operator=(WorkerData&&) noexcept = default;
 	};
 	struct WorkerGroup
 	{
@@ -220,7 +225,7 @@ private:
 			}
 		};
 		Unique_ptr<AnyOnDone> OnDone;
-		std::shared_ptr<std::function<bool()>> _Func;
+		std::shared_ptr<std::function<void()>> _Func;
 
 
 		template<typename T>
@@ -268,7 +273,9 @@ public:
 			{
 			}
 		}
-
+		Task(Task&& tocopy) = default;
+		Task& operator=(Task&& tocopy) = default;
+		
 
 		auto Wait()
 		{
@@ -332,25 +339,29 @@ public:
 	template<typename T, typename... Pars>
 	Task<T> AddTask(std::function<T(Pars...)> funcion, ThreadID threadtorunon, Vector<TaskID> dependencies, Pars... pars)
 	{
-		auto task_promise = std::make_shared<PackagedTask<R(Pars...)>>(task_function);
-		auto newid = NextTaskID();
+		auto task_promise = std::make_shared<Packaged_Task<T(Pars...)>>(std::move(funcion));
+		auto newid = NewTaskID();
 
 		RuningTaskInfo info;
 		info.dependencies = std::move(dependencies);
 
-		std::function<bool()> func = [funcion = std::move(funcion),pars = std::move(pars...)]()
+		std::function<void()> func = [task_promise,pars = std::make_tuple(std::forward<Pars>(pars)...)]()
 			{
-				funcion(pars...);
+			
+				std::apply([task_promise](auto&& ... args){
+					(*task_promise)(args...);
+				}, std::move(pars));
+			
 			};
 		
-		info._Func = std::move(func);
+		info._Func =std::make_shared<std::function<void()>>(std::move(func));
 	
-		tasks.Lock([newid, info = std::make_shared<RuningTaskInfo>(std::move(info))](UnorderedMap<TaskID, RuningTaskInfo>& val)
+		tasks.Lock([newid, info = std::make_shared<RuningTaskInfo>(std::move(info))](UnorderedMap<TaskID,std::shared_ptr<RuningTaskInfo>>& val)
 		{
 		val.AddValue(newid, std::move(info));
 		});
 
-		auto func = [this,newid](WorkerGroup& val)
+		auto func2 = [this,newid](WorkerGroup& val)
 			{
 				auto worker = val.NextWorker;
 				val.NextWorker++;
@@ -359,14 +370,13 @@ public:
 					val.NextWorker = 0;
 				}
 
-				WorkerData v;
-				v.TaskToID = newid;
+
 				auto& workerdata = val.WorkerDatas[worker];
 			
-				workerdata.push_back(v);
-				workerdata.UpdateWorker.notify_one();
+				workerdata.TaskToID.push_back(newid);
+				workerdata.UpdateWorker->notify_one();
 			};
-		WorkerDatas.Lock(func);
+		WorkerDatas.Lock(func2);
 
 		return Task<T>(newid, this);
 	}
@@ -393,7 +403,7 @@ public:
 	template<typename T>
 	T WaitFor(Task<T>& item)
 	{
-
+		return T();
 	}
 	void WaitFor(Task<Void>& item)
 	{
@@ -423,7 +433,7 @@ public:
 	{
 		auto func = [this](WorkerGroup& val)
 			{
-				val.WorkerDatas.resize(1 + threads.size());
+				val.WorkerDatas.reserve(1 + threads.size());
 				canstart = true;
 			};
 		WorkerDatas.Lock(func);
@@ -474,7 +484,7 @@ private:
 			{
 				std::unique_lock<std::mutex> lock(This->WorkerDatas.GetMutex());
 
-				WorkData.UpdateWorker.wait(lock, [&WorkData,&v = This->canstart]()
+				WorkData.UpdateWorker->wait(lock, [&WorkData,&v = This->canstart]()
 					{
 						return WorkData.TaskToID.size() || v == false;
 					});
@@ -490,7 +500,7 @@ private:
 		return ThreadInd;
 	}
 };
-ThreadID GetSyncThreadID(TaskManger* manger)
+inline ThreadID GetSyncThreadID(TaskManger* manger)
 {
 	return manger->GetSyncThreadID();
 }
