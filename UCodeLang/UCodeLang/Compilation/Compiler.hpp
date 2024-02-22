@@ -11,6 +11,7 @@
 #include "DependencyFile.hpp"
 
 #include "CompilationSettings.hpp"
+#include "UCodeLang/LangCore/TaskManger.hpp"
 UCodeLangStart
 class Compiler
 {
@@ -50,20 +51,17 @@ public:
 	};
 
 
-	UCodeLangAPIExport CompilerRet CompileText(const String_view& Text, const ExternalFiles& ExternalFiles = {});
 	UCodeLangAPIExport static String GetTextFromFile(const Path& path);
 	UCodeLangAPIExport static BytesPtr GetBytesFromFile(const Path& path);
+	
+	
+	UCodeLangAPIExport CompilerRet CompileText(const String_view& Text, const ExternalFiles& ExternalFiles = {});
 	UCodeLangForceinline CompilerRet CompileFileToLib(const Path& path, const ExternalFiles& ExternalFiles = {})
 	{
 		return  CompileText(GetTextFromFile(path), ExternalFiles);
 	}
 	UCodeLangAPIExport CompilerRet CompilePathToObj(const Path& path, const Path& OutLib, const ExternalFiles& ExternalFiles = {});
-
-
-
 	UCodeLangAPIExport CompilerRet CompileFiles(const CompilerPathData& Data, const ExternalFiles& ExternalFiles = {});
-
-
 	UCodeLangAPIExport CompilerRet CompileFiles_UseIntDir(const CompilerPathData& Data, const ExternalFiles& ExternalFiles = {});
 
 	UCodeLangAPIExport BytesPtr OpenFile(const LangDefInfo::FileInfo* FInfo, const Path& path);
