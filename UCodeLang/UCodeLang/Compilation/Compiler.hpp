@@ -55,14 +55,45 @@ public:
 	UCodeLangAPIExport static BytesPtr GetBytesFromFile(const Path& path);
 	
 	
-	UCodeLangAPIExport CompilerRet CompileText(const String_view& Text, const ExternalFiles& ExternalFiles = {});
-	UCodeLangForceinline CompilerRet CompileFileToLib(const Path& path, const ExternalFiles& ExternalFiles = {})
+	UCodeLangAPIExport CompilerRet CompileText(const String_view& Text, const ExternalFiles& ExternalFiles,TaskManger& tasks);
+	UCodeLangForceinline CompilerRet CompileFileToLib(const Path& path, const ExternalFiles& ExternalFiles,TaskManger& tasks)
 	{
 		return  CompileText(GetTextFromFile(path), ExternalFiles);
 	}
-	UCodeLangAPIExport CompilerRet CompilePathToObj(const Path& path, const Path& OutLib, const ExternalFiles& ExternalFiles = {});
-	UCodeLangAPIExport CompilerRet CompileFiles(const CompilerPathData& Data, const ExternalFiles& ExternalFiles = {});
-	UCodeLangAPIExport CompilerRet CompileFiles_UseIntDir(const CompilerPathData& Data, const ExternalFiles& ExternalFiles = {});
+	UCodeLangAPIExport CompilerRet CompilePathToObj(const Path& path, const Path& OutLib, const ExternalFiles& ExternalFiles,TaskManger& tasks);
+	UCodeLangAPIExport CompilerRet CompileFiles(const CompilerPathData& Data, const ExternalFiles& ExternalFiles,TaskManger& tasks);
+	UCodeLangAPIExport CompilerRet CompileFiles_UseIntDir(const CompilerPathData& Data, const ExternalFiles& ExternalFiles,TaskManger& tasks);
+
+	UCodeLangAPIExport CompilerRet CompileText(const String_view& Text, const ExternalFiles& ExternalFiles = {})
+	{
+		TaskManger tasks;
+		tasks.Init();
+		return CompileText(Text, ExternalFiles,tasks);
+	}
+	UCodeLangForceinline CompilerRet CompileFileToLib(const Path& path, const ExternalFiles& ExternalFiles = {})
+	{
+		TaskManger tasks;
+		tasks.Init();
+		return  CompileText(GetTextFromFile(path), ExternalFiles,tasks);
+	}
+	UCodeLangAPIExport CompilerRet CompilePathToObj(const Path& path, const Path& OutLib, const ExternalFiles& ExternalFiles = {})
+	{
+		TaskManger tasks;
+		tasks.Init();
+		return CompilePathToObj(path, OutLib, ExternalFiles, tasks);
+	}
+	UCodeLangAPIExport CompilerRet CompileFiles(const CompilerPathData& Data, const ExternalFiles& ExternalFiles = {})
+	{
+		TaskManger tasks;
+		tasks.Init();
+		return CompileFiles(Data, ExternalFiles, tasks);
+	}
+	UCodeLangAPIExport CompilerRet CompileFiles_UseIntDir(const CompilerPathData& Data, const ExternalFiles& ExternalFiles = {})
+	{
+		TaskManger tasks;
+		tasks.Init();
+		return CompileFiles_UseIntDir(Data, ExternalFiles);
+	}
 
 	UCodeLangAPIExport BytesPtr OpenFile(const LangDefInfo::FileInfo* FInfo, const Path& path);
 
