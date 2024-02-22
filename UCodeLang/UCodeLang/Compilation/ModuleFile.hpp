@@ -112,10 +112,29 @@ public:
 	{
 		return Path(ThisModuleDir) / (String(FileName) + FileExtWithDot);;
 	}
-	bool DownloadModules(const ModuleIndex& Modules, Optional<LogOut> LogsOut = {});
+	
+	bool DownloadModules(const ModuleIndex& Modules, Optional<LogOut> LogsOut, TaskManger& tasks);	
+	ModuleRet BuildModule(Compiler& Compiler, const ModuleIndex& Modules, bool IsSubModule, Optional<LogOut> LogsOut, TaskManger& tasks);
+	ModuleRet BuildFile(const String& filestring, Compiler& Compiler, const ModuleIndex& Modules, Optional<LogOut> LogsOut,TaskManger& tasks);
 
-	ModuleRet BuildModule(Compiler& Compiler, const ModuleIndex& Modules, bool IsSubModule = false, Optional<LogOut> LogsOut = {});
-	ModuleRet BuildFile(const String& filestring, Compiler& Compiler, const ModuleIndex& Modules, Optional<LogOut> LogsOut = {});
+	bool DownloadModules(const ModuleIndex& Modules, Optional<LogOut> LogsOut = {})
+	{
+		auto tasks = TaskManger();
+		tasks.Init();
+		return DownloadModules(Modules, LogsOut, tasks);
+	}
+	ModuleRet BuildModule(Compiler& Compiler, const ModuleIndex& Modules, bool IsSubModule = false, Optional<LogOut> LogsOut = {})
+	{
+		auto tasks = TaskManger();
+		tasks.Init();
+		return BuildModule(Compiler, Modules, IsSubModule,LogsOut,tasks);
+	}
+	ModuleRet BuildFile(const String& filestring, Compiler& Compiler, const ModuleIndex& Modules, Optional<LogOut> LogsOut = {})
+	{
+		auto tasks = TaskManger();
+		tasks.Init();
+		return BuildFile(filestring, Compiler, Modules, LogsOut, tasks);
+	}
 
 	static bool ToFile(const ModuleFile* Lib, const Path& path);
 	static bool FromFile(ModuleFile* Lib, const Path& path);
@@ -160,7 +179,7 @@ public:
 private:
 	void BuildModuleDependencies(const ModuleIndex& Modules, CompilationErrors& Errs, bool& Err, Compiler& Compiler
 		, const Vector<ModuleDependencie>& ModuleDependencies
-		, Compiler::ExternalFiles& externfilesoutput, Optional<LogOut> LogsOut);
+		, Compiler::ExternalFiles& externfilesoutput, Optional<LogOut> LogsOut,TaskManger& task);
 
 };
 UCodeLangEnd

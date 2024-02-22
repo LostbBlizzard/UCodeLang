@@ -430,7 +430,346 @@ bool ModuleFile::DownloadModules(const ModuleIndex& Modules, Optional<LogOut> Lo
 }
 ModuleFile::ModuleRet ModuleFile::BuildModule(Compiler& Compiler, const ModuleIndex& Modules, bool IsSubModule, Optional<LogOut> LogsOut)
 {
-	if (DownloadModules(Modules, LogsOut))
+	
+}
+
+void ModuleFile::BuildModuleDependencies(
+	const ModuleIndex& Modules,
+	CompilationErrors& Errs, bool& Err,
+	Compiler& Compiler,
+	const Vector<ModuleDependencie>& ModuleDependencies,
+	Compiler::ExternalFiles& externfilesoutput, Optional<LogOut> LogsOut,TaskManger& tasks)
+{
+	for (auto& Item : ModuleDependencies)
+	{
+		auto V = Modules.FindFile(Item.Identifier);
+		if (!V.has_value())
+		{
+			Errs.AddError(ErrorCodes::ExpectingSequence, 0, 0, "Cant Find Module Named " + ToName(Item.Identifier));
+			Err = true;
+			return;
+		}
+
+	}
+
+	struct TaskR
+	{
+		CompilationErrors err;
+		bool didgood = false;
+		Optional<Path> Outpath;
+	};
+	Vector<TaskManger::Task<TaskR>> modtasks;
+	modtasks.resize(ModuleDependencies.size());
+
+	for (auto& Item : ModuleDependencies)
+	{
+		std::function<TaskR()> func = [Modules, Item,this, &Compiler, LogsOut, &tasks]() -> TaskR
+			{
+				auto V = Modules.FindFile(Item.Identifier);
+
+
+				const ModuleIndex::IndexModuleFile& Index = Modules._IndexedFiles[V.value()];
+				ModuleFile MFile;
+				if (ModuleFile::FromFile(&MFile, Index._ModuleFullPath))
+				{
+					auto BuildData = MFile.BuildModule(Compiler, Modules, true, LogsOut, tasks);
+					if (BuildData.CompilerRet.IsError())
+					{
+						TaskR r;
+						r.didgood = false;
+
+						r.err.AddError(ErrorCodes::ExpectingSequence, 0, 0, "Cant Build Mudule " + ToName(ModuleName) + " because of an Err in " + ToName(Item.Identifier));
+						return r;
+					}
+					else
+					{
+						TaskR r;
+						r.didgood = true;
+						r.Outpath = MFile.GetPaths(Compiler, true).OutFile;
+
+						return r;
+
+					}
+
+				}
+				else
+				{
+					TaskR r;
+					r.didgood = false;
+
+					r.err.AddError(ErrorCodes::ExpectingSequence, 0, 0, "Cant Open Mudule At " + Index._ModuleFullPath.generic_string() + ".it may not exist.");
+					return r;
+				}
+			};
+
+		auto t = tasks.AddTask(func, {});
+		t.Run();
+		modtasks.push_back(t);
+	}
+
+
+
+	bool haveErr = false;
+	for (auto& Item : modtasks)
+	{
+		auto r = Item.Wait();
+		if (r.didgood == false)
+		{
+			haveErr = true;
+		}
+
+		for (auto& Item : r.err.Get_Errors())
+		{
+			Errs.AddError(std::move(Item));
+		}
+
+		if (r.Outpath.has_value())
+		{
+			externfilesoutput.Files.push_back(r.Outpath.value());
+		}
+	}
+	Err = haveErr;
+}
+
+bool ModuleFile::ToFile(const ModuleFile* Lib, const Path& path)
+{
+	namespace fs = std::filesystem;
+	std::ofstream File(path, std::ios::binary);
+	if (File.is_open())
+	{
+		String V = ToStringBytes(Lib);
+		File.write((const char*)V.c_str(), V.size());
+
+
+		File.close();
+		return true;
+	}
+	return false;
+}
+
+bool ModuleFile::FromFile(ModuleFile* Lib, const Path& path)
+{
+	std::ifstream inFile(path);
+	if (inFile.is_open())
+	{
+		Lib->ThisModuleDir = path.parent_path();
+
+		std::stringstream strStream;
+		strStream << inFile.rdbuf();
+		std::string str = strStream.str();
+		inFile.close();
+
+
+		return FromString(Lib, str);
+	}
+	else
+	{
+		return false;
+	}
+
+}
+void ModuleFile::NewInit(String ModuleName, String AuthorName)
+{
+	this->ModuleName.ModuleName = ModuleName;
+	this->ModuleName.AuthorName = AuthorName;
+	this->ModuleNameSpace = ModuleName;
+
+	this->RemoveUnSafe = true;
+	{
+
+		ModuleDependencie f;
+		f.Identifier.MajorVersion = 0;
+		f.Identifier.MinorVersion = 0;
+		f.Identifier.MinorVersion = 0;
+
+		f.Identifier.AuthorName = "UCodeLang";
+		f.Identifier.ModuleName = "StandardLibrary";
+		ModuleDependencies.push_back(std::move(f));
+	}
+}
+String ModuleFile::ToStringBytes(const ModuleIdentifier* Value)
+{
+	String out;
+
+	out += "AuthorName:" + Value->AuthorName + '\n';
+	out += "ModuleName:" + Value->ModuleName + '\n';
+
+	out += "Version:" + std::to_string(Value->MajorVersion)
+		+ ":" + std::to_string(Value->MinorVersion)
+		+ ":" + std::to_string(Value->RevisionVersion);
+	return out;
+}
+
+bool ModuleFile::DownloadModules(const ModuleIndex& Modules, Optional<LogOut> LogsOut, TaskManger& tasks)
+{
+	Vector<TaskManger::Task<bool>> RuningTask;
+	RuningTask.reserve(ModuleDependencies.size());
+
+
+	for (size_t i = 0; i < ModuleDependencies.size(); i++)
+	{
+		auto& Item = ModuleDependencies[i];
+
+		std::function<bool()> func = [Modules, Item,&tasks,LogsOut]() -> bool
+			{
+				auto file = Modules.FindFile(Item.Identifier);
+				if (!file.has_value() && Item.WebLink)
+				{
+					const auto& WebLink = Item.WebLink.value();
+					auto outdir = LangInfo::GetUCodeGlobalModulesDownloads() / Item.Identifier.AuthorName / Item.Identifier.ModuleName;
+					String versionstr = std::to_string(Item.Identifier.MajorVersion) + "." + std::to_string(Item.Identifier.MinorVersion) + "." + std::to_string(Item.Identifier.RevisionVersion);
+					outdir /= versionstr;
+
+					String modid = ModuleFile::ToName(Item.Identifier);
+
+					if (!std::filesystem::exists(outdir))
+					{
+						std::filesystem::create_directories(outdir);
+
+
+						Vector<String> VaildGitTags;
+						{
+							VaildGitTags.push_back(versionstr);
+							VaildGitTags.push_back("v" + versionstr);
+						}
+
+						bool ok = false;
+						for (auto& Item : VaildGitTags)
+						{
+							String Cmd = "git clone ";
+
+							Cmd += WebLink + " --branch " + Item + " " + outdir.generic_string();
+							if (LogsOut.has_value())
+							{
+								(*LogsOut)("trying to download " + modid + " from " + WebLink);
+							}
+
+							ok = system(Cmd.c_str()) == EXIT_SUCCESS;
+							if (ok) { break; }
+						}
+
+
+						if (ok)
+						{
+							//TODO add suport for monorepos. one git with many UCodeModules.
+							auto modulefilepath = outdir / ModuleFile::FileNameWithExt;
+
+							if (!std::filesystem::exists(modulefilepath))
+							{
+								if (LogsOut.has_value())
+								{
+									(*LogsOut)(String("cant find ") + ModuleFile::FileNameWithExt + " in " + WebLink);
+								}
+
+								std::filesystem::remove_all(outdir);
+								return false;
+							}
+
+							ModuleFile modulef;
+							if (!modulef.FromFile(&modulef, modulefilepath))
+							{
+								if (LogsOut.has_value())
+								{
+									(*LogsOut)(String("cant open/parse ") + ModuleFile::FileNameWithExt + " in " + WebLink);
+								}
+
+								std::filesystem::remove_all(outdir);
+								return false;
+							}
+
+							bool arenotthesame = false;
+
+							if (modulef.ModuleName.AuthorName != Item.Identifier.AuthorName)
+							{
+								if (LogsOut.has_value())
+								{
+									(*LogsOut)(String("AuthorNames do not match in ") + ModuleFile::FileNameWithExt + " from " + WebLink);
+								}
+								arenotthesame = true;
+							}
+
+							if (modulef.ModuleName.ModuleName != Item.Identifier.ModuleName)
+							{
+								if (LogsOut.has_value())
+								{
+									(*LogsOut)(String("AuthorNames do not match in ") + ModuleFile::FileNameWithExt + " from " + WebLink);
+								}
+								arenotthesame = true;
+							}
+
+							if (modulef.ModuleName.MajorVersion != Item.Identifier.MajorVersion)
+							{
+								if (LogsOut.has_value())
+								{
+									(*LogsOut)(String("MajorVerion do not match in ") + ModuleFile::FileNameWithExt + " from " + WebLink);
+								}
+								arenotthesame = true;
+							}
+
+							if (modulef.ModuleName.MinorVersion != Item.Identifier.MinorVersion)
+							{
+								if (LogsOut.has_value())
+								{
+									(*LogsOut)(String("MinorVerion do not match in ") + ModuleFile::FileNameWithExt + " from " + WebLink);
+								}
+								arenotthesame = true;
+							}
+
+							if (modulef.ModuleName.RevisionVersion != Item.Identifier.RevisionVersion)
+							{
+								if (LogsOut.has_value())
+								{
+									(*LogsOut)(String("RevisonVersion do not match in ") + ModuleFile::FileNameWithExt + " from " + WebLink);
+								}
+								arenotthesame = true;
+							}
+
+							if (!arenotthesame)
+							{
+								std::filesystem::remove_all(outdir);
+								return false;
+							}
+							else
+							{
+								auto mod = ModuleIndex::GetModuleIndex();
+								mod.AddModueToList(modulefilepath);
+								ModuleIndex::SaveModuleIndex(mod);
+								return true;
+							}
+						}
+						else
+						{
+							if (LogsOut.has_value())
+							{
+								(*LogsOut)("failed to download " + modid);
+							}
+						}
+						return false;
+					}
+				}
+			};
+		
+		auto task = tasks.AddTask(func, {});
+		task.Run();
+		RuningTask.push_back(std::move(task));
+	}
+
+	bool r = true;
+
+	for (auto& Item : RuningTask)
+	{
+		if (!Item.Wait())
+		{
+			r = false;
+		}
+	}
+
+	return r;
+
+}
+ModuleFile::ModuleRet ModuleFile::BuildModule(Compiler& Compiler, const ModuleIndex& Modules, bool IsSubModule, Optional<LogOut> LogsOut, TaskManger& tasks)
+{
+	if (DownloadModules(Modules, LogsOut,tasks))
 	{
 
 		Compiler::CompilerPathData paths = GetPaths(Compiler, IsSubModule);
@@ -445,7 +784,7 @@ ModuleFile::ModuleRet ModuleFile::BuildModule(Compiler& Compiler, const ModuleIn
 
 		bool Err = false;
 
-		BuildModuleDependencies(Modules, Errs, Err, Compiler, this->ModuleDependencies, ExternFiles, LogsOut);
+		BuildModuleDependencies(Modules, Errs, Err, Compiler, this->ModuleDependencies, ExternFiles, LogsOut,tasks);
 
 		if (Err == false)
 		{
@@ -460,7 +799,7 @@ ModuleFile::ModuleRet ModuleFile::BuildModule(Compiler& Compiler, const ModuleIn
 
 				auto oldname = std::move(Errs.FilePath);
 				Errs.FilePath = buildfile;
-				auto build = BuildFile(Compiler.GetTextFromFile(buildfile), Compiler, Modules);
+				auto build = BuildFile(Compiler.GetTextFromFile(buildfile), Compiler, Modules,LogsOut,tasks);
 				Errs.FilePath = std::move(oldname);
 
 				Compiler.Get_Settings() = OldSettings;
@@ -620,128 +959,7 @@ ModuleFile::ModuleRet ModuleFile::BuildModule(Compiler& Compiler, const ModuleIn
 	}
 }
 
-void ModuleFile::BuildModuleDependencies(
-	const ModuleIndex& Modules,
-	CompilationErrors& Errs, bool& Err,
-	Compiler& Compiler,
-	const Vector<ModuleDependencie>& ModuleDependencies,
-	Compiler::ExternalFiles& externfilesoutput, Optional<LogOut> LogsOut)
-{
-	for (auto& Item : ModuleDependencies)
-	{
-		auto V = Modules.FindFile(Item.Identifier);
-		if (!V.has_value())
-		{
-			Errs.AddError(ErrorCodes::ExpectingSequence, 0, 0, "Cant Find Module Named " + ToName(Item.Identifier));
-			Err = true;
-			return;
-		}
-
-	}
-
-	for (auto& Item : ModuleDependencies)
-	{
-		auto V = Modules.FindFile(Item.Identifier);
-
-		{
-			const ModuleIndex::IndexModuleFile& Index = Modules._IndexedFiles[V.value()];
-			ModuleFile MFile;
-			if (ModuleFile::FromFile(&MFile, Index._ModuleFullPath))
-			{
-				auto BuildData = MFile.BuildModule(Compiler, Modules, true, LogsOut);
-				if (BuildData.CompilerRet.IsError())
-				{
-					Errs.FilePath = GetFullPathName();
-
-					Errs.AddError(ErrorCodes::ExpectingSequence, 0, 0, "Cant Build Mudule " + ToName(ModuleName) + " because of an Err in " + ToName(Item.Identifier));
-					Err = true;
-				}
-				else
-				{
-					externfilesoutput.Files.push_back(MFile.GetPaths(Compiler, true).OutFile);
-				}
-
-			}
-			else
-			{
-				Errs.AddError(ErrorCodes::ExpectingSequence, 0, 0, "Cant Open Mudule At " + Index._ModuleFullPath.generic_string() + ".it may not exist.");
-				Err = true;
-			}
-
-		}
-	}
-
-}
-
-bool ModuleFile::ToFile(const ModuleFile* Lib, const Path& path)
-{
-	namespace fs = std::filesystem;
-	std::ofstream File(path, std::ios::binary);
-	if (File.is_open())
-	{
-		String V = ToStringBytes(Lib);
-		File.write((const char*)V.c_str(), V.size());
-
-
-		File.close();
-		return true;
-	}
-	return false;
-}
-
-bool ModuleFile::FromFile(ModuleFile* Lib, const Path& path)
-{
-	std::ifstream inFile(path);
-	if (inFile.is_open())
-	{
-		Lib->ThisModuleDir = path.parent_path();
-
-		std::stringstream strStream;
-		strStream << inFile.rdbuf();
-		std::string str = strStream.str();
-		inFile.close();
-
-
-		return FromString(Lib, str);
-	}
-	else
-	{
-		return false;
-	}
-
-}
-void ModuleFile::NewInit(String ModuleName, String AuthorName)
-{
-	this->ModuleName.ModuleName = ModuleName;
-	this->ModuleName.AuthorName = AuthorName;
-	this->ModuleNameSpace = ModuleName;
-
-	this->RemoveUnSafe = true;
-	{
-
-		ModuleDependencie f;
-		f.Identifier.MajorVersion = 0;
-		f.Identifier.MinorVersion = 0;
-		f.Identifier.MinorVersion = 0;
-
-		f.Identifier.AuthorName = "UCodeLang";
-		f.Identifier.ModuleName = "StandardLibrary";
-		ModuleDependencies.push_back(std::move(f));
-	}
-}
-String ModuleFile::ToStringBytes(const ModuleIdentifier* Value)
-{
-	String out;
-
-	out += "AuthorName:" + Value->AuthorName + '\n';
-	out += "ModuleName:" + Value->ModuleName + '\n';
-
-	out += "Version:" + std::to_string(Value->MajorVersion)
-		+ ":" + std::to_string(Value->MinorVersion)
-		+ ":" + std::to_string(Value->RevisionVersion);
-	return out;
-}
-ModuleFile::ModuleRet ModuleFile::BuildFile(const String& filestring, Compiler& Compiler, const ModuleIndex& Modules, Optional<LogOut> LogsOut)
+ModuleFile::ModuleRet ModuleFile::BuildFile(const String& filestring, Compiler& Compiler, const ModuleIndex& Modules, Optional<LogOut> LogsOut, TaskManger& tasks)
 {
 	auto& Errs = Compiler.Get_Errors();
 	String fileimports = "";
@@ -822,7 +1040,7 @@ Version: 0:0:0)";
 	bool Err = false;
 
 	auto oldname = Errs.FilePath;
-	BuildModuleDependencies(Modules, Errs, Err, Compiler, buildfileDependencies, buildExternFiles, LogsOut);
+	BuildModuleDependencies(Modules, Errs, Err, Compiler, buildfileDependencies, buildExternFiles, LogsOut,tasks);
 	Errs.FilePath = oldname;
 
 
@@ -849,6 +1067,7 @@ Version: 0:0:0)";
 		return CompilerRet;
 	}
 }
+
 String ModuleFile::ToStringBytes(const Path* Value)
 {
 	String out = Value->generic_string();
