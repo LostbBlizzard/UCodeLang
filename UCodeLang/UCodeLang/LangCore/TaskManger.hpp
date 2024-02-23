@@ -192,7 +192,7 @@ private:
 	};
 	struct WorkerGroup
 	{
-		size_t NextWorker = 1;
+		size_t NextWorker = 0;
 		Vector<WorkerData> WorkerDatas;
 	};
 	Mutex<WorkerGroup> WorkerDatas;
@@ -224,9 +224,30 @@ private:
 
 			}
 		};
+		struct AnyTaskReturn
+		{
+
+			virtual ~AnyTaskReturn()
+			{
+
+			}
+		};
+
+		template<typename T>
+		struct AnyTaskReturn_t : AnyTaskReturn
+		{
+			T val;
+			AnyTaskReturn_t(T&& value)
+				:val(std::move(value))
+			{
+
+			}
+		};
 		Unique_ptr<AnyOnDone> OnDone;
 		std::shared_ptr<std::function<void()>> _Func;
-
+		Unique_ptr<AnyTaskReturn> _TaskReturn;
+		bool TaskCanRun = false;
+		bool Taskcompleted = false;
 
 		template<typename T>
 		void SetOnDone(OnDoneFunc<T> done)
@@ -241,6 +262,44 @@ private:
 			AnyOnDone_t<T>* done = (AnyOnDone_t<T>*)OnDone.get();
 			return done->func(val);
 		}
+	
+		template<typename T>
+		void SetReturn(T&& val)
+		{
+			_TaskReturn = Unique_ptr<AnyTaskReturn>((AnyTaskReturn*)new AnyTaskReturn_t<T>(std::move(val)));
+		}
+		
+		bool HasTaskReturn()
+		{
+			return _TaskReturn.get();
+		}
+		bool TaskCompleted()
+		{
+			return Taskcompleted;
+		}
+
+		template<typename T>
+		T GetReturn()
+		{
+			UCodeLangAssert(_TaskReturn.get())
+			T r = std::move(((AnyTaskReturn_t<T>*)_TaskReturn.get())->val);
+			_TaskReturn = {};
+			return r;
+		}
+
+		template<typename T>
+		Optional<T> TryGetReturn()
+		{
+			if (HasTaskReturn())
+			{
+				return GetReturn<T>();
+			}
+			else
+			{
+				return {};
+			}
+		}
+
 	};
 
 	Mutex<UnorderedMap<TaskID, Shared_ptr<RuningTaskInfo>>> tasks;
@@ -345,13 +404,20 @@ public:
 		RuningTaskInfo info;
 		info.dependencies = std::move(dependencies);
 
-		std::function<void()> func = [task_promise,pars = std::make_tuple(std::forward<Pars>(pars)...)]()
+		std::function<void()> func = [this,newid,task_promise,pars = std::make_tuple(std::forward<Pars>(pars)...)]()
 			{
-			
 				std::apply([task_promise](auto&& ... args){
 					(*task_promise)(args...);
 				}, std::move(pars));
-			
+		
+				T r = (*task_promise).get_future().get();
+				tasks.Lock([newid,r= std::move(r)](UnorderedMap<TaskID, std::shared_ptr<RuningTaskInfo>>& val)
+				{
+					auto& runtaskinfo = val.GetValue(newid);
+					runtaskinfo->SetReturn(std::move(r));
+
+					runtaskinfo->Taskcompleted = true;
+				});
 			};
 		
 		info._Func =std::make_shared<std::function<void()>>(std::move(func));
@@ -365,7 +431,7 @@ public:
 			{
 				auto worker = val.NextWorker;
 				val.NextWorker++;
-				if (val.NextWorker > val.WorkerDatas.size())
+				if (val.NextWorker > WorkerCount())
 				{
 					val.NextWorker = 0;
 				}
@@ -403,16 +469,66 @@ public:
 	template<typename T>
 	T WaitFor(Task<T>& item)
 	{
-		return T();
-	}
-	void WaitFor(Task<Void>& item)
-	{
+	
+		auto id = item.GetID();
+		UCodeLangAssert(id != NullTaskID)	
 
+		Optional<T> r;
+
+		while (r.has_value() ==false)
+		{
+			auto func = [&r, this, id](UnorderedMap<TaskID, Shared_ptr<RuningTaskInfo>>& val)
+				{
+					auto& runingtask = *val.GetValue(id);
+					
+					runingtask.TaskCanRun = true;
+					r = runingtask.TryGetReturn<T>();
+				};
+			
+			tasks.Lock(func);
+
+			
+			if (!r.has_value())
+			{
+				//do Work for a bit
+				
+				auto threadidx = ThreadIndex();
+
+				std::function<WorkerData*(WorkerGroup&)> func2 = [threadidx,this](WorkerGroup& val) -> WorkerData*
+					{
+						return &val.WorkerDatas[threadidx];
+					};
+
+				auto& WorkData = *(WorkerDatas.Lock_r<WorkerData*>(func2));
+
+
+				auto v = ThreadTick(this,WorkData);	
+				if (!v.has_value())
+				{
+					continue;
+				}
+				else
+				{
+					v.value()();
+				}
+			}
+			
+		}
+		return r.value();	
 	}
+	
 	template<typename T>
 	void Run(Task<T>& item)
 	{
+		auto id = item.GetID();
 
+		auto func = [this, id](UnorderedMap<TaskID, Shared_ptr<RuningTaskInfo>>& val)
+			{
+				auto& runingtask = *val.GetValue(id);
+				runingtask.TaskCanRun = true;
+			};
+
+		tasks.Lock(func);
 	}
 
 	template<typename T>
@@ -433,7 +549,7 @@ public:
 	{
 		auto func = [this](WorkerGroup& val)
 			{
-				val.WorkerDatas.reserve(1 + threads.size());
+				val.WorkerDatas.resize(1 + threads.size());
 				canstart = true;
 			};
 		WorkerDatas.Lock(func);
@@ -480,18 +596,70 @@ private:
 
 		while (true)
 		{
-			
+			std::function<void()> func;
 			{
 				std::unique_lock<std::mutex> lock(This->WorkerDatas.GetMutex());
 
-				WorkData.UpdateWorker->wait(lock, [&WorkData,&v = This->canstart]()
+				WorkData.UpdateWorker->wait(lock, [&WorkData, &v = This->canstart]()
 					{
 						return WorkData.TaskToID.size() || v == false;
 					});
 
 				if (This->canstart == false) { break; }
+
+				auto v = ThreadTick(This, WorkData);
+				if (!v.has_value())
+				{
+					continue;
+				}
+				else
+				{
+					func = std::move(v.value());
+				}
 			}
+
+			func();
 		}
+	}
+	static Optional<std::function<void()>> ThreadTick(TaskManger* This,WorkerData& WorkData)
+	{
+		auto& tasklist = WorkData.TaskToID;
+		Optional<std::function<void()>> r;
+		auto func = [tasklist,&r, This](UnorderedMap<TaskID, Shared_ptr<RuningTaskInfo>>& val)
+			{
+				for (auto& Item : tasklist)
+				{
+					auto& tinfo = *val.GetValue(Item);
+					if (tinfo.TaskCanRun == false)
+					{
+						continue;
+					}
+
+					bool randependencies = true;
+
+					for (auto& dep : tinfo.dependencies)
+					{
+						if (val.HasValue(dep))
+						{
+							auto& depinfo = *val.GetValue(dep);
+							if (!depinfo.TaskCompleted())
+							{
+								randependencies = false;
+								break;
+							}
+						}
+					}
+
+					if (randependencies == false) { continue; }
+
+					r = std::move(*tinfo._Func);
+					break;
+				}
+			};
+
+		This->tasks.TryLock(func);
+
+		return r;
 	}
 
 	inline static thread_local size_t ThreadInd = 0;

@@ -599,7 +599,7 @@ bool ModuleFile::DownloadModules(const ModuleIndex& Modules, Optional<LogOut> Lo
 					}
 				}
 
-				UCodeLangUnreachable();
+				return true;
 			};
 		
 		auto task = tasks.AddTask(func, {});
