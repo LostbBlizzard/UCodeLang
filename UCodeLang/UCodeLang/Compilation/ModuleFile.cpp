@@ -289,7 +289,7 @@ void ModuleFile::BuildModuleDependencies(
 	CompilationErrors& Errs, bool& Err,
 	Compiler& Compiler,
 	const Vector<ModuleDependencie>& ModuleDependencies,
-	Compiler::ExternalFiles& externfilesoutput, Optional<LogOut> LogsOut,TaskManger& tasks)
+	Compiler::ExternalFiles& externfilesoutput, Optional<LogOut> LogsOut, TaskManger& tasks)
 {
 	for (auto& Item : ModuleDependencies)
 	{
@@ -314,7 +314,7 @@ void ModuleFile::BuildModuleDependencies(
 
 	for (auto& Item : ModuleDependencies)
 	{
-		std::function<TaskR()> func = [Modules, Item,this, &Compiler, LogsOut, &tasks]() -> TaskR
+		std::function<TaskR()> func = [Modules, Item, this, &Compiler, LogsOut, &tasks]() -> TaskR
 			{
 				auto V = Modules.FindFile(Item.Identifier);
 
@@ -461,7 +461,7 @@ bool ModuleFile::DownloadModules(const ModuleIndex& Modules, Optional<LogOut> Lo
 	{
 		auto& Item = ModuleDependencies[i];
 
-		std::function<bool()> func = [Modules, Item,&tasks,LogsOut]() -> bool
+		std::function<bool()> func = [Modules, Item, &tasks, LogsOut]() -> bool
 			{
 				auto file = Modules.FindFile(Item.Identifier);
 				if (!file.has_value() && Item.WebLink)
@@ -601,7 +601,7 @@ bool ModuleFile::DownloadModules(const ModuleIndex& Modules, Optional<LogOut> Lo
 
 				return true;
 			};
-		
+
 		auto task = tasks.AddTask(func, {});
 		task.Run();
 		RuningTask.push_back(std::move(task));
@@ -622,7 +622,7 @@ bool ModuleFile::DownloadModules(const ModuleIndex& Modules, Optional<LogOut> Lo
 }
 ModuleFile::ModuleRet ModuleFile::BuildModule(Compiler& Compiler, const ModuleIndex& Modules, bool IsSubModule, Optional<LogOut> LogsOut, TaskManger& tasks)
 {
-	if (DownloadModules(Modules, LogsOut,tasks))
+	if (DownloadModules(Modules, LogsOut, tasks))
 	{
 
 		Compiler::CompilerPathData paths = GetPaths(Compiler, IsSubModule);
@@ -637,7 +637,7 @@ ModuleFile::ModuleRet ModuleFile::BuildModule(Compiler& Compiler, const ModuleIn
 
 		bool Err = false;
 
-		BuildModuleDependencies(Modules, Errs, Err, Compiler, this->ModuleDependencies, ExternFiles, LogsOut,tasks);
+		BuildModuleDependencies(Modules, Errs, Err, Compiler, this->ModuleDependencies, ExternFiles, LogsOut, tasks);
 
 		if (Err == false)
 		{
@@ -652,7 +652,7 @@ ModuleFile::ModuleRet ModuleFile::BuildModule(Compiler& Compiler, const ModuleIn
 
 				auto oldname = std::move(Errs.FilePath);
 				Errs.FilePath = buildfile;
-				auto build = BuildFile(Compiler.GetTextFromFile(buildfile), Compiler, Modules,LogsOut,tasks);
+				auto build = BuildFile(Compiler.GetTextFromFile(buildfile), Compiler, Modules, LogsOut, tasks);
 				Errs.FilePath = std::move(oldname);
 
 				Compiler.Get_Settings() = OldSettings;
@@ -703,7 +703,7 @@ ModuleFile::ModuleRet ModuleFile::BuildModule(Compiler& Compiler, const ModuleIn
 											(*LogsOut)("Building:" + this->ModuleName.ModuleName);
 										});
 								}
-								CompilerRet.CompilerRet = Compiler.CompileFiles_UseIntDir(paths, ExternFiles,tasks);
+								CompilerRet.CompilerRet = Compiler.CompileFiles_UseIntDir(paths, ExternFiles, tasks);
 								return CompilerRet.CompilerRet.IsValue();
 							};
 
@@ -790,7 +790,7 @@ ModuleFile::ModuleRet ModuleFile::BuildModule(Compiler& Compiler, const ModuleIn
 						Compiler.Get_Settings().AddArgValue("StartingNameSpace", ModuleNameSpace);
 					}
 
-					CompilerRet.CompilerRet = Compiler.CompileFiles_UseIntDir(paths, ExternFiles,tasks);
+					CompilerRet.CompilerRet = Compiler.CompileFiles_UseIntDir(paths, ExternFiles, tasks);
 				}
 
 				Compiler.Get_Settings() = OldSettings;
@@ -810,6 +810,8 @@ ModuleFile::ModuleRet ModuleFile::BuildModule(Compiler& Compiler, const ModuleIn
 			return CompilerRet;
 		}
 	}
+	ModuleRet CompilerRet = Compiler::CompilerRet(NeverNullptr(&Compiler.Get_Errors()));
+	return CompilerRet;
 }
 
 ModuleFile::ModuleRet ModuleFile::BuildFile(const String& filestring, Compiler& Compiler, const ModuleIndex& Modules, Optional<LogOut> LogsOut, TaskManger& tasks)
@@ -881,7 +883,7 @@ Version: 0:0:0)";
 
 		buildfileDependencies = std::move(mod.ModuleDependencies);
 
-		if (!mod.DownloadModules(Modules, LogsOut,tasks))
+		if (!mod.DownloadModules(Modules, LogsOut, tasks))
 		{
 			ModuleRet CompilerRet = Compiler::CompilerRet(NeverNullptr(&Compiler.Get_Errors()));
 			return CompilerRet;
@@ -893,13 +895,13 @@ Version: 0:0:0)";
 	bool Err = false;
 
 	auto oldname = Errs.FilePath;
-	BuildModuleDependencies(Modules, Errs, Err, Compiler, buildfileDependencies, buildExternFiles, LogsOut,tasks);
+	BuildModuleDependencies(Modules, Errs, Err, Compiler, buildfileDependencies, buildExternFiles, LogsOut, tasks);
 	Errs.FilePath = oldname;
 
 
 	if (Err == false)
 	{
-		auto buildscriptinfo = Compiler.CompileText(filetext, buildExternFiles,tasks);//TODO cash this file to avoid full builds
+		auto buildscriptinfo = Compiler.CompileText(filetext, buildExternFiles, tasks);//TODO cash this file to avoid full builds
 
 		if (buildscriptinfo.IsValue())
 		{
