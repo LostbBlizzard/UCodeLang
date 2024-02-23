@@ -18,20 +18,20 @@ ThreadID GetSyncThreadID(TaskManger* manger);
 template<typename T>
 struct WeakMutex
 {
-	WeakMutex(T&& item,ThreadID vaildthread,TaskManger* manger)
-		:_Item(item),vaildthread(vaildthread),manger(manger)
+	WeakMutex(T&& item, ThreadID vaildthread, TaskManger* manger)
+		:_Item(item), vaildthread(vaildthread), manger(manger)
 	{}
 
-	WeakMutex(T&& item,TaskManger* manger)
-		:_Item(item),vaildthread(GetSyncThreadID()),manger(manger)
+	WeakMutex(T&& item, TaskManger* manger)
+		:_Item(item), vaildthread(GetSyncThreadID(manger)), manger(manger)
 	{}
 
-	WeakMutex(TaskManger* manger,ThreadID vaildthread)
-		:vaildthread(vaildthread),manger(manger)
+	WeakMutex(TaskManger* manger, ThreadID vaildthread)
+		:vaildthread(vaildthread), manger(manger)
 	{}
 
 	WeakMutex(TaskManger* manger)
-		:_Item(item),vaildthread(GetSyncThreadID()),manger(manger)
+		:_Item(), vaildthread(GetSyncThreadID(manger)), manger(manger)
 	{}
 
 	template<typename R>
@@ -63,7 +63,7 @@ struct WeakMutex
 	{
 
 	}
-private:	
+private:
 	T _Item;
 	ThreadID vaildthread;
 	TaskManger* manger;
@@ -82,9 +82,9 @@ public:
 	{
 
 	}
-	Mutex(const Mutex<T>& tocopy) = delete;	
+	Mutex(const Mutex<T>& tocopy) = delete;
 	Mutex& operator=(const Mutex<T>& tocopy) = delete;
-	
+
 	Mutex& operator=(Mutex<T>&& tocopy) = default;
 	Mutex(Mutex<T>&& tocopy) = default;
 
@@ -99,7 +99,7 @@ public:
 	}
 
 	template<typename R>
-	UCodeLangForceinline R Lock_r(std::function<R(const T& val)> call) const
+	UCodeLangForceinline R Lock_r(std::function<R(const T& val)> call)
 	{
 		_mutex.lock();
 		UCodeLangDefer(_mutex.unlock());
@@ -113,13 +113,13 @@ public:
 		call(_Item);
 	}
 
-	UCodeLangForceinline void Lock(std::function<void(const T& val)> call) const
+	UCodeLangForceinline void Lock(std::function<void(const T& val)> call)
 	{
 		_mutex.lock();
 		UCodeLangDefer(_mutex.unlock());
 		call(_Item);
 	}
-	
+
 	UCodeLangForceinline bool TryLock(std::function<void(T& val)> call)
 	{
 		if (_mutex.try_lock()) {
@@ -129,7 +129,7 @@ public:
 		}
 		return false;
 	}
-	UCodeLangForceinline void TryLock(std::function<void(const T& val)> call) const
+	UCodeLangForceinline bool TryLock(std::function<void(const T& val)> call)
 	{
 		if (_mutex.try_lock()) {
 			UCodeLangDefer(_mutex.unlock());
@@ -149,15 +149,15 @@ public:
 		}
 		return Optional<R>();
 	}
-	
+
 	template<typename R>
-	UCodeLangForceinline Optional<R> TryLock_r(std::function<R(const T& val)> call) const
-	{	
+	UCodeLangForceinline Optional<R> TryLock_r(std::function<R(const T& val)> call)
+	{
 		if (_mutex.try_lock()) {
 			UCodeLangDefer(_mutex.unlock());
 			return call(_Item);
 		}
-		return Optional<R>();	
+		return Optional<R>();
 	}
 	std::mutex& GetMutex()
 	{
@@ -263,13 +263,13 @@ private:
 			AnyOnDone_t<T>* done = (AnyOnDone_t<T>*)OnDone.get();
 			return done->func(val);
 		}
-	
+
 		template<typename T>
 		void SetReturn(T&& val)
 		{
 			_TaskReturn = Unique_ptr<AnyTaskReturn>((AnyTaskReturn*)new AnyTaskReturn_t<T>(std::move(val)));
 		}
-		
+
 		bool HasTaskReturn()
 		{
 			return _TaskReturn.get();
@@ -283,7 +283,7 @@ private:
 		T GetReturn()
 		{
 			UCodeLangAssert(_TaskReturn.get())
-			T r = std::move(((AnyTaskReturn_t<T>*)_TaskReturn.get())->val);
+				T r = std::move(((AnyTaskReturn_t<T>*)_TaskReturn.get())->val);
 			_TaskReturn = {};
 			return r;
 		}
@@ -343,7 +343,7 @@ public:
 			}
 		}
 		Task(Task&& tocopy)
-			:_id(tocopy._id),_manger(tocopy._manger)
+			:_id(tocopy._id), _manger(tocopy._manger)
 		{
 			tocopy._id = NullTaskID;
 		}
@@ -354,7 +354,7 @@ public:
 
 			tocopy._id = NullTaskID;
 		}
-		
+
 
 		auto Wait()
 		{
@@ -389,7 +389,7 @@ public:
 
 		for (size_t i = 0; i < Count; i++)
 		{
-			r.threads.push_back(std::thread(ThreadStart, &r,i + 1));
+			r.threads.push_back(std::thread(ThreadStart, &r, i + 1));
 		}
 	}
 	static void Threads(TaskManger& r)
@@ -424,14 +424,14 @@ public:
 		RuningTaskInfo info;
 		info.dependencies = std::move(dependencies);
 
-		std::function<void()> func = [this,newid,task_promise,pars = std::make_tuple(std::forward<Pars>(pars)...)]()
+		std::function<void()> func = [this, newid, task_promise, pars = std::make_tuple(std::forward<Pars>(pars)...)]()
 			{
-				std::apply([task_promise](auto&& ... args){
+				std::apply([task_promise](auto&& ... args) {
 					(*task_promise)(args...);
 				}, std::move(pars));
-		
+
 				T r = (*task_promise).get_future().get();
-				tasks.Lock([newid,r= std::move(r)](UnorderedMap<TaskID, std::shared_ptr<RuningTaskInfo>>& val)
+				tasks.Lock([newid, r = std::move(r)](UnorderedMap<TaskID, std::shared_ptr<RuningTaskInfo>>& val)
 				{
 					auto& runtaskinfo = val.GetValue(newid);
 					runtaskinfo->SetReturn(std::move(r));
@@ -444,16 +444,16 @@ public:
 					}
 				});
 			};
-		
-		info._Func =std::make_shared<std::function<void()>>(std::move(func));
+
+		info._Func = std::make_shared<std::function<void()>>(std::move(func));
 		info.refscount = 2;
-	
-		tasks.Lock([newid, info = std::make_shared<RuningTaskInfo>(std::move(info))](UnorderedMap<TaskID,std::shared_ptr<RuningTaskInfo>>& val)
+
+		tasks.Lock([newid, info = std::make_shared<RuningTaskInfo>(std::move(info))](UnorderedMap<TaskID, std::shared_ptr<RuningTaskInfo>>& val)
 		{
-		val.AddValue(newid, std::move(info));
+			val.AddValue(newid, std::move(info));
 		});
 
-		auto func2 = [this,newid](WorkerGroup& val)
+		auto func2 = [this, newid](WorkerGroup& val)
 			{
 				auto worker = val.NextWorker;
 				val.NextWorker++;
@@ -464,7 +464,7 @@ public:
 
 
 				auto& workerdata = val.WorkerDatas[worker];
-			
+
 				workerdata.TaskToID.push_back(newid);
 				workerdata.UpdateWorker->notify_one();
 			};
@@ -495,32 +495,32 @@ public:
 	template<typename T>
 	T WaitFor(Task<T>& item)
 	{
-	
+
 		auto id = item.GetID();
-		UCodeLangAssert(id != NullTaskID)	
+		UCodeLangAssert(id != NullTaskID)
 
-		Optional<T> r;
+			Optional<T> r;
 
-		while (r.has_value() ==false)
+		while (r.has_value() == false)
 		{
 			auto func = [&r, this, id](UnorderedMap<TaskID, Shared_ptr<RuningTaskInfo>>& val)
 				{
 					auto& runingtask = *val.GetValue(id);
-					
+
 					runingtask.TaskCanRun = true;
-					r = runingtask.TryGetReturn<T>();
+					r = runingtask.template TryGetReturn<T>();
 				};
-			
+
 			tasks.Lock(func);
 
-			
+
 			if (!r.has_value())
 			{
 				//do Work for a bit
-				
+
 				auto threadidx = ThreadIndex();
 
-				std::function<WorkerData*(WorkerGroup&)> func2 = [threadidx,this](WorkerGroup& val) -> WorkerData*
+				std::function<WorkerData* (WorkerGroup&)> func2 = [threadidx, this](WorkerGroup& val) -> WorkerData*
 					{
 						return &val.WorkerDatas[threadidx];
 					};
@@ -528,7 +528,7 @@ public:
 				auto& WorkData = *(WorkerDatas.Lock_r<WorkerData*>(func2));
 
 
-				auto v = ThreadTick(this,WorkData);	
+				auto v = ThreadTick(this, WorkData);
 				if (!v.has_value())
 				{
 					continue;
@@ -538,11 +538,11 @@ public:
 					v.value()();
 				}
 			}
-			
+
 		}
-		return r.value();	
+		return r.value();
 	}
-	
+
 	template<typename T>
 	void Run(Task<T>& item)
 	{
@@ -602,22 +602,22 @@ private:
 	template<typename T>
 	void OnDone(TaskID id, OnDoneFunc<T> done)
 	{
-		tasks.UnLock([id](UnorderedMap<TaskID, RuningTaskInfo>& val)
+		tasks.Lock([id, done](UnorderedMap<TaskID, RuningTaskInfo>& val)
 		{
-			auto& taskinfo = *val.GetValue(id);
-			taskinfo.SetOnDone<T>(done);
+			auto& taskinfo = val.GetValue(id);
+			taskinfo.template SetOnDone<T>(done);
 		});
 	}
 
-	static void ThreadStart(TaskManger* This,size_t I)
+	static void ThreadStart(TaskManger* This, size_t I)
 	{
 		ThreadInd = I;
 		while (This->canstart == false);
 
-		std::function<WorkerData&(WorkerGroup&)> func = [](WorkerGroup& val) ->WorkerData&
-		{
+		std::function<WorkerData& (WorkerGroup&)> func = [](WorkerGroup& val) ->WorkerData&
+			{
 				return val.WorkerDatas[ThreadInd];
-		};
+			};
 		auto& WorkData = This->WorkerDatas.Lock_r(func);
 
 		while (true)
@@ -647,16 +647,16 @@ private:
 			func();
 		}
 	}
-	static Optional<std::function<void()>> ThreadTick(TaskManger* This,WorkerData& WorkData)
+	static Optional<std::function<void()>> ThreadTick(TaskManger* This, WorkerData& WorkData)
 	{
 		auto& tasklist = WorkData.TaskToID;
 		Optional<std::function<void()>> r;
-		auto func = [tasklist,&r, This](UnorderedMap<TaskID, Shared_ptr<RuningTaskInfo>>& val) mutable
+		auto func = [tasklist, &r, This](UnorderedMap<TaskID, Shared_ptr<RuningTaskInfo>>& val) mutable
 			{
 				for (size_t i = 0; i < tasklist.size(); i++)
 				{
 					auto& Item = tasklist[i];
-					
+
 					if (!val.HasValue(Item)) { continue; }
 
 					auto& tinfo = *val.GetValue(Item);
