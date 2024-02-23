@@ -248,6 +248,7 @@ private:
 		Unique_ptr<AnyTaskReturn> _TaskReturn;
 		bool TaskCanRun = false;
 		bool Taskcompleted = false;
+		size_t refscount = 0;
 
 		template<typename T>
 		void SetOnDone(OnDoneFunc<T> done)
@@ -330,10 +331,29 @@ public:
 		{
 			if (_id != NullTaskID)
 			{
+				_manger->tasks.Lock([_id = this->_id](UnorderedMap<TaskID, Shared_ptr<RuningTaskInfo>>& val)
+				{
+					auto& taskinfo = val.GetValue(_id);
+					taskinfo->refscount--;
+					if (taskinfo->refscount == 0)
+					{
+						val.erase(_id);
+					}
+				});
 			}
 		}
-		Task(Task&& tocopy) = default;
-		Task& operator=(Task&& tocopy) = default;
+		Task(Task&& tocopy)
+			:_id(tocopy._id),_manger(tocopy._manger)
+		{
+			tocopy._id = NullTaskID;
+		}
+		Task& operator=(Task&& tocopy)
+		{
+			_id = tocopy._id;
+			_manger = tocopy._manger;
+
+			tocopy._id = NullTaskID;
+		}
 		
 
 		auto Wait()
@@ -417,10 +437,16 @@ public:
 					runtaskinfo->SetReturn(std::move(r));
 
 					runtaskinfo->Taskcompleted = true;
+					runtaskinfo->refscount--;
+					if (runtaskinfo->refscount == 0)
+					{
+						val.erase(newid);
+					}
 				});
 			};
 		
 		info._Func =std::make_shared<std::function<void()>>(std::move(func));
+		info.refscount = 2;
 	
 		tasks.Lock([newid, info = std::make_shared<RuningTaskInfo>(std::move(info))](UnorderedMap<TaskID,std::shared_ptr<RuningTaskInfo>>& val)
 		{
@@ -431,7 +457,7 @@ public:
 			{
 				auto worker = val.NextWorker;
 				val.NextWorker++;
-				if (val.NextWorker > WorkerCount())
+				if (val.NextWorker >= WorkerCount())
 				{
 					val.NextWorker = 0;
 				}
@@ -625,10 +651,14 @@ private:
 	{
 		auto& tasklist = WorkData.TaskToID;
 		Optional<std::function<void()>> r;
-		auto func = [tasklist,&r, This](UnorderedMap<TaskID, Shared_ptr<RuningTaskInfo>>& val)
+		auto func = [tasklist,&r, This](UnorderedMap<TaskID, Shared_ptr<RuningTaskInfo>>& val) mutable
 			{
-				for (auto& Item : tasklist)
+				for (size_t i = 0; i < tasklist.size(); i++)
 				{
+					auto& Item = tasklist[i];
+					
+					if (!val.HasValue(Item)) { continue; }
+
 					auto& tinfo = *val.GetValue(Item);
 					if (tinfo.TaskCanRun == false)
 					{
@@ -652,6 +682,7 @@ private:
 
 					if (randependencies == false) { continue; }
 
+					tasklist.erase(tasklist.begin() + i);
 					r = std::move(*tinfo._Func);
 					break;
 				}

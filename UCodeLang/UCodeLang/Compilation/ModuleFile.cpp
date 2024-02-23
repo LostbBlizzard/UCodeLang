@@ -310,7 +310,7 @@ void ModuleFile::BuildModuleDependencies(
 		Optional<Path> Outpath;
 	};
 	Vector<TaskManger::Task<TaskR>> modtasks;
-	modtasks.resize(ModuleDependencies.size());
+	modtasks.reserve(ModuleDependencies.size());
 
 	for (auto& Item : ModuleDependencies)
 	{
