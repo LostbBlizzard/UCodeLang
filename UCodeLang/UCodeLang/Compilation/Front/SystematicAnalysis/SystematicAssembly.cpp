@@ -850,6 +850,39 @@ void SystematicAnalysis::Assembly_LoadTraitSymbol(const Trait_Data &Item, const 
 }
 void SystematicAnalysis::Assembly_LoadSymbol(const ForType_Data& Item, SystematicAnalysis::LoadLibMode Mode)
 {
+	if (Mode == LoadLibMode::GetTypes)
+	{
+		auto &Syb = Symbol_AddSymbol(SymbolType::Func, Item._Scope, Item._Scope, AccessModifierType::Public);
+		_Table.AddSymbolID(Syb, Symbol_GetSymbolID(&Item));
+	
+		auto Funcinfo = new ForTypeInfo();
+		Syb.Info.reset(Funcinfo);
+
+		
+	}
+
+
+	{
+		auto& Syb = _Table.GetSymbol(Symbol_GetSymbolID(&Item));
+		auto Funcinfo = Syb.Get_Info<ForTypeInfo>();
+
+		Funcinfo->Funcs.reserve(Item._AddedMethods.size());
+		for (auto& Item : Item._AddedMethods)
+		{
+			Assembly_LoadSymbol(Item, Mode);
+
+			auto sym = _Table.Symbols.back().get();
+		
+			Funcinfo->Funcs.push_back(sym);
+		}
+	}
+
+	if (Mode == LoadLibMode::FixTypes)
+	{
+		auto& Syb = _Table.GetSymbol(Symbol_GetSymbolID(&Item));
+
+		Assembly_LoadType(Item._TargetType, Syb.VarType);
+	}
 }
 void SystematicAnalysis::Assembly_LoadSymbol(const NameSpace_Data& Item,const String& FullName, SystematicAnalysis::LoadLibMode Mode)
 {

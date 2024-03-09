@@ -435,7 +435,14 @@ void UClib::ToBytes(BitMaker& Output, const NameSpace_Data& FuncPtrData)
 }
 void UClib::ToBytes(BitMaker& Output, const ForType_Data& FuncPtrData)
 {
+	ToBytes(Output,FuncPtrData._TargetType);	
+	Output.WriteType(FuncPtrData._Scope);
 
+	Output.WriteType((BitMaker::SizeAsBits)FuncPtrData._AddedMethods.size());
+	for (auto& Item : FuncPtrData._AddedMethods)
+	{
+		ToBytes(Output, Item);
+	}
 }
 void UClib::ToBytes(BitMaker& Output, const GenericBase_Data& FuncPtrData)
 {
@@ -1092,6 +1099,21 @@ void UClib::FromBytes(BitReader& Input, NameSpace_Data& Data)
 }
 void UClib::FromBytes(BitReader& Input, ForType_Data& Data)
 {
+	FromBytes(Input, Data._TargetType);
+	Input.ReadType(Data._Scope);
+
+	BitMaker::SizeAsBits s = 0;
+	Input.ReadType(s, s);
+
+	Data._AddedMethods.reserve(s);
+
+	for (size_t i = 0; i < s; i++)
+	{
+		ClassMethod m;
+		FromBytes(Input, m);
+
+		Data._AddedMethods.push_back(std::move(m));
+	}
 }
 void UClib::FromBytes(BitReader& reader, Vector<UsedTagValueData>& Attributes)
 {
