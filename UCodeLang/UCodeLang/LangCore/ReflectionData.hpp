@@ -266,6 +266,8 @@ enum class ClassType :ClassType_t
 	FuncPtr,
 	GenericClass,
 	GenericFunction,
+	ForType,
+	NameSpace,
 };
 struct Class_Data
 {
@@ -479,6 +481,24 @@ struct GenericTag_Data
 
 	}
 };
+struct GenericForType_Data
+{
+	GenericBase_Data Base;
+	~GenericForType_Data()
+	{
+
+	}
+};
+struct NameSpace_Data
+{
+	String FullNameSpace;
+};
+struct ForType_Data
+{
+	String _Scope;
+	ReflectionTypeInfo _TargetType;
+	Vector<ClassMethod> _AddedMethods;
+};
 class AssemblyNode
 {
 
@@ -559,6 +579,15 @@ public:
 		UCodeLangAssert(Type == ClassType::GenericFunction);
 		return _GenericFunc;
 	}
+	ForType_Data& Get_ForType() 
+	{
+		UCodeLangAssert(Type == ClassType::ForType);
+		return _ForType;
+	}
+	NameSpace_Data& Get_NameSpace() {
+		UCodeLangAssert(Type == ClassType::NameSpace);
+		return _NameSapce;
+	}
 	
 	const Class_Data& Get_ClassData() const
 	{
@@ -620,6 +649,16 @@ public:
 		UCodeLangAssert(Type == ClassType::GenericFunction);
 		return _GenericFunc;
 	}
+	const ForType_Data& Get_ForType() const
+	{
+		UCodeLangAssert(Type == ClassType::ForType);
+		return _ForType;
+	}
+	const NameSpace_Data& Get_NameSpace() const
+	{
+		UCodeLangAssert(Type == ClassType::NameSpace);
+		return _NameSapce;
+	}
 	inline ClassType Get_Type() const
 	{
 		return Type;
@@ -640,6 +679,8 @@ private:
 		FuncPtr_Data _FuncPtr;
 		GenericClass_Data _GenericClass;
 		GenericFunction_Data _GenericFunc;
+		ForType_Data _ForType;
+		NameSpace_Data _NameSapce;
 	};
 };
 class ClassAssembly
@@ -724,6 +765,33 @@ public:
 		r.FullName = FullName;
 		return r.Get_GenericFunctionData();
 	}	
+	inline StaticArray_Data& AddStaticArray(const String& Name, const String& FullName = "")
+	{
+		auto V = std::make_unique<AssemblyNode>(ClassType::StaticArray);
+		Classes.push_back(std::move(V));
+		auto& r = *Classes.back();
+		r.Name = Name;
+		r.FullName = FullName;
+		return r.Get_StaticArray();
+	}
+	inline NameSpace_Data& AddNameSpace(const String& Name, const String& FullName = "")
+	{
+		auto V = std::make_unique<AssemblyNode>(ClassType::NameSpace);
+		Classes.push_back(std::move(V));
+		auto& r = *Classes.back();
+		r.Name = Name;
+		r.FullName = FullName;
+		return r.Get_NameSpace();
+	}
+	inline ForType_Data& AddForType(const String& Name, const String& FullName = "")
+	{
+		auto V = std::make_unique<AssemblyNode>(ClassType::ForType);
+		Classes.push_back(std::move(V));
+		auto& r = *Classes.back();
+		r.Name = Name;
+		r.FullName = FullName;
+		return r.Get_ForType();
+	}
 	inline StaticArray_Data& AddStaticArray(const String& Name, const String& FullName = "")
 	{
 		auto V = std::make_unique<AssemblyNode>(ClassType::StaticArray);
