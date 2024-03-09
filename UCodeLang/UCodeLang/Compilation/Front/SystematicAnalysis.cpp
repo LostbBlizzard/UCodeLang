@@ -501,6 +501,18 @@ void SystematicAnalysis::OnNamespace(const NamespaceNode& node)
 		}
 		Pop_NodeScope();
 	}
+
+	if (_PassType == PassType::BuidCode)
+	{
+		auto name = Namespace;
+		bool hasnamespace = _Lib.Get_Assembly().Find_Node(ClassType::NameSpace,_Table._Scope.ThisScope);
+
+		if (hasnamespace == false)
+		{
+			NameSpace_Data& VClass = _Lib.Get_Assembly().AddNameSpace(name,_Table._Scope.ThisScope);
+		}
+	}
+
 	_Table.RemoveScope();
 
 	_Table.RemovePopUseing(UseingIndex);
@@ -539,6 +551,17 @@ void SystematicAnalysis::OnFileNode(const FileNode& File)
 	if (_StartingNameSpace.has_value())
 	{
 		_Table.AddScope(_StartingNameSpace.value());
+
+		if (_PassType == PassType::BuidCode)
+		{
+			auto name = _StartingNameSpace.value();
+			bool hasnamespace = _Lib.Get_Assembly().Find_Node(ClassType::NameSpace, _Table._Scope.ThisScope);
+
+			if (hasnamespace == false)
+			{
+				NameSpace_Data& VClass = _Lib.Get_Assembly().AddNameSpace(name, _Table._Scope.ThisScope);
+			}
+		}
 	}
 
 	auto UseingIndex = _Table.GetUseingIndex();
