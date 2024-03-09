@@ -6,6 +6,7 @@
 #include "Jit/Jit.hpp"
 #include "UCodeLang/LangCore/DataType/UnorderedMap.hpp"
 #include "Interpreters/ParameterPassingHelper.hpp"
+#include "UCodeLang/LangCore/TaskManger.hpp"
 UCodeLangStart
 
 class RunTimeLangState;
@@ -384,8 +385,13 @@ public:
 	{
 
 	};
-	bool HotReload(const HotReloadData& Item);
-
+	bool HotReload(const HotReloadData& Item,TaskManger& tasks);
+	bool HotReload(const HotReloadData& Item)
+	{
+		TaskManger task;
+		task.Init();
+		return HotReload(Item, task);
+	}
 	const ClassMethod* GetMethod(const UAddress& address);
 	String GetName(UAddress address)  const
 	{
