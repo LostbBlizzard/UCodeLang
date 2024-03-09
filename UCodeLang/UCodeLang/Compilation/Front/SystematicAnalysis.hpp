@@ -1350,6 +1350,8 @@ private:
 	void Assembly_LoadTagSymbol(const Tag_Data& Item, const String& FullName, const String& Scope, SystematicAnalysis::LoadLibMode Mode);
 	void Assembly_LoadTraitSymbol(const Trait_Data& Item, const String& FullName, const String& Scope, SystematicAnalysis::LoadLibMode Mode);
 
+	void Assembly_LoadSymbol(const ForType_Data& Item, SystematicAnalysis::LoadLibMode Mode);
+	void Assembly_LoadSymbol(const NameSpace_Data& Item,const String& FullName, SystematicAnalysis::LoadLibMode Mode);
 
 	void Assembly_LoadSymbol(const ClassMethod& Item, SystematicAnalysis::LoadLibMode Mode);
 	void LoadFuncInfoGetTypes(FuncInfo* Funcinfo, const ClassMethod& Item);
