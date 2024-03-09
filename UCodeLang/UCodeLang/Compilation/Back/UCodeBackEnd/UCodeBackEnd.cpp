@@ -4095,6 +4095,7 @@ void UCodeBackEndObject::RegToReg(IRType Type, RegisterID In, RegisterID Out, bo
 
 			switch (Sym->SymType)
 			{
+			case IRSymbolType::StaticArray:
 			case IRSymbolType::Struct:
 			{
 				auto structsize = GetSize(Type._symbol);

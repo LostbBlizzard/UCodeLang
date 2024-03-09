@@ -435,8 +435,8 @@ bool SystematicAnalysis::Eval_Evaluate(EvaluatedEx& Out, const ValueExpressionNo
 			{
 				Type.SetType(TypesEnum::uIntPtr);
 
-				UAddress PtrSize;
-				Type_GetSize(Info, PtrSize);
+				UAddress PtrSize =0;
+				Type_GetSize(Type, PtrSize);
 
 				switch (PtrSize)
 				{
