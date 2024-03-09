@@ -97,19 +97,33 @@ void SystematicAnalysis::OnForTypeNode(const ForTypeNode& node)
 		{
 
 			_Table.AddScope(ScopeName);
-			
+
 
 			auto sym = Symbol_GetSymbol(SymID);
 			sym->PassState = PassType::BuidCode;
 
-
+			Vector<ClassMethod> methods;
+			methods.reserve(node._Nodes.size());
 			for (auto& Item : node._Nodes)
 			{
 				OnFuncNode(*Item);
+
+				auto FullName = _Table._Scope.ThisScope + (String)Item->_Signature._Name.token->Value._String;
+				Class_Data* Ptr = Assembly_GetAssemblyClass(RemoveSymboolFuncOverloadMangling(FullName));
+
+				auto last = std::move(Ptr->Methods.back());
+				Ptr->Methods.pop_back();
+				methods.push_back(std::move(last));
 			}
 
 
+			auto& OutInfo = _Lib.Get_Assembly().AddForType(ScopeName, ScopeName);
+			OutInfo._TargetType = Assembly_ConvertToType(sym->VarType);
+			OutInfo._AddedMethods = std::move(methods);
+
 			_Table.RemoveScope();
+			
+			OutInfo._Scope = _Table._Scope.ThisScope;
 		}
 	}
 }
