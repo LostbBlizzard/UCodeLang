@@ -1574,9 +1574,10 @@ void SystematicAnalysis::Type_DeclareVariableTypeCheck(TypeSymbol& VarType, cons
 		}
 	}
 
-	if (!Type_CanBeImplicitConverted(Ex, VarType, false))
+
+	if (!Type_CanBeImplicitConverted(Ex, VarType, false,true))
 	{
-		LogError_CantCastImplicitTypes(Token, Ex, VarType, false);
+		LogError_CantCastImplicitTypes(Token, Ex, VarType, false,true);
 	}
 }
 void SystematicAnalysis::Type_DeclareVarableCheck(TypeSymbol& VarType, const Node* Ex, const NeverNullPtr<Token> Token)
@@ -2637,14 +2638,14 @@ void SystematicAnalysis::LogError_EmptyInvalidError(const NeverNullPtr<Token> To
 	LogError(ErrorCodes::InValidType, Token->OnLine, Token->OnPos, "Reached Invaild Statemet");
 }
 
-void SystematicAnalysis::LogError_CantCastImplicitTypes(const NeverNullPtr<Token> Token, const TypeSymbol& Ex1Type, const TypeSymbol& UintptrType, bool ReassignMode)
+void SystematicAnalysis::LogError_CantCastImplicitTypes(const NeverNullPtr<Token> Token, const TypeSymbol& Ex1Type, const TypeSymbol& UintptrType, bool ReassignMode,bool isdeclare)
 {
 	if (Ex1Type.IsBadType() || UintptrType.IsBadType()
 		|| Type_IsUnMapType(UintptrType) || Type_IsUnMapType(Ex1Type)) {
 		return;
 	}
 
-	bool V1 = Type_IsAddessAndLValuesRulesfollowed(Ex1Type, UintptrType, ReassignMode);
+	bool V1 = Type_IsAddessAndLValuesRulesfollowed(Ex1Type, UintptrType, ReassignMode,isdeclare);
 	if (!V1 || Type_CanDoTypeToTrait(Ex1Type, UintptrType))
 	{
 		LogError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos

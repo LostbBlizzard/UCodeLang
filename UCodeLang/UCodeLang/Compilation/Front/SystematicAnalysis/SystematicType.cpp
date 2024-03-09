@@ -93,15 +93,18 @@ bool SystematicAnalysis::Type_IsimmutableRulesfollowed(const TypeSymbol& TypeToC
 
 	return false;
 }
-bool SystematicAnalysis::Type_IsAddessAndLValuesRulesfollowed(const TypeSymbol& TypeToCheck, const TypeSymbol& Type, bool ReassignMode) const
+bool SystematicAnalysis::Type_IsAddessAndLValuesRulesfollowed(const TypeSymbol& TypeToCheck, const TypeSymbol& Type, bool ReassignMode,bool isdeclare) const
 {
 	if (ReassignMode) { return true; }
 	bool CheckIsLocation = TypeToCheck.IsLocationValue() || TypeToCheck.IsAddress();
 	bool WantsALocation = Type.IsAddress();
 
-	if (!CheckIsLocation && WantsALocation)
+	if (isdeclare)
 	{
-		//return false;
+		if (!CheckIsLocation && WantsALocation)
+		{
+			return false;
+		}
 	}
 
 	return (
@@ -1922,13 +1925,13 @@ bool SystematicAnalysis::Type_IsValid(TypeSymbol& Out)
 {
 	return false;
 }
-bool SystematicAnalysis::Type_CanBeImplicitConverted(const TypeSymbol& TypeToCheck, const TypeSymbol& Type, bool ReassignMode)
+bool SystematicAnalysis::Type_CanBeImplicitConverted(const TypeSymbol& TypeToCheck, const TypeSymbol& Type, bool ReassignMode,bool isdeclare)
 {
 	if (Type_AreTheSameWithOutMoveAndimmutable(TypeToCheck, Type))
 	{
 		bool V0 = Type_IsimmutableRulesfollowed(TypeToCheck, Type);
 
-		bool V1 = Type_IsAddessAndLValuesRulesfollowed(TypeToCheck, Type, ReassignMode);
+		bool V1 = Type_IsAddessAndLValuesRulesfollowed(TypeToCheck, Type, ReassignMode,isdeclare);
 
 		if (TypeToCheck._ValueInfo != TypeValueInfo::IsValue
 			&& !TypeToCheck.IsMovedType() && (!Type_IsCopyable(TypeToCheck))

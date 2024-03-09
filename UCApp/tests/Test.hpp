@@ -100,7 +100,7 @@ inline String ModeType(OptimizationFlags Flags)
 	return r;
 }
 
-static const Array<TestInfo, 119> Tests{
+static const Array<TestInfo, 120> Tests{
 
 	TestInfo("main_0", "BasicTests/main.uc", "Main", SuccessCondition::Compilation),
 
@@ -261,14 +261,16 @@ static const Array<TestInfo, 119> Tests{
 
 	TestInfo("ForType", "Objects/ForType.uc", "main", SuccessCondition::RunTimeValue, (bool)true),
 	TestInfo("ForType2", "Objects/ForType2.uc", "main", SuccessCondition::RunTimeValue, (bool)true),
+	
+	TestInfo("NotLocaton", "BasicTests/NotLocation.uc", "main", SuccessCondition::CompilationFail),
 };
 struct SkipTestRange
 {
 	size_t Start;
 	size_t End;
 };
-static const Vector<SkipTestRange> UCodeVmSkipTests = { {119, Tests.size()} };
-static const Vector<SkipTestRange> C89SkipTests = { {119, Tests.size()} };
+static const Vector<SkipTestRange> UCodeVmSkipTests = { };
+static const Vector<SkipTestRange> C89SkipTests = {  };
 static const Vector<SkipTestRange> WasmSkipTests = { {0, Tests.size()} };
 
 inline bool ShouldSkipTest(size_t Index, const Vector<SkipTestRange>& list)
