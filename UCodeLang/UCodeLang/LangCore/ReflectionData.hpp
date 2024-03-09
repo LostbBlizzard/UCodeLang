@@ -491,7 +491,6 @@ struct GenericForType_Data
 };
 struct NameSpace_Data
 {
-	String FullNameSpace;
 	~NameSpace_Data()
 	{
 

@@ -152,6 +152,20 @@ void UClib::ToBytes(BitMaker& Output, const ClassAssembly& Assembly)
 			ToBytes(Output, TagData);
 		}
 		break;
+		case ClassType::NameSpace:
+		{
+			auto& TagData = Item->Get_NameSpace();
+
+			ToBytes(Output, TagData);
+		}
+		break;
+		case ClassType::ForType:
+		{
+			auto& TagData = Item->Get_ForType();
+
+			ToBytes(Output, TagData);
+		}
+		break;
 		default:
 			UCodeLangUnreachable();
 			break;
@@ -414,6 +428,14 @@ void UClib::ToBytes(BitMaker& Output, const StaticArray_Data& FuncPtrData)
 	Output.WriteType(FuncPtrData.TypeID);
 	ToBytes(Output, FuncPtrData.BaseType);
 	Output.WriteType((BitMaker::SizeAsBits)FuncPtrData.Count);
+}
+void UClib::ToBytes(BitMaker& Output, const NameSpace_Data& FuncPtrData)
+{
+
+}
+void UClib::ToBytes(BitMaker& Output, const ForType_Data& FuncPtrData)
+{
+
 }
 void UClib::ToBytes(BitMaker& Output, const GenericBase_Data& FuncPtrData)
 {
@@ -815,6 +837,18 @@ void UClib::FromBytes(BitReader& reader, ClassAssembly& Assembly)
 			FromBytes(reader, Tag);
 		}
 		break;
+		case ClassType::NameSpace:
+		{
+			auto& Tag = _Node.Get_NameSpace();
+			FromBytes(reader, Tag);
+		}
+		break;
+		case ClassType::ForType:
+		{
+			auto& Tag = _Node.Get_ForType();
+			FromBytes(reader, Tag);
+		}
+		break;
 		default:
 			UCodeLangUnreachable();
 			break;
@@ -1052,6 +1086,12 @@ void UClib::FromBytes(BitReader& Input, StaticArray_Data& Data)
 	Size_tAsBits Size = 0;
 	Input.ReadType(Size, Size);
 	Data.Count = Size;
+}
+void UClib::FromBytes(BitReader& Input, NameSpace_Data& Data)
+{
+}
+void UClib::FromBytes(BitReader& Input, ForType_Data& Data)
+{
 }
 void UClib::FromBytes(BitReader& reader, Vector<UsedTagValueData>& Attributes)
 {
