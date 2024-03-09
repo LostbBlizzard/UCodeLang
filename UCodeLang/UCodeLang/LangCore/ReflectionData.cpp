@@ -1342,43 +1342,43 @@ AssemblyNode& AssemblyNode::operator=(AssemblyNode&& node)
 		new (&_Class) Class_Data(std::move(node.Get_ClassData()));
 		break;
 	case ClassType::Enum:
-		new (&_Enum) Enum_Data(node.Get_EnumData());
+		new (&_Enum) Enum_Data(std::move(node.Get_EnumData()));
 		break;
 	case ClassType::Alias:
-		new (&_Alias) Alias_Data(node.Get_AliasData());
+		new (&_Alias) Alias_Data(std::move(node.Get_AliasData()));
 		break;
 	case ClassType::Eval:
-		new (&_Eval) Eval_Data(node.Get_EvalData());
+		new (&_Eval) Eval_Data(std::move(node.Get_EvalData()));
 		break;
 	case ClassType::Trait:
-		new (&_Trait) Trait_Data(node.Get_TraitData());
+		new (&_Trait) Trait_Data(std::move(node.Get_TraitData()));
 		break;
 	case ClassType::Tag:
-		new (&_Tag) Tag_Data(node.Get_TagData());
+		new (&_Tag) Tag_Data(std::move(node.Get_TagData()));
 		break;
 	case ClassType::StaticVarable:
-		new (&_StaticVar) StaticVar_Data(node.Get_StaticVar());
+		new (&_StaticVar) StaticVar_Data(std::move(node.Get_StaticVar()));
 		break;
 	case ClassType::ThreadVarable:
-		new (&_ThreadVar) ThreadVar_Data(node.Get_ThreadVar());
+		new (&_ThreadVar) ThreadVar_Data(std::move(node.Get_ThreadVar()));
 		break;
 	case ClassType::StaticArray:
-		new (&_StaticArr) StaticArray_Data(node.Get_StaticArray());
+		new (&_StaticArr) StaticArray_Data(std::move(node.Get_StaticArray()));
 		break;
 	case ClassType::FuncPtr:
-		new (&_FuncPtr) FuncPtr_Data(node.Get_FuncPtr());
+		new (&_FuncPtr) FuncPtr_Data(std::move(node.Get_FuncPtr()));
 		break;
 	case ClassType::GenericClass:
-		new (&_GenericClass) GenericClass_Data(node.Get_GenericClass());
+		new (&_GenericClass) GenericClass_Data(std::move(node.Get_GenericClass()));
 		break;
 	case ClassType::GenericFunction:
-		new (&_GenericFunc) GenericFunction_Data(node.Get_GenericFunctionData());
+		new (&_GenericFunc) GenericFunction_Data(std::move(node.Get_GenericFunctionData()));
 		break;
 	case ClassType::NameSpace:
-		new (&_NameSapce) NameSpace_Data(node.Get_NameSpace());
+		new (&_NameSapce) NameSpace_Data(std::move(node.Get_NameSpace()));
 		break;
 	case ClassType::ForType:
-		new (&_ForType) ForType_Data(node.Get_ForType());
+		new (&_ForType) ForType_Data(std::move(node.Get_ForType()));
 		break;
 	default:
 		UCodeLangUnreachable();
@@ -1433,6 +1433,12 @@ AssemblyNode& AssemblyNode::operator=(const AssemblyNode& node)
 	case ClassType::GenericFunction:
 		new (&_GenericFunc) GenericFunction_Data(node.Get_GenericFunctionData());
 		break;
+	case ClassType::ForType:
+		new (&_ForType) ForType_Data(node.Get_ForType());
+		break;
+	case ClassType::NameSpace:
+		new (&_NameSapce) NameSpace_Data(node.Get_NameSpace());
+		break;
 	default:
 		UCodeLangUnreachable();
 		break;
@@ -1480,6 +1486,12 @@ AssemblyNode::~AssemblyNode()
 		break;
 	case ClassType::GenericFunction:
 		_GenericFunc.~GenericFunction_Data();
+		break;
+	case ClassType::NameSpace:
+		_NameSapce.~NameSpace_Data();
+		break;
+	case ClassType::ForType:
+		_ForType.~ForType_Data();
 		break;
 	default:
 		UCodeLangUnreachable();
