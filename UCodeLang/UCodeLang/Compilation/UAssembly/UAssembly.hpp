@@ -36,7 +36,7 @@ public:
 	}
 	static String ToString(const UsedTagValueData& Value, const ClassAssembly& Assembly,UClib::NTypeSize PtrSize);
 	static String ToString(const ClassMethod::Par& Value, const ClassAssembly& Assembly);
-
+	static void ToString(String& r, ClassMethod& Item2, const UClib* Lib);
 
 	static String GetRegisterToString(RegisterID reg)
 	{
