@@ -1316,6 +1316,12 @@ AssemblyNode::AssemblyNode(ClassType type) : Type(type)
 	case ClassType::GenericFunction:
 		new (&_GenericFunc) GenericFunction_Data();
 		break;
+	case ClassType::NameSpace:
+		new (&_NameSapce) NameSpace_Data();
+		break;
+	case ClassType::ForType:
+		new (&_ForType) ForType_Data();
+		break;
 	default:
 		UCodeLangUnreachable();
 		break;
@@ -1367,6 +1373,12 @@ AssemblyNode& AssemblyNode::operator=(AssemblyNode&& node)
 		break;
 	case ClassType::GenericFunction:
 		new (&_GenericFunc) GenericFunction_Data(node.Get_GenericFunctionData());
+		break;
+	case ClassType::NameSpace:
+		new (&_NameSapce) NameSpace_Data(node.Get_NameSpace());
+		break;
+	case ClassType::ForType:
+		new (&_ForType) ForType_Data(node.Get_ForType());
 		break;
 	default:
 		UCodeLangUnreachable();
