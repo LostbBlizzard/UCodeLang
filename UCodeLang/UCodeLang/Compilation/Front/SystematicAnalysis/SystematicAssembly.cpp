@@ -848,6 +848,16 @@ void SystematicAnalysis::Assembly_LoadTraitSymbol(const Trait_Data &Item, const 
 
 	_Table._Scope = std::move(TepScope);
 }
+void SystematicAnalysis::Assembly_LoadSymbol(const ForType_Data& Item, SystematicAnalysis::LoadLibMode Mode)
+{
+}
+void SystematicAnalysis::Assembly_LoadSymbol(const NameSpace_Data& Item,const String& FullName, SystematicAnalysis::LoadLibMode Mode)
+{
+	if (Mode == LoadLibMode::GetTypes)
+	{
+		auto &Syb = Symbol_AddSymbol(SymbolType::Namespace, FullName, FullName, AccessModifierType::Public);	
+	}
+}
 void SystematicAnalysis::Assembly_LoadSymbol(const ClassMethod &Item, SystematicAnalysis::LoadLibMode Mode)
 {
 	if (Mode == LoadLibMode::GetTypes)
