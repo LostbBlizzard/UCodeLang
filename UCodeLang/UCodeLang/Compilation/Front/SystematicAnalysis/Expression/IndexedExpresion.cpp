@@ -160,7 +160,9 @@ void SystematicAnalysis::OnExpressionNode(const IndexedExpresionNode& node)
 					}
 					else
 					{
-						lookingfor.SetAsAddress();
+						if (lookingfortype.IsAddress()) {
+							lookingfor.SetAsAddress();
+						}
 					}
 
 					_LastExpressionType = lookingfor;
@@ -291,7 +293,10 @@ void SystematicAnalysis::OnExpressionNode(const IndexedExpresionNode& node)
 
 
 			}
-
+			if (Type_IsStaticArray(SourcType) && !SourcType.IsAddress())
+			{
+				Pointer = _IR_LookingAtIRBlock->NewLoadPtr(Pointer);
+			}
 
 
 			_IR_LastExpressionField = _IR_LookingAtIRBlock->New_Index_Vetor(Pointer, IndexField,IR_Load_UIntptr(V));
@@ -306,8 +311,14 @@ void SystematicAnalysis::OnExpressionNode(const IndexedExpresionNode& node)
 				else if (Type_IsStaticArray(SourcType))
 				{
 					auto Syb = Symbol_GetSymbol(SourcType).value();
+
+					bool isaddress = lookingfor.IsAddress();
+
 					lookingfor = Syb->Get_Info<StaticArrayInfo>()->Type;
-					lookingfor.SetAsAddress();
+
+					if (isaddress) {
+						lookingfor.SetAsAddress();
+					}
 
 					_LastExpressionType = lookingfor;
 				}
