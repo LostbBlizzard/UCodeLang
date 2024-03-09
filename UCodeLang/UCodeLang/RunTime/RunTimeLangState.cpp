@@ -241,8 +241,10 @@ AnyInterpreterPtr As(DebugContext::InterpreterInfo Info)
 	}
 }
 
-bool RunTimeLangState::HotReload(const HotReloadData& Item)
+bool RunTimeLangState::HotReload(const HotReloadData& Item,TaskManger& tasks)
 {
+	return false;
+
 	struct StaticObjectInfo
 	{
 		struct State
