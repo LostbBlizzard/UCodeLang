@@ -1523,7 +1523,7 @@ private:
 	bool Type_CanDoTypeToTrait(const TypeSymbol& TypeToCheck, const TypeSymbol& Type);
 
 	bool Type_IsValid(TypeSymbol& Out);
-	bool Type_CanBeImplicitConverted(const TypeSymbol& TypeToCheck, const TypeSymbol& Type, bool ReassignMode = true);
+	bool Type_CanBeImplicitConverted(const TypeSymbol& TypeToCheck, const TypeSymbol& Type, bool ReassignMode = true,bool isdeclare =false);
 	CastOverLoadWith_t  Type_CanBeExplicitlyConverted(const TypeSymbol& TypeToCheck, const TypeSymbol& Type);
 	Optional<FuncInfo*> Symbol_GetAnExplicitlyConvertedFunc(const TypeSymbol& TypeToCheck);
 
@@ -1546,7 +1546,7 @@ private:
 
 	bool Type_IsimmutableRulesfollowed(const TypeSymbol& TypeToCheck, const TypeSymbol& Type)const;
 
-	bool Type_IsAddessAndLValuesRulesfollowed(const TypeSymbol& TypeToCheck, const TypeSymbol& Type, bool ReassignMode) const;
+	bool Type_IsAddessAndLValuesRulesfollowed(const TypeSymbol& TypeToCheck, const TypeSymbol& Type, bool ReassignMode,bool isdeclare = false) const;
 
 
 	bool Symbol_HasDestructor(const TypeSymbol& TypeToCheck);
@@ -1962,7 +1962,7 @@ private:
 	void LogError_YouMustReturnSomethingError(const NeverNullPtr<Token> Token);
 	void LogError_CantguessVarTypeError(const NeverNullPtr<Token> Token);
 	void LogError_CantUseThisKeyWordHereError(const NeverNullPtr<Token> NameToken);
-	void LogError_CantCastImplicitTypes(const NeverNullPtr<Token> Token, const TypeSymbol& Ex1Type, const TypeSymbol& UintptrType, bool ReassignMode);
+	void LogError_CantCastImplicitTypes(const NeverNullPtr<Token> Token, const TypeSymbol& Ex1Type, const TypeSymbol& UintptrType, bool ReassignMode,bool isdeclare =false);
 	void LogError_ReadingFromInvaidVariable(const NeverNullPtr<Token> Token, String_view Str);
 	void LogError_CantFindVarError(const NeverNullPtr<Token> Token, String_view Str);
 	void LogError_CantFindVarMemberError(const NeverNullPtr<Token> Token, String_view Str, const TypeSymbol& OnType);
