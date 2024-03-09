@@ -492,12 +492,21 @@ struct GenericForType_Data
 struct NameSpace_Data
 {
 	String FullNameSpace;
+	~NameSpace_Data()
+	{
+
+	}
 };
 struct ForType_Data
 {
 	String _Scope;
 	ReflectionTypeInfo _TargetType;
 	Vector<ClassMethod> _AddedMethods;
+
+	~ForType_Data()
+	{
+
+	}
 };
 class AssemblyNode
 {
