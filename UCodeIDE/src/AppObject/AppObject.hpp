@@ -235,6 +235,8 @@ private:
 		bool AutoCompile = true;
 		bool AutoReload = true;
 		bool AutoHotReload = false;
+		bool StripFuncions = true;
+		bool StripTypes = true;
 
 		UCodeLang::OptimizationFlags Flags = UCodeLang::OptimizationFlags::O_2;
 		bool InDebug = false;

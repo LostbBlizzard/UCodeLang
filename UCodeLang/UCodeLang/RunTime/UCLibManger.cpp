@@ -50,7 +50,7 @@ void UCLibManger::LinkLib(UCodeLang::RunTimeLib* Item, bool HotReloadKeepStatic)
 
 		if (Tep.OpCode == InstructionSet::LoadFuncPtrV1)
 		{
-			auto func = Instruction::IsLoadFuncPtr(InsSpan, i);
+			auto func = Instruction::IsLoadFuncPtr(InsSpan, i,is32bitmode);
 			
 			if (func.has_value())
 			{
@@ -74,7 +74,7 @@ void UCLibManger::LinkLib(UCodeLang::RunTimeLib* Item, bool HotReloadKeepStatic)
 		}
 		else if (Tep.OpCode == InstructionSet::Callv1)
 		{
-			auto func = Instruction::IsCall(InsSpan, i);
+			auto func = Instruction::IsCall(InsSpan, i,is32bitmode);
 
 			if (func.has_value())
 			{

@@ -2485,6 +2485,11 @@ void AppObject::OnDraw()
         {
             UpdatedCompileInfo = true;
         }
+        if (ImguiHelper::BoolEnumField("Strip Funcions/Types",OutputWindow.StripFuncions))
+        {
+            OutputWindow.StripTypes = OutputWindow.StripFuncions;
+            UpdatedCompileInfo = true;
+        }
 
 
         if (UpdatedCompileInfo)
@@ -3939,6 +3944,55 @@ void AppObject::OnDoneCompileing(UCodeLang::Compiler::CompilerRet& Val, const UC
             UCodeLang::UClib lib;
             UCodeLang::UClib::FromFile(&lib, tepoutpath);
             _CompiledLib = std::move(lib);
+
+            
+            if (OutputWindow.StripFuncions)
+            {
+                Vector<String> functokeep;
+                {
+                    auto str = GetTextEditorString();
+                    UCodeLang::CompilationSettings settings;
+                    UCodeLang::CompilationErrors errors;
+
+                    UCodeLang::FrontEnd::Lexer lex;
+                    lex.Set_ErrorsOutput(&errors);
+                    lex.Set_Settings(&settings); 
+                    lex.Lex(str);
+                   
+                    auto& tokens = lex.Get_Tokens();
+
+                    bool lastfuncstart = false;
+                    for (auto& token : tokens)
+                    {
+                        if (lastfuncstart && token.Type == UCodeLang::TokenType::Name)
+                        {
+                            functokeep.push_back((String)token.Value._String);
+                            break;
+                        }
+
+                        lastfuncstart = token.Type == UCodeLang::TokenType::bitwise_or;
+                    }
+                }
+                UCodeLang::UAssembly::UAssembly::StripFuncSettings settings;
+                {
+                    for (auto& Item : functokeep)
+                    {
+                        auto v= _CompiledLib.Get_Assembly().Find_Funcs(Item);
+
+                        for (auto& func : v)
+                        {
+                            settings.FuncionsToKeep.push_back(func);
+                        }
+                    }
+                }
+            
+                UCodeLang::UAssembly::UAssembly assembly;
+                UCodeLang::UAssembly::UAssembly::StripFunc(_CompiledLib, settings);
+            }
+            if (OutputWindow.StripTypes)
+            {
+
+            }
 
             _LibInfoString = UCodeLang::UAssembly::UAssembly::ToString(&_CompiledLib
             ,tepfilesdir,false);
