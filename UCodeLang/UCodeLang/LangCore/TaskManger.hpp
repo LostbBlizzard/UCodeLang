@@ -493,6 +493,24 @@ public:
 	}
 
 	template<typename T>
+	Vector<T> WaitFor(Vector<Task<T>>& list)
+	{
+		Vector<T> r;
+		r.reserve(list.size());
+
+		for (auto& Item : list)
+		{
+			Run(Item);
+		}
+		for (auto& Item : list)
+		{
+			r.push_back(WaitFor(Item));
+		}
+
+		return r;
+	}	
+
+	template<typename T>
 	T WaitFor(Task<T>& item)
 	{
 
