@@ -9,6 +9,7 @@
 
 #include "UAssembly_Lexer.hpp"
 #include "UAssembly_Parser.hpp"
+#include "UCodeLang/LangCore/TaskManger.hpp"
 UAssemblyStart
 class UAssembly
 {
@@ -59,6 +60,39 @@ public:
 	static void OpValueToString(OpCodeType OpType,const void* In,const UnorderedMap<UAddress, String>& AddressToName, const BytesView StaticVarablesData,String& out);
 
 	static size_t BuildHashForSub(const Instruction* Pointer, size_t BufferSize);
+
+	struct StripSettings
+	{
+		bool DebugInfo = true;
+		bool TypeAssembly = true;
+		bool FuncToAddress = true;
+		String TargetCodeLayer = UCode_CodeLayer_UCodeVM_Name;
+	};
+	struct StripOutput
+	{
+		Optional<ULangDebugInfo> StripedDebugInfo;
+		Optional<ClassAssembly> StripedAssembly;
+		Optional<UnorderedMap<String,UAddress>> StripedFuncToAddress;
+	};
+	//Currntly only works UCodeVM CodeLayer
+	static StripOutput Strip(UClib& lib,const StripSettings& settings);
+
+	struct StripFuncSettings
+	{
+		Vector<const ClassMethod*> FuncionsToKeep;
+	};
+	struct StripFuncs
+	{
+		Vector<ClassMethod> RemovedFuncions;
+	};
+	static StripFuncs StripFunc(UClib& lib, const StripFuncSettings& setting)
+	{
+		TaskManger tasks;
+		tasks.Init();
+
+		return StripFunc(lib, setting, tasks);
+	}
+	static StripFuncs StripFunc(UClib& lib,const StripFuncSettings& setting,TaskManger& tasks);
 private:
 	CompilationErrors* _ErrorsOutput = nullptr;
 	CompilationSettings* _Settings = nullptr;

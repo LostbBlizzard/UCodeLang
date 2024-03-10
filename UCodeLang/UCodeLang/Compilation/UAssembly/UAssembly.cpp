@@ -1267,6 +1267,202 @@ size_t UAssembly::BuildHashForSub(const Instruction* Pointer, size_t BufferSize)
 
 	return std::hash<String_view>()(Item);
 }
+UAssembly::StripOutput UAssembly::Strip(UClib& lib,const StripSettings& settings)
+{
+	UAssembly::StripOutput r;
+
+
+	if (settings.DebugInfo)
+	{
+		lib._DebugBytes.clear();
+	
+		for (auto& Item : lib._Layers)
+		{
+			if (Item->_Name == settings.TargetCodeLayer)
+			{
+				if (Item->_Data.Is<CodeLayer::UCodeByteCode>()) {
+					auto& v = Item->_Data.Get<CodeLayer::UCodeByteCode>();
+					v.DebugInfo = {};
+					break;
+				}
+			}
+		}
+	}
+	if (settings.FuncToAddress)
+	{
+		for (auto& Item : lib._Layers)
+		{
+			if (Item->_Name == settings.TargetCodeLayer)
+			{
+				if (Item->_Data.Is<CodeLayer::UCodeByteCode>()) {
+					auto& v = Item->_Data.Get<CodeLayer::UCodeByteCode>();
+					r.StripedFuncToAddress = std::move(v._NameToPtr);
+				}
+			}
+		}
+	}
+	if (settings.TypeAssembly)
+	{
+		r.StripedAssembly = std::move(lib.Get_Assembly());
+	}
+
+	return r;
+}
+UAssembly::StripFuncs UAssembly::StripFunc(UClib& lib, const StripFuncSettings& setting,TaskManger& tasks)
+{
+	StripFuncs r;
+	Vector<const ClassMethod*> FuncionsToKeep;
+	{
+		CodeLayer::UCodeByteCode* ByteCodeLayer;
+
+		UnorderedMap<const ClassMethod*, Vector<const ClassMethod*>> DirectReference;
+		{
+			DirectReference.reserve(ByteCodeLayer->_NameToPtr.size());
+		
+			auto c = tasks.WorkerCount();
+			auto sizeperworker = ByteCodeLayer->_NameToPtr.size() / c;
+			Vector<std::pair<const String, UAddress>*> ptrs;
+			
+			for (auto& Item : ByteCodeLayer->_NameToPtr)
+			{
+				ptrs.push_back(&Item);
+			}
+			auto& assembly = lib.Get_Assembly();
+
+			using taskr = Vector<std::pair<const ClassMethod*, Vector<const ClassMethod*>>>;
+			Vector<TaskManger::Task<taskr>> _tasks;
+			_tasks.reserve(c);
+
+			UnorderedMap<UAddress, String> AddToName;
+			AddToName.reserve(ByteCodeLayer->_NameToPtr.size());
+			for (auto& Item : ByteCodeLayer->_NameToPtr)
+			{
+				AddToName.AddValue(Item.second,Item.first);
+			}
+
+			for (size_t i = 0; i < c; i++)
+			{
+				std::function<taskr()> f = [&AddToName,&assembly,&ptrs,i, ByteCodeLayer, sizeperworker, c]()
+					{
+						taskr r;
+						
+						size_t StartIndex = sizeperworker * i;
+						size_t EndIndex = 0;
+						bool lastone = i + 1 == c;
+						EndIndex = std::min(sizeperworker * (i + 1), ByteCodeLayer->_NameToPtr.size());
+				
+						Span<std::pair<const String, UAddress>*> mylist = Span(ptrs.data() +StartIndex,EndIndex -StartIndex);
+
+						for (auto& Item : mylist)
+						{
+							auto f = assembly.Find_Func(Item->first);
+							if (f == nullptr) { continue; }
+
+						   auto funcstart = ByteCodeLayer->_NameToPtr.GetValue(Item->first);
+						   Vector<const ClassMethod*> methods;
+
+						   for (size_t i = 0; i < ByteCodeLayer->_Instructions.size(); i++)
+						   {
+							   auto& Ins = ByteCodeLayer->_Instructions[i];
+
+							   Optional<UAddress> address;
+							   {
+								   address = Ins.IsCall(Span<Instruction>(ByteCodeLayer->_Instructions.data(), ByteCodeLayer->_Instructions.size()), i);
+								   if (!address.has_value())
+								   {
+									   address = Ins.IsLoadFuncPtr(Span<Instruction>(ByteCodeLayer->_Instructions.data(), ByteCodeLayer->_Instructions.size()), i);
+								   }		   
+								   if (!address.has_value())
+								   {
+									   auto v = Ins.IsCallIf(Span<Instruction>(ByteCodeLayer->_Instructions.data(), ByteCodeLayer->_Instructions.size()), i);
+
+									   if (v.has_value()) {
+										   address = v.value().Func;
+									   }
+								   }
+								   if (!address.has_value())
+								   {
+									   auto v = Ins.IsJumpIf(Span<Instruction>(ByteCodeLayer->_Instructions.data(), ByteCodeLayer->_Instructions.size()), i);
+
+									   if (v.has_value()) {
+										   address = v.value().Func;
+									   }
+								   }
+								   if (!address.has_value())
+								   {
+									   address = Ins.IsJump(Span<Instruction>(ByteCodeLayer->_Instructions.data(), ByteCodeLayer->_Instructions.size()), i);;
+								   }
+							   }
+							   
+							   if (address.has_value())
+							   {
+								   UAddress add = address.value();
+								   NullablePtr<ClassMethod> p;
+								   auto s = AddToName.TryFindValue(add);
+								   if (s.has_value())
+								   {
+									   auto func = assembly.Find_Func(s.value());
+									   if (func)
+									   {
+										   methods.push_back(func);
+									   }
+								   }
+							   }
+							   
+							   if (Ins.OpCode == InstructionSet::Return)
+							   {
+								   break;
+							   }
+						   }
+
+						   r.push_back(std::make_pair(f, std::move(methods)));
+							
+						}
+
+						return r;
+					};
+				_tasks.push_back(tasks.AddTask(f, {}));
+			}
+
+			auto v =tasks.WaitFor(_tasks);
+			for (auto& Item : v)
+			{
+				for (auto& Item2 : Item) 
+				{
+					DirectReference.AddValue(Item2.first, std::move(Item2.second));
+				}
+			}
+		}
+		auto t = &lib;
+		const auto& lib = *t;
+
+		FuncionsToKeep.reserve(setting.FuncionsToKeep.size());
+
+		Vector<const ClassMethod*> SearchFuncions;
+
+		{
+			SearchFuncions.reserve(setting.FuncionsToKeep.size());
+			for (auto& Item : setting.FuncionsToKeep)
+			{
+				SearchFuncions.push_back(Item);
+			}
+		}
+
+		size_t oldfuncfoundcount = 0;
+		size_t funcfoundcount = 0;
+		do
+		{
+			for (auto& Item : SearchFuncions)
+			{
+
+			}
+
+		} while (funcfoundcount);
+	}
+
+
+	return r;
+}
 UAssemblyEnd
 
 
