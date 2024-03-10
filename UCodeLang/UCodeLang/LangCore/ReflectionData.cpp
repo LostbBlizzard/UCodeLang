@@ -24,10 +24,12 @@ const AssemblyNode* ClassAssembly::Find_Node(ReflectionCustomTypeID TypeID) cons
 		case ClassType::Alias:Value = Item->Get_AliasData().HardAliasTypeID; break;
 		case ClassType::Trait:Value = Item->Get_TraitData().TypeID; break;
 		case ClassType::Tag:Value = Item->Get_TagData().TypeID; break;
+		case ClassType::StaticArray:Value = Item->Get_StaticArray().TypeID; break;
 		case ClassType::FuncPtr:break;
 		case ClassType::GenericClass:break;
 		case ClassType::GenericFunction:break;
-		case ClassType::StaticArray:Value = Item->Get_StaticArray().TypeID; break;
+		case ClassType::NameSpace:break;
+		case ClassType::ForType:break;
 		default:
 			UCodeLangUnreachable();
 			break;
