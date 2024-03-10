@@ -10,6 +10,7 @@
 #define StackName_ "[" + StackName + "]"
 
 #include "Zydis/Zydis.h"
+#include "UCodeLang/Compilation/Helpers/InstructionBuilder.hpp"
 UAssemblyStart
 struct OutputIRLineState
 {
@@ -640,6 +641,8 @@ String UAssembly::ToString(const UClib* Lib, Optional<Path> SourceFiles, bool Sh
 size_t UAssembly::ParseInstruction( size_t I,const Span<Instruction> Data, String& r, const BytesView staticbytesview, UnorderedMap<UAddress, String>& AddressToName
 , bool CombineIns)
 {
+	bool is32mode = UCodeLang_32BitSytem;
+	bool is64mode = !is32mode;
 	auto& InsMapData = Get_InsToInsMapValue();
 
 	if (CombineIns == false) 
@@ -718,7 +721,7 @@ size_t UAssembly::ParseInstruction( size_t I,const Span<Instruction> Data, Strin
 		{
 
 			{
-				auto Opt = Instruction::IsCall(Data, I);
+				auto Opt = Instruction::IsCall(Data, I,is32mode);
 				if (Opt)
 				{
 					UAddress V = Opt.value();
@@ -726,26 +729,33 @@ size_t UAssembly::ParseInstruction( size_t I,const Span<Instruction> Data, Strin
 					OpValueToString(InsMapData.at(Data[I].OpCode)->Op_A, &V, AddressToName, staticbytesview, r);
 
 
-					#if UCodeLang_32BitSytem
-					return 1;
-					#else
-					return 3;
-					#endif 
+					if (is32mode)
+					{
+						return 1;
+					}
+					else
+					{
+						return 3;
+					}
 				}
 			}
 			{
-				auto Opt = Instruction::IsCallIf(Data, I);
+				auto Opt = Instruction::IsCallIf(Data, I,is32mode);
 				if (Opt)
 				{
 					UAddress V = Opt.value().Func;
 					r += "Callif ";
 					OpValueToString(InsMapData.at(Data[I].OpCode)->Op_B, &V, AddressToName, staticbytesview, r);
 					r += "," + GetRegisterToString(Opt.value().Reg);
-					#if UCodeLang_32BitSytem
-					return 1;
-					#else
-					return 3;
-					#endif 
+				
+					if (is32mode)
+					{
+						return 1;
+					}
+					else
+					{
+						return 3;
+					}
 				}
 
 			}
@@ -753,7 +763,7 @@ size_t UAssembly::ParseInstruction( size_t I,const Span<Instruction> Data, Strin
 		if (Data[I].OpCode == InstructionSet::Jumpv1)
 		{
 			{
-				auto Opt = Instruction::IsJump(Data, I);
+				auto Opt = Instruction::IsJump(Data, I,is32mode);
 				if (Opt)
 				{
 					UAddress V = Opt.value();
@@ -761,15 +771,18 @@ size_t UAssembly::ParseInstruction( size_t I,const Span<Instruction> Data, Strin
 					OpValueToString(InsMapData.at(Data[I].OpCode)->Op_A, &V, AddressToName, staticbytesview, r);
 
 
-					#if UCodeLang_32BitSytem
-					return 1;
-					#else
-					return 3;
-					#endif 
+					if (is32mode)
+					{
+						return 1;
+					}
+					else 
+					{
+						return 3;
+					}
 				}
 			}
 			{
-				auto Opt = Instruction::IsJumpIf(Data, I);
+				auto Opt = Instruction::IsJumpIf(Data, I,is32mode);
 				if (Opt)
 				{
 					UAddress V = Opt.value().Func;
@@ -778,18 +791,21 @@ size_t UAssembly::ParseInstruction( size_t I,const Span<Instruction> Data, Strin
 					r += ",";
 					OpValueToString(InsMapData.at(InstructionSet::Jumpif)->Op_B, &V, AddressToName, staticbytesview, r);
 
-					#if UCodeLang_32BitSytem
-					return 1;
-					#else
-					return 3;
-					#endif 
+					if (is32mode)
+					{
+						return 1;
+					}
+					else 
+					{
+						return 3;
+					}
 				}
 
 			}
 		}
 		if (Data[I].OpCode == InstructionSet::LoadFuncPtrV1)
 		{
-			auto Opt = Instruction::IsLoadFuncPtr(Data, I);
+			auto Opt = Instruction::IsLoadFuncPtr(Data, I,is32mode);
 			if (Opt)
 			{
 				UAddress V = Opt.value();
@@ -797,11 +813,14 @@ size_t UAssembly::ParseInstruction( size_t I,const Span<Instruction> Data, Strin
 				r += ", "; 
 				OpValueToString(InsMapData.at(Data[I].OpCode)->Op_B, &V, AddressToName, staticbytesview, r);
 
-				#if UCodeLang_32BitSytem
-				return 1;
-				#else
-				return 3;
-				#endif 
+				if (is32mode)
+				{
+					return 1;
+				}
+				else 
+				{
+					return 3;
+				}
 			}
 
 		}
@@ -1308,21 +1327,30 @@ UAssembly::StripOutput UAssembly::Strip(UClib& lib,const StripSettings& settings
 
 	return r;
 }
-UAssembly::StripFuncs UAssembly::StripFunc(UClib& lib, const StripFuncSettings& setting,TaskManger& tasks)
+UAssembly::StripFuncs UAssembly::StripFunc(UClib& lib, const StripFuncSettings& setting, TaskManger& tasks)
 {
 	StripFuncs r;
+
+	auto layer = lib.GetLayer(UCode_CodeLayer_UCodeVM_Name);
+	if (layer == nullptr || !layer->_Data.Is<CodeLayer::UCodeByteCode>())
+	{
+		return r;
+	}
+	CodeLayer::UCodeByteCode* ByteCodeLayer = &layer->_Data.Get<CodeLayer::UCodeByteCode>();
+
+	bool is32mode = lib.BitSize == UClib::NTypeSize::int32;
+	bool is64mode = !is32mode;
+
 	Vector<const ClassMethod*> FuncionsToKeep;
 	{
-		CodeLayer::UCodeByteCode* ByteCodeLayer;
-
 		UnorderedMap<const ClassMethod*, Vector<const ClassMethod*>> DirectReference;
 		{
 			DirectReference.reserve(ByteCodeLayer->_NameToPtr.size());
-		
+
 			auto c = tasks.WorkerCount();
 			auto sizeperworker = ByteCodeLayer->_NameToPtr.size() / c;
 			Vector<std::pair<const String, UAddress>*> ptrs;
-			
+
 			for (auto& Item : ByteCodeLayer->_NameToPtr)
 			{
 				ptrs.push_back(&Item);
@@ -1337,86 +1365,94 @@ UAssembly::StripFuncs UAssembly::StripFunc(UClib& lib, const StripFuncSettings& 
 			AddToName.reserve(ByteCodeLayer->_NameToPtr.size());
 			for (auto& Item : ByteCodeLayer->_NameToPtr)
 			{
-				AddToName.AddValue(Item.second,Item.first);
+				AddToName.AddValue(Item.second, Item.first);
 			}
 
 			for (size_t i = 0; i < c; i++)
 			{
-				std::function<taskr()> f = [&AddToName,&assembly,&ptrs,i, ByteCodeLayer, sizeperworker, c]()
+				std::function<taskr()> f = [is32mode,&AddToName, &assembly, &ptrs, i, ByteCodeLayer, sizeperworker, c]()
 					{
 						taskr r;
-						
+
 						size_t StartIndex = sizeperworker * i;
 						size_t EndIndex = 0;
 						bool lastone = i + 1 == c;
-						EndIndex = std::min(sizeperworker * (i + 1), ByteCodeLayer->_NameToPtr.size());
-				
-						Span<std::pair<const String, UAddress>*> mylist = Span(ptrs.data() +StartIndex,EndIndex -StartIndex);
+
+						if (lastone)
+						{
+							EndIndex = ByteCodeLayer->_NameToPtr.size();
+						}
+						else
+						{
+							EndIndex = std::min(sizeperworker * (i + 1), ByteCodeLayer->_NameToPtr.size());
+						}
+
+						Span<std::pair<const String, UAddress>*> mylist = Span(ptrs.data() + StartIndex, EndIndex - StartIndex);
 
 						for (auto& Item : mylist)
 						{
 							auto f = assembly.Find_Func(Item->first);
 							if (f == nullptr) { continue; }
 
-						   auto funcstart = ByteCodeLayer->_NameToPtr.GetValue(Item->first);
-						   Vector<const ClassMethod*> methods;
+							auto funcstart = ByteCodeLayer->_NameToPtr.GetValue(Item->first);
+							Vector<const ClassMethod*> methods;
 
-						   for (size_t i = 0; i < ByteCodeLayer->_Instructions.size(); i++)
-						   {
-							   auto& Ins = ByteCodeLayer->_Instructions[i];
+							for (size_t i = funcstart; i < ByteCodeLayer->_Instructions.size(); i++)
+							{
+								auto& Ins = ByteCodeLayer->_Instructions[i];
 
-							   Optional<UAddress> address;
-							   {
-								   address = Ins.IsCall(Span<Instruction>(ByteCodeLayer->_Instructions.data(), ByteCodeLayer->_Instructions.size()), i);
-								   if (!address.has_value())
-								   {
-									   address = Ins.IsLoadFuncPtr(Span<Instruction>(ByteCodeLayer->_Instructions.data(), ByteCodeLayer->_Instructions.size()), i);
-								   }		   
-								   if (!address.has_value())
-								   {
-									   auto v = Ins.IsCallIf(Span<Instruction>(ByteCodeLayer->_Instructions.data(), ByteCodeLayer->_Instructions.size()), i);
+								Optional<UAddress> address;
+								{
+									address = Ins.IsCall(Span<Instruction>(ByteCodeLayer->_Instructions.data(), ByteCodeLayer->_Instructions.size()),i,is32mode);
+									if (!address.has_value())
+									{
+										address = Ins.IsLoadFuncPtr(Span<Instruction>(ByteCodeLayer->_Instructions.data(), ByteCodeLayer->_Instructions.size()), i,is32mode);
+									}
+									if (!address.has_value())
+									{
+										auto v = Ins.IsCallIf(Span<Instruction>(ByteCodeLayer->_Instructions.data(), ByteCodeLayer->_Instructions.size()), i,is32mode);
 
-									   if (v.has_value()) {
-										   address = v.value().Func;
-									   }
-								   }
-								   if (!address.has_value())
-								   {
-									   auto v = Ins.IsJumpIf(Span<Instruction>(ByteCodeLayer->_Instructions.data(), ByteCodeLayer->_Instructions.size()), i);
+										if (v.has_value()) {
+											address = v.value().Func;
+										}
+									}
+									if (!address.has_value())
+									{
+										auto v = Ins.IsJumpIf(Span<Instruction>(ByteCodeLayer->_Instructions.data(), ByteCodeLayer->_Instructions.size()), i,is32mode);
 
-									   if (v.has_value()) {
-										   address = v.value().Func;
-									   }
-								   }
-								   if (!address.has_value())
-								   {
-									   address = Ins.IsJump(Span<Instruction>(ByteCodeLayer->_Instructions.data(), ByteCodeLayer->_Instructions.size()), i);;
-								   }
-							   }
-							   
-							   if (address.has_value())
-							   {
-								   UAddress add = address.value();
-								   NullablePtr<ClassMethod> p;
-								   auto s = AddToName.TryFindValue(add);
-								   if (s.has_value())
-								   {
-									   auto func = assembly.Find_Func(s.value());
-									   if (func)
-									   {
-										   methods.push_back(func);
-									   }
-								   }
-							   }
-							   
-							   if (Ins.OpCode == InstructionSet::Return)
-							   {
-								   break;
-							   }
-						   }
+										if (v.has_value()) {
+											address = v.value().Func;
+										}
+									}
+									if (!address.has_value())
+									{
+										address = Ins.IsJump(Span<Instruction>(ByteCodeLayer->_Instructions.data(), ByteCodeLayer->_Instructions.size()), i,is32mode);
+									}
+								}
 
-						   r.push_back(std::make_pair(f, std::move(methods)));
-							
+								if (address.has_value())
+								{
+									UAddress add = address.value() + 1;
+									NullablePtr<ClassMethod> p;
+									auto s = AddToName.TryFindValue(add);
+									if (s.has_value())
+									{
+										auto func = assembly.Find_Func(s.value());
+										if (func)
+										{
+											methods.push_back(func);
+										}
+									}
+								}
+
+								if (Ins.OpCode == InstructionSet::Return)
+								{
+									break;
+								}
+							}
+
+							r.push_back(std::make_pair(f, std::move(methods)));
+
 						}
 
 						return r;
@@ -1424,10 +1460,10 @@ UAssembly::StripFuncs UAssembly::StripFunc(UClib& lib, const StripFuncSettings& 
 				_tasks.push_back(tasks.AddTask(f, {}));
 			}
 
-			auto v =tasks.WaitFor(_tasks);
+			auto v = tasks.WaitFor(_tasks);
 			for (auto& Item : v)
 			{
-				for (auto& Item2 : Item) 
+				for (auto& Item2 : Item)
 				{
 					DirectReference.AddValue(Item2.first, std::move(Item2.second));
 				}
@@ -1448,18 +1484,250 @@ UAssembly::StripFuncs UAssembly::StripFunc(UClib& lib, const StripFuncSettings& 
 			}
 		}
 
-		size_t oldfuncfoundcount = 0;
 		size_t funcfoundcount = 0;
+		Vector<const ClassMethod*> SearchCopy;
 		do
 		{
-			for (auto& Item : SearchFuncions)
-			{
+			funcfoundcount = FuncionsToKeep.size();
 
+			SearchCopy = std::move(SearchFuncions);
+			for (auto& Item : SearchCopy)
+			{
+				bool isinfuncionstokeep = false;
+				{
+					for (auto& Itemp : FuncionsToKeep)
+					{
+						if (Item == Itemp)
+						{
+							isinfuncionstokeep = true;
+							break;
+						}
+					}
+				}
+				if (isinfuncionstokeep == false)
+				{
+					auto& funclist = DirectReference.GetValue(Item);
+
+					FuncionsToKeep.push_back(Item);
+					for (auto& Item : funclist)
+					{
+						bool isinfuncionstokeep = false;
+						{
+							for (auto& Itemp : FuncionsToKeep)
+							{
+								if (Item == Itemp)
+								{
+									isinfuncionstokeep = true;
+									break;
+								}
+							}
+						}
+
+						if (isinfuncionstokeep == false)
+						{
+							SearchFuncions.push_back(Item);
+						}
+					}
+				}
 			}
 
-		} while (funcfoundcount);
+		} while (FuncionsToKeep.size() != funcfoundcount);
 	}
 
+
+	UnorderedMap<UAddress, UAddress> oldtonew;
+	Vector<Instruction> NewIns;
+	UnorderedMap<String, UAddress> NewNameToAddress;
+
+	for (auto& Item : ByteCodeLayer->_NameToPtr)
+	{
+		bool functokeep = false;
+
+		if (Item.first == StaticVariablesInitializeFunc)
+		{
+			functokeep = true;
+		}
+		else if (Item.first == StaticVariablesUnLoadFunc)
+		{
+			functokeep = true;
+		}
+		else if (Item.first == ThreadVariablesInitializeFunc)
+		{
+			functokeep = true;
+		}
+		else if (Item.first == ThreadVariablesUnLoadFunc)
+		{
+			functokeep = true;
+		}
+		else 
+		{
+			for (auto& Itemp : FuncionsToKeep)
+			{
+				if (Itemp->FullName == Item.first)
+				{
+					functokeep = true;
+					break;
+				}
+			}
+		}
+
+		if (!functokeep)
+		{
+			UAddress startfunc = Item.second;
+			UAddress endfunc = 0;
+
+			for (size_t i = startfunc; i < ByteCodeLayer->_Instructions.size(); i++)
+			{
+				auto& Item = ByteCodeLayer->_Instructions[i];
+
+				if (Item.OpCode == InstructionSet::Return)
+				{
+					endfunc = i;
+				}
+			}
+
+			UAddress funcsize = endfunc - startfunc;
+
+			auto v = lib.Get_Assembly().Find_Func(Item.first);
+			if (v)
+			{
+				r.RemovedFuncions.push_back(*v);
+			}
+		}
+		else
+		{
+			UAddress startfunc = Item.second;
+			UAddress endfunc = 0;
+
+			for (size_t i = startfunc; i < ByteCodeLayer->_Instructions.size(); i++)
+			{
+				auto& Item = ByteCodeLayer->_Instructions[i];
+
+				if (Item.OpCode == InstructionSet::Return)
+				{
+					endfunc = i+1;
+					break;
+				}
+			}
+
+			UAddress funcsize = endfunc - startfunc;
+			
+			size_t oldstartpos = NewIns.size();
+			NewIns.resize(NewIns.size() + funcsize);
+
+			oldtonew.AddValue(Item.second,oldstartpos);
+
+			memcpy(NewIns.data() + oldstartpos,ByteCodeLayer->_Instructions.data() + startfunc,funcsize * sizeof(Instruction));
+			NewNameToAddress.AddValue(Item.first, oldstartpos);
+
+			auto span = Span(NewIns.data(), NewIns.size());
+			for (size_t i = oldstartpos; i < oldstartpos + funcsize; i++)
+			{
+				auto& Ins = NewIns[i];
+
+				{
+					auto p = Instruction::IsJump(span, i, is32mode);
+					if (p.has_value())
+					{
+						auto jumpto = p.value();
+
+						bool ispartofthisfunc = true;
+
+						if (ispartofthisfunc)
+						{
+							auto oldindexpos =Item.second + (i - oldstartpos);
+							auto jumppos =Instruction::IsJump(Span(ByteCodeLayer->_Instructions.data(), ByteCodeLayer->_Instructions.size()),oldindexpos,is32mode).value();
+
+							auto diff = jumppos - oldindexpos;
+
+							InstructionBuilder::Jumpv1(jumpto + diff, NewIns[i + 0]);
+							InstructionBuilder::Jumpv2(jumpto + diff, NewIns[i + 1]);
+							
+							if (is64mode)
+							{
+								InstructionBuilder::Jumpv3(jumpto + diff, NewIns[i + 2]);
+								InstructionBuilder::Jumpv4(jumpto + diff, NewIns[i + 3]);
+							}
+						}
+					}
+				}
+
+				{
+					auto p2 = Instruction::IsJumpIf(span, i, is32mode);
+					if (p2.has_value())
+					{
+						auto jumpto = p2.value().Func;
+
+						bool ispartofthisfunc = false;
+
+						if (ispartofthisfunc)
+						{
+							auto oldindexpos =Item.second + (i - oldstartpos);
+							auto jumppos = Instruction::IsJump(Span(ByteCodeLayer->_Instructions.data(), ByteCodeLayer->_Instructions.size()),oldindexpos,is32mode).value();
+
+							auto diff = jumppos - oldindexpos;
+
+							InstructionBuilder::Jumpv1(jumpto + diff, NewIns[i + 0]);
+							InstructionBuilder::Jumpv2(jumpto + diff, NewIns[i + 1]);
+							
+							if (is64mode) 
+							{
+								InstructionBuilder::Jumpv3(jumpto + diff, NewIns[i + 2]);
+								InstructionBuilder::Jumpv4(jumpto + diff, NewIns[i + 3]);
+							}
+						}	
+					}
+				}
+			}
+		}
+	}
+
+	for (size_t i = 0; i < NewIns.size(); i++)
+	{
+		auto span = Span<Instruction>(NewIns.data(), NewIns.size());
+		{
+			auto v = Instruction::IsCall(span,i, is32mode);
+			if (v.has_value())
+			{
+				UAddress tocall = v.value() +1;
+				UAddress newcall = oldtonew.GetValue(tocall)-1;
+
+				InstructionBuilder::Callv1(newcall, NewIns[i + 0]);
+				InstructionBuilder::Callv2(newcall, NewIns[i + 1]);
+
+				if (is64mode)
+				{
+					InstructionBuilder::Callv3(newcall, NewIns[i + 2]);
+					InstructionBuilder::Callv4(newcall, NewIns[i + 3]);
+				}
+			}
+		}
+
+		{
+			auto v = Instruction::IsLoadFuncPtr(span,i, is32mode);
+			if (v.has_value())
+			{
+				RegisterID reg = NewIns[0].Op_RegUInt16.A;
+
+				UAddress tocall = v.value()+1;
+				UAddress newcall = oldtonew.GetValue(tocall)-1;
+
+				InstructionBuilder::LoadFuncPtr_V1(newcall,reg, NewIns[i + 0]);
+				InstructionBuilder::LoadFuncPtr_V2(newcall,reg, NewIns[i + 1]);
+
+				if (is64mode)
+				{
+					InstructionBuilder::LoadFuncPtr_V3(newcall,reg, NewIns[i + 2]);
+					InstructionBuilder::LoadFuncPtr_V4(newcall,reg, NewIns[i + 3]);
+				}
+			}
+		}
+
+	}
+
+
+	ByteCodeLayer->_NameToPtr = std::move(NewNameToAddress);
+	ByteCodeLayer->_Instructions = std::move(NewIns);
 
 	return r;
 }
