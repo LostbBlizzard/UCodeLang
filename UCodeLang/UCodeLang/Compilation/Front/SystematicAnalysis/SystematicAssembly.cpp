@@ -190,7 +190,25 @@ void SystematicAnalysis::Assembly_LoadLibSymbols(const UClib &lib, ImportLibInfo
 			Assembly_LoadTraitSymbol(Item->Get_TraitData(), FullName, Scope, Mode);
 		}
 		break;
+		case ClassType::NameSpace:
+		{
+			Assembly_LoadSymbol(Item->Get_NameSpace(),FullName, Mode);
+		}
+		break;
+		case ClassType::ForType:
+		{
+			Assembly_LoadSymbol(Item->Get_ForType(), Mode);
+		}
+		break;
+		case ClassType::StaticArray:
+		case ClassType::GenericFunction:
+		case ClassType::GenericClass:
+		{
+
+		}
+		break;
 		default:
+			UCodeLangUnreachable();
 			break;
 		}
 	}

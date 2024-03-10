@@ -3967,7 +3967,6 @@ void AppObject::OnDoneCompileing(UCodeLang::Compiler::CompilerRet& Val, const UC
                         if (lastfuncstart && token.Type == UCodeLang::TokenType::Name)
                         {
                             functokeep.push_back((String)token.Value._String);
-                            break;
                         }
 
                         lastfuncstart = token.Type == UCodeLang::TokenType::bitwise_or;
