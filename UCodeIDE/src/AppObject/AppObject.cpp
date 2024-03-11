@@ -3946,7 +3946,7 @@ void AppObject::OnDoneCompileing(UCodeLang::Compiler::CompilerRet& Val, const UC
             _CompiledLib = std::move(lib);
 
             
-            if (OutputWindow.StripFuncions)
+            if (OutputWindow.StripFuncions || OutputWindow.StripTypes)
             {
                 Vector<String> functokeep;
                 {
@@ -3974,23 +3974,23 @@ void AppObject::OnDoneCompileing(UCodeLang::Compiler::CompilerRet& Val, const UC
                 }
                 UCodeLang::UAssembly::UAssembly::StripFuncSettings settings;
                 {
-                    for (auto& Item : functokeep)
+                    if (OutputWindow.StripFuncions) 
                     {
-                        auto v= _CompiledLib.Get_Assembly().Find_Funcs(Item);
-
-                        for (auto& func : v)
+                        for (auto& Item : functokeep)
                         {
-                            settings.FuncionsToKeep.push_back(func);
+                            auto v = _CompiledLib.Get_Assembly().Find_Funcs(Item);
+
+                            for (auto& func : v)
+                            {
+                                settings.FuncionsToKeep.push_back(func);
+                            }
                         }
                     }
+                    settings.RemoveType = OutputWindow.StripTypes;
                 }
             
                 UCodeLang::UAssembly::UAssembly assembly;
                 UCodeLang::UAssembly::UAssembly::StripFunc(_CompiledLib, settings);
-            }
-            if (OutputWindow.StripTypes)
-            {
-
             }
 
             _LibInfoString = UCodeLang::UAssembly::UAssembly::ToString(&_CompiledLib

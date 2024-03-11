@@ -1588,10 +1588,13 @@ UAssembly::StripFuncs UAssembly::StripFunc(UClib& lib, const StripFuncSettings& 
 
 			UAddress funcsize = endfunc - startfunc;
 
-			auto v = lib.Get_Assembly().Find_Func(Item.first);
-			if (v)
+			if (setting.RemoveFuncions)
 			{
-				r.RemovedFuncions.push_back(*v);
+				auto p = lib.Get_Assembly().Remove_Func(Item.first);
+				if (p.has_value()) 
+				{
+					r.RemovedFuncions.push_back(p.value());
+				}
 			}
 		}
 		else
@@ -1729,8 +1732,372 @@ UAssembly::StripFuncs UAssembly::StripFunc(UClib& lib, const StripFuncSettings& 
 	ByteCodeLayer->_NameToPtr = std::move(NewNameToAddress);
 	ByteCodeLayer->_Instructions = std::move(NewIns);
 
+	if (setting.RemoveType)	
+	{
+		auto& list = lib._Assembly.Classes;
+
+		size_t count = 0;
+		do
+		{
+			count = list.size();
+			list.erase(std::remove_if(list.begin(), list.end(), [&setting,&r,&list](Unique_ptr<AssemblyNode>& node) mutable -> bool
+			{
+				bool removed = false;
+
+				auto opid = ClassAssembly::GetReflectionTypeID(node.get());
+			
+				
+				bool isused = true;
+				if (opid.has_value())
+				{
+					auto id = opid.value();
+
+					for (auto& Item : list)
+					{
+						if (Item.get()) {
+							isused = NodeDependsonType(Item.get(), id);
+						}
+					}
+				}
+				else
+				{
+					isused = false;
+				}
+
+				if (!isused) 
+				{
+					removed = true;
+					OptionalRef<Vector<ClassMethod>> OpMethods;
+
+					switch (node->Get_Type())
+					{
+					case ClassType::Class:
+						OpMethods = Optionalref(node->Get_ClassData().Methods);
+						break;
+					case ClassType::Tag:
+						OpMethods = Optionalref(node->Get_TagData().Methods);
+						break;
+					default:
+						break;
+					}		
+
+					if (OpMethods.has_value())
+					{
+						bool isinlist = false;
+					
+						for (auto& Item2 : setting.FuncionsToKeep) 
+						{
+							for (auto& Item : OpMethods.value())
+							{
+								if (Item2 == &Item)
+								{
+									isinlist = true;
+									break;
+								}
+							}
+							if (isinlist) { break; }
+						}
+
+						if (isinlist)
+						{
+							removed =false;
+						}
+					}
+
+				}
+			
+				if (removed)
+				{
+					r.RemovedTypes.push_back(std::move(node));
+				}
+				return removed;
+			}),list.end());
+
+		} while (count != list.size());
+
+		int a = 0;
+	}
+
 	return r;
 }
+
+bool UAssembly::NodeDependsonType(const AssemblyNode* node, ReflectionCustomTypeID id)
+{
+	bool isused = false;
+	switch (node->Get_Type())
+	{
+	case ClassType::Class:
+	{
+		auto& data = node->Get_ClassData();
+
+
+		for (auto& Item : data.Attributes.Attributes)
+		{
+			if (Item.TypeID == id)
+			{
+				isused = true;
+				break;
+			}
+		}
+
+		if (isused) { break; }
+		for (auto& Item : data.Fields)
+		{
+			if (Item.Type._CustomTypeID == id)
+			{
+				isused = true;
+				break;
+			}
+		}
+		if (isused) { break; }
+
+		for (auto& Item : data.InheritedTypes)
+		{
+			if (Item.TraitID == id)
+			{
+				isused = true;
+				break;
+			}
+		}
+		if (isused) { break; }
+
+		for (auto& Item : data.Methods)
+		{
+			if (Item.RetType._CustomTypeID == id)
+			{
+				isused = true;
+				break;
+			}
+			if (isused) { break; }
+			for (auto& Par : Item.ParsType)
+			{
+				if (Par.Type._CustomTypeID == id)
+				{
+					isused = true;
+				}
+				break;
+			}
+			if (isused) { break; }
+		}
+		if (isused) { break; }
+	}
+	break;
+	case ClassType::Enum:
+	{
+		auto& data = node->Get_EnumData();
+		if (data.BaseType._CustomTypeID == id)
+		{
+			isused = true;
+			break;
+		}
+
+		if (data.EnumVariantUnion.has_value())
+		{
+			auto& unioninfo = data.EnumVariantUnion.value();
+
+			if (unioninfo == id)
+			{
+				isused =true;
+				break;
+			}
+		}
+	}
+	break;
+	case ClassType::Alias:
+	{
+		auto& data = node->Get_AliasData();
+		if (data.Type._CustomTypeID == id)
+		{
+			isused = true;
+			break;
+		}
+	}
+	break;
+	case ClassType::Tag:
+	{
+		auto& data = node->Get_TagData();
+
+		for (auto& Item : data.Fields)
+		{
+			if (Item.Type._CustomTypeID == id)
+			{
+				isused = true;
+				break;
+			}
+		}
+		if (isused) { break; }
+
+		for (auto& Item : data.Methods)
+		{
+			for (auto& Item2 : Item.Attributes.Attributes)
+			{
+				if (Item2.TypeID == id)
+				{
+					isused = true;
+					break;
+				}
+			}
+			if (Item.RetType._CustomTypeID == id)
+			{
+				isused = true;
+				break;
+			}
+			if (isused) { break; }
+			for (auto& Par : Item.ParsType)
+			{
+				if (Par.Type._CustomTypeID == id)
+				{
+					isused = true;
+				}
+				break;
+			}
+			if (isused) { break; }
+		}
+		if (isused) { break; }
+
+	}
+	break;
+	case ClassType::Trait:
+	{
+		auto& data = node->Get_TraitData();
+
+		for (auto& Item : data.Fields)
+		{
+			if (Item.Type._CustomTypeID == id)
+			{
+				isused = true;
+				break;
+			}
+		}
+		if (isused) { break; }
+
+		for (auto& Item : data.Methods)
+		{
+			for (auto& Item2 : Item.method.Attributes.Attributes)
+			{
+				if (Item2.TypeID == id)
+				{
+					isused = true;
+					break;
+				}
+			}
+		
+			if (isused) { break; }
+			if (Item.method.RetType._CustomTypeID == id)
+			{
+				isused = true;
+				break;
+			}
+			if (isused) { break; }
+			for (auto& Par : Item.method.ParsType)
+			{
+				if (Par.Type._CustomTypeID == id)
+				{
+					isused = true;
+				}
+				break;
+			}
+			if (isused) { break; }
+		}
+		if (isused) { break; }
+
+	}
+	break;
+	case ClassType::Eval:
+	{
+		auto& data = node->Get_EvalData();
+
+		if (data.Value._Type._CustomTypeID == id)
+		{
+			isused = true;
+		}
+	}
+	break;
+	case ClassType::FuncPtr:
+	{
+		auto& data = node->Get_FuncPtr();
+
+		if (data.RetType._CustomTypeID == id)
+		{
+			isused = true;
+		}
+
+		if (isused)
+		{
+			break;
+		}
+
+		for (auto& Item : data.ParsType)
+		{
+			if (Item.Type._CustomTypeID == id)
+			{
+				isused = true;
+				break;
+			}
+		}	
+	}
+	break;
+	case ClassType::StaticArray:
+	{
+		auto& data = node->Get_StaticArray();
+
+		if (data.BaseType._CustomTypeID == id)
+		{
+			isused = true;
+		}
+	}
+	break;
+	case ClassType::ForType:
+	{
+		auto& data = node->Get_ForType();
+
+		if (data._TargetType._CustomTypeID == id)
+		{
+			isused = true;
+		}
+		else
+		{
+			for (auto& Item : data._AddedMethods)
+			{
+				for (auto& Item2 : Item.Attributes.Attributes)
+				{
+					if (Item2.TypeID == id)
+					{
+						isused = true;
+						break;
+					}
+				}
+				if (isused) { break; }
+				if (Item.RetType._CustomTypeID == id)
+				{
+					isused = true;
+					break;
+				}
+				if (isused) { break; }
+				for (auto& Par : Item.ParsType)
+				{
+					if (Par.Type._CustomTypeID == id)
+					{
+						isused = true;
+					}
+					break;
+				}
+				if (isused) { break; }
+			}
+		}
+	}
+	break;
+	case ClassType::NameSpace:
+	case ClassType::GenericClass:
+	case ClassType::GenericFunction:
+		break;
+	default:
+		UCodeLangUnreachable();
+		break;
+	}
+	return isused;
+}
+
 UAssemblyEnd
 
 
