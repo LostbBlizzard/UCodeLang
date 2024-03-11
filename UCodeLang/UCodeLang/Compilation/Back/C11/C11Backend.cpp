@@ -83,9 +83,20 @@ void C11Backend::Build(const IRBuilder* Input)
 
 		{//Flags 
 			Flag_NoExceptions = Get_Settings().HasArg("NoExceptions");
+			Flag_CPPCodeAllowed = Get_Settings().HasArg("AllowCpp");
+
 		}
 		AddTextSignature();
 
+
+		if (Flag_CPPCodeAllowed)
+		{
+			String NameSpace = "CompiledULang";
+
+			OutBuffer += "namespace ";
+			OutBuffer += NameSpace;
+			OutBuffer += " {";
+		}
 
 		//types
 		AddBaseTypes();
@@ -96,6 +107,10 @@ void C11Backend::Build(const IRBuilder* Input)
 		OutBuffer += ToString();
 
 
+		if (Flag_CPPCodeAllowed)
+		{
+			OutBuffer += "\n\n}";
+		}
 
 		Set_Output(OutBuffer);
 	}
@@ -217,6 +232,15 @@ void C11Backend::AddBaseTypes()
 	OutBuffer += "#include <inttypes.h>\n";
 	OutBuffer += "#include <stdlib.h>\n";
 
+	if (Flag_CPPCodeAllowed) 
+	{
+		if (Flag_NoExceptions == false)
+		{
+			bool hasexexceptions = true;
+
+			OutBuffer += "#include <exception>\n";
+		}
+	}
 	OutBuffer += "/*Types*/\n";
 	OutBuffer += "typedef float float32_t;\n";
 	OutBuffer += "typedef double float64_t;\n";
@@ -1128,6 +1152,20 @@ void C11Backend::ToString(UCodeLang::String& r, const IRFunc* Item, UCodeLang::C
 				{
 					if (Flag_NoExceptions == false)
 					{
+						if (Flag_CPPCodeAllowed)
+						{
+							r += "throw std::runtime_error(std::string(";
+							r += "(const char*)";
+							r += ToString(State, *I, I->Target());
+							r += ",";
+							r += "(size_t)";
+							r += ToString(State, *I, I->Input());
+							r += "))";
+						}
+						else
+						{
+
+						}
 
 					}
 				}
