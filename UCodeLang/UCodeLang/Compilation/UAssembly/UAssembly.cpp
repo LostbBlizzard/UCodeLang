@@ -1344,6 +1344,7 @@ UAssembly::StripFuncs UAssembly::StripFunc(UClib& lib, const StripFuncSettings& 
 	Vector<const ClassMethod*> FuncionsToKeep;
 	{
 		UnorderedMap<const ClassMethod*, Vector<const ClassMethod*>> DirectReference;
+		UnorderedMap<UAddress, String> AddToName;
 		{
 			DirectReference.reserve(ByteCodeLayer->_NameToPtr.size());
 
@@ -1361,7 +1362,6 @@ UAssembly::StripFuncs UAssembly::StripFunc(UClib& lib, const StripFuncSettings& 
 			Vector<TaskManger::Task<taskr>> _tasks;
 			_tasks.reserve(c);
 
-			UnorderedMap<UAddress, String> AddToName;
 			AddToName.reserve(ByteCodeLayer->_NameToPtr.size());
 			for (auto& Item : ByteCodeLayer->_NameToPtr)
 			{
@@ -1481,6 +1481,103 @@ UAssembly::StripFuncs UAssembly::StripFunc(UClib& lib, const StripFuncSettings& 
 			for (auto& Item : setting.FuncionsToKeep)
 			{
 				SearchFuncions.push_back(Item);
+			}
+			Array<UCodeLang::String_view, 4> basefuncions = { StaticVariablesInitializeFunc, StaticVariablesUnLoadFunc, ThreadVariablesInitializeFunc, ThreadVariablesUnLoadFunc };
+
+			for (auto& Item : basefuncions)
+			{
+				if (ByteCodeLayer->_NameToPtr.HasValue((String)Item))
+				{
+					auto v = ByteCodeLayer->_NameToPtr.GetValue((String)Item);
+
+					UAddress startfunc = v;
+					UAddress endfunc = 0;
+
+					auto& NewIns = ByteCodeLayer->_Instructions;
+					for (size_t i = startfunc; i < NewIns.size(); i++)
+					{
+						auto& Item = NewIns[i];
+						auto span = Span<Instruction>(NewIns.data(), NewIns.size());
+						{
+							auto v = Instruction::IsCall(span, i, is32mode);
+							if (v.has_value())
+							{
+								auto tocall = v.value() + 1;
+
+								if (AddToName.HasValue(tocall))
+								{
+									auto& name = AddToName.GetValue(tocall);
+
+									const ClassMethod* ptr = lib.Get_Assembly().Find_Func(name);
+
+									if (ptr)
+									{
+										bool isinlist = false;
+
+										for (auto& Item : SearchFuncions)
+										{
+											if (Item == ptr)
+											{
+												isinlist = true;
+												break;
+											}
+										}
+
+										if (isinlist == false)
+										{
+											SearchFuncions.push_back(ptr);
+										}
+									}
+								}
+							}
+						}
+
+						{
+							auto v = Instruction::IsLoadFuncPtr(span, i, is32mode);
+							if (v.has_value())
+							{
+								RegisterID reg = NewIns[0].Op_RegUInt16.A;
+
+								auto tocall = v.value() + 1;
+
+								if (AddToName.HasValue(tocall))
+								{
+									auto& name = AddToName.GetValue(tocall);
+
+									const ClassMethod* ptr = lib.Get_Assembly().Find_Func(name);
+
+									if (ptr)
+									{
+										bool isinlist = false;
+										
+										for (auto& Item : SearchFuncions)
+										{
+											if (Item == ptr)
+											{
+												isinlist = true;
+												break;
+											}
+										}
+
+										if (isinlist == false)
+										{
+											SearchFuncions.push_back(ptr);
+										}
+									}
+								}
+
+
+							}
+						}
+						if (Item.OpCode == InstructionSet::Return)
+						{
+							endfunc = i;
+							break;
+						}
+					}
+
+
+				}
 			}
 		}
 
