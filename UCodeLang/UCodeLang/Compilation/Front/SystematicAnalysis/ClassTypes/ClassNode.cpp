@@ -411,7 +411,7 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 					IR_Build_FuncDropUsingFields(ClassInf, ThisPar);
 					_IR_LookingAtIRBlock->NewRet();
 				}
-
+	
 				//
 				_IR_LookingAtIRFunc = OldFunc;
 				_IR_LookingAtIRBlock = OldBlock;
@@ -495,6 +495,23 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 			if (ClassInf->_ClassFieldInit)
 			{
 				ClassInf->_ClassFieldInit->Blocks[0]->NewRet();
+
+				String funcName = _Table._Scope.GetApendedString((String)ClassInitializefuncName);
+
+				ClassMethod V2;
+				V2.FullName = funcName;
+				V2.DecorationName = funcName;
+				V2.RetType = ReflectionTypes::Void;
+
+				ClassMethod::Par p;
+				p.Type = Assembly_ConvertToType(TypeSymbol(Syb.ID));
+				V2.ParsType.push_back(std::move(p));
+
+				this->_ClassStack.push({});//the push and pop is dumb fix
+				Class_Data* Ptr = Assembly_GetAssemblyClass(ScopeHelper::ApendedStrings(Syb.FullName,"n/a"));
+				this->_ClassStack.pop();
+				
+				Ptr->Methods.push_back(std::move(V2));
 			}
 
 			for (auto& Item : ClassInf->_InheritedTypes)
