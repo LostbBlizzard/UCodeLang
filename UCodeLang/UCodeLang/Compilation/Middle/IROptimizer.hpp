@@ -115,7 +115,7 @@ private:
 	}
 	//Compile Flags
 	bool Flag_NoExceptions = false;
-
+	Optional<Vector<String>> Flag_FuncsToKeep;
 
 	void ReplaceAllTypesTo(IRidentifierID typetolookfor, IRidentifierID newtype);
 
