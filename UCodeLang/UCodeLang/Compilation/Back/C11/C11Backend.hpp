@@ -41,7 +41,7 @@ private:
 	IRType* OutType;
 	//Compile Flags
 	bool Flag_NoExceptions = false;
-
+	bool Flag_CPPCodeAllowed = false;
 
 	String ToString();
 
