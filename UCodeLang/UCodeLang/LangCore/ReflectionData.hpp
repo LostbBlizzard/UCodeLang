@@ -802,6 +802,9 @@ public:
 	}	
 	
 	static void PushCopyClasses(const ClassAssembly& source, ClassAssembly& Out);
+
+	static Optional<ReflectionCustomTypeID> GetReflectionTypeID(const AssemblyNode* Item);
+
 	AssemblyNode* Find_Node(const String& Name, const String& Scope ="")
 	{
 		return Find_Node((String_view)Name, (String_view)Scope);
@@ -824,15 +827,8 @@ public:
 	}
 	AssemblyNode* Find_Node(ClassType Type,const String_view& Name = "", const String_view& Scope = "")
 	{
-		for (auto& Item : Classes)
-		{
-			if (ScopeHelper::GetNameFromFullName(Item->Name) == Name
-				|| Item->FullName == Name)
-			{
-				return Item.get();
-			}
-		}
-		return nullptr;
+		auto v = ((const ClassAssembly*)this)->Find_Node(Type,Name,Scope);
+		return *(AssemblyNode**)&v;
 	}
 	
 	const AssemblyNode* Find_Node(const String& Name, const String& Scope = "") const
@@ -857,6 +853,7 @@ public:
 	}
 	const AssemblyNode* Find_Node(ClassType Type, const String_view& Name = "", const String_view& Scope = "") const
 	{
+
 		for (auto& Item : Classes)
 		{
 			if (Item->Get_Type() == Type) 
@@ -888,21 +885,8 @@ public:
 	}
 	const Class_Data* Find_Class(const String_view& Name, const String_view& Scope = "") const
 	{
-		String Tep = String(Name);
-		Tep += Scope;
-		for (auto& Item : Classes)
-		{
-			if (Item->Get_Type() == ClassType::Class) 
-			{
-				if (ScopeHelper::GetNameFromFullName(Item->Name) == Name
-					|| Item->FullName == Name
-					|| Item->Name == Tep)
-				{
-					return &Item->Get_ClassData();
-				}
-			}
-		}
-		return nullptr;
+		auto v = ((ClassAssembly*)this)->Find_Class(Name,Scope);
+		return *(const Class_Data**)&v;	
 	}
 
 	Class_Data* Find_Class(const String& Name, const String& Scope = "")
@@ -930,22 +914,32 @@ public:
 
 	ClassMethod* Find_Func(const String_view& FullName)
 	{
+		auto v = ((const ClassAssembly*)this)->Find_Func(FullName);
+		return *(ClassMethod**)&v;
+	}
+
+	Optional<ClassMethod> Remove_Func(const String_view& FullName) 
+	{
 		for (auto& Item : Classes)
 		{
 			if (Item->Get_Type() == ClassType::Class)
 			{
-				for (auto& Item2 : Item->Get_ClassData().Methods)
+				auto& methods = Item->Get_ClassData().Methods;
+				for (size_t i = 0; i < methods.size(); i++)
 				{
+					auto& Item2 = methods[i];
+
 					if (Item2.DecorationName == FullName
 						|| Item2.FullName == FullName)
 					{
-						return &Item2;
+						auto t = std::move(Item2);
+						methods.erase(methods.begin() + i);
+						return t;
 					}
 				}
-
 			}
 		}
-		return nullptr;
+		return {};
 	}
 
 	const ClassMethod* Find_Func(const String_view& FullName) const

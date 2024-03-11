@@ -11,29 +11,35 @@ void ClassAssembly::PushCopyClasses(const ClassAssembly& source, ClassAssembly& 
 		Out.Classes.push_back(std::make_unique<AssemblyNode>(*Item));
 	}
 }
+Optional<ReflectionCustomTypeID> ClassAssembly::GetReflectionTypeID(const AssemblyNode* Item)
+{
+	Optional< ReflectionCustomTypeID> Value;
+
+	switch (Item->Get_Type())
+	{
+	case ClassType::Class:Value = Item->Get_ClassData().TypeID; break;
+	case ClassType::Enum:Value = Item->Get_EnumData().TypeID; break;
+	case ClassType::Alias:Value = Item->Get_AliasData().HardAliasTypeID; break;
+	case ClassType::Trait:Value = Item->Get_TraitData().TypeID; break;
+	case ClassType::Tag:Value = Item->Get_TagData().TypeID; break;
+	case ClassType::StaticArray:Value = Item->Get_StaticArray().TypeID; break;
+	case ClassType::FuncPtr:break;
+	case ClassType::GenericClass:break;
+	case ClassType::GenericFunction:break;
+	case ClassType::NameSpace:break;
+	case ClassType::ForType:break;
+	default:
+		UCodeLangUnreachable();
+		break;
+	}
+
+	return Value;
+}
 const AssemblyNode* ClassAssembly::Find_Node(ReflectionCustomTypeID TypeID) const
 {
 	for (auto& Item : Classes)
 	{
-		Optional< ReflectionCustomTypeID> Value;
-	
-		switch (Item->Get_Type())
-		{
-		case ClassType::Class:Value = Item->Get_ClassData().TypeID; break;
-		case ClassType::Enum:Value = Item->Get_EnumData().TypeID; break;
-		case ClassType::Alias:Value = Item->Get_AliasData().HardAliasTypeID; break;
-		case ClassType::Trait:Value = Item->Get_TraitData().TypeID; break;
-		case ClassType::Tag:Value = Item->Get_TagData().TypeID; break;
-		case ClassType::StaticArray:Value = Item->Get_StaticArray().TypeID; break;
-		case ClassType::FuncPtr:break;
-		case ClassType::GenericClass:break;
-		case ClassType::GenericFunction:break;
-		case ClassType::NameSpace:break;
-		case ClassType::ForType:break;
-		default:
-			UCodeLangUnreachable();
-			break;
-		}
+		Optional< ReflectionCustomTypeID> Value = GetReflectionTypeID(Item.get());
 
 		if (Value.has_value())
 		{
