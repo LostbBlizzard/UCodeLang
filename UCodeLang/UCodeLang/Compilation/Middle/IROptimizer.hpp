@@ -113,7 +113,8 @@ private:
 		Optimization_RemoveUnneedMeallocAndFree = false;
 		Optimization_FloatFastMath = false;
 	}
-	//
+	//Compile Flags
+	bool Flag_NoExceptions = false;
 
 
 	void ReplaceAllTypesTo(IRidentifierID typetolookfor, IRidentifierID newtype);

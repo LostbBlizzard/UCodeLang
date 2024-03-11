@@ -76,6 +76,9 @@ private:
 
 	UnorderedMap<const IRInstruction*, size_t> Position;
 
+	//Compile Flags
+	bool Flag_NoExceptions = false;
+
 };
 UCodeLangEnd
 

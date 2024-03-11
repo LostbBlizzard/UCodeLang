@@ -207,6 +207,10 @@ private:
 	const IRFunc* lookingatfunc = nullptr;
 	Vector<size_t> ThrowJumps;
 	UnorderedMap< const IRFunc*,size_t> FuncStackSizes;
+	//Compile Flags
+	bool Flag_NoExceptions = false;
+
+	
 	//code
 	bool IsPrimitive(const IRType& type)
 	{
