@@ -627,6 +627,8 @@ void IROptimizer::UpdateOptimizationList()
 	}
 	ResetOptimizations();
 
+	Flag_NoExceptions = Stettings.HasArg("NoExceptions");
+
 #if !IsOptimizerStable
 	return;
 #endif
@@ -650,7 +652,7 @@ void IROptimizer::UpdateOptimizationList()
 			Optimization_RemoveUnreachable = true;
 			Optimization_RemoveUnneedMeallocAndFree = true;
 
-			Optimization_FloatFastMath = Stettings.HasFlagArg("ffast-math");
+			Optimization_FloatFastMath = Stettings.HasFlagArg("FFastMath");
 		}
 		Optimization_StrengthReduction = true;
 		Optimization_RemoveIdenticalTypes = true;

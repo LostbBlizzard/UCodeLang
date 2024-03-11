@@ -289,6 +289,12 @@ void UCodeBackEndObject::UpdateOptimizations()
 			_Optimizations.ReOderForCacheHit = true;
 		}
 	}
+	//Flags
+	{
+		Flag_NoExceptions = Get_Settings().HasArg("NoExceptions");
+	}
+
+
 }
 void UCodeBackEndObject::DoOptimizations()
 {
@@ -493,83 +499,87 @@ void UCodeBackEndObject::LinkFuncs()
 
 
 	{
-		struct FuncThatMayThrowInfo
+		bool HasExceptions = true;
+
+		if (HasExceptions && Flag_NoExceptions == false)
 		{
-			size_t StackSize = 0;
-		};
-		UnorderedMap<const IRFunc*, FuncThatMayThrowInfo> FuncThrowinfo;
-
-		for (auto& Item : _Input->Funcs)
-		{
-
-		}
-
-		UAddress FuncUnwindingStart = _OutLayer->GetLastInstruction() + 1;
-
-		for (auto& Index : ThrowJumps)
-		{
-			auto f = FuncUnwindingStart - 1;
-			InstructionBuilder::Callv1(f, InsList[Index + 0]);
-			InstructionBuilder::Callv2(f, InsList[Index + 1]);
-
-			if (Get_Settings().PtrSize == IntSizes::Int64)
+			struct FuncThatMayThrowInfo
 			{
-				InstructionBuilder::Callv3(f, InsList[Index + 2]);
-				InstructionBuilder::Callv4(f, InsList[Index + 3]);
+				size_t StackSize = 0;
+			};
+			UnorderedMap<const IRFunc*, FuncThatMayThrowInfo> FuncThrowinfo;
+
+			for (auto& Item : _Input->Funcs)
+			{
+
 			}
-		}
 
-		if (true)
-		{
-			_OutLayer->Add_NameToInstruction(FuncUnwindingStart, "ThrowExceptionStr");
-			InstructionBuilder::SetPanicMsg(_Ins,RegisterID::Parameter1_Register, RegisterID::Parameter2_Register); PushIns();
+			UAddress FuncUnwindingStart = _OutLayer->GetLastInstruction() + 1;
+
+			for (auto& Index : ThrowJumps)
 			{
-				auto f = FuncUnwindingStart + 1;
-				f += 1;
-
-				auto trashregister = RegisterID::A;
+				auto f = FuncUnwindingStart - 1;
+				InstructionBuilder::Callv1(f, InsList[Index + 0]);
+				InstructionBuilder::Callv2(f, InsList[Index + 1]);
 
 				if (Get_Settings().PtrSize == IntSizes::Int64)
 				{
-					InstructionBuilder::Pop64(_Ins, trashregister); PushIns();
-					f += 4;
+					InstructionBuilder::Callv3(f, InsList[Index + 2]);
+					InstructionBuilder::Callv4(f, InsList[Index + 3]);
 				}
-				else
-				{
-					InstructionBuilder::Pop32(_Ins, trashregister); PushIns();
-					f += 2;
-				}
+			}
 
+			{
+				_OutLayer->Add_NameToInstruction(FuncUnwindingStart, "ThrowExceptionStr");
+				InstructionBuilder::SetPanicMsg(_Ins, RegisterID::Parameter1_Register, RegisterID::Parameter2_Register); PushIns();
 				{
-					InstructionBuilder::Jumpv1(f, _Ins); PushIns();
-					InstructionBuilder::Jumpv2(f, _Ins); PushIns();
+					auto f = FuncUnwindingStart + 1;
+					f += 1;
+
+					auto trashregister = RegisterID::A;
 
 					if (Get_Settings().PtrSize == IntSizes::Int64)
 					{
-						InstructionBuilder::Jumpv3(f, _Ins); PushIns();
-						InstructionBuilder::Jumpv4(f, _Ins); PushIns();
+						InstructionBuilder::Pop64(_Ins, trashregister); PushIns();
+						f += 4;
+					}
+					else
+					{
+						InstructionBuilder::Pop32(_Ins, trashregister); PushIns();
+						f += 2;
+					}
+
+					{
+						InstructionBuilder::Jumpv1(f, _Ins); PushIns();
+						InstructionBuilder::Jumpv2(f, _Ins); PushIns();
+
+						if (Get_Settings().PtrSize == IntSizes::Int64)
+						{
+							InstructionBuilder::Jumpv3(f, _Ins); PushIns();
+							InstructionBuilder::Jumpv4(f, _Ins); PushIns();
+						}
 					}
 				}
-			}
-			InstructionBuilder::Return(ExitState::Success, _Ins);PushIns();
+				InstructionBuilder::Return(ExitState::Success, _Ins); PushIns();
 
-			
-			_OutLayer->Add_NameToInstruction(_OutLayer->GetLastInstruction() + 1, "StackUnwinding");
-			{
-				auto lastinsref = RegisterID::A;
-				if (Get_Settings().PtrSize == IntSizes::Int64)
+
+				_OutLayer->Add_NameToInstruction(_OutLayer->GetLastInstruction() + 1, "StackUnwinding");
 				{
-					InstructionBuilder::Pop64(_Ins, lastinsref); PushIns();
-				}
-				else
-				{
-					InstructionBuilder::Pop32(_Ins, lastinsref); PushIns();
-				}
+					auto lastinsref = RegisterID::A;
+					if (Get_Settings().PtrSize == IntSizes::Int64)
+					{
+						InstructionBuilder::Pop64(_Ins, lastinsref); PushIns();
+					}
+					else
+					{
+						InstructionBuilder::Pop32(_Ins, lastinsref); PushIns();
+					}
 
-				//to-do do the stackunwinding
+					//to-do do the stackunwinding
 
+				}
+				InstructionBuilder::Return(ExitState::Success, _Ins); PushIns();
 			}
-			InstructionBuilder::Return(ExitState::Success, _Ins);PushIns();
 		}
 	}
 }
@@ -2495,27 +2505,29 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 		break;
 		case IRInstructionType::ThrowException:
 		{
-			auto BOpVals = DoBinaryOpValues(Item);
-			RegisterID A = BOpVals.A;
-			RegisterID B = BOpVals.B;
-
-			
-			UCodeLangAssert(B != RegisterID::Parameter1_Register);
-			UCodeLangAssert(A != RegisterID::Parameter2_Register);
-
-			RegToReg(IRTypes::pointer, A, RegisterID::Parameter1_Register, false);
-			RegToReg(IRTypes::pointer, B, RegisterID::Parameter2_Register, false);
-
-			InstructionBuilder::Callv1(0, _Ins); PushIns();
-			InstructionBuilder::Callv2(0, _Ins); PushIns();
-			if (Get_Settings().PtrSize == IntSizes::Int64)
+			if (Flag_NoExceptions == false)
 			{
-				InstructionBuilder::Callv3(0, _Ins); PushIns();
-				InstructionBuilder::Callv4(0, _Ins); PushIns();
+				auto BOpVals = DoBinaryOpValues(Item);
+				RegisterID A = BOpVals.A;
+				RegisterID B = BOpVals.B;
 
+
+				UCodeLangAssert(B != RegisterID::Parameter1_Register);
+				UCodeLangAssert(A != RegisterID::Parameter2_Register);
+
+				RegToReg(IRTypes::pointer, A, RegisterID::Parameter1_Register, false);
+				RegToReg(IRTypes::pointer, B, RegisterID::Parameter2_Register, false);
+
+				InstructionBuilder::Callv1(0, _Ins); PushIns();
+				InstructionBuilder::Callv2(0, _Ins); PushIns();
+				if (Get_Settings().PtrSize == IntSizes::Int64)
+				{
+					InstructionBuilder::Callv3(0, _Ins); PushIns();
+					InstructionBuilder::Callv4(0, _Ins); PushIns();
+
+				}
+				ThrowJumps.push_back(_OutLayer->Get_Instructions().size() + 1);
 			}
-			ThrowJumps.push_back(_OutLayer->Get_Instructions().size() + 1);
-
 		}break;
 		default:
 			UCodeLangUnreachable();

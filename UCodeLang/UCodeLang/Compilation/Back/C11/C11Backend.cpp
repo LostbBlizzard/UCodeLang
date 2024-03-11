@@ -80,6 +80,10 @@ void C11Backend::Build(const IRBuilder* Input)
 	}
 	else
 	{
+
+		{//Flags 
+			Flag_NoExceptions = Get_Settings().HasArg("NoExceptions");
+		}
 		AddTextSignature();
 
 
@@ -1121,7 +1125,12 @@ void C11Backend::ToString(UCodeLang::String& r, const IRFunc* Item, UCodeLang::C
 					r += " = ~" + ToString(State, *I, I->Target());
 					break;
 				case IRInstructionType::ThrowException:
+				{
+					if (Flag_NoExceptions == false)
+					{
 
+					}
+				}
 					break;
 				default:
 					UCodeLangUnreachable();
