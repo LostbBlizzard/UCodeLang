@@ -1685,7 +1685,7 @@ UAssembly::StripFuncs UAssembly::StripFunc(UClib& lib, const StripFuncSettings& 
 			}
 		}
 	}
-
+	
 	for (size_t i = 0; i < NewIns.size(); i++)
 	{
 		auto span = Span<Instruction>(NewIns.data(), NewIns.size());
@@ -1818,6 +1818,8 @@ UAssembly::StripFuncs UAssembly::StripFunc(UClib& lib, const StripFuncSettings& 
 
 		int a = 0;
 	}
+
+	lib.Get_Assembly().Remove_NullFunc();
 
 	return r;
 }

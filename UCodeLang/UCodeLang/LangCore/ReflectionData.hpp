@@ -933,13 +933,27 @@ public:
 						|| Item2.FullName == FullName)
 					{
 						auto t = std::move(Item2);
-						methods.erase(methods.begin() + i);
 						return t;
 					}
 				}
 			}
 		}
 		return {};
+	}
+	void Remove_NullFunc() 
+	{
+		for (auto& Item : Classes)
+		{
+			if (Item->Get_Type() == ClassType::Class)
+			{
+				auto& methods = Item->Get_ClassData().Methods;
+	
+				methods.erase(std::remove_if(methods.begin(), methods.end(), [](ClassMethod& Item)
+					{
+						return Item.DecorationName.empty() && Item.FullName.empty();
+					}), methods.end());
+			}
+		}
 	}
 
 	const ClassMethod* Find_Func(const String_view& FullName) const
