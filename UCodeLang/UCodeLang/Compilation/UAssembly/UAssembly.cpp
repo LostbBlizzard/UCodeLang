@@ -1563,14 +1563,14 @@ UAssembly::StripFuncs UAssembly::StripFunc(UClib& lib, const StripFuncSettings& 
 		{
 			for (auto& Itemp : FuncionsToKeep)
 			{
-				if (Itemp->FullName == Item.first)
+				if (Itemp->DecorationName == Item.first)
 				{
 					functokeep = true;
 					break;
 				}
 			}
 		}
-
+		
 		if (!functokeep)
 		{
 			UAddress startfunc = Item.second;
@@ -1593,6 +1593,7 @@ UAssembly::StripFuncs UAssembly::StripFunc(UClib& lib, const StripFuncSettings& 
 				auto p = lib.Get_Assembly().Remove_Func(Item.first);
 				if (p.has_value()) 
 				{
+				
 					r.RemovedFuncions.push_back(p.value());
 				}
 			}
@@ -1740,7 +1741,7 @@ UAssembly::StripFuncs UAssembly::StripFunc(UClib& lib, const StripFuncSettings& 
 		do
 		{
 			count = list.size();
-			list.erase(std::remove_if(list.begin(), list.end(), [&setting,&r,&list](Unique_ptr<AssemblyNode>& node) mutable -> bool
+			list.erase(std::remove_if(list.begin(), list.end(), [&FuncionsToKeep,&r,&list](Unique_ptr<AssemblyNode>& node) mutable -> bool
 			{
 				bool removed = false;
 
@@ -1785,7 +1786,7 @@ UAssembly::StripFuncs UAssembly::StripFunc(UClib& lib, const StripFuncSettings& 
 					{
 						bool isinlist = false;
 					
-						for (auto& Item2 : setting.FuncionsToKeep) 
+						for (auto& Item2 : FuncionsToKeep) 
 						{
 							for (auto& Item : OpMethods.value())
 							{
