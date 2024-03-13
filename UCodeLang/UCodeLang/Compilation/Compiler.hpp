@@ -92,7 +92,7 @@ public:
 	{
 		TaskManger tasks;
 		tasks.Init();
-		return CompileFiles_UseIntDir(Data, ExternalFiles);
+		return CompileFiles_UseIntDir(Data, ExternalFiles,tasks);
 	}
 
 	UCodeLangAPIExport BytesPtr OpenFile(const LangDefInfo::FileInfo* FInfo, const Path& path);
