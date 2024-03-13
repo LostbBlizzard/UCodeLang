@@ -248,6 +248,7 @@ private:
 		Unique_ptr<AnyTaskReturn> _TaskReturn;
 		bool TaskCanRun = false;
 		bool Taskcompleted = false;
+		bool TaskRuning = false;
 		size_t refscount = 0;
 
 		template<typename T>
@@ -426,6 +427,18 @@ public:
 
 		std::function<void()> func = [this, newid, task_promise, pars = std::make_tuple(std::forward<Pars>(pars)...)]()
 			{
+				std::function<bool(UnorderedMap<TaskID, std::shared_ptr<RuningTaskInfo>>&)> tepfunc = [newid](UnorderedMap<TaskID, std::shared_ptr<RuningTaskInfo>>& val) -> bool
+					{
+						auto& runtaskinfo = val.GetValue(newid);
+						auto r = runtaskinfo->TaskRuning;
+						runtaskinfo->TaskRuning = true;
+
+						return !r;
+					};
+				bool dothething = tasks.Lock_r(tepfunc);
+
+				if (!dothething) { return; }
+
 				std::apply([task_promise](auto&& ... args) {
 					(*task_promise)(args...);
 				}, std::move(pars));
@@ -437,6 +450,7 @@ public:
 					runtaskinfo->SetReturn(std::move(r));
 
 					runtaskinfo->Taskcompleted = true;
+					runtaskinfo->TaskRuning = false;
 					runtaskinfo->refscount--;
 					if (runtaskinfo->refscount == 0)
 					{
@@ -678,7 +692,7 @@ private:
 					if (!val.HasValue(Item)) { continue; }
 
 					auto& tinfo = *val.GetValue(Item);
-					if (tinfo.TaskCanRun == false)
+					if (tinfo.TaskCanRun == false || tinfo.TaskRuning)
 					{
 						continue;
 					}
