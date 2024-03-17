@@ -67,17 +67,7 @@ void SystematicAnalysis::OnAssignExpressionNode(const AssignExpressionNode& node
 		auto ExpressionType = _LastExpressionType;
 		auto ExIR = _IR_LastExpressionField;
 
-		if (Symbol_HasDestructor(AssignType.Op0))
-		{
-			ObjectToDrop dropinfo;
-			dropinfo.DropType = ObjectToDropType::IRInstruction;
-			dropinfo._Object = ExIR;
-			dropinfo.Type = ExpressionType;
-
-			IR_Build_DestructorCall(dropinfo);
-
-			_IR_LastExpressionField = ExIR ;
-		}
+		
 
 			
 
@@ -86,13 +76,33 @@ void SystematicAnalysis::OnAssignExpressionNode(const AssignExpressionNode& node
 		IR_Build_ImplicitConversion(ExIR, ExpressionType, implictype);
 		ExIR = _IR_LastExpressionField;
 
+		auto t = AssignType.Op1;
+		if (Symbol_HasDestructor(AssignType.Op1))
+		{
+			t.SetAsAddress();
 
-		_LookingForTypes.push(AssignType.Op1);
+		}
+
+		_LookingForTypes.push(t);
 		OnExpressionTypeNode(node._ToAssign._Value.get(),
 			node._ReassignAddress ? GetValueMode::WritePointerReassment : GetValueMode::Write);
 		_LookingForTypes.pop();
 
 		auto AssignIR = _IR_LastExpressionField;
+		auto AssignExType = _LastExpressionType;
+
+
+		if (Symbol_HasDestructor(AssignType.Op1))
+		{
+			ObjectToDrop dropinfo;
+			dropinfo.DropType = ObjectToDropType::IRInstruction;
+			UCodeLangAssert(_IR_LastStoreField.Type == IROperatorType::IRInstruction)
+			dropinfo._Object = _IR_LastStoreField.Pointer;
+			dropinfo.Type = AssignExType;
+
+			IR_Build_DestructorCall(dropinfo);
+
+		}
 
 		if (node._ReassignAddress)
 		{
