@@ -92,6 +92,7 @@
 #define UCode_ArrayType "Array"//int[10]
 #define UCode_VectorType "Vector"//int[]
 #define UCode_SpanType "Span"//int[:]
+#define UCode_MapType "Map"//int[String]
 #define UCode_ResultType "Result"//int!
 #define UCode_RangeFunction "Range"//0..10 Range(0,10)
 #define UCode_RangeInclusiveFunction "RangeInclusive"//0..=10 RangeInclusive(0,10)
