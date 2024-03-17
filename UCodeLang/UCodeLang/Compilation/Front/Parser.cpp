@@ -2532,50 +2532,98 @@ GotNodeType Parser::GetType(TypeNode*& out, bool ignoreRighthandOFtype, bool ign
 				New->_name._ScopedName.push_back(std::move(V));
 				out = New;
 			}
-			else//int[0] => Array<int,(0)>
+			else			
 			{
 				//NextToken();
+				
+				bool isarrary = Token2->Type != TokenType::Name;
 
-
-				TypeNode* New = new TypeNode();
+				if (isarrary) //int[0] => Array<int,(0)>
 				{
-					New->_Isimmutable = out->_Isimmutable;
-					out->_Isimmutable = false;
+					TypeNode* New = new TypeNode();
+					{
+						New->_Isimmutable = out->_Isimmutable;
+						out->_Isimmutable = false;
 
-					auto NameToken = new UCodeLang::Token();
-					NameToken->OnLine = Token2->OnLine;
-					NameToken->OnPos = Token2->OnPos;
-					NameToken->Type = TokenType::Name;
-					NameToken->Value._String = UCode_ArrayType;
+						auto NameToken = new UCodeLang::Token();
+						NameToken->OnLine = Token2->OnLine;
+						NameToken->OnPos = Token2->OnPos;
+						NameToken->Type = TokenType::Name;
+						NameToken->Value._String = UCode_ArrayType;
 
-					_Tree.TemporaryTokens.push_back(Unique_ptr<UCodeLang::Token>(NameToken));
+						_Tree.TemporaryTokens.push_back(Unique_ptr<UCodeLang::Token>(NameToken));
 
-					ScopedName V;
-					V._token = NameToken;
-					V._generic.reset(new UseGenericsNode());
-					V._generic->_Values.push_back(std::move(*out));
+						ScopedName V;
+						V._token = NameToken;
+						V._generic.reset(new UseGenericsNode());
+						V._generic->_Values.push_back(std::move(*out));
 
 
-					New->_name._ScopedName.push_back(std::move(V));
+						New->_name._ScopedName.push_back(std::move(V));
+					}
+
+					{//Array expression
+						auto ExTypeNode = TypeNode();
+						TypeNode::Gen_Expression(ExTypeNode, *TryGetToken());
+
+
+						auto ExNode = new ExpressionNodeType();
+						ExTypeNode._node.reset(ExNode);
+						auto Ex = GetExpressionTypeNode(*ExNode);
+
+
+						auto& _generic = *New->_name._ScopedName.front()._generic;
+
+						_generic._Values.push_back(std::move(ExTypeNode));
+					}
+
+
+					out = New;
 				}
+				else //int[String] => Map<String,int> // Map<Key,Value>
+				{
+					TypeNode* New = new TypeNode();
 
-				{//Array expression
-					auto ExTypeNode = TypeNode();
-					TypeNode::Gen_Expression(ExTypeNode, *TryGetToken());
+					TypeNode valuetype = std::move(*out);
+					TypeNode keytype = {};
+					GetType(keytype);
 
+					{
+						New->_Isimmutable = out->_Isimmutable;
+						out->_Isimmutable = false;
 
-					auto ExNode = new ExpressionNodeType();
-					ExTypeNode._node.reset(ExNode);
-					auto Ex = GetExpressionTypeNode(*ExNode);
+						auto NameToken = new UCodeLang::Token();
+						NameToken->OnLine = Token2->OnLine;
+						NameToken->OnPos = Token2->OnPos;
+						NameToken->Type = TokenType::Name;
+						NameToken->Value._String = UCode_MapType;
 
+						_Tree.TemporaryTokens.push_back(Unique_ptr<UCodeLang::Token>(NameToken));
 
-					auto& _generic = *New->_name._ScopedName.front()._generic;
+						ScopedName V;
+						V._token = NameToken;
+						V._generic.reset(new UseGenericsNode());
 
-					_generic._Values.push_back(std::move(ExTypeNode));
+						New->_name._ScopedName.push_back(std::move(V));
+					}
+					
+					{//Key
+						auto ExTypeNode = std::move(keytype);
+					
+
+						auto& _generic = *New->_name._ScopedName.front()._generic;
+						_generic._Values.push_back(std::move(ExTypeNode));
+					}
+
+					{//Value
+						auto ExTypeNode = std::move(valuetype);
+					
+
+						auto& _generic = *New->_name._ScopedName.front()._generic;
+						_generic._Values.push_back(std::move(ExTypeNode));
+					}
+					out = New;
 				}
-
-
-				out = New;
 			}
 
 
