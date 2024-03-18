@@ -80,7 +80,6 @@ void SystematicAnalysis::OnAssignExpressionNode(const AssignExpressionNode& node
 		if (Symbol_HasDestructor(AssignType.Op1))
 		{
 			t.SetAsAddress();
-
 		}
 
 		_LookingForTypes.push(t);
@@ -91,17 +90,49 @@ void SystematicAnalysis::OnAssignExpressionNode(const AssignExpressionNode& node
 		auto AssignIR = _IR_LastExpressionField;
 		auto AssignExType = _LastExpressionType;
 
-
-		if (Symbol_HasDestructor(AssignType.Op1))
+		auto tw = AssignType.Op1;
+		tw._IsAddress = false;
+		if (Symbol_HasDestructor(tw))
 		{
 			ObjectToDrop dropinfo;
-			dropinfo.DropType = ObjectToDropType::IRInstruction;
-			UCodeLangAssert(_IR_LastStoreField.Type == IROperatorType::IRInstruction)
-			dropinfo._Object = _IR_LastStoreField.Pointer;
+			dropinfo.DropType = ObjectToDropType::Operator;
+
+			IROperator obj;
+			auto store = _IR_LastStoreField;
+			switch (_IR_LastStoreField.Type)
+			{
+			case IROperatorType::IRInstruction:
+				obj = _IR_LastStoreField.Pointer;
+				break;
+			case IROperatorType::DereferenceOf_IRParameter:
+				obj = _IR_LastStoreField.Parameter;
+				AssignExType._IsAddress = false;
+			break;
+			default:
+				UCodeLangUnreachable();
+				break;
+			}
+
+			dropinfo._Operator = obj;
 			dropinfo.Type = AssignExType;
 
 			IR_Build_DestructorCall(dropinfo);
 
+			auto& callinsir = _IR_LookingAtIRBlock->Instructions.back();
+
+			if (callinsir->Type == IRInstructionType::CleanupFuncCall)
+			{
+				auto tocall = callinsir->B.identifier;
+				callinsir->Type = IRInstructionType::Call;
+				callinsir->A = IROperator(tocall);
+				callinsir->B = IROperator();
+			}
+
+			_IR_LastStoreField = store;
+			if (_IR_LastStoreField.Type == IROperatorType::DereferenceOf_IRParameter)
+			{
+				_IR_LastStoreField = IROperator(_IR_LastStoreField.Parameter);
+			}
 		}
 
 		if (node._ReassignAddress)

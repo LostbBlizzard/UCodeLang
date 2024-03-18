@@ -3411,12 +3411,23 @@ void SystematicAnalysis::IR_Build_DestructorCall(const ObjectToDrop& Object)
 				case ObjectToDropType::Operator:
 					FuncInfo.ThisPar = Get_FuncInfo::ThisPar_t::OnIRlocationStackNonedef;
 
-					if (Object._Operator.Type != IROperatorType::IRInstruction)
+					
+
+					IRInstruction* ir;
+					switch (Object._Operator.Type)
 					{
+					case IROperatorType::IRInstruction:
+						ir = _IR_LookingAtIRBlock->NewLoad(Object._Operator.Pointer);
+						break;
+					case IROperatorType::IRParameter:
+						ir =  _IR_LookingAtIRBlock->NewLoad(Object._Operator.Parameter);
+						break;
+					default:
 						UCodeLangUnreachable();
+						break;
 					}
 
-					_IR_IRlocations.push({ _IR_LookingAtIRBlock->NewLoad(Object._Operator.Pointer), false });
+					_IR_IRlocations.push({ ir, false });
 					break;
 				default:
 					UCodeLangUnreachable();
