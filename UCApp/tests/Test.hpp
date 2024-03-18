@@ -100,7 +100,7 @@ inline String ModeType(OptimizationFlags Flags)
 	return r;
 }
 
-static const Array<TestInfo, 122> Tests{
+static const Array<TestInfo, 123> Tests{
 
 	TestInfo("main_0", "BasicTests/main.uc", "Main", SuccessCondition::Compilation),
 
@@ -266,6 +266,7 @@ static const Array<TestInfo, 122> Tests{
 	TestInfo("GetBytes",  "Array/GetBytes.uc", "main", SuccessCondition::RunTimeValue,(bool)1),
 	
 	TestInfo("MoveDrops",  "NewAndDrop/MoveDrops.uc", "main", SuccessCondition::RunTimeValue,(int)5),
+	TestInfo("MoveDrops 2",  "NewAndDrop/MoveDrops2.uc", "main", SuccessCondition::RunTimeValue,(int)5),
 };
 struct SkipTestRange
 {
