@@ -1542,6 +1542,38 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 		}
 	}
 
+	{
+		for (size_t i = 0; i < ValueTypes.size(); i++)
+		{
+			auto& Item = ValueTypes[i];
+			auto syb = Symbol_GetSymbol(Item.Type);
+
+			if (syb.has_value())
+			{
+				auto symbol = syb.value();
+
+				if (symbol->Type == SymbolType::Type_Pack)
+				{
+					bool last = &Item == &ValueTypes.back();
+
+					if (!last)
+					{
+						const Token* token = Name._ScopedName.back()._token;
+	
+						String msg;
+						msg += "Argment " + std::to_string(i);
+						msg += " is invaid because it is an Type_Pack but is not the last Argment";
+
+						LogError(ErrorCodes::InValidType, msg,NeverNullptr(token));
+
+						Get_FuncInfo V;
+						return V;
+					}
+				}
+			}
+		}
+	}
+
 	//unmaped
 	{
 		for (auto& Item : ValueTypes)
