@@ -122,6 +122,30 @@ void SystematicAnalysis::OnReadVariable(const ReadVariableNode& nod)
 
 			bool AsPointer = LookForT.IsAddress();
 
+
+			{
+				auto symop = Symbol_GetSymbol(V.Type);
+
+				if (symop.has_value())
+				{
+					auto& sym = symop.value();
+	
+					bool unpacktype = false;
+
+					if (unpacktype)
+					{
+						//... make struct
+					}
+					else
+					{
+						if (sym->Type == SymbolType::Type_Pack)
+						{
+							_LastExpressionType = V.Type;
+							return;
+						}
+					}
+				}
+			}
 			//
 
 			if (IsWrite(_GetExpressionMode.top()))

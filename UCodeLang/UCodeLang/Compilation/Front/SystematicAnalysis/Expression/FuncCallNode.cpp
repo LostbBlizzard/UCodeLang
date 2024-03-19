@@ -642,6 +642,8 @@ void SystematicAnalysis::IR_Build_FuncCall(Get_FuncInfo Func, const ScopedNameNo
 		}
 		auto& FuncParInfo = FuncParInfoPtr;
 
+		
+
 		_LookingForTypes.push(FuncParInfo.Type);
 
 		if (Item->Get_Type() == NodeType::OutExpression)
@@ -659,10 +661,42 @@ void SystematicAnalysis::IR_Build_FuncCall(Get_FuncInfo Func, const ScopedNameNo
 			OnExpressionTypeNode(Item.get(), GetValueMode::Read);
 			IR_Build_ImplicitConversion(_IR_LastExpressionField, _LastExpressionType, FuncParInfo.Type);
 		}
+		
+		bool unpackparpack = true;
+		if (unpackparpack)
+		{
+			auto extype = _LastExpressionType;
+
+			auto symop = Symbol_GetSymbol(extype);
+			if (symop.has_value())
+			{
+				auto& sym = symop.value();
+
+				if (sym->Type == SymbolType::Type_Pack)
+				{
+					const TypePackInfo* info = sym->Get_Info<TypePackInfo>();
+
+					_LookingForTypes.pop();
+
+					size_t parindex = Index;
+					for (size_t i = 0; i < info->List.size(); i++)
+					{
+						auto& packtype = info->List[i];
+						auto& irpar = _IR_LookingAtIRFunc->Pars[parindex + i];
+
+						IRParsList.push_back(_IR_LookingAtIRBlock->NewLoad(int(0)));
+						//IRParsList.push_back(_IR_LookingAtIRBlock->NewLoad(&irpar));
+					}
+
+					break;
+				}
+
+			}
+		}
+
 		IRParsList.push_back(_IR_LastExpressionField);
-
-
 		_LookingForTypes.pop();
+
 	}
 	auto Syb = Func.SymFunc;
 
