@@ -257,6 +257,22 @@ void SystematicAnalysis::IR_Build_FuncCall(Get_FuncInfo Func, const ScopedNameNo
 				_LookingForTypes.push(iNfo);\
 				auto& Item = Pars._Nodes[0];\
 				OnExpressionTypeNode(Item.get(),GetValueMode::Read);\
+				auto extype = _LastExpressionType; \
+				{ \
+					auto symop = Symbol_GetSymbol(extype); \
+					if (symop.has_value())\
+					{\
+						auto sym = symop.value();\
+						if (sym->Type == SymbolType::Type_Pack)\
+						{\
+							TypePackInfo* info = sym->Get_Info<TypePackInfo>();\
+							_LastExpressionType = info->List[0];\
+							size_t irindex = _IR_LookingAtIRFunc->Pars.size() - info->List.size();\
+							auto irpar = &_IR_LookingAtIRFunc->Pars[irindex];\
+							_IR_LastExpressionField = _IR_LookingAtIRBlock->NewLoad(irpar);\
+						}\
+					}\
+				}\
 				IR_Build_ImplicitConversion(_IR_LastExpressionField, _LastExpressionType, iNfo);\
 				_LookingForTypes.pop();\
 			}\
@@ -268,13 +284,13 @@ void SystematicAnalysis::IR_Build_FuncCall(Get_FuncInfo Func, const ScopedNameNo
 			return;\
 		}\
 
-		auto ScopedName = Str_GetScopedNameAsString(Name);
+				auto ScopedName = Str_GetScopedNameAsString(Name);
 		auto SymbolsV = Symbol_GetSymbol(ScopedName, SymbolType::Any);
 		if (SymbolsV && SymbolsV.value()->Type == SymbolType::Type_alias)
 		{
 			ScopedName = ToString(SymbolsV.value()->VarType);
 		}
-
+				
 		PrimitiveTypeCall(Uint8TypeName, TypesEnum::uInt8, _IR_LastExpressionField = _IR_LookingAtIRBlock->NewLoad((UInt8)0);)
 		else PrimitiveTypeCall(Uint16TypeName, TypesEnum::uInt16, _IR_LastExpressionField = _IR_LookingAtIRBlock->NewLoad((UInt16)0))
 		else PrimitiveTypeCall(Uint32TypeName, TypesEnum::uInt32, _IR_LastExpressionField = _IR_LookingAtIRBlock->NewLoad((UInt32)0))
@@ -957,14 +973,6 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 			ScopedName == float32TypeName ||
 			ScopedName == float64TypeName)
 		{
-
-			if (Pars._Nodes.size() > 1)
-			{
-				LogError_CanIncorrectParCount(NeverNullptr(Name._ScopedName.back()._token), ScopedName, Pars._Nodes.size(), 1);
-			}
-
-
-
 			{
 				if (ScopedName == Uint8TypeName) { _LastExpressionType = TypesEnum::uInt8; }
 				else if (ScopedName == Uint16TypeName) { _LastExpressionType = TypesEnum::uInt16; }
@@ -994,6 +1002,8 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 				}
 			}
 
+
+			size_t parcount = 0;
 			if (Pars._Nodes.size() == 1)
 			{
 				auto FuncType = _LastExpressionType;
@@ -1002,12 +1012,41 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 				OnExpressionTypeNode(Pars._Nodes[0].get(), GetValueMode::Read);
 				_LookingForTypes.pop();
 
-				if (!Type_CanBeImplicitConverted(_LastExpressionType, FuncType, true))
+				auto ex = _LastExpressionType;
+				parcount = 1;
+				auto symop = Symbol_GetSymbol(ex);
+				if (symop.has_value())
 				{
-					LogError_CantCastImplicitTypes(_LastLookedAtToken.value(), _LastExpressionType, FuncType, true);
+					auto sym = symop.value();
+					if (sym->Type == SymbolType::Type_Pack)
+					{
+						auto info = sym->Get_Info<TypePackInfo>();
+
+						parcount = info->List.size();
+						if (parcount) {
+							ex = info->List[0];
+						}
+					}
+				}
+
+				if (!Type_CanBeImplicitConverted(ex, FuncType, true))
+				{
+					LogError_CantCastImplicitTypes(_LastLookedAtToken.value(),ex, FuncType, true);
 				}
 				_LastExpressionType = FuncType;
+
+				
 			}
+			else
+			{
+				parcount = Pars._Nodes.size();
+			}
+
+			if (parcount > 1)
+			{
+				LogError_CanIncorrectParCount(NeverNullptr(Name._ScopedName.back()._token), ScopedName, Pars._Nodes.size(), 1);
+			}
+
 			Get_FuncInfo r = { Get_FuncInfo::ThisPar_t::NoThisPar, nullptr };
 			r.BulitInTypeContructer = _LastExpressionType;
 			return r;
