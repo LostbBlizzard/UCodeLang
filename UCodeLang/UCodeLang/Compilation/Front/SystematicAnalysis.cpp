@@ -2873,10 +2873,35 @@ void SystematicAnalysis::LogError_CantFindFuncError(const NeverNullPtr<Token> To
 
 	//if (WithTypes.size()) 
 	{
+		bool unpacktypepack = true;
+
 		Text += "[";
 
 		for (auto& Item : WithTypes)
 		{
+
+			if (unpacktypepack)
+			{
+				auto& symop = Symbol_GetSymbol(Item.Type);
+				if (symop.has_value())
+				{
+					auto& sym = symop.value();
+
+					if (sym->Type == SymbolType::Type_Pack)
+					{
+						auto info = sym->Get_Info<TypePackInfo>();
+						for (auto& Item : info->List)
+						{
+							Text += ToString(Item);
+							if (&Item != &info->List.back())
+							{
+								Text += ',';
+							}
+						}
+						continue;
+					}
+				}
+			}
 			Text += ToString(Item);
 			if (&Item != &WithTypes.back())
 			{
