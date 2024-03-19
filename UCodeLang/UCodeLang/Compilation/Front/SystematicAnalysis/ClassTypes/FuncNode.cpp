@@ -800,9 +800,29 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 		{
 			auto& Item = Info->Pars[i];
 
+					
+			auto symop = Symbol_GetSymbol(Item.Type);
+			if (symop)
+			{
+				auto sym = symop.value();
+				if (sym->Type == SymbolType::Type_Pack)
+				{
+					auto info = sym->Get_Info<TypePackInfo>();
+
+					for (auto& Item : info->List)
+					{
+						auto& F = V.ParsType.emplace_back();
+						F.IsOutPar = false;
+						F.Type = Assembly_ConvertToType(Item);
+					}
+					continue;
+				}
+			}
 			auto& F = V.ParsType.emplace_back();
 			F.IsOutPar = node._Signature._Parameters._Parameters[i]._IsOutVarable;
 			F.Type = Assembly_ConvertToType(Item.Type);
+
+
 		}
 
 		Assembly_ConvertAttributes(node._Attributes, V.Attributes.Attributes);
