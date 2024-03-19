@@ -266,10 +266,18 @@ void SystematicAnalysis::IR_Build_FuncCall(Get_FuncInfo Func, const ScopedNameNo
 						if (sym->Type == SymbolType::Type_Pack)\
 						{\
 							TypePackInfo* info = sym->Get_Info<TypePackInfo>();\
-							_LastExpressionType = info->List[0];\
-							size_t irindex = _IR_LookingAtIRFunc->Pars.size() - info->List.size();\
-							auto irpar = &_IR_LookingAtIRFunc->Pars[irindex];\
-							_IR_LastExpressionField = _IR_LookingAtIRBlock->NewLoad(irpar);\
+							if (info->List.size() == 0)\
+							{\
+								_LastExpressionType = iNfo;\
+								DefaultValue;\
+							}\
+							else \
+							{\
+								_LastExpressionType = info->List[0]; \
+								size_t irindex = _IR_LookingAtIRFunc->Pars.size() - info->List.size(); \
+								auto irpar = &_IR_LookingAtIRFunc->Pars[irindex]; \
+								_IR_LastExpressionField = _IR_LookingAtIRBlock->NewLoad(irpar); \
+							}\
 						}\
 					}\
 				}\
@@ -1029,7 +1037,7 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 					}
 				}
 
-				if (!Type_CanBeImplicitConverted(ex, FuncType, true))
+				if (parcount != 0 && !Type_CanBeImplicitConverted(ex, FuncType, true))
 				{
 					LogError_CantCastImplicitTypes(_LastLookedAtToken.value(),ex, FuncType, true);
 				}
@@ -1044,7 +1052,7 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 
 			if (parcount > 1)
 			{
-				LogError_CanIncorrectParCount(NeverNullptr(Name._ScopedName.back()._token), ScopedName, Pars._Nodes.size(), 1);
+				LogError_CanIncorrectParCount(NeverNullptr(Name._ScopedName.back()._token), ScopedName, parcount, 1);
 			}
 
 			Get_FuncInfo r = { Get_FuncInfo::ThisPar_t::NoThisPar, nullptr };
@@ -2095,7 +2103,7 @@ StartSymbolsLoop:
 				OkFunctions.push_back({ ThisParType,r,FuncSymbol });
 			}
 		}
-		else if (Item->Type == SymbolType::GenericFunc)//TODO try for other befor this
+		else if (Item->Type == SymbolType::GenericFunc)
 		{
 			if (Item->IsInvalid())
 			{
@@ -3031,7 +3039,13 @@ Optional< Optional<SystematicAnalysis::Get_FuncInfo>> SystematicAnalysis::Type_F
 
 	if (IsParPack)
 	{
-		if (LastParIsPack && Info->Pars.size() - 1 >= ValueTypes.size())
+		bool parcountcheck = Info->Pars.size() - 1 >= ValueTypes.size();
+	
+		if (!(Info->Pars.size() == 1 && ValueTypes.size()))
+		{
+			parcountcheck = false;
+		}
+		if (LastParIsPack && parcountcheck)
 		{
 			return {};
 		}
@@ -3259,26 +3273,27 @@ Optional< Optional<SystematicAnalysis::Get_FuncInfo>> SystematicAnalysis::Type_F
 				return {};
 		};
 
-		for (size_t i = 0; i < fpars.size(); i++)
+		if (ValueTypes.size() != 0)
 		{
-			auto& Item = fpars[i];
-			auto& Par = ValueTypes[i].Type;
-			auto sym = lazyattemp(Item._Type);
-
-			if (sym.has_value())
+			for (size_t i = 0; i < fpars.size(); i++)
 			{
-				auto symname = sym.value();
-				auto parname = ToString(Par);
-				
-				if (symname != parname)
+				auto& Item = fpars[i];
+				auto& Par = ValueTypes[i].Type;
+				auto sym = lazyattemp(Item._Type);
+
+				if (sym.has_value())
 				{
-					cangenericinputbeused = false;
-					break;
+					auto symname = sym.value();
+					auto parname = ToString(Par);
+
+					if (symname != parname)
+					{
+						cangenericinputbeused = false;
+						break;
+					}
 				}
 			}
 		}
-
-	
 	}
 
 	if (cangenericinputbeused) {

@@ -731,6 +731,22 @@ int SystematicAnalysis::Type_GetCompatibleScore(const IsCompatiblePar& Func, con
 		}
 		else
 		{
+			auto& par = Pars[i];
+			{
+				auto symop = Symbol_GetSymbol(par.Type);
+				if (symop.has_value())
+				{
+					auto& sym = symop.value();
+
+					if (sym->Type == SymbolType::Type_Pack || sym->Type ==SymbolType::Unmaped_Generic_Type)
+					{
+						if (ValueTypesIndex >= ValueTypes.size())
+						{
+							continue;
+						}
+					}
+				}
+			}
 			parinfo = ValueTypes[ValueTypesIndex];
 		}
 
