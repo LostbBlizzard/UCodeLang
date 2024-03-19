@@ -682,10 +682,59 @@ int SystematicAnalysis::Type_GetCompatibleScore(const IsCompatiblePar& Func, con
 	int r = 0;
 	auto& Pars = *Func.Pars;
 
+	bool unpackparpack = true;
+	bool typepack = false;
+	if (ValueTypes.size())
+	{
+		auto& lastpartype = ValueTypes.back().Type;
+		auto symop = Symbol_GetSymbol(lastpartype);
+		if (symop.has_value())
+		{
+			auto& val = symop.value();
+
+			if (val->Type == SymbolType::Type_Pack)
+			{
+				if (unpackparpack)
+				{
+					auto typelist = val->Get_Info<TypePackInfo>();
+					typepack = true;
+				}
+			}
+		}
+
+	}
+
+	OptionalRef<Vector<TypeSymbol>> _TypePack;
+	if (unpackparpack && typepack)
+	{
+		auto& lastpartype = ValueTypes.back().Type;
+		_TypePack = Optionalref(Symbol_GetSymbol(lastpartype).value()->Get_Info<TypePackInfo>()->List);
+	}
 	for (size_t i = StartIndex; i < (Pars).size(); i++)
 	{
 		size_t ValueTypesIndex = StartIndex == 1 ? i - 1 : i;
-		r += Type_GetCompatibleScore(Pars[i], ValueTypes[ValueTypesIndex]);
+
+		ParInfo parinfo;
+		if (_TypePack.has_value())
+		{
+			if (ValueTypesIndex >= ValueTypes.size() - 1)
+			{
+				auto newindex = i - (ValueTypes.size() - 1);
+				
+				parinfo.IsOutPar = false;
+				parinfo.Type = _TypePack.value()[newindex];
+			}
+			else
+			{
+				parinfo = ValueTypes[ValueTypesIndex];
+			}
+		}
+		else
+		{
+			parinfo = ValueTypes[ValueTypesIndex];
+		}
+
+		r += Type_GetCompatibleScore(Pars[i], parinfo);
 	}
 
 
