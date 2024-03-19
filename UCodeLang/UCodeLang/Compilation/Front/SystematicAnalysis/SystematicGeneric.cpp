@@ -471,6 +471,20 @@ GenericData::Type SystematicAnalysis::Generic_TypeToGenericDataType(GenericValue
 		break;
 	}
 }
+const Generic* GetGenercInfo(const NeverNullPtr<Symbol> Func)
+{
+	const Generic* info = nullptr;
+	switch (Func->Type)
+	{
+	case SymbolType::GenericFunc:
+		info = &Func->Get_Info<FuncInfo>()->_GenericData;
+		break;
+	default:
+		UCodeLangUnreachable();
+		break;
+	}
+	return info;
+}
 String SystematicAnalysis::Generic_SymbolGenericFullName(const NeverNullPtr<Symbol> Func, const Vector<TypeSymbol>& Type) const
 {
 #if UCodeLangDebug
@@ -478,10 +492,26 @@ String SystematicAnalysis::Generic_SymbolGenericFullName(const NeverNullPtr<Symb
 	{
 		UCodeLangAssert(!Type_IsUnMapType(Item));//trying use UnMaped Type when Generic Instantiate.
 	}
+
+	bool shouldhaveinputpars = true;
+	if (Type.size() == 0)
+	{
+		const Generic* info = GetGenercInfo(Func);
+		shouldhaveinputpars = info->IsPack() == false;
+	}
+	
+	if (shouldhaveinputpars) 
+	{
+		UCodeLangAssert(Type.size());//you need input types for Generic Instantiate.
+	}
 #endif // DEBUG
-	UCodeLangAssert(Type.size());//you need input types for Generic Instantiate.
+
 
 	String NewName = Func->FullName + "<";
+	if (Type.size() == 0)
+	{
+		NewName += "NoGenerc";
+	}
 	for (auto& Item : Type)
 	{
 		NewName += ToString(Item);
@@ -500,10 +530,24 @@ String SystematicAnalysis::Generic_SymbolGenericName(const NeverNullPtr<Symbol> 
 	{
 		UCodeLangAssert(!Type_IsUnMapType(Item));//trying use UnMaped Type when Generic Instantiate.
 	}
+	bool shouldhaveinputpars = true;
+	if (Type.size() == 0)
+	{
+		const Generic* info = GetGenercInfo(Func);
+		shouldhaveinputpars = info->IsPack() == false;
+	}
+	
+	if (shouldhaveinputpars) 
+	{
+		UCodeLangAssert(Type.size());//you need input types for Generic Instantiate.
+	}
 #endif // DEBUG
-	UCodeLangAssert(Type.size());//you need input types for Generic Instantiate.
 
 	String NewName = ScopeHelper::GetNameFromFullName(Func->FullName) + "<";
+	if (Type.size() == 0)
+	{
+		NewName += "NoGenerc";
+	}
 	for (auto& Item : Type)
 	{
 		NewName += ToString(Item);
