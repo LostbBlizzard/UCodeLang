@@ -498,8 +498,34 @@ bool SystematicAnalysis::Type_IsSIntType(const TypeSymbol& TypeToCheck) const
 
 bool SystematicAnalysis::Type_IsCompatible(const IsCompatiblePar& FuncPar, const Vector<ParInfo>& ValueTypes, bool _ThisTypeIsNotNull, const NeverNullPtr<Token> Token)
 {
+	size_t valcount = ValueTypes.size();
+	
+	bool unpackparpack = true;
+	bool typepack = false;
+	if (ValueTypes.size())
+	{
+		auto& lastpartype = ValueTypes.back().Type;
+		auto symop = Symbol_GetSymbol(lastpartype);
+		if (symop.has_value())
+		{
+			auto& val = symop.value();
 
-	if (FuncPar.Pars->size() != ValueTypes.size())
+			if (val->Type == SymbolType::Type_Pack)
+			{
+				if (unpackparpack)
+				{
+					auto typelist = val->Get_Info<TypePackInfo>();
+					valcount -= 1;
+					valcount += typelist->List.size();
+
+					typepack = true;
+				}
+			}
+		}
+
+	}
+
+	if (FuncPar.Pars->size() != valcount)
 	{
 		return false;
 	}
@@ -547,22 +573,50 @@ bool SystematicAnalysis::Type_IsCompatible(const IsCompatiblePar& FuncPar, const
 	}
 	//
 
+	OptionalRef<Vector<TypeSymbol>> _TypePack;
+	if (unpackparpack && typepack)
+	{
+		auto& lastpartype = ValueTypes.back().Type;
+		_TypePack = Optionalref(Symbol_GetSymbol(lastpartype).value()->Get_Info<TypePackInfo>()->List);
+	}
 	for (size_t i = _ThisTypeIsNotNull ? 1 : 0; i < FuncPar.Pars->size(); i++)
 	{
 		auto& Item = (*FuncPar.Pars)[i];
-		auto& Item2 = ValueTypes[i];
-
-		if (Item.IsOutPar != Item2.IsOutPar)
+		
+		bool Item2IsOutpar = false;
+		const TypeSymbol* Item2ptr = nullptr;
+		if (_TypePack.has_value())
+		{
+			if (i >= ValueTypes.size() - 1)
+			{
+				Item2IsOutpar = false;
+				auto newindex = i - (ValueTypes.size() - 1);
+				Item2ptr = &_TypePack.value()[newindex];
+			}
+			else
+			{
+				Item2ptr = &ValueTypes[i].Type;
+				Item2IsOutpar = ValueTypes[i].IsOutPar;
+			}
+		}
+		else
+		{
+			Item2ptr = &ValueTypes[i].Type;
+			Item2IsOutpar= ValueTypes[i].IsOutPar;
+		}
+		
+		auto& Item2 = *Item2ptr;
+		if (Item.IsOutPar != Item2IsOutpar)
 		{
 			return false;
 		}
-		else if (Item2.IsOutPar && Item2.Type.IsAn(TypesEnum::Var))
+		else if (Item2IsOutpar && Item2.IsAn(TypesEnum::Var))
 		{
 			//is ok
 			continue;
 		}
 
-		if (!Type_CanBeImplicitConverted(Item2.Type, Item.Type, true))
+		if (!Type_CanBeImplicitConverted(Item2, Item.Type, true))
 		{
 			return false;
 		}
