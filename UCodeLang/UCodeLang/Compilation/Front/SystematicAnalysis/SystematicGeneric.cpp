@@ -508,10 +508,6 @@ String SystematicAnalysis::Generic_SymbolGenericFullName(const NeverNullPtr<Symb
 
 
 	String NewName = Func->FullName + "<";
-	if (Type.size() == 0)
-	{
-		NewName += "NoGenerc";
-	}
 	for (auto& Item : Type)
 	{
 		NewName += ToString(Item);
@@ -544,10 +540,6 @@ String SystematicAnalysis::Generic_SymbolGenericName(const NeverNullPtr<Symbol> 
 #endif // DEBUG
 
 	String NewName = ScopeHelper::GetNameFromFullName(Func->FullName) + "<";
-	if (Type.size() == 0)
-	{
-		NewName += "NoGenerc";
-	}
 	for (auto& Item : Type)
 	{
 		NewName += ToString(Item);
