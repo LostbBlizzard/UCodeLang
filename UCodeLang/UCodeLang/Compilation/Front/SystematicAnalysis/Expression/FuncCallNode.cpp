@@ -684,8 +684,7 @@ void SystematicAnalysis::IR_Build_FuncCall(Get_FuncInfo Func, const ScopedNameNo
 						auto& packtype = info->List[i];
 						auto& irpar = _IR_LookingAtIRFunc->Pars[parindex + i];
 
-						IRParsList.push_back(_IR_LookingAtIRBlock->NewLoad(int(0)));
-						//IRParsList.push_back(_IR_LookingAtIRBlock->NewLoad(&irpar));
+						IRParsList.push_back(_IR_LookingAtIRBlock->NewLoad(&irpar));
 					}
 
 					break;
