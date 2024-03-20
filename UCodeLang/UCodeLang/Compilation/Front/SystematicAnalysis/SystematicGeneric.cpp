@@ -651,10 +651,6 @@ void SystematicAnalysis::Generic_InitGenericalias(const GenericValuesNode& Gener
 			Info.SybID = ID;
 			Info.type = Generic_TypeToGenericDataType(Item._Generictype);
 
-			if (Item._BaseOrRuleScopeName.has_value()) {
-				Info._node = Nullableptr(&Item);
-			}
-
 			Out._Genericlist.push_back(Info);
 
 			if (Info.type == GenericData::Type::Pack)
@@ -665,6 +661,47 @@ void SystematicAnalysis::Generic_InitGenericalias(const GenericValuesNode& Gener
 					LogError_ParPackTypeIsNotLast(NeverNullptr(Item.token));
 				}
 			}
+		}
+	}
+}
+
+void SystematicAnalysis::Generic_GenericAliasFixTypes(const GenericValuesNode& GenericList, bool IsgenericInstantiation, Generic& Out)
+{
+	for (size_t i = 0; i < GenericList._Values.size(); i++)
+	{
+		auto& Item = GenericList._Values[i];
+		auto& OutItem = Out._Genericlist[i];
+
+		
+		if (Item._BaseOrRuleScopeName.has_value())
+		{
+			auto& rule = Item._BaseOrRuleScopeName.value();
+			Optional<Variant<TypeSymbol,SymbolID>> base;
+			{
+				bool istype = true;
+				{
+					String scope;
+					rule.GetScopedName(scope);
+					auto sym = GetSymbolsWithName(scope);
+				}
+
+				if (istype)
+				{
+					TypeSymbol type;
+					TypeNode typenode;
+					typenode._name._ScopedName = rule._ScopedName;
+					Type_Convert(typenode, type);
+
+					base = type;
+				}
+				else
+				{
+					UCodeLangUnreachable();
+				}
+			}
+
+			OutItem.BaseOrRule = std::move(base);
+
 		}
 	}
 }

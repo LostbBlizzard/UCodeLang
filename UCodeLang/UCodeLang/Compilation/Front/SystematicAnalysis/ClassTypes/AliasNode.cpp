@@ -113,6 +113,9 @@ void SystematicAnalysis::OnAliasNode(const AliasNode& node)
 				AliasNode_Func* node_ = (AliasNode_Func*)node._Node.get();
 				FuncPtrInfo* nodeinfo_ = (FuncPtrInfo*)Syb.Info.get();
 
+				auto& GenericList = node.Generic;
+				Generic_GenericAliasFixTypes(GenericList, IsgenericInstantiation, nodeinfo_->_GenericData);
+
 				for (size_t i = 0; i < nodeinfo_->Pars.size(); i++)
 				{
 					auto& NodePar = node_->_Parameters._Parameters[i];

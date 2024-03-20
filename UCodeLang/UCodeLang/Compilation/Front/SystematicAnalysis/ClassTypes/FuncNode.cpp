@@ -479,6 +479,12 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 	OnAttributesNode(node._Attributes);
 	FuncInfo* Info = syb->Get_Info<FuncInfo>();
 
+
+	if (_PassType == PassType::FixedTypes)
+	{
+		auto& GenericList = node._Signature._generic;
+		Generic_GenericAliasFixTypes(GenericList, IsgenericInstantiation, Info->_GenericData);
+	}
 	syb->PassState = _PassType;
 	_FuncStack.push_back(Info);
 

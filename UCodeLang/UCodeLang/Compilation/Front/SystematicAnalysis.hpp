@@ -1137,7 +1137,7 @@ private:
 	void OnUseingNode(const UsingNode& node);
 
 	void Generic_InitGenericalias(const GenericValuesNode& GenericList, bool IsgenericInstantiation, Generic& Out);
-
+	void Generic_GenericAliasFixTypes(const GenericValuesNode& GenericList, bool IsgenericInstantiation, Generic& Out);
 	//Because we support function overloading
 	//we need a way for symbols FullNames to not Clash
 	//OnFuncNode will Mangling those symbol and this will remove it
