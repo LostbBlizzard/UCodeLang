@@ -148,9 +148,11 @@ void SystematicAnalysis::OnTrait(const TraitNode& node)
 	{
 		TraitInfo* info = Syb.Get_Info<TraitInfo>();
 
-		auto& GenericList = node._generic;
-		Generic_GenericAliasFixTypes(GenericList, IsgenericInstantiation, info->_GenericData);
-
+		if (Isgeneric_t)
+		{
+			auto& GenericList = node._generic;
+			Generic_GenericAliasFixTypes(GenericList, IsgenericInstantiation, info->_GenericData);
+		}
 
 		auto TepClass = info->TraitClassInfo->Get_Info<ClassInfo>();
 

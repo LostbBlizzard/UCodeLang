@@ -91,7 +91,7 @@ void SystematicAnalysis::OnTag(const TagTypeNode& node)
 		}
 	}
 
-	if (_PassType == PassType::FixedTypes)
+	if (_PassType == PassType::FixedTypes && Isgeneric_t)
 	{
 		auto& GenericList = node._generic;
 		Generic_GenericAliasFixTypes(GenericList, IsgenericInstantiation, info->_GenericData);
