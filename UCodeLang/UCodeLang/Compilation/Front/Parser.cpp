@@ -1899,7 +1899,32 @@ GotNodeType Parser::TryGetGeneric(GenericValuesNode& out)
 		while (TryGetToken()->Type != TokenType::EndofFile)
 		{
 			GenericValueNode Item;
+
+			if (TryGetToken()->Type == TokenType::Left_Bracket)
+			{
+				NextToken();
+				
+				ScopedNameNode sym;
+				GetName(sym);
+				bool isrule = false;
+
+				if (TryGetToken()->Type == TokenType::Left_Parentheses)
+				{
+					NextToken();
+
+					TokenTypeCheck(TryGetToken(), TokenType::Right_Parentheses);
+
+					NextToken();
+				}
+
+				Item._BaseOrRuleScopeName = std::move(sym);
+				Item.IsRule = isrule;
+				
+				TokenTypeCheck(TryGetToken(), TokenType::Right_Bracket);
+				NextToken();
+			}
 			auto NameToken = TryGetToken();
+
 
 			if (NameToken->Type == TokenType::Left_Parentheses)
 			{
