@@ -280,6 +280,7 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 
 	if (_PassType == PassType::FixedTypes)//auto make funcs
 	{
+		if (Isgeneric_t)
 		{
 			auto& GenericList = Node._generic;
 			Generic_GenericAliasFixTypes(GenericList,IsgenericInstantiation, ClassInf->_GenericData);
