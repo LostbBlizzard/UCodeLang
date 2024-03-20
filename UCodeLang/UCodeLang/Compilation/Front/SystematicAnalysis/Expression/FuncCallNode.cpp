@@ -3037,7 +3037,7 @@ Optional< Optional<SystematicAnalysis::Get_FuncInfo>> SystematicAnalysis::Type_F
 	bool IsParPack = Info->_GenericData.IsPack();
 	bool LastParIsPack = IsParPack && Info->Pars.back().Type._CustomTypeSymbol == Info->_GenericData._Genericlist.back().SybID;
 
-	if (IsParPack)
+	if (LastParIsPack && IsParPack)
 	{
 		bool parcountcheck = Info->Pars.size() - 1 >= ValueTypes.size();
 	
