@@ -227,6 +227,8 @@ struct GenericValueNode :Node
 	}
 	const Token* token = nullptr;
 	GenericType _Generictype = GenericType::Name;
+	Optional<ScopedNameNode> _BaseOrRuleScopeName;
+	bool IsRule = false;
 
 
 	String_view AsStringView() const

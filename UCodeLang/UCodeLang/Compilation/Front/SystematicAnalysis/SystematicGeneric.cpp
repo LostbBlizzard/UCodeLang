@@ -650,6 +650,11 @@ void SystematicAnalysis::Generic_InitGenericalias(const GenericValuesNode& Gener
 			GenericData Info;
 			Info.SybID = ID;
 			Info.type = Generic_TypeToGenericDataType(Item._Generictype);
+
+			if (Item._BaseOrRuleScopeName.has_value()) {
+				Info._node = Nullableptr(&Item);
+			}
+
 			Out._Genericlist.push_back(Info);
 
 			if (Info.type == GenericData::Type::Pack)

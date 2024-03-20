@@ -304,6 +304,7 @@ struct GenericData
 	};
 	SymbolID SybID;
 	Type type = Type::Name;
+	NullablePtr<GenericValueNode> _node;
 	bool IsConstantExpression() const
 	{
 		return type == Type::ConstantExpression;
