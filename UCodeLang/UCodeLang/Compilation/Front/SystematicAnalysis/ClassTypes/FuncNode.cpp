@@ -480,7 +480,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 	FuncInfo* Info = syb->Get_Info<FuncInfo>();
 
 
-	if (_PassType == PassType::FixedTypes)
+	if (_PassType == PassType::FixedTypes && Isgeneric_t)
 	{
 		auto& GenericList = node._Signature._generic;
 		Generic_GenericAliasFixTypes(GenericList, IsgenericInstantiation, Info->_GenericData);

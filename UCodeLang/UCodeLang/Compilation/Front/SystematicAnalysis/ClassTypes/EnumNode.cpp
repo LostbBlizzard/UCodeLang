@@ -55,8 +55,11 @@ void SystematicAnalysis::OnEnum(const EnumNode& node)
 	EvaluatedEx ex;
 	if (_PassType == PassType::FixedTypes)
 	{
-		auto& GenericList = node._generic;
-		Generic_GenericAliasFixTypes(GenericList, IsgenericInstantiation, enumInf->_GenericData);
+		if (Isgeneric_t) 
+		{
+			auto& GenericList = node._generic;
+			Generic_GenericAliasFixTypes(GenericList, IsgenericInstantiation, enumInf->_GenericData);
+		}
 
 		Type_ConvertAndValidateType(node._BaseType, enumInf->Basetype, NodeSyb_t::Any);
 		if (enumInf->Basetype.IsBadType() || Type_IsUnMapType(enumInf->Basetype)) { _Table.RemoveScope(); return; }
