@@ -1637,7 +1637,7 @@ void SystematicAnalysis::Type_Convert(const TypeNode& V, TypeSymbol& Out)
 			info->Exnode = ExpressionNodeType::As(node);
 			info->Context = Save_SymbolContext();
 
-			_LookingForTypes.push(TypesEnum::Any);
+			_LookingForTypes.push(_LookingForTypes.top());
 
 			auto IsOk = Eval_EvaluateToAnyType(*info->Exnode);
 

@@ -1780,7 +1780,20 @@ private:
 			const auto& Tnode = UseNode._Values[i];
 			const auto& GenericInfo = GenericData._Genericlist[i];
 			TypeSymbol Type;
+
+			TypeSymbol typehint = TypesEnum::Any;
+			if (GenericInfo.BaseOrRule.has_value())
+			{
+				auto& rule = GenericInfo.BaseOrRule.value();
+				if (rule.Is<TypeSymbol>())
+				{
+					typehint = rule.Get<TypeSymbol>();
+				}
+			}
+
+			_LookingForTypes.push(typehint);
 			Type_ConvertAndValidateType(Tnode, Type, NodeSyb_t::Any);
+			_LookingForTypes.pop();
 
 			if (Type_IsUnMapType(Type))
 			{
@@ -1810,6 +1823,29 @@ private:
 					}
 
 					return nullptr;
+				}
+				else
+				{
+					if (InputTypeIsConstantExpression) 
+					{
+						if (GenericInfo.BaseOrRule.has_value())
+						{
+							auto& rule = GenericInfo.BaseOrRule.value();
+							if (rule.Is<TypeSymbol>())
+							{
+								auto ruletype = rule.Get<TypeSymbol>();
+								TypeSymbol extype = TypeSyb.value()->VarType;
+
+								bool issame = Type_AreTheSame(ruletype, extype);
+								if (!issame)
+								{
+									const NeverNullPtr<Token> nodeToken = NeverNullptr(Tnode._name._ScopedName.back()._token);
+									LogError_Eval_CantCastImplicitTypes(nodeToken, extype, ruletype);
+									return nullptr;
+								}
+							}
+						}
+					}
 				}
 			}
 
