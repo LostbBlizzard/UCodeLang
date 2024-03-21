@@ -368,7 +368,7 @@ bool SystematicAnalysis::Type_GetSize(const TypeSymbol& Type, size_t& OutSize)
 		{
 			OutSize = 0;
 			return true;
-		}
+		}	
 		else
 		{
 			OutSize = 0;
