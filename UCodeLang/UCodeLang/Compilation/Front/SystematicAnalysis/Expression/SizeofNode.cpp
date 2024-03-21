@@ -32,9 +32,21 @@ void SystematicAnalysis::OnSizeofNode(const SizeofExpresionNode* nod)
 			break;
 		}
 		TypeSymbol Info;
-		Type_ConvertAndValidateType(nod->_Type, Info, NodeSyb_t::Any);
-		UAddress TypeSize;
-		Type_GetSize(Info, TypeSize);
+		Type_ConvertAndValidateType(nod->_Type, Info, NodeSyb_t::Any); 
+		
+		if (!Info.IsBadType())
+		{
+			UAddress TypeSize;
+
+			if (!Type_GetSize(Info, TypeSize))
+			{
+				String Msg = "Unable to GetSize of '";
+				Msg += ToString(Info);
+				Msg += "'. it may not be a vaild runtime type";
+
+				LogError(ErrorCodes::InValidType, Msg,NeverNullptr(nod->_Type._name._ScopedName.back()._token));
+			}
+		}
 	}
 
 	if (_PassType == PassType::BuidCode)
