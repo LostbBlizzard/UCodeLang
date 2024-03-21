@@ -2205,24 +2205,7 @@ StartSymbolsLoop:
 							auto FuncIsMade = Symbol_GetSymbol(NewName, SymbolType::Func);
 
 
-
-							if (!FuncIsMade)
-							{
-
-								{
-									if (CheckForGenericInputIsConstantExpression(Info, GenericInput))
-									{
-										continue;
-									}
-								}
-								auto Pointer = std::make_unique<Vector<TypeSymbol>>(std::move(GenericInput));
-								//pointer must be unique so it can't be on the stack
-
-								Generic_GenericFuncInstantiate(FuncSym, *Pointer);
-								_TepFuncs.push_back({ std::move(Pointer) });//keep pointer 
-								FuncSym = Symbol_GetSymbol(NewName, SymbolType::Func).value();
-							}
-							else
+							if (FuncIsMade)
 							{
 								FuncSym = FuncIsMade.value();
 							}
@@ -2924,7 +2907,24 @@ StartSymbolsLoop:
 		{
 			Vector<TypeSymbol> GenericInput;
 			auto Info  = RValue.SymFunc->Get_Info<FuncInfo>();
+
+			bool PushThisPar = Info->IsObjectCall();
+
+
+			if (PushThisPar)
+			{
+				TypeSymbol V;
+				V.SetType(Info->Pars.begin()->Type._CustomTypeSymbol);
+				V.SetAsAddress();
+				V.SetAsMoved();
+				ValueTypes.insert(ValueTypes.begin(), { false,V });
+			}
 			auto v = Type_FuncinferGenerics(GenericInput, ValueTypes, Generics, RValue.SymFunc, _ThisTypeIsNotNull);
+
+			if (PushThisPar)
+			{
+				ValueTypes.pop_back();
+			}
 
 			if (v.has_value())
 			{
@@ -2943,6 +2943,97 @@ StartSymbolsLoop:
 
 					if (!FuncIsMade)
 					{
+						bool funcisbad = false;
+						if (Info->_GenericData.IsPack())
+						{
+
+							auto& GInfo = Info->_GenericData._Genericlist.back();
+
+							if (GInfo.BaseOrRule.has_value())
+							{
+								bool islastparpack = false;
+
+								if (Info->Pars.size())
+								{
+									auto& last = Info->Pars.back();
+									auto symop = Symbol_GetSymbol(last.Type);
+									if (symop.has_value())
+									{
+										auto& sym = symop.value();
+
+										if (GInfo.SybID == sym->ID)
+										{
+											islastparpack = true;
+										}
+
+									}
+								}
+
+								if (islastparpack)
+								{
+									auto& rule = GInfo.BaseOrRule.value();
+
+									if (rule.Is<TypeSymbol>())
+									{
+										auto& val = rule.Get<TypeSymbol>();
+
+										size_t startindex = Info->_GenericData._Genericlist.size() - 1;
+
+										bool isthesame = true;
+										for (size_t i = startindex; i < GenericInput.size(); i++)
+										{
+											auto& Input = GenericInput[i];
+
+											if (!Type_AreTheSame(Input, val))
+											{
+												isthesame = false;
+												break;
+											}
+										}
+
+										if (!isthesame)
+										{
+											funcisbad = true;
+											String msg = "Type_Pack on '" + FuncSym->FullName + "' Requres all types to be '";
+											msg += ToString(val);
+											msg += "'";
+											msg += " but the types were ";
+
+											bool isfirst = true;
+											for (size_t i = startindex; i < GenericInput.size(); i++)
+											{
+												auto& Input = GenericInput[i];
+
+												if (!Type_AreTheSame(Input, val))
+												{
+													if (!isfirst)
+													{
+														msg += ",";
+													}
+
+													msg += ToString(Input);
+													msg += " at Generic Index ";
+													msg += std::to_string(i);
+													isfirst = false;
+												}
+											}
+
+											LogError(ErrorCodes::InValidType, msg, NeverNullptr(Name._ScopedName.back()._token));
+											funcisbad = true;
+										}
+									}
+									else
+									{
+										UCodeLangUnreachable();
+									}
+								}
+							}
+						}
+
+						if (funcisbad)
+						{
+							return {};
+						}
 
 						{
 							UCodeLangAssert(CheckForGenericInputIsConstantExpression(Info, GenericInput) == false);
