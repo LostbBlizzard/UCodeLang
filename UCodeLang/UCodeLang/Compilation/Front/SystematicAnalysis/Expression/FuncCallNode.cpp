@@ -843,6 +843,73 @@ void SystematicAnalysis::IR_Build_FuncCall(Get_FuncInfo Func, const ScopedNameNo
 
 	}
 }
+
+
+bool FuncInferFuncCountOk(SymbolType symtype,const FuncInfo* Info,size_t parcount,bool& islastparispack)
+{
+	bool r = Info->Pars.size() == parcount;
+	{
+		if (symtype == SymbolType::GenericFunc && Info->_GenericData.IsPack())
+		{
+			bool lastparispack = false;
+			if (Info->Pars.size())
+			{
+				auto& last = Info->Pars.back();
+				lastparispack = last.Type._CustomTypeSymbol == Info->_GenericData._Genericlist.back().SybID;
+			}
+
+			if (lastparispack)
+			{
+				size_t minfuncparcount = Info->Pars.size() - 1;
+				if (parcount >= minfuncparcount)
+				{
+					r = true;
+					islastparispack = true;
+				}
+			}
+		}
+	}
+
+	return r;
+}
+void TryaddParPackInferTypes(bool islastparpack,const FuncInfo* Info,size_t parcount,bool PushThisPar,bool& Inferautopushtis,Vector<ParInfo>& Infer,bool useinferpars)
+{
+	if (islastparpack)
+	{
+		size_t minfuncparcount = Info->Pars.size() - 1;
+
+		auto& pack = Info->_GenericData._Genericlist.back();
+		if (pack.BaseOrRule.has_value())
+		{
+
+			auto& rule = pack.BaseOrRule.value();
+			if (auto basetype = rule.Get_If<TypeSymbol>())
+			{
+				if (!useinferpars)
+				{
+					Infer = Info->Pars;
+				}
+				Infer.pop_back();
+
+				size_t addparcount = parcount - minfuncparcount;
+				for (size_t i = 0; i < addparcount; i++)
+				{
+					ParInfo v;
+					v.Type = *basetype;
+					Infer.push_back(v);
+				}
+
+				Inferautopushtis = PushThisPar;
+			}
+			else
+			{
+				UCodeLangUnreachable();
+			}
+
+		}
+	}
+}
+
 SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedNameNode& Name, const ValueParametersNode& Pars, TypeSymbol Ret)
 {
 
@@ -1356,8 +1423,11 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 				const FuncInfo* Info = Item->Get_Info<FuncInfo>();
 				Symbol_Update_FuncSym_ToFixedTypes(Item);
 
-				size_t parcount = Pars._Nodes.size();
-				if (Info->Pars.size() == parcount) {
+				bool islastparispack = false;
+				bool PushThisPar = Info->IsObjectCall();
+				size_t parcount = PushThisPar ? Pars._Nodes.size() + 1 : Pars._Nodes.size();
+				if (FuncInferFuncCountOk(Item->Type,Info,parcount,islastparispack)) 
+				{
 					//Infer = Info->Pars;
 					//Inferautopushtis = false;
 					//InferFunc = Item;
@@ -1441,6 +1511,9 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 
 
 						}
+
+
+						TryaddParPackInferTypes(islastparispack, Info, parcount, false, Inferautopushtis, R,true);
 						Infer = std::move(R);
 					}
 				}
@@ -1462,64 +1535,14 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 
 					size_t parcount = PushThisPar ? Pars._Nodes.size() + 1 : Pars._Nodes.size();
 
-					bool ok = Info->Pars.size() == parcount;
 					bool islastparpack = false;
-					if (Item2->Type ==SymbolType::GenericFunc && Info->_GenericData.IsPack())
-					{
-						bool lastparispack = false;
-						if (Info->Pars.size())
-						{
-							auto& last = Info->Pars.back();
-							lastparispack = last.Type._CustomTypeSymbol == Info->_GenericData._Genericlist.back().SybID;
-						}
 
-						if (lastparispack)
-						{
-							size_t minfuncparcount = Info->Pars.size() - 1;
-							if (parcount >= minfuncparcount)
-							{
-								ok = true;
-								islastparpack = true;
-							}
-						}
-					}
-
-					if (ok)
+					if (FuncInferFuncCountOk(Item2->Type, Info, parcount, islastparpack))
 					{
 						Infer = Info->Pars;
 						Inferautopushtis = PushThisPar;
 
-						if (islastparpack)
-						{	
-							size_t minfuncparcount = Info->Pars.size() - 1;
-
-							auto& pack = Info->_GenericData._Genericlist.back();
-							if (pack.BaseOrRule.has_value())
-							{
-
-								auto& rule = pack.BaseOrRule.value();
-								if (auto basetype = rule.Get_If<TypeSymbol>())
-								{
-									Infer = Info->Pars;
-									Infer.pop_back();
-
-									size_t addparcount = parcount - minfuncparcount;
-									for (size_t i = 0; i < addparcount; i++)
-									{
-										ParInfo v;
-										v.Type = *basetype;
-										Infer.push_back(v);
-									}
-
-									Inferautopushtis = PushThisPar;
-								}
-								else
-								{
-									UCodeLangUnreachable();
-								}
-
-							}
-						}
+						TryaddParPackInferTypes(islastparpack, Info, parcount, PushThisPar, Inferautopushtis, Infer,false);
 					}
 				}
 			}		
@@ -2892,7 +2915,7 @@ StartSymbolsLoop:
 			bool PushThisPar = Info->IsObjectCall();
 
 
-			if (PushThisPar)
+			if (PushThisPar != _ThisTypeIsNotNull)
 			{
 				TypeSymbol V;
 				V.SetType(Info->Pars.begin()->Type._CustomTypeSymbol);
@@ -2902,9 +2925,9 @@ StartSymbolsLoop:
 			}
 			auto v = Type_FuncinferGenerics(GenericInput, ValueTypes, Generics, RValue.SymFunc, _ThisTypeIsNotNull);
 
-			if (PushThisPar)
+			if (PushThisPar != _ThisTypeIsNotNull)
 			{
-				ValueTypes.pop_back();
+				ValueTypes.erase(ValueTypes.begin() + 0);
 			}
 
 			if (v.has_value())
