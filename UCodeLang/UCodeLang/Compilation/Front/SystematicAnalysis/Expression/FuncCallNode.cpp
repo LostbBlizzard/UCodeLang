@@ -1545,7 +1545,81 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 						TryaddParPackInferTypes(islastparpack, Info, parcount, PushThisPar, Inferautopushtis, Infer,false);
 					}
 				}
-			}		
+			}	
+			else if (Item->Type == SymbolType::Tag_class)
+			{
+				TagInfo* V = Item->Get_Info<TagInfo>();
+				Symbol_Update_ClassSym_ToFixedTypes(Item);
+				String Scope = V->FullName;
+				ScopeHelper::GetApendedString(Scope, ClassConstructorfunc);
+
+				auto ConstructorSymbols = GetSymbolsWithName(Scope, SymbolType::Any);
+
+
+				for (auto& Item2 : ConstructorSymbols)
+				{
+					FuncInfo* Info = Item2->Get_Info<FuncInfo>();
+					bool PushThisPar = Info->IsObjectCall();
+
+					size_t parcount = PushThisPar ? Pars._Nodes.size() + 1 : Pars._Nodes.size();
+					if (Info->Pars.size() == parcount) {
+						Infer = Info->Pars;
+						Inferautopushtis = PushThisPar;
+					}
+				}
+			}
+			else if (Item->Type == SymbolType::Enum_Field)
+			{
+				String EnumClassFullName = ScopedName;
+				ScopeHelper::ReMoveScope(EnumClassFullName);
+
+				auto EnumSymbolop = Symbol_GetSymbol(EnumClassFullName, SymbolType::Enum);
+				if (EnumSymbolop)
+				{
+					auto EnumSymbol = EnumSymbolop.value();
+					if (EnumSymbol->Type == SymbolType::Enum)
+					{
+						const EnumInfo* Enuminfo = EnumSymbol->Get_Info<EnumInfo>();
+						if (Enuminfo->VariantData.has_value())
+						{
+							auto FeildIndex = Enuminfo->GetFieldIndex(ScopeHelper::GetNameFromFullName(ScopedName));
+							if (FeildIndex.has_value())
+							{
+								auto& VariantInfo = Enuminfo->VariantData.value().Variants[FeildIndex.value()];
+								Infer.reserve(VariantInfo.Types.size());
+								for (auto& Item : VariantInfo.Types)
+								{
+									Infer.push_back({ false,Item });
+								} 
+							}	
+						}
+					}
+
+				}
+			}
+			else if (Item->Type == SymbolType::Generic_Tag)
+			{
+				TagInfo* V = Item->Get_Info<TagInfo>();
+				Symbol_Update_ClassSym_ToFixedTypes(Item);
+				String Scope = V->FullName;
+				ScopeHelper::GetApendedString(Scope, GenericTestStr);
+				ScopeHelper::GetApendedString(Scope, ClassConstructorfunc);
+				
+				auto ConstructorSymbols = GetSymbolsWithName(Scope, SymbolType::Any);
+
+
+				for (auto& Item2 : ConstructorSymbols)
+				{
+					FuncInfo* Info = Item2->Get_Info<FuncInfo>();
+					bool PushThisPar = Info->IsObjectCall();
+
+					size_t parcount = PushThisPar ? Pars._Nodes.size() + 1 : Pars._Nodes.size();
+					if (Info->Pars.size() == parcount) {
+						Infer = Info->Pars;
+						Inferautopushtis = PushThisPar;
+					}
+				}
+			}
 		}
 	}
 

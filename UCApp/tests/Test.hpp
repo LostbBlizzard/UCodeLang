@@ -100,7 +100,7 @@ inline String ModeType(OptimizationFlags Flags)
 	return r;
 }
 
-static const Array<TestInfo, 131> Tests{
+static const Array<TestInfo, 132> Tests{
 
 	TestInfo("main_0", "BasicTests/main.uc", "Main", SuccessCondition::Compilation),
 
@@ -279,7 +279,9 @@ static const Array<TestInfo, 131> Tests{
 	
 	TestInfo("UnusedGenericPackParameter","Bugs/UnusedGenericPackParameter.uc", "main", SuccessCondition::CompilationFail),
 	
-	TestInfo("GenericPackWithType","Generics/GenericPackWithType", "main", SuccessCondition::CompilationFail),
+	TestInfo("GenericPackWithType","Generics/GenericPackWithType.uc", "main", SuccessCondition::CompilationFail),
+	
+	TestInfo("GenericPackWithType 2","Generics/GenericPackWithType 2.uc", "main", SuccessCondition::Compilation,bool(true)),
 };
 struct SkipTestRange
 {
