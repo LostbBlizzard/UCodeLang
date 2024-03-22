@@ -1401,7 +1401,7 @@ void SystematicAnalysis::CompileTimeforNodeEvaluateStatements(const CompileTimeF
 	size_t OldErrCount = _ErrorsOutput->Get_Errors().size();
 
 	_PassType = PassType::GetTypes;
-	for (const auto& node2 : node._body._Nodes)
+	for (const auto& node2 : node._Body._Nodes)
 	{
 		OnStatement(*node2);
 	}
@@ -1410,7 +1410,7 @@ void SystematicAnalysis::CompileTimeforNodeEvaluateStatements(const CompileTimeF
 	if (!GotErrs)
 	{
 		_PassType = PassType::FixedTypes;
-		for (const auto& node2 : node._body._Nodes)
+		for (const auto& node2 : node._Body._Nodes)
 		{
 			OnStatement(*node2);
 		}

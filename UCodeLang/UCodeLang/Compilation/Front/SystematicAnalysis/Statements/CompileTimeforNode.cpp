@@ -255,7 +255,7 @@ void SystematicAnalysis::OnCompileTimeforNode(const CompileTimeForNode& node)
 				}
 				_Table.AddScope(ScopeName + std::to_string(i));
 
-				for (const auto& node2 : node._body._Nodes)
+				for (const auto& node2 : node._Body._Nodes)
 				{
 					OnStatement(*node2);
 				}
@@ -281,7 +281,7 @@ void SystematicAnalysis::OnCompileTimeforNode(const CompileTimeForNode& node)
 					auto Token = NeverNullptr(node._Name);
 					Push_ExtendedErr("Were '" + ScopeHelper::GetNameFromFullName(Item->FullName) + "' = " + ToString(Item->VarType, ConstExpressionInfo->Ex), Token);
 				}
-				for (const auto& node2 : node._body._Nodes)
+				for (const auto& node2 : node._Body._Nodes)
 				{
 					OnStatement(*node2);
 				}

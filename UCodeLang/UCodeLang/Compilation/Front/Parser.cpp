@@ -3763,24 +3763,77 @@ void Parser::ForNodeModernIntLoop(ForNode& out, const Token* OtherToken, const T
 
 GotNodeType Parser::GetForNode(ForNode& out)
 {
-	auto ForToken = TryGetToken(); TokenTypeCheck(ForToken, TokenType::KeyWord_for);
+	//auto ForToken = TryGetToken(); TokenTypeCheck(ForToken, TokenType::KeyWord_for);
 	NextToken();
 
 	auto LeftBracket = TryGetToken(); TokenTypeCheck(LeftBracket, TokenType::Left_Bracket);
 	NextToken();
 
-	TypeNode V;
-	auto TypeV = GetType(V, false, false);
+	bool didoneloop = false;
+	do
+	{
+		if (didoneloop)
+		{
+			NextToken();//to pass the , token
+		}
 
-	auto NameToken = TryGetToken(); TokenTypeCheck(NameToken, TokenType::Name);
-	NextToken();
+		
+		bool isjustname = false;
+		auto ind = _TokenIndex;
+
+		{
+			NextToken();
+			auto token = TryGetToken();
+			if (token->Type == TokenType::Colon
+				|| token->Type == TokenType::Comma
+				|| token->Type == TokenType::equal)
+			{
+				isjustname = true;
+			}
+
+			_TokenIndex = ind;
+		}
+
+
+		auto NameToken = TryGetToken(); TokenTypeCheck(NameToken, TokenType::Name);
+		TypeNode V;
+		if (isjustname)
+		{
+			TypeNode::Gen_Var(V,*NameToken);
+		}
+		else
+		{
+			GetType(V, false, false);
+			NameToken = TryGetToken();
+		}
+		NextToken();
+
+		if (didoneloop)
+		{
+			ForNode::ForVarable val;
+			val._Name = NameToken;
+			val._typeNode = std::move(V);
+
+			out._OtherVarables.push_back(std::move(val));
+		}
+		else
+		{
+			out._Name = NameToken;
+			out._typeNode = std::move(V);
+		}
+
+		didoneloop = true;
+
+	} while (TryGetToken()->Type ==TokenType::Comma);
 
 	auto Assemnt = TryGetToken();
 	if (Assemnt->Type == TokenType::equal)
 	{
+		if (out._OtherVarables.size())
+		{
+			TokenTypeCheck(Assemnt, TokenType::Colon);
+		}
 
-		out._typeNode = std::move(V);
-		out._Name = NameToken;
 		out._Type = ForNode::ForType::Traditional;
 
 		NextToken();
@@ -3797,8 +3850,6 @@ GotNodeType Parser::GetForNode(ForNode& out)
 	else if (Assemnt->Type == TokenType::Colon)
 	{
 		NextToken();
-		out._typeNode = std::move(V);
-		out._Name = NameToken;
 		out._Type = ForNode::ForType::modern;
 
 		GetExpressionTypeNode(out._Modern_List);
@@ -3812,7 +3863,7 @@ GotNodeType Parser::GetForNode(ForNode& out)
 		{
 			NextToken();
 
-			ForNodeModernIntLoop(out, OtherToken, NameToken, TokenType::lessthan, TokenType::increment);
+			ForNodeModernIntLoop(out, OtherToken,out._Name, TokenType::lessthan, TokenType::increment);
 		}
 		else if (OtherToken->Type == TokenType::equal)
 		{
@@ -3820,12 +3871,12 @@ GotNodeType Parser::GetForNode(ForNode& out)
 			TokenTypeCheck(TryGetToken(), TokenType::lessthan);
 			NextToken();
 
-			ForNodeModernIntLoop(out, OtherToken, NameToken, TokenType::Notequal_Comparison, TokenType::decrement);
+			ForNodeModernIntLoop(out, OtherToken,out._Name, TokenType::Notequal_Comparison, TokenType::decrement);
 		}
 	}
 	else
 	{
-		TokenTypeCheck(NameToken, TokenType::equal);
+		TokenTypeCheck(Assemnt, TokenType::equal);
 	}
 
 	auto RightBracket = TryGetToken(); TokenTypeCheck(RightBracket, TokenType::Right_Bracket); NextToken();
@@ -4536,87 +4587,8 @@ GotNodeType Parser::GetCompileTimeIf(CompileTimeIfNode*& out, bool IsInFunc)
 }
 GotNodeType Parser::GetCompileTimeForNode(CompileTimeForNode& out)
 {
-	auto ForToken = TryGetToken(); TokenTypeCheck(ForToken, TokenType::KeyWord_ClassFor);
-	NextToken();
-
-	auto LeftBracket = TryGetToken(); TokenTypeCheck(LeftBracket, TokenType::Left_Bracket);
-	NextToken();
-
-	TypeNode V;
-	auto TypeV = GetType(V, false, false);
-
-	auto NameToken = TryGetToken(); TokenTypeCheck(NameToken, TokenType::Name);
-	NextToken();
-
-	auto Assemnt = TryGetToken();
-	if (Assemnt->Type == TokenType::equal)
-	{
-
-		out._TypeNode = std::move(V);
-		out._Name = NameToken;
-		out._Type = CompileTimeForNode::ForType::Traditional;
-
-		NextToken();
-		GetExpressionTypeNode(out._Traditional_Assignment_Expression);
-
-		TokenTypeCheck(TryGetToken(), TokenType::Semicolon); NextToken();
-
-		GetExpressionTypeNode(out._BoolExpression);
-
-		TokenTypeCheck(TryGetToken(), TokenType::Semicolon); NextToken();
-
-		GetPostfixStatement(out._OnNextStatement, false);
-	}
-	else if (Assemnt->Type == TokenType::Colon)
-	{
-		NextToken();
-		out._TypeNode = std::move(V);
-		out._Name = NameToken;
-		out._Type = CompileTimeForNode::ForType::modern;
-
-		GetExpressionTypeNode(out._Modern_List);
-
-
-
-
-		auto OtherToken = TryGetToken();
-
-		if (OtherToken->Type == TokenType::RightAssignArrow)
-		{
-			NextToken();
-
-			CompileTimeForNodeModernIntLoop(out, OtherToken, NameToken, TokenType::lessthan, TokenType::increment);
-		}
-		else if (OtherToken->Type == TokenType::equal)
-		{
-			NextToken();
-			TokenTypeCheck(TryGetToken(), TokenType::lessthan);
-			NextToken();
-
-			CompileTimeForNodeModernIntLoop(out, OtherToken, NameToken, TokenType::Notequal_Comparison, TokenType::decrement);
-		}
-	}
-	else
-	{
-		TokenTypeCheck(NameToken, TokenType::equal);
-	}
-
-	auto RightBracket = TryGetToken(); TokenTypeCheck(RightBracket, TokenType::Right_Bracket); NextToken();
-
-	auto Token3 = TryGetToken();
-	if (Token3->Type != TokenType::Semicolon)
-	{
-		TokenTypeCheck(Token3, TokenType::Colon);
-		NextToken();
-
-		auto Statements = GetStatementsorStatementNode(out._body);
-	}
-	else
-	{
-		NextToken();
-	}
-
-	return GotNodeType::Success;
+	ForNode& f = *(ForNode*)&out;
+	return GetForNode(f);
 }
 void Parser::CompileTimeForNodeModernIntLoop(CompileTimeForNode& out, const Token* OtherToken, const Token* NameToken, TokenType BinaryOp, TokenType PostFixOp)
 {
