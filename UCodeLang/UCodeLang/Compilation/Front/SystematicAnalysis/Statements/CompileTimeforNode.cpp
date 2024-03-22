@@ -67,6 +67,16 @@ void SystematicAnalysis::OnCompileTimeforNode(const CompileTimeForNode& node)
 					auto& ParSyb = Symbol_AddSymbol(SymbolType::Unmaped_Varable, VarableName, _Table._Scope.GetApendedString(VarableName), AccessModifierType::Public);
 					ParSyb.VarType = Type_GetUnMapType();
 					_Table.AddSymbolID(ParSyb, Symbol_GetSymbolID(&ParSyb));
+
+					for (auto& Item : node._OtherVarables)
+					{
+						const String VarableName = (String)Item._Name->Value._String;
+						auto& ParSyb = Symbol_AddSymbol(SymbolType::Unmaped_Varable, VarableName, _Table._Scope.GetApendedString(VarableName), AccessModifierType::Public);
+						ParSyb.VarType = Type_GetUnMapType();
+					
+						_Table.AddSymbolID(ParSyb, Symbol_GetSymbolID(&ParSyb));
+					}
+
 					{
 						auto Token = NeverNullptr(node._Name);
 						Push_ExtendedErr("Were '" + VarableName + "' is unmaped for Errors.Before for loop expansion", Token);
@@ -86,142 +96,197 @@ void SystematicAnalysis::OnCompileTimeforNode(const CompileTimeForNode& node)
 				//
 				if (ListTypeSyb->Type == SymbolType::Type_Pack)
 				{
-					const Node* NodePtr = node._Modern_List._Value.get();
-					if (NodePtr->Get_Type() == NodeType::ValueExpressionNode)
+					if (node._OtherVarables.size() > 1)
 					{
-						const ValueExpressionNode* ValueNodePtr = ValueExpressionNode::As(NodePtr);
-						const auto ExValuePtr = ValueNodePtr->_Value.get();
-						if (ExValuePtr->Get_Type() == NodeType::ReadVariableNode)
+						LogError(ErrorCodes::InValidName, "A for loop of '" + ToString(ListType) + "' cant be spit into " + std::to_string(node._OtherVarables.size() + 1) + " values",NeverNullptr(node._Name) );
+					}
+					else
+					{
+						const Node* NodePtr = node._Modern_List._Value.get();
+						if (NodePtr->Get_Type() == NodeType::ValueExpressionNode)
 						{
-							const auto ReadVarablePtr = ReadVariableNode::As(ExValuePtr);
-
-							_GetExpressionMode.push(GetValueMode::Read);
-							GetMemberTypeSymbolFromVar_t V;
-							bool VBool = Symbol_MemberTypeSymbolFromVar(ReadVarablePtr->_VariableName, V);
-							_GetExpressionMode.pop();
-
-							if (VBool)
+							const ValueExpressionNode* ValueNodePtr = ValueExpressionNode::As(NodePtr);
+							const auto ExValuePtr = ValueNodePtr->_Value.get();
+							if (ExValuePtr->Get_Type() == NodeType::ReadVariableNode)
 							{
-								auto ParSyb = V._Symbol;
-								if (ParSyb->Type == SymbolType::ParameterVarable)
+								const auto ReadVarablePtr = ReadVariableNode::As(ExValuePtr);
+
+								_GetExpressionMode.push(GetValueMode::Read);
+								GetMemberTypeSymbolFromVar_t V;
+								bool VBool = Symbol_MemberTypeSymbolFromVar(ReadVarablePtr->_VariableName, V);
+								_GetExpressionMode.pop();
+
+								if (VBool)
 								{
-									const ParameterInfo* ParSybInfo = ParSyb->Get_Info<ParameterInfo>();
-
-									const TypePackInfo* PackInfo = ListTypeSyb->Get_Info<TypePackInfo>();
-
-									const String ScopeName = std::to_string(Symbol_GetSymbolID(node).AsInt());
-									const String VarableName = (String)node._Name->Value._String;
-
-									CompileTimeforNode TepData;
-									TepData.SybToLoopOver = V._Symbol;
-
-
-									for (size_t i = 0; i < PackInfo->List.size(); i++)
+									auto ParSyb = V._Symbol;
+									if (ParSyb->Type == SymbolType::ParameterVarable)
 									{
-										auto& Item = PackInfo->List[i];
+										const ParameterInfo* ParSybInfo = ParSyb->Get_Info<ParameterInfo>();
 
-										_Table.AddScope(ScopeName + std::to_string(i));
+										const TypePackInfo* PackInfo = ListTypeSyb->Get_Info<TypePackInfo>();
 
-
-										auto& ParSyb = Symbol_AddSymbol(SymbolType::ParameterVarable, VarableName, _Table._Scope.GetApendedString(VarableName), AccessModifierType::Public);
-
+										bool withindex = node._OtherVarables.size() == 1;
+										
+										const ForNode::ForVarable* other = nullptr;
+										if (withindex)
 										{
-											ParameterInfo* ParInfo = new ParameterInfo();
-											*ParInfo = *ParSybInfo;
-											ParSyb.Info.reset(ParInfo);
+											other = &node._OtherVarables[0];
 										}
 
-										_Table.AddSymbolID(ParSyb, Symbol_GetSymbolID(&ParSyb));
-										ParSyb.VarType = Item;
+										const String ScopeName = std::to_string(Symbol_GetSymbolID(node).AsInt());
+										const String VarableName = withindex ?
+											(String)other->_Name->Value._String : (String)node._Name->Value._String;
 
-										size_t OldErrCount = _ErrorsOutput->Get_Errors().size();
+										CompileTimeforNode TepData;
+										TepData.SybToLoopOver = V._Symbol;
+										
+
+										for (size_t i = 0; i < PackInfo->List.size(); i++)
 										{
-											auto Token = NeverNullptr(node._Name);
-											Push_ExtendedErr("Were '" + VarableName + "' is type of " + ToString(ParSyb.VarType), Token);
+											auto& Item = PackInfo->List[i];
+
+											_Table.AddScope(ScopeName + std::to_string(i));
+
+
+											Symbol* NumberVarableSymbol = nullptr;
+											if (withindex)
+											{
+												const String VarableName = (String)node._Name->Value._String;
+												NumberVarableSymbol = &Symbol_AddSymbol(SymbolType::ConstantExpression, VarableName, _Table._Scope.GetApendedString(VarableName), AccessModifierType::Public);
+												NumberVarableSymbol->VarType = TypesEnum::uIntPtr;
+
+												ConstantExpressionInfo* cxinfo = new ConstantExpressionInfo();
+
+												bool is32mode = Type_GetSize(NumberVarableSymbol->VarType).value() == 4;	
+												
+												cxinfo->Ex.ObjectSize = is32mode ? 4 : 8;
+												cxinfo->Ex.Object_AsPointer.reset(new Byte[cxinfo->Ex.ObjectSize]);
+
+												if (is32mode)
+												{
+													*(UInt32*)cxinfo->Ex.Object_AsPointer.get() = i;
+												}
+												else
+												{
+													*(UInt64*)cxinfo->Ex.Object_AsPointer.get() = i;
+												}
+
+												NumberVarableSymbol->Info.reset(cxinfo);
+
+												TypeSymbol VarType;
+												if (!Type_CanBeImplicitConverted(VarType, NumberVarableSymbol->VarType, false, true))
+												{
+													LogError_CantCastImplicitTypes(NeverNullptr(node._Name), NumberVarableSymbol->VarType, VarType, false, true);
+												}
+											}
+											auto& ParSyb = Symbol_AddSymbol(SymbolType::ParameterVarable, VarableName, _Table._Scope.GetApendedString(VarableName), AccessModifierType::Public);
+
+											{
+												ParameterInfo* ParInfo = new ParameterInfo();
+												*ParInfo = *ParSybInfo;
+												ParSyb.Info.reset(ParInfo);
+											}
+
+											_Table.AddSymbolID(ParSyb, Symbol_GetSymbolID(&ParSyb));
+											ParSyb.VarType = Item;
+
+											size_t OldErrCount = _ErrorsOutput->Get_Errors().size();
+											{
+												auto Token = NeverNullptr(node._Name);
+												Push_ExtendedErr("Were '" + VarableName + "' is type of " + ToString(ParSyb.VarType), Token);
+											}
+											CompileTimeforNodeEvaluateStatements(node);
+											{
+												Pop_ExtendedErr();
+											}
+
+											TepData.SybItems.push_back(&ParSyb);
+											if (withindex) {
+												TepData.SymOtherItems.push_back(NumberVarableSymbol);
+											}
+
+											_Table.RemoveScope();
+
+											bool GotErrs = OldErrCount != _ErrorsOutput->Get_Errors().size();
+											if (GotErrs) { continue; }
 										}
-										CompileTimeforNodeEvaluateStatements(node);
-										{
-											Pop_ExtendedErr();
-										}
 
-										TepData.SybItems.push_back(&ParSyb);
-
-
-										_Table.RemoveScope();
-
-										bool GotErrs = OldErrCount != _ErrorsOutput->Get_Errors().size();
-										if (GotErrs) { continue; }
+										_ForNodes.AddValue(Symbol_GetSymbolID(node), std::move(TepData));
 									}
-
-									_ForNodes.AddValue(Symbol_GetSymbolID(node), std::move(TepData));
 								}
 							}
 						}
 					}
-
 				}
 				else if (ListTypeSyb->Type == SymbolType::Type_StaticArray)
 				{
-					const StaticArrayInfo* StaticInfo = ListTypeSyb->Get_Info<StaticArrayInfo>();
-
-
-					const String ScopeName = std::to_string(Symbol_GetSymbolID(node).AsInt());
-					const String VarableName = (String)node._Name->Value._String;
-
-					auto ListArray = Eval_Evaluate(ListType, node._Modern_List);
-					if (ListArray.has_value())
+					if (node._OtherVarables.size() > 1)
 					{
-						size_t ItemSize = Type_GetSize(StaticInfo->Type).value();
+						LogError(ErrorCodes::InValidName, "A for loop of '" + ToString(ListType) + "' cant be spit into " + std::to_string(node._OtherVarables.size() + 1) + " values", NeverNullptr(node._Name));
+					}
+					else
+					{
+						const StaticArrayInfo* StaticInfo = ListTypeSyb->Get_Info<StaticArrayInfo>();
 
-						RawEvaluatedObject _DataAsIndex;
-						_DataAsIndex.ObjectSize = ItemSize;
-						_DataAsIndex.Object_AsPointer.reset(new Byte[ItemSize]);
 
-						CompileTimeforNode TepData;
-						TepData.SybToLoopOver = ListTypeSyb;
+						const String ScopeName = std::to_string(Symbol_GetSymbolID(node).AsInt());
+						const String VarableName = (String)node._Name->Value._String;
 
-						auto& ListArrayValue = ListArray.value();
-
-						for (size_t i = 0; i < StaticInfo->Count; i++)
+						auto ListArray = Eval_Evaluate(ListType, node._Modern_List);
+						if (ListArray.has_value())
 						{
-							void* ItemOffset = ListArrayValue.EvaluatedObject.Object_AsPointer.get() + (i * ItemSize);
-							Eval_Set_ObjectAs(StaticInfo->Type, _DataAsIndex, ItemOffset, ItemSize);
+							size_t ItemSize = Type_GetSize(StaticInfo->Type).value();
 
-							_Table.AddScope(ScopeName + std::to_string(i));
+							RawEvaluatedObject _DataAsIndex;
+							_DataAsIndex.ObjectSize = ItemSize;
+							_DataAsIndex.Object_AsPointer.reset(new Byte[ItemSize]);
 
+							CompileTimeforNode TepData;
+							TepData.SybToLoopOver = ListTypeSyb;
 
-							auto& ParSyb = Symbol_AddSymbol(SymbolType::ConstantExpression, VarableName, _Table._Scope.GetApendedString(VarableName), AccessModifierType::Public);
-							_Table.AddSymbolID(ParSyb, Symbol_GetSymbolID(&ParSyb));
+							auto& ListArrayValue = ListArray.value();
 
-
-							ConstantExpressionInfo* ContInfo = new ConstantExpressionInfo();
-							ParSyb.Info.reset(ContInfo);
-
-							ContInfo->Ex = _DataAsIndex;
-							ParSyb.VarType = StaticInfo->Type;
-
-							size_t OldErrCount = _ErrorsOutput->Get_Errors().size();
+							for (size_t i = 0; i < StaticInfo->Count; i++)
 							{
-								auto Token = NeverNullptr(node._Name);
-								Push_ExtendedErr("Were '" + VarableName + "' = " + ToString(ParSyb.VarType, ContInfo->Ex), Token);
+								void* ItemOffset = ListArrayValue.EvaluatedObject.Object_AsPointer.get() + (i * ItemSize);
+								Eval_Set_ObjectAs(StaticInfo->Type, _DataAsIndex, ItemOffset, ItemSize);
+
+								_Table.AddScope(ScopeName + std::to_string(i));
+
+
+								auto& ParSyb = Symbol_AddSymbol(SymbolType::ConstantExpression, VarableName, _Table._Scope.GetApendedString(VarableName), AccessModifierType::Public);
+								_Table.AddSymbolID(ParSyb, Symbol_GetSymbolID(&ParSyb));
+
+
+								ConstantExpressionInfo* ContInfo = new ConstantExpressionInfo();
+								ParSyb.Info.reset(ContInfo);
+
+								ContInfo->Ex = _DataAsIndex;
+								ParSyb.VarType = StaticInfo->Type;
+
+								size_t OldErrCount = _ErrorsOutput->Get_Errors().size();
+								{
+									auto Token = NeverNullptr(node._Name);
+									Push_ExtendedErr("Were '" + VarableName + "' = " + ToString(ParSyb.VarType, ContInfo->Ex), Token);
+								}
+								CompileTimeforNodeEvaluateStatements(node);
+								{
+									Pop_ExtendedErr();
+								}
+								TepData.SybItems.push_back(&ParSyb);
+
+
+
+
+								_Table.RemoveScope();
+
+								bool GotErrs = OldErrCount != _ErrorsOutput->Get_Errors().size();
+								if (GotErrs) { continue; }
 							}
-							CompileTimeforNodeEvaluateStatements(node);
-							{
-								Pop_ExtendedErr();
-							}
-							TepData.SybItems.push_back(&ParSyb);
 
 
-
-
-							_Table.RemoveScope();
-
-							bool GotErrs = OldErrCount != _ErrorsOutput->Get_Errors().size();
-							if (GotErrs) { continue; }
+							_ForNodes.AddValue(Symbol_GetSymbolID(node), std::move(TepData));
 						}
-
-
-						_ForNodes.AddValue(Symbol_GetSymbolID(node), std::move(TepData));
 					}
 				}
 				else if (Type_IsUnMapType(*ListTypeSyb))

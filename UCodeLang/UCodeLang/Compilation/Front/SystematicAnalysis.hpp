@@ -726,6 +726,7 @@ private:
 	{
 		Symbol* SybToLoopOver = nullptr;
 		Vector<Symbol*> SybItems;
+		Vector<Symbol*> SymOtherItems;
 	};
 	struct VarableMemberData
 	{
