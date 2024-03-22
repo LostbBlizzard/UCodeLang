@@ -1008,6 +1008,11 @@ struct ForNode :Node
 	{
 
 	}
+	ForNode(NodeType type) : Node(type)
+	{
+		UCodeLangAssert(type ==NodeType::CompileTimeForNode)
+
+	}
 	AddforNode(ForNode);
 
 
@@ -1019,6 +1024,12 @@ struct ForNode :Node
 	PostfixVariableNode _OnNextStatement;
 	//Modern
 	ExpressionNodeType _Modern_List;
+	struct ForVarable
+	{
+		TypeNode _typeNode;
+		const Token* _Name = nullptr;
+	};
+	Vector<ForVarable> _OtherVarables;
 	//Both
 	TypeNode _typeNode;
 	const Token* _Name = nullptr;
@@ -1235,33 +1246,13 @@ struct CompileTimeIfNode :Node
 	Unique_ptr<Node> _Else;
 };
 
-struct CompileTimeForNode :Node
+struct CompileTimeForNode : ForNode
 {
-	enum class ForType
-	{
-		Traditional,//for [int a = 0;a < 10;a++];
-		modern,//for [var& Item : List];
-	};
-
-	CompileTimeForNode() : Node(NodeType::CompileTimeForNode)
+	CompileTimeForNode() : ForNode(NodeType::CompileTimeForNode)
 	{
 
 	}
 	AddforNode(CompileTimeForNode);
-
-
-	ForType _Type = ForType::Traditional;
-
-	//Traditional
-	ExpressionNodeType _Traditional_Assignment_Expression;
-	ExpressionNodeType _BoolExpression;
-	PostfixVariableNode _OnNextStatement;
-	//Modern
-	ExpressionNodeType _Modern_List;
-	//Both
-	TypeNode _TypeNode;
-	const Token* _Name = nullptr;
-	StatementsNode _body;
 };
 
 struct ExtendedScopeExpression : Node
