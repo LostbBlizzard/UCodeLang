@@ -115,7 +115,7 @@ void SystematicAnalysis::BuildCode()
 	UCodeLangAssert(_PassType == PassType::FixedTypes);
 	for (auto& Item : _Table.Symbols)
 	{
-		if (!Item->OutputIR) { continue; }
+		if (!Item->OutputIR || StringHelper::Contains(Item->FullName,GenericTestStr)) { continue; }
 		UCodeLangAssert(Item->ValidState == SymbolValidState::valid);
 
 

@@ -1223,105 +1223,31 @@ SystematicAnalysis::UrinaryOverLoadWith_t SystematicAnalysis::Type_HasUrinaryOve
 		{
 			if (Op == TokenType::QuestionMark)
 			{
-				auto name = ScopeHelper::GetNameFromFullName(Syb->FullName);
 
-				if (StringHelper::StartWith(name,UCode_OptionalType))
+				auto optinfo = IsOptionalType(TypeA);
+				if (optinfo.has_value())
 				{
-					EnumInfo* info = Syb->Get_Info<EnumInfo>();
-				
-					if (info->Fields.size() != 2 || !info->VariantData.has_value())
+					auto rettype = optinfo.value().SomeType;
+
+
+					_LastExpressionType = rettype;//Should return rettype and not set _LastExpressionType
+
+					return { {true} };
+				}
+				else
+				{
+					auto resultinfo = IsResultType(TypeA);
+
+					if (resultinfo.has_value())
 					{
-						return {};
-					}
-					EnumVariantField* hasNone = nullptr;
-					EnumVariantField* hasSome = nullptr;
+						auto& resulttype = resultinfo.value();
 
-					for (auto& Item : info->VariantData.value().Variants)
-					{
-						if (Item.Types.size() ==1)
-						{
-							hasSome = &Item;
-						}
-						else if (Item.Types.size() == 0)
-						{
-							hasNone = &Item;
-						}
-
-					}
-
-
-					if (hasSome && hasNone)
-					{
-						auto rettype = hasSome->Types[0];
-						
-
-						_LastExpressionType = rettype;//Should return rettype and not set _LastExpressionType
+						_LastExpressionType = resulttype.SomeType;
 
 						return { {true} };
 					}
-					else
-					{
-						return {};
-					}
-
-					
-
 				}
-				else if (StringHelper::StartWith(name,UCode_ResultType))
-				{
-					EnumInfo* info = Syb->Get_Info<EnumInfo>();
-
-					const Symbol* Resultgeneric = Symbol_GetSymbol(UCode_ResultType,SymbolType::Generic_Enum).value().value();
-					const EnumInfo* ResultgenericInfo = Resultgeneric->Get_Info<EnumInfo>();
-
-					if (info->Fields.size() != 2 || !info->VariantData.has_value())
-					{
-						return {};
-					}
-
-					if (ResultgenericInfo->_GenericData._Genericlist.size() == 2
-						&& ResultgenericInfo->Fields.size() != 2 || !ResultgenericInfo->VariantData.has_value())
-					{
-						return {};
-					}
-
-					size_t Indexval = 0;
-					size_t Indexerr = 0;
-
-					if (ResultgenericInfo->VariantData.value().Variants[0].Types.front()._CustomTypeSymbol == ResultgenericInfo->_GenericData._Genericlist[0].SybID)
-					{
-						Indexval = 0;
-						Indexerr = 1;
-					}
-					else
-					{
-						Indexval = 1;
-						Indexerr = 0;
-					}
-
-					UCodeLangAssert(Indexval != Indexerr);
-
-					auto& variantinfo = info->VariantData.value().Variants;
-
-					EnumVariantField* hasval = &variantinfo[Indexval];
-					EnumVariantField* haserr = &variantinfo[Indexerr];
-
-					if (hasval && haserr)
-					{
-						auto rettype = hasval->Types[0];
-
-
-						_LastExpressionType = rettype;//Should return rettype and not set _LastExpressionType
-
-						return { {true} };
-					}
-					else
-					{
-						return {};
-					}
-				}
-
-			}
+			}	
 		}
 	}
 	else
