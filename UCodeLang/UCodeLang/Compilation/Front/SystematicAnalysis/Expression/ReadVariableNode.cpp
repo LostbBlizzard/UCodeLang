@@ -1176,26 +1176,71 @@ bool SystematicAnalysis::Symbol_StepGetMemberTypeSymbolFromVar(const ScopedNameN
 		}
 		else if (Out._Symbol->Type == SymbolType::Class_Field)
 		{
-			int a = 0;
 			String ClassSym = ScopeHelper::GetReMoveScope(Out._Symbol->FullName);
 			auto LamdbSym = GetSymbolsWithName(ClassSym).front();
-			UCodeLangAssert(IsSymbolLambdaObjectClass(NeverNullptr(LamdbSym)));
-			UCodeLangAssert(_PassType == PassType::BuidCode);
 			
-			UCodeLangAssert(OpType == ScopedName::Operator_t::Dot);//TODO remove this Assert and add if for it
+			if (IsSymbolLambdaObjectClass(NeverNullptr(LamdbSym))) 
+			{
+				UCodeLangAssert(_PassType == PassType::BuidCode);
 
-			ClassInfo* CInfo = LamdbSym->Get_Info<ClassInfo>();
-			auto ClassSym2 = Symbol_GetSymbol(CInfo->GetField(ThisSymbolName).value()->Type).value();
-			auto CInfo2 = ClassSym2->Get_Info<ClassInfo>();
-			auto field = CInfo2->GetField(ItemTokenString);
-			auto FeldInfo = field.value();
+				UCodeLangAssert(OpType == ScopedName::Operator_t::Dot);//TODO remove this Assert and add if for it
 
-			auto SymFullName = ClassSym2->FullName;
-			ScopeHelper::GetApendedString(SymFullName, ItemTokenString);
-			auto FeldSybOp = Symbol_GetSymbol(SymFullName, SymbolType::Type);
+				ClassInfo* CInfo = LamdbSym->Get_Info<ClassInfo>();
+				auto ClassSym2 = Symbol_GetSymbol(CInfo->GetField(ThisSymbolName).value()->Type).value();
+				auto CInfo2 = ClassSym2->Get_Info<ClassInfo>();
+				auto field = CInfo2->GetField(ItemTokenString);
+				auto FeldInfo = field.value();
 
-			Out._Symbol = FeldSybOp.value().value();
-			Out.Type = FeldInfo->Type;
+				auto SymFullName = ClassSym2->FullName;
+				ScopeHelper::GetApendedString(SymFullName, ItemTokenString);
+				auto FeldSybOp = Symbol_GetSymbol(SymFullName, SymbolType::Type);
+
+				Out._Symbol = FeldSybOp.value().value();
+				Out.Type = FeldInfo->Type;
+			}
+			else
+			{
+				UCodeLangAssert(OpType == ScopedName::Operator_t::Dot);//TODO remove this Assert and add if for it
+
+
+				auto v = Out.Type;
+				auto LasTypeSym = Symbol_GetSymbol(v);
+
+				if (!LasTypeSym.has_value())
+				{
+					LogError_CantFindVarMemberError(ItemToken, ItemTokenString, Out.Type);
+					Out._Symbol = nullptr;
+					Out.Type = TypesEnum::Null;
+
+					return false;
+				}
+
+				ClassInfo* CInfo = LasTypeSym.value()->Get_Info<ClassInfo>();
+
+				auto fieldop = CInfo->GetField(ItemTokenString);
+				if (!fieldop.has_value())
+				{
+					if (_PassType == PassType::FixedTypes)
+					{
+						LogError_CantFindVarMemberError(ItemToken,ItemTokenString, Out.Type);
+					}
+
+					Out._Symbol = nullptr;
+					Out.Type = TypesEnum::Null;
+
+					return false;
+				}
+				auto* field = fieldop.value();
+
+				auto SymFullName = LasTypeSym.value()->FullName;
+				ScopeHelper::GetApendedString(SymFullName, ItemTokenString);
+				auto FeldSybOp = Symbol_GetSymbol(SymFullName, SymbolType::Type);
+
+				Out._Symbol = FeldSybOp.value().value();
+				Out.Type = field->Type;
+
+
+			}
 		}
 		else
 		{
@@ -1393,7 +1438,7 @@ void  SystematicAnalysis::BuildMember_Access(const GetMemberTypeSymbolFromVar_t&
 		TypeSymbol ObjectType;
 		Variant<IRPar*, IRInstruction*> PointerIr;
 
-		auto Token = In.Start[In.End - 1]._token;
+		auto Token = In.Start[0]._token;
 
 		bool test = false;
 		if (IsSymbolLambdaObjectClass(ThisParSym) && Token->Type != TokenType::KeyWord_This
@@ -1415,6 +1460,7 @@ void  SystematicAnalysis::BuildMember_Access(const GetMemberTypeSymbolFromVar_t&
 		{
 			PointerIr = &_IR_LookingAtIRFunc->Pars.front();
 			ObjectType = *Func->GetObjectForCall();
+			Last_Type = ObjectType;
 		}
 
 		ObjectType._IsAddress = false;
@@ -1436,6 +1482,17 @@ void  SystematicAnalysis::BuildMember_Access(const GetMemberTypeSymbolFromVar_t&
 
 			V = CInfo2;
 		}
+		else if (In.End > 1 && false)
+		{
+			auto token = In.Start[0]._token;
+			size_t memberindex = V->GetFieldIndex(token->Value._String).value();
+
+			auto sym = Symbol_GetSymbol(token->Value._String, SymbolType::Any).value();
+
+			auto vartype = sym->VarType;
+			V = Symbol_GetSymbol(vartype).value()->Get_Info<ClassInfo>();
+			Last_Type = sym->VarType;
+		}
 
 		size_t MemberIndex = V->GetFieldIndex(Str).value();
 
@@ -1453,7 +1510,7 @@ void  SystematicAnalysis::BuildMember_Access(const GetMemberTypeSymbolFromVar_t&
 			UCodeLangUnreachable();
 		}
 
-		return;
+		Last_Type = V->Fields[MemberIndex].Type;
 	}
 	else if (In.Start[0]._token->Type == TokenType::KeyWord_This)
 	{
