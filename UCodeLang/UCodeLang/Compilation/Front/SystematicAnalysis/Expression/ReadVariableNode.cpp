@@ -821,7 +821,10 @@ bool SystematicAnalysis::Symbol_StepGetMemberTypeSymbolFromVar(const ScopedNameN
 		}
 	}
 
-
+	if (Type_IsUnMapType(Out.Type))
+	{
+		return false;
+	}
 	if (OpType == ScopedName::Operator_t::Null
 		|| OpType == ScopedName::Operator_t::ScopeResolution
 		|| OpType == ScopedName::Operator_t::Dot)
@@ -1481,18 +1484,7 @@ void  SystematicAnalysis::BuildMember_Access(const GetMemberTypeSymbolFromVar_t&
 			auto CInfo2 = ClassSym2->Get_Info<ClassInfo>();
 
 			V = CInfo2;
-		}
-		else if (In.End > 1 && false)
-		{
-			auto token = In.Start[0]._token;
-			size_t memberindex = V->GetFieldIndex(token->Value._String).value();
-
-			auto sym = Symbol_GetSymbol(token->Value._String, SymbolType::Any).value();
-
-			auto vartype = sym->VarType;
-			V = Symbol_GetSymbol(vartype).value()->Get_Info<ClassInfo>();
-			Last_Type = sym->VarType;
-		}
+		}	
 
 		size_t MemberIndex = V->GetFieldIndex(Str).value();
 
