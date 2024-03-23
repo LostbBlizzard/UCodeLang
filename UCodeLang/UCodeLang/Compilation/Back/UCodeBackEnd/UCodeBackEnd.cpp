@@ -1738,8 +1738,8 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 
 		case IRInstructionType::SGreaterThanOrEqual:
 		case IRInstructionType::UGreaterThanOrEqual:
-		{
-			auto optype = Item->ObjectType;
+		{	
+			auto optype = GetType(Item->Target());
 
 			auto BOpVals = DoBinaryOpValues(Item);
 			RegisterID A = BOpVals.A;
@@ -1789,7 +1789,7 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 		case IRInstructionType::ULessThan:
 		case IRInstructionType::SLessThan:
 		{
-			auto optype = Item->ObjectType;
+			auto optype = GetType(Item->Target());
 
 			auto BOpVals = DoBinaryOpValues(Item);
 			RegisterID A = BOpVals.A;
@@ -1842,7 +1842,7 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 		case IRInstructionType::SGreaterThan:
 		case IRInstructionType::UGreaterThan:
 		{
-			auto optype = Item->ObjectType;
+			auto optype = GetType(Item->Target());
 
 			auto BOpVals = DoBinaryOpValues(Item);
 			RegisterID A = BOpVals.A;
@@ -1895,7 +1895,7 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 		case IRInstructionType::SLessThanOrEqual:
 		case IRInstructionType::ULessThanOrEqual:
 		{
-			auto optype = Item->ObjectType;
+			auto optype = GetType(Item->Target());
 
 			auto BOpVals = DoBinaryOpValues(Item);
 			RegisterID A = BOpVals.A;
@@ -1947,7 +1947,7 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 		break;
 		case IRInstructionType::NotEqualTo:
 		{
-			auto optype = Item->ObjectType;
+			auto optype = GetType(Item->Target());
 
 			auto BOpVals = DoBinaryOpValues(Item);
 			RegisterID A = BOpVals.A;
