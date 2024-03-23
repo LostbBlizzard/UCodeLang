@@ -1747,6 +1747,13 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 				return V;//can't check because we are just testing.
 			}
 		}
+		if (Type_IsUnMapType(Ret))
+		{
+			Get_FuncInfo V;
+			V.CantCheckBecauseIsUnMaped = true;
+
+			return V;//can't check because we are just testing.
+		}
 
 
 

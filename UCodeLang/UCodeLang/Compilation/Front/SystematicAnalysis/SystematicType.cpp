@@ -1482,7 +1482,7 @@ void SystematicAnalysis::Type_Convert(const TypeNode& V, TypeSymbol& Out)
 			const UseGenericsNode* _genericval = _generic.value().value();
 
 			auto Val = Generic_InstantiateOrFindGenericSymbol(NeverNullptr(V._name._ScopedName.back()._token), *_genericval, Name);
-			if (!Val.has_value()) { return; }
+			if (!Val.has_value()) { Out = Type_GetUnMapType(); return; }
 			SybV = Val.value().value();
 		}
 		else

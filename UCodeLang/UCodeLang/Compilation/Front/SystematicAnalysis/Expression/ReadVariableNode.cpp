@@ -402,6 +402,14 @@ bool SystematicAnalysis::Symbol_MemberTypeSymbolFromVar(size_t Start, size_t End
 							}
 						}
 					}
+
+					if (Type_IsUnMapType(look))
+					{
+						Out._Symbol = nullptr;
+						Out.Type = look;
+
+						return true;
+					}
 				}
 
 				LogError_CantFindVarError(Token, Str);
