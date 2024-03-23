@@ -76,75 +76,24 @@ void SystematicAnalysis::OnExpressionNode(const UnaryExpressionNode& node)
 					bool IsResultType = false;
 					bool IsOpType = false;
 
-					if (StringHelper::StartWith(name, UCode_OptionalType))
-					{
-						size_t NoneIndexKey = 0;
-						size_t SomeIndexKey = 0;
-						const RawEvaluatedObject* SomeEnumVal = nullptr;
-						const RawEvaluatedObject* NoneEnumVal = nullptr;
-						Optional<SymbolID> enumsometypeclasssym;
-						for (size_t i = 0; i < info->VariantData.value().Variants.size(); i++)
-						{
-							auto& Item = info->VariantData.value().Variants[i];
-							if (Item.Types.size() == 1)
-							{
-								enumsometypeclasssym = Item.ClassSymbol;
-								SomeIndexKey = i;
-								SomeEnumVal = &info->Fields[i].Ex;
-							}
-							else
-							{
-								NoneIndexKey = i;
-								NoneEnumVal = &info->Fields[i].Ex;
-							}
-						}
-						const IRStruct* structir = _IR_Builder.GetSymbol(IR_ConvertToIRType(lasttype)._symbol)->Get_ExAs<IRStruct>();
+					if (IsOptionalType(lasttype))
+					{					
+						auto same = IR_OptionalIsSomeType(lasttype, ex);
 
-
-						UCodeLangAssert(NoneEnumVal);
-						UCodeLangAssert(SomeEnumVal);
-
-						auto Ptr = ex;
-
-						auto key = _IR_LookingAtIRBlock->New_Member_Access(ex, structir, EnumVarantKeyIndex);
-
-						auto same = _IR_LookingAtIRBlock->NewC_Equalto(key, LoadEvaluatedEx(*SomeEnumVal, info->Basetype));
-
-						auto  V = _IR_LookingAtIRBlock->NewConditionalJump(same);
+						auto V = _IR_LookingAtIRBlock->NewConditionalJump(same);
 
 						//ret nothing
 						{
-
-							//Bug happens if bo
-							auto funcret = _FuncStack.front().Pointer->Ret;
-							auto v = _IR_LookingAtIRBlock->NewLoad(IR_ConvertToIRType(funcret));
-							auto retkey = _IR_LookingAtIRBlock->New_Member_Access(v, structir, EnumVarantKeyIndex);
-
-
-							auto info = Symbol_GetSymbol(funcret).value()->Get_Info<EnumInfo>();
-
-							_IR_LookingAtIRBlock->NewStore(retkey, LoadEvaluatedEx(*NoneEnumVal, info->Basetype));
-
+							auto v = IR_MakeOptionalWithNone(lasttype);
 							_IR_LookingAtIRBlock->NewRetValue(v);
 
 							RetData tep;
 							tep.JumpIns = _IR_LookingAtIRBlock->NewJump(0);
 							_IR_Rets.push_back(tep);
 						}
-						_IR_LookingAtIRBlock->UpdateConditionaJump(V, same, _IR_LookingAtIRBlock->InsCount());
+						_IR_LookingAtIRBlock->UpdateConditionaJump(V, same, _IR_LookingAtIRBlock->InsCount());	
 
-						auto unionV = _IR_LookingAtIRBlock->New_Member_Access(ex, structir, EnumVarantUnionIndex);
-						auto eumv = _IR_LookingAtIRBlock->New_Member_Access(unionV, _IR_Builder.GetSymbol(unionV->ObjectType._symbol)->Get_ExAs<IRStruct>(), 0);
-
-						if (enumsometypeclasssym.has_value())
-						{
-							auto v = IR_ConvertToIRType(TypeSymbol(enumsometypeclasssym.value()));
-							_IR_LastExpressionField = _IR_LookingAtIRBlock->New_Member_Access(eumv, _IR_Builder.GetSymbol(v._symbol)->Get_ExAs<IRStruct>(),0);
-						}
-						else 
-						{
-							_IR_LastExpressionField = eumv;
-						}
+						_IR_LastExpressionField = IR_OptionalGetSomeType(lasttype, ex, OptionalGetValueMode::Move);
 					}
 					else if (StringHelper::StartWith(name, UCode_ResultType))
 					{
@@ -227,7 +176,8 @@ void SystematicAnalysis::OnExpressionNode(const UnaryExpressionNode& node)
 
 								_IR_LookingAtIRBlock->NewRetValue(v);
 							}
-							else{
+							else
+							{
 								UCodeLangUnreachable();
 							}
 
@@ -317,6 +267,145 @@ Optional<SystematicAnalysis::OptionalTypeInfo>  SystematicAnalysis::IsOptionalTy
 	}
 
 	return {};
+}
+IRInstruction* SystematicAnalysis::IR_OptionalIsSomeType(const TypeSymbol& Type, IRInstruction* optional)
+{
+	UCodeLangAssert(IsOptionalType(Type))
+
+	const EnumInfo* info = Symbol_GetSymbol(Type).value()->Get_Info<EnumInfo>();
+
+	size_t NoneIndexKey = 0;
+	size_t SomeIndexKey = 0;
+	const RawEvaluatedObject* SomeEnumVal = nullptr;
+	const RawEvaluatedObject* NoneEnumVal = nullptr;
+	Optional<SymbolID> enumsometypeclasssym;
+	for (size_t i = 0; i < info->VariantData.value().Variants.size(); i++)
+	{
+		auto& Item = info->VariantData.value().Variants[i];
+		if (Item.Types.size() == 1)
+		{
+			enumsometypeclasssym = Item.ClassSymbol;
+			SomeIndexKey = i;
+			SomeEnumVal = &info->Fields[i].Ex;
+		}
+		else
+		{
+			NoneIndexKey = i;
+			NoneEnumVal = &info->Fields[i].Ex;
+		}
+	}
+	auto rawtype = Type;
+	rawtype._IsAddress = false;
+	auto irtype = IR_ConvertToIRType(rawtype);
+
+	const IRStruct* structir = _IR_Builder.GetSymbol(irtype._symbol)->Get_ExAs<IRStruct>();
+
+	UCodeLangAssert(NoneEnumVal);
+	UCodeLangAssert(SomeEnumVal);
+
+	bool ispointer = Type.IsAddress();
+
+
+	auto key = ispointer ?
+		_IR_LookingAtIRBlock->New_Member_Dereference(optional, irtype, EnumVarantKeyIndex)
+		: _IR_LookingAtIRBlock->New_Member_Access(optional, structir, EnumVarantKeyIndex);
+
+	auto same = _IR_LookingAtIRBlock->NewC_Equalto(key, LoadEvaluatedEx(*SomeEnumVal, info->Basetype));
+
+
+
+	return same;
+}
+IRInstruction* SystematicAnalysis::IR_OptionalGetSomeType(const TypeSymbol& Type, IRInstruction* optional, OptionalGetValueMode mode)
+{
+	UCodeLangAssert(IsOptionalType(Type))
+
+	const EnumInfo* info = Symbol_GetSymbol(Type).value()->Get_Info<EnumInfo>();
+
+	size_t NoneIndexKey = 0;
+	size_t SomeIndexKey = 0;
+	const RawEvaluatedObject* SomeEnumVal = nullptr;
+	const RawEvaluatedObject* NoneEnumVal = nullptr;
+	Optional<SymbolID> enumsometypeclasssym;
+	for (size_t i = 0; i < info->VariantData.value().Variants.size(); i++)
+	{
+		auto& Item = info->VariantData.value().Variants[i];
+		if (Item.Types.size() == 1)
+		{
+			enumsometypeclasssym = Item.ClassSymbol;
+			SomeIndexKey = i;
+			SomeEnumVal = &info->Fields[i].Ex;
+		}
+		else
+		{
+			NoneIndexKey = i;
+			NoneEnumVal = &info->Fields[i].Ex;
+		}
+	}
+	auto rawtype = Type;
+	rawtype._IsAddress = false;
+	auto irtype = IR_ConvertToIRType(rawtype);
+
+	const IRStruct* structir = _IR_Builder.GetSymbol(irtype._symbol)->Get_ExAs<IRStruct>();
+
+	UCodeLangAssert(NoneEnumVal);
+	UCodeLangAssert(SomeEnumVal);
+
+	UCodeLangAssert(mode == OptionalGetValueMode::Copy || mode == OptionalGetValueMode::Move);
+
+	auto unionV = _IR_LookingAtIRBlock->New_Member_Access(optional, structir, EnumVarantUnionIndex);
+	auto eumv = _IR_LookingAtIRBlock->New_Member_Access(unionV, _IR_Builder.GetSymbol(unionV->ObjectType._symbol)->Get_ExAs<IRStruct>(), 0);
+
+	IRInstruction* r = nullptr;
+	if (enumsometypeclasssym.has_value())
+	{
+		auto v = IR_ConvertToIRType(TypeSymbol(enumsometypeclasssym.value()));
+		r = _IR_LookingAtIRBlock->New_Member_Access(eumv, _IR_Builder.GetSymbol(v._symbol)->Get_ExAs<IRStruct>(), 0);
+	}
+	else
+	{
+		r = eumv;
+	}
+	return r;
+}
+IRInstruction* SystematicAnalysis::IR_MakeOptionalWithNone(const TypeSymbol& Type)
+{
+	UCodeLangAssert(IsOptionalType(Type));
+
+	const EnumInfo* info = Symbol_GetSymbol(Type).value()->Get_Info<EnumInfo>();
+
+	size_t NoneIndexKey = 0;
+	size_t SomeIndexKey = 0;
+	const RawEvaluatedObject* SomeEnumVal = nullptr;
+	const RawEvaluatedObject* NoneEnumVal = nullptr;
+	Optional<SymbolID> enumsometypeclasssym;
+	for (size_t i = 0; i < info->VariantData.value().Variants.size(); i++)
+	{
+		auto& Item = info->VariantData.value().Variants[i];
+		if (Item.Types.size() == 1)
+		{
+			enumsometypeclasssym = Item.ClassSymbol;
+			SomeIndexKey = i;
+			SomeEnumVal = &info->Fields[i].Ex;
+		}
+		else
+		{
+			NoneIndexKey = i;
+			NoneEnumVal = &info->Fields[i].Ex;
+		}
+	}
+	auto rawtype = Type;
+	rawtype._IsAddress = false;
+
+	auto irtype = IR_ConvertToIRType(rawtype);
+	IRStruct* structir = _IR_Builder.GetSymbol(irtype._symbol)->Get_ExAs<IRStruct>();
+
+	auto r = _IR_LookingAtIRBlock->NewLoad(irtype);
+	auto retkey = _IR_LookingAtIRBlock->New_Member_Access(r, structir, EnumVarantKeyIndex);
+
+	_IR_LookingAtIRBlock->NewStore(retkey, LoadEvaluatedEx(*NoneEnumVal, info->Basetype));
+
+	return r;
 }
 Optional<SystematicAnalysis::ResultTypeInfo> SystematicAnalysis::IsResultType(const TypeSymbol& Type) const
 {

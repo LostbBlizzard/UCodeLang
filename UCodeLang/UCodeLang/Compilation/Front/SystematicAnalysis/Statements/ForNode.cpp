@@ -339,8 +339,7 @@ void SystematicAnalysis::OnForNode(const ForNode& node)
 			const ForExpresion_Data& Data = _For_Datas.GetValue(Symbol_GetSymbolID(node));
 			{
 				FileDependency_AddDependencyToCurrentFile(Data.FuncGetLoopAble);
-				//FileDependency_AddDependencyToCurrentFile(Data.FuncToCheck);
-				//FileDependency_AddDependencyToCurrentFile(Data.FuncToGet);
+				FileDependency_AddDependencyToCurrentFile(Data.FuncNext);
 			}
 
 			{
@@ -367,6 +366,7 @@ void SystematicAnalysis::OnForNode(const ForNode& node)
 				_LookingForTypes.push(BoolType);
 				auto BoolCode = _IR_LookingAtIRBlock->GetIndex();
 				auto BoolJumps = IR_GetJumpsIndex();
+
 				{//get if check
 					Get_FuncInfo f;
 					//f.Func = Data.FuncToCheck->Get_Info<FuncInfo>();

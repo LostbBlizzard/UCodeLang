@@ -1309,7 +1309,16 @@ private:
 	{
 		TypeSymbol SomeType;
 	};
+	enum class OptionalGetValueMode
+	{
+		Copy,
+		Move,
+		Pointer,
+	};
 	Optional<OptionalTypeInfo> IsOptionalType(const TypeSymbol& Type) const;
+	IRInstruction* IR_OptionalIsSomeType(const TypeSymbol& Type,IRInstruction* optional);
+	IRInstruction* IR_OptionalGetSomeType(const TypeSymbol& Type, IRInstruction* optional,OptionalGetValueMode mode);
+	IRInstruction* IR_MakeOptionalWithNone(const TypeSymbol& Type);
 
 	struct ResultTypeInfo
 	{
