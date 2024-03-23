@@ -3293,7 +3293,7 @@ Optional< Optional<SystematicAnalysis::Get_FuncInfo>> SystematicAnalysis::Type_F
 				{
 					if (auto ItemSybOp = Symbol_GetSymbol(ItemValueType.Type))//Func<T>[Item<T> Item] ,caller:Item<int> V; Func(V)
 					{
-						if (Par.Type.IsBadType())//Type was not made because its generic.
+						if (Type_IsUnMapType(Par.Type))//Type was became unmaped because its generic.
 						{
 							auto ItemSyb = ItemSybOp.value();
 							auto& Funcnode = *Item->Get_NodeInfo<FuncNode>();
