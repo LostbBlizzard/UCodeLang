@@ -583,7 +583,7 @@ void UCodeBackEndObject::LinkFuncs()
 		}
 	}
 }
-void UCodeBackEndObject::RegWillBeUsed(RegisterID Value)
+void UCodeBackEndObject::RegWillBeUsed(RegisterID Value, Vector<RegisterID> BanRegisters)
 {
 	auto& Info = _Registers.GetInfo(Value);
 
@@ -601,7 +601,21 @@ void UCodeBackEndObject::RegWillBeUsed(RegisterID Value)
 				auto V = _Registers.GetFreeRegister();
 				auto type = GetType(*Item);
 
-				if (V.has_value() && V != Value)
+				bool doregtoreg = V.has_value() && V.value() != Value;
+
+				if (doregtoreg)
+				{
+					for (auto& Item : BanRegisters)
+					{
+						if (V == Item)
+						{
+							doregtoreg = false;
+							break;
+						}
+					}
+				}
+
+				if (doregtoreg)
 				{
 					SetRegister(V.value(), *Item);
 					RegToReg(type, Value, V.value(), false);
@@ -1562,7 +1576,7 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 			if (reg == RegisterID::LinkRegister)
 			{
 				auto otherreg = RegisterID::B;
-				RegWillBeUsed(otherreg);
+				RegWillBeUsed(otherreg,{RegisterID::LinkRegister});
 				RegToReg(GetType(Item, Item->Input())._Type, reg, otherreg, false);
 
 				reg = otherreg;
