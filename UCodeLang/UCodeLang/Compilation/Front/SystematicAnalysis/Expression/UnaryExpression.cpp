@@ -274,99 +274,142 @@ IRInstruction* SystematicAnalysis::IR_OptionalIsSomeType(const TypeSymbol& Type,
 
 	const EnumInfo* info = Symbol_GetSymbol(Type).value()->Get_Info<EnumInfo>();
 
-	size_t NoneIndexKey = 0;
-	size_t SomeIndexKey = 0;
-	const RawEvaluatedObject* SomeEnumVal = nullptr;
-	const RawEvaluatedObject* NoneEnumVal = nullptr;
-	Optional<SymbolID> enumsometypeclasssym;
-	for (size_t i = 0; i < info->VariantData.value().Variants.size(); i++)
+	if (info->IsOptionalAddress())
 	{
-		auto& Item = info->VariantData.value().Variants[i];
-		if (Item.Types.size() == 1)
+		IRInstruction* ex = nullptr;
+		if (Type.IsAddress())
 		{
-			enumsometypeclasssym = Item.ClassSymbol;
-			SomeIndexKey = i;
-			SomeEnumVal = &info->Fields[i].Ex;
+			auto rawtype = Type;
+			rawtype._IsAddress = false;
+			auto irtype = IR_ConvertToIRType(rawtype);
+
+			ex = _IR_LookingAtIRBlock->NewLoad_Dereferenc(optional,irtype);
 		}
 		else
 		{
-			NoneIndexKey = i;
-			NoneEnumVal = &info->Fields[i].Ex;
+			ex = optional;
 		}
+	
+		return _IR_LookingAtIRBlock->NewC_NotEqualto(ex, IR_Load_UIntptr(0));
 	}
-	auto rawtype = Type;
-	rawtype._IsAddress = false;
-	auto irtype = IR_ConvertToIRType(rawtype);
+	else 
+	{
+		size_t NoneIndexKey = 0;
+		size_t SomeIndexKey = 0;
+		const RawEvaluatedObject* SomeEnumVal = nullptr;
+		const RawEvaluatedObject* NoneEnumVal = nullptr;
+		Optional<SymbolID> enumsometypeclasssym;
+		for (size_t i = 0; i < info->VariantData.value().Variants.size(); i++)
+		{
+			auto& Item = info->VariantData.value().Variants[i];
+			if (Item.Types.size() == 1)
+			{
+				enumsometypeclasssym = Item.ClassSymbol;
+				SomeIndexKey = i;
+				SomeEnumVal = &info->Fields[i].Ex;
+			}
+			else
+			{
+				NoneIndexKey = i;
+				NoneEnumVal = &info->Fields[i].Ex;
+			}
+		}
+		auto rawtype = Type;
+		rawtype._IsAddress = false;
+		auto irtype = IR_ConvertToIRType(rawtype);
 
-	const IRStruct* structir = _IR_Builder.GetSymbol(irtype._symbol)->Get_ExAs<IRStruct>();
-
-	UCodeLangAssert(NoneEnumVal);
-	UCodeLangAssert(SomeEnumVal);
-
-	bool ispointer = Type.IsAddress();
 
 
-	auto key = ispointer ?
-		_IR_LookingAtIRBlock->New_Member_Dereference(optional, irtype, EnumVarantKeyIndex)
-		: _IR_LookingAtIRBlock->New_Member_Access(optional, structir, EnumVarantKeyIndex);
+		const IRStruct* structir = _IR_Builder.GetSymbol(irtype._symbol)->Get_ExAs<IRStruct>();
 
-	auto same = _IR_LookingAtIRBlock->NewC_Equalto(key, LoadEvaluatedEx(*SomeEnumVal, info->Basetype));
+		UCodeLangAssert(NoneEnumVal);
+		UCodeLangAssert(SomeEnumVal);
+
+		bool ispointer = Type.IsAddress();
+
+
+		auto key = ispointer ?
+			_IR_LookingAtIRBlock->New_Member_Dereference(optional, irtype, EnumVarantKeyIndex)
+			: _IR_LookingAtIRBlock->New_Member_Access(optional, structir, EnumVarantKeyIndex);
+
+		auto same = _IR_LookingAtIRBlock->NewC_Equalto(key, LoadEvaluatedEx(*SomeEnumVal, info->Basetype));
 
 
 
-	return same;
+		return same;
+	}
 }
 IRInstruction* SystematicAnalysis::IR_OptionalGetSomeType(const TypeSymbol& Type, IRInstruction* optional, OptionalGetValueMode mode)
 {
 	UCodeLangAssert(IsOptionalType(Type))
 
 	const EnumInfo* info = Symbol_GetSymbol(Type).value()->Get_Info<EnumInfo>();
-
-	size_t NoneIndexKey = 0;
-	size_t SomeIndexKey = 0;
-	const RawEvaluatedObject* SomeEnumVal = nullptr;
-	const RawEvaluatedObject* NoneEnumVal = nullptr;
-	Optional<SymbolID> enumsometypeclasssym;
-	for (size_t i = 0; i < info->VariantData.value().Variants.size(); i++)
+	if (info->IsOptionalAddress())
 	{
-		auto& Item = info->VariantData.value().Variants[i];
-		if (Item.Types.size() == 1)
+		IRInstruction* ex = nullptr;
+		if (Type.IsAddress())
 		{
-			enumsometypeclasssym = Item.ClassSymbol;
-			SomeIndexKey = i;
-			SomeEnumVal = &info->Fields[i].Ex;
+			auto rawtype = Type;
+			rawtype._IsAddress = false;
+			auto irtype = IR_ConvertToIRType(rawtype);
+
+			ex = _IR_LookingAtIRBlock->NewLoad_Dereferenc(optional, irtype);
 		}
 		else
 		{
-			NoneIndexKey = i;
-			NoneEnumVal = &info->Fields[i].Ex;
+			ex = optional;
 		}
+
+		return ex;
 	}
-	auto rawtype = Type;
-	rawtype._IsAddress = false;
-	auto irtype = IR_ConvertToIRType(rawtype);
-
-	const IRStruct* structir = _IR_Builder.GetSymbol(irtype._symbol)->Get_ExAs<IRStruct>();
-
-	UCodeLangAssert(NoneEnumVal);
-	UCodeLangAssert(SomeEnumVal);
-
-	UCodeLangAssert(mode == OptionalGetValueMode::Copy || mode == OptionalGetValueMode::Move);
-
-	auto unionV = _IR_LookingAtIRBlock->New_Member_Access(optional, structir, EnumVarantUnionIndex);
-	auto eumv = _IR_LookingAtIRBlock->New_Member_Access(unionV, _IR_Builder.GetSymbol(unionV->ObjectType._symbol)->Get_ExAs<IRStruct>(), 0);
-
-	IRInstruction* r = nullptr;
-	if (enumsometypeclasssym.has_value())
+	else 
 	{
-		auto v = IR_ConvertToIRType(TypeSymbol(enumsometypeclasssym.value()));
-		r = _IR_LookingAtIRBlock->New_Member_Access(eumv, _IR_Builder.GetSymbol(v._symbol)->Get_ExAs<IRStruct>(), 0);
+		size_t NoneIndexKey = 0;
+		size_t SomeIndexKey = 0;
+		const RawEvaluatedObject* SomeEnumVal = nullptr;
+		const RawEvaluatedObject* NoneEnumVal = nullptr;
+		Optional<SymbolID> enumsometypeclasssym;
+		for (size_t i = 0; i < info->VariantData.value().Variants.size(); i++)
+		{
+			auto& Item = info->VariantData.value().Variants[i];
+			if (Item.Types.size() == 1)
+			{
+				enumsometypeclasssym = Item.ClassSymbol;
+				SomeIndexKey = i;
+				SomeEnumVal = &info->Fields[i].Ex;
+			}
+			else
+			{
+				NoneIndexKey = i;
+				NoneEnumVal = &info->Fields[i].Ex;
+			}
+		}
+		auto rawtype = Type;
+		rawtype._IsAddress = false;
+		auto irtype = IR_ConvertToIRType(rawtype);
+
+		const IRStruct* structir = _IR_Builder.GetSymbol(irtype._symbol)->Get_ExAs<IRStruct>();
+
+		UCodeLangAssert(NoneEnumVal);
+		UCodeLangAssert(SomeEnumVal);
+
+		UCodeLangAssert(mode == OptionalGetValueMode::Copy || mode == OptionalGetValueMode::Move);
+
+		auto unionV = _IR_LookingAtIRBlock->New_Member_Access(optional, structir, EnumVarantUnionIndex);
+		auto eumv = _IR_LookingAtIRBlock->New_Member_Access(unionV, _IR_Builder.GetSymbol(unionV->ObjectType._symbol)->Get_ExAs<IRStruct>(), 0);
+
+		IRInstruction* r = nullptr;
+		if (enumsometypeclasssym.has_value())
+		{
+			auto v = IR_ConvertToIRType(TypeSymbol(enumsometypeclasssym.value()));
+			r = _IR_LookingAtIRBlock->New_Member_Access(eumv, _IR_Builder.GetSymbol(v._symbol)->Get_ExAs<IRStruct>(), 0);
+		}
+		else
+		{
+			r = eumv;
+		}
+		return r;
 	}
-	else
-	{
-		r = eumv;
-	}
-	return r;
 }
 IRInstruction* SystematicAnalysis::IR_MakeOptionalWithNone(const TypeSymbol& Type)
 {
