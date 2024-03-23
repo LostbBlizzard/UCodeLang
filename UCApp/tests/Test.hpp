@@ -112,7 +112,7 @@ inline String ModeType(OptimizationFlags Flags)
 	return r;
 }
 
-static const Array<TestInfo, 133> Tests{
+static const Array<TestInfo, 134> Tests{
 
 	TestInfo("main_0", "BasicTests/main.uc", "Main", SuccessCondition::Compilation),
 
@@ -296,6 +296,8 @@ static const Array<TestInfo, 133> Tests{
 	TestInfo("GenericPackWithType 2","Generics/GenericPackWithType 2.uc", "main", SuccessCondition::RunTimeValue,bool(true)),
 	
 	TestInfo("CompileTime ForNode Spit", "Objects/CompileTimeForNodeSplit.uc", "main", SuccessCondition::RunTimeValue, Array3<int>(1, 2, 3)),
+	
+	TestInfo("GetFields4", "Eval/GetFields4.uc", "main", SuccessCondition::RunTimeValue, (size_t)27),
 };
 struct SkipTestRange
 {

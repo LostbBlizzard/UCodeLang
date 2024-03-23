@@ -228,9 +228,18 @@ void SystematicAnalysis::OnCompileTimeforNode(const CompileTimeForNode& node)
 					{
 						const StaticArrayInfo* StaticInfo = ListTypeSyb->Get_Info<StaticArrayInfo>();
 
+						
+						bool withindex = node._OtherVarables.size() == 1;
+										
+						const ForNode::ForVarable* other = nullptr;
+						if (withindex)
+						{
+							other = &node._OtherVarables[0];
+						}
 
 						const String ScopeName = std::to_string(Symbol_GetSymbolID(node).AsInt());
-						const String VarableName = (String)node._Name->Value._String;
+						const String VarableName = withindex ?
+							(String)other->_Name->Value._String : (String)node._Name->Value._String;
 
 						auto ListArray = Eval_Evaluate(ListType, node._Modern_List);
 						if (ListArray.has_value())
@@ -253,6 +262,37 @@ void SystematicAnalysis::OnCompileTimeforNode(const CompileTimeForNode& node)
 
 								_Table.AddScope(ScopeName + std::to_string(i));
 
+								Symbol* NumberVarableSymbol = nullptr;
+								if (withindex)
+								{
+									const String VarableName = (String)node._Name->Value._String;
+									NumberVarableSymbol = &Symbol_AddSymbol(SymbolType::ConstantExpression, VarableName, _Table._Scope.GetApendedString(VarableName), AccessModifierType::Public);
+									NumberVarableSymbol->VarType = TypesEnum::uIntPtr;
+
+									ConstantExpressionInfo* cxinfo = new ConstantExpressionInfo();
+
+									bool is32mode = Type_GetSize(NumberVarableSymbol->VarType).value() == 4;
+
+									cxinfo->Ex.ObjectSize = is32mode ? 4 : 8;
+									cxinfo->Ex.Object_AsPointer.reset(new Byte[cxinfo->Ex.ObjectSize]);
+
+									if (is32mode)
+									{
+										*(UInt32*)cxinfo->Ex.Object_AsPointer.get() = i;
+									}
+									else
+									{
+										*(UInt64*)cxinfo->Ex.Object_AsPointer.get() = i;
+									}
+
+									NumberVarableSymbol->Info.reset(cxinfo);
+
+									TypeSymbol VarType;
+									if (!Type_CanBeImplicitConverted(VarType, NumberVarableSymbol->VarType, false, true))
+									{
+										LogError_CantCastImplicitTypes(NeverNullptr(node._Name), NumberVarableSymbol->VarType, VarType, false, true);
+									}
+								}
 
 								auto& ParSyb = Symbol_AddSymbol(SymbolType::ConstantExpression, VarableName, _Table._Scope.GetApendedString(VarableName), AccessModifierType::Public);
 								_Table.AddSymbolID(ParSyb, Symbol_GetSymbolID(&ParSyb));
