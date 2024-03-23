@@ -160,7 +160,8 @@ void SystematicAnalysis::OnExpressionNode(const IndexedExpresionNode& node)
 					}
 					else
 					{
-						if (lookingfortype.IsAddress()) {
+						if (lookingfortype.IsAddress() || IsWrite(_GetExpressionMode.top()))
+						{
 							lookingfor.SetAsAddress();
 						}
 					}
