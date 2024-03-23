@@ -362,15 +362,16 @@ void SystematicAnalysis::OnForNode(const ForNode& node)
 			IRInstruction* Loopobject = _IR_LastExpressionField;
 			auto LoopObjectType = _LastExpressionType;
 			{
-				TypeSymbol BoolType(TypesEnum::Bool);
-				_LookingForTypes.push(BoolType);
 				auto BoolCode = _IR_LookingAtIRBlock->GetIndex();
 				auto BoolJumps = IR_GetJumpsIndex();
 
-				{//get if check
+				IRInstruction* opt = nullptr;
+				IRInstruction* boolval = nullptr;
+				TypeSymbol OptType;
+				{//get opt 	
 					Get_FuncInfo f;
-					//f.Func = Data.FuncToCheck->Get_Info<FuncInfo>();
-					//f.SymFunc = Data.FuncToCheck;
+					f.Func = Data.FuncNext->Get_Info<FuncInfo>();
+					f.SymFunc = Data.FuncNext;
 					f.ThisPar = Get_FuncInfo::ThisPar_t::PushFromLast;
 
 
@@ -385,32 +386,20 @@ void SystematicAnalysis::OnForNode(const ForNode& node)
 					IR_Build_FuncCall(f, {}, {});
 
 					IR_Build_ImplicitConversion(_IR_LastExpressionField, _LastExpressionType, TypesEnum::Bool);
-				}
-				_LookingForTypes.pop();
 
-				IRInstruction* BoolCode2 = _IR_LastExpressionField;
+					OptType = _LastExpressionType;
+					opt = _IR_LastExpressionField;
+
+					boolval = IR_OptionalIsSomeType(OptType, opt);
+				}
+
+				IRInstruction* BoolCode2 = boolval;
 				IRBlock::NewConditionalFalseJump_t IfIndex = _IR_LookingAtIRBlock->NewConditionalFalseJump(BoolCode2);
 
 				{//get item
 					_IR_LastExpressionField = Loopobject;
-					Get_FuncInfo f;
-					//f.Func = Data.FuncToGet->Get_Info<FuncInfo>();
-					//f.SymFunc = Data.FuncToGet;
-					f.ThisPar = Get_FuncInfo::ThisPar_t::PushFromLast;
-
-					if (f.Func->Pars[0].Type.IsAddress())
-					{
-						if (!LoopObjectType.IsAddress())
-						{
-							_IR_LastExpressionField = _IR_LookingAtIRBlock->NewLoadPtr(Loopobject);
-						}
-					}
-
-					IR_Build_FuncCall(f, {}, {});
-
-					IR_Build_ImplicitConversion(_IR_LastExpressionField, _LastExpressionType, syb->VarType);
-					auto FuncRet = _IR_LastExpressionField;
-					syb->IR_Ins = FuncRet;
+					
+					syb->IR_Ins = IR_OptionalGetSomeType(OptType,opt,OptionalGetValueMode::Move);
 
 					Debug_Add_SetLineNumber(NeverNullptr(node._Name), _IR_LookingAtIRBlock->GetIndex());
 					Debug_Add_SetVarableInfo(*syb, _IR_LookingAtIRBlock->GetIndex());
@@ -429,10 +418,6 @@ void SystematicAnalysis::OnForNode(const ForNode& node)
 				size_t BreakCode = _IR_LookingAtIRBlock->GetIndex();
 
 				_IR_LookingAtIRBlock->UpdateConditionaJump(IfIndex.ConditionalJump, IfIndex.logicalNot, BreakCode);
-
-
-
-
 
 				IR_Build_UpdateJumpsBreakContiunes(BoolJumps, BoolCode, BreakCode);
 			}
