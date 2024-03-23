@@ -1122,7 +1122,7 @@ bool SystematicAnalysis::Symbol_StepGetMemberTypeSymbolFromVar(const ScopedNameN
 				else
 				{
 					Out.Type = FieldType2;
-					Out._Symbol = FeldSyb.value();
+					//Out._Symbol = FeldSyb.value();
 
 					if (Index + 1 < node._ScopedName.size())
 					{
