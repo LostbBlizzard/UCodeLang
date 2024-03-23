@@ -745,7 +745,7 @@ void UCodeBackEndObject::OnFunc(const IRFunc* IR)
 		BuildLink(FuncName, IR->Linkage);
 	}
 
-	if (FuncName == "Vector<sint32>:Push^Vector<sint32>&,i32&imut")
+	if (FuncName == "main")
 	{
 		int a = 0;
 	}
@@ -914,7 +914,7 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 
 	for (size_t i = 0; i < IR->Instructions.size(); i++)
 	{
-		if (i == 13)
+		if (i == 10)
 		{
 			int a = 0;
 		}
@@ -1993,8 +1993,7 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 				UCodeLangUnreachable();
 				break;
 			}
-
-			FreeRegister(A);
+	
 			SetRegister(V, Item);
 		}
 		break;
@@ -2047,7 +2046,6 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 				break;
 			}
 
-			FreeRegister(A);
 			SetRegister(V, Item);
 		}
 		break;
