@@ -1103,10 +1103,11 @@ bool SystematicAnalysis::Symbol_StepGetMemberTypeSymbolFromVar(const ScopedNameN
 					return false;
 				}
 
+				NeverNullPtr<Symbol> FeldSyb;
 				{
 					auto FeldFullName = TypeAsSymbol->FullName;
 					ScopeHelper::GetApendedString(FeldFullName, ItemTokenString);
-					auto FeldSyb = Symbol_GetSymbol(FeldFullName, SymbolType::Class_Field).value();
+					FeldSyb = Symbol_GetSymbol(FeldFullName, SymbolType::Class_Field).value();
 					{
 						Symbol_AccessCheck(FeldSyb, ItemToken);
 					}
@@ -1115,12 +1116,13 @@ bool SystematicAnalysis::Symbol_StepGetMemberTypeSymbolFromVar(const ScopedNameN
 				auto& FieldType2 = (*FeldInfo)->Type;
 				if (FieldType2._Type == TypesEnum::CustomType)
 				{
-					Out._Symbol = Symbol_GetSymbol(FieldType2._CustomTypeSymbol).value();
+					Out._Symbol = FeldSyb.value();
 					Out.Type = FieldType2;
 				}
 				else
 				{
 					Out.Type = FieldType2;
+					Out._Symbol = FeldSyb.value();
 
 					if (Index + 1 < node._ScopedName.size())
 					{

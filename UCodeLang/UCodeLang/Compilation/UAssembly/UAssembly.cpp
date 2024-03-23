@@ -1850,10 +1850,15 @@ UAssembly::StripFuncs UAssembly::StripFunc(UClib& lib, const StripFuncSettings& 
 				{
 					auto id = opid.value();
 
+					isused = false;
 					for (auto& Item : list)
 					{
 						if (Item.get()) {
 							isused = NodeDependsonType(Item.get(), id);
+						}
+						if (isused)
+						{
+							break;
 						}
 					}
 				}
