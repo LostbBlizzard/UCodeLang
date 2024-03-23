@@ -3444,6 +3444,10 @@ Optional< Optional<SystematicAnalysis::Get_FuncInfo>> SystematicAnalysis::Type_F
 
 		if (ValueTypes.size() != 0)
 		{
+			if (fpars.size() > ValueTypes.size())
+			{
+				return {};
+			}
 			for (size_t i = 0; i < fpars.size(); i++)
 			{
 				auto& Item = fpars[i];
