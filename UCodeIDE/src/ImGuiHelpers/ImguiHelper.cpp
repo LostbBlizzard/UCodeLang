@@ -230,6 +230,18 @@ bool ImguiHelper::UCodeObjectField(const char* FieldName, void* Object, const UC
 				}
 				return WasUpdated;
 			}
+			else if (Syb->Get_Type() == UCodeLang::ClassType::StaticArray)
+			{
+				auto& ClassInfo = Syb->Get_StaticArray();
+				size_t itemsize = assembly.GetSize(ClassInfo.BaseType,Is32Bit).value();
+
+				for (size_t i = 0; i < ClassInfo.Count; i++)
+				{
+					void* objptr =(void*)( (uintptr_t)Object + (itemsize * i));
+					String str = "Item " + std::to_string(i);
+					UCodeObjectField(str.c_str(),objptr, ClassInfo.BaseType, assembly);
+				}
+			}
 		}
 		return false;
 	}

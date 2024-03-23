@@ -4429,42 +4429,59 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IRInstructi
 			if (GetAddress && Pos.ObjectType._Type == IRTypes::pointer)
 			{
 				auto& lastIns = _OutLayer->_Instructions.back();
-				UCodeLangAssert(lastIns.OpCode == InstructionSet::LoadEffectiveAddressA);
-
 				const IRStruct* VStruct = _Input->GetSymbol(GetType(Ins->Target())._symbol)->Get_ExAs<IRStruct>();
 				size_t FieldIndex = Ins->Input().Value.AsUIntNative;
 				const size_t Offset = _Input->GetOffset(VStruct, FieldIndex);
 
-				auto offsetleft = Offset;
-				auto PtrReg = lastIns.Op_TwoRegInt8.A;
-				auto OutReg = lastIns.Op_TwoRegInt8.B;
-
-				while (offsetleft != 0)
+				if (lastIns.OpCode == InstructionSet::LoadEffectiveAddressA)
 				{
 
-					auto& lastIns = _OutLayer->_Instructions.back();
-					auto& offsetnumber = lastIns.Op_TwoRegInt8.C;
+					auto offsetleft = Offset;
+					auto PtrReg = lastIns.Op_TwoRegInt8.A;
+					auto OutReg = lastIns.Op_TwoRegInt8.B;
 
-					auto maxpossableoffsetforins = UINT8_MAX - offsetnumber;
+					while (offsetleft != 0)
+					{
 
-					auto offsettosub = offsetleft;
-					if (offsettosub > maxpossableoffsetforins)
-					{
-						offsettosub = maxpossableoffsetforins;
-					}
+						auto& lastIns = _OutLayer->_Instructions.back();
+						auto& offsetnumber = lastIns.Op_TwoRegInt8.C;
 
-					if (offsettosub != 0)
-					{
-						offsetleft -= offsettosub;
-						offsetnumber += offsettosub;
+						auto maxpossableoffsetforins = UINT8_MAX - offsetnumber;
+
+						auto offsettosub = offsetleft;
+						if (offsettosub > maxpossableoffsetforins)
+						{
+							offsettosub = maxpossableoffsetforins;
+						}
+
+						if (offsettosub != 0)
+						{
+							offsetleft -= offsettosub;
+							offsetnumber += offsettosub;
+						}
+						else
+						{
+							auto newoffset = std::min<size_t>(UINT8_MAX, offsetleft);
+							InstructionBuilder::LoadEffectiveAddressA(_Ins, OutReg, newoffset, OutReg);
+							PushIns();
+							offsetleft -= newoffset;
+						}
 					}
-					else
+				}
+				else if (lastIns.OpCode == InstructionSet::GetPointerOfStackSub)
+				{
+					auto offsetleft = Offset;
+					auto offsetReg = lastIns.Op_RegUInt16.A;
+					auto OutReg = lastIns.Op_RegUInt16.B;
+
+					while (offsetleft != 0)
 					{
-						auto newoffset = std::min<size_t>(UINT8_MAX, offsetleft);
-						InstructionBuilder::LoadEffectiveAddressA(_Ins, OutReg, newoffset, OutReg);
-						PushIns();
-						offsetleft -= newoffset;
+						UCodeLangToDo();
 					}
+				}
+				else
+				{
+					UCodeLangUnreachable();
 				}
 				return Pos;
 			}
