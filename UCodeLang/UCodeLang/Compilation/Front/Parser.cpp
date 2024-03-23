@@ -3795,10 +3795,11 @@ GotNodeType Parser::GetForNode(ForNode& out)
 		}
 
 
-		auto NameToken = TryGetToken(); TokenTypeCheck(NameToken, TokenType::Name);
+		auto NameToken = TryGetToken(); 		
 		TypeNode V;
 		if (isjustname)
 		{
+			TokenTypeCheck(NameToken, TokenType::Name);
 			TypeNode::Gen_Var(V,*NameToken);
 		}
 		else
