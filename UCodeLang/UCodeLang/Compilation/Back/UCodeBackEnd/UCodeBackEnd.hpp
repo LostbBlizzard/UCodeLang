@@ -330,7 +330,7 @@ private:
 
 
 
-	void RegWillBeUsed(RegisterID Value);
+	void RegWillBeUsed(RegisterID Value, Vector<RegisterID> BanRegisters = {});
 
 	void SetRegister(RegisterID Value, const AnyInt64 Name)
 	{
