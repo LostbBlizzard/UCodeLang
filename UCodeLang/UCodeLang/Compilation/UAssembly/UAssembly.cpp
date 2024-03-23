@@ -1732,7 +1732,11 @@ UAssembly::StripFuncs UAssembly::StripFunc(UClib& lib, const StripFuncSettings& 
 					{
 						auto jumpto = p.value();
 
-						bool ispartofthisfunc = true;
+						bool ispartofthisfunc = false;
+						if (jumpto >= startfunc) 
+						{
+							ispartofthisfunc  = (jumpto - startfunc) < funcsize;
+						}
 
 						if (ispartofthisfunc)
 						{
@@ -1740,13 +1744,11 @@ UAssembly::StripFuncs UAssembly::StripFunc(UClib& lib, const StripFuncSettings& 
 							auto jumppos =Instruction::IsJump(Span(ByteCodeLayer->_Instructions.data(), ByteCodeLayer->_Instructions.size()),oldindexpos,is32mode).value();
 
 							size_t newpos;
-							if (oldindexpos > jumppos)
 							{
-								newpos = oldindexpos + (oldindexpos - jumppos);
-							}
-							else
-							{
-								newpos = oldindexpos +(jumppos - oldindexpos);
+								size_t diff = jumpto - startfunc;
+
+							
+								newpos = oldstartpos + diff;
 							}
 
 							InstructionBuilder::Jumpv1(newpos, NewIns[i + 0]);
@@ -1758,6 +1760,12 @@ UAssembly::StripFuncs UAssembly::StripFunc(UClib& lib, const StripFuncSettings& 
 								InstructionBuilder::Jumpv4(newpos, NewIns[i + 3]);
 							}
 						}
+						else
+						{
+							UCodeLangToDo();
+						}
+
+							
 					}
 				}
 
@@ -1766,35 +1774,50 @@ UAssembly::StripFuncs UAssembly::StripFunc(UClib& lib, const StripFuncSettings& 
 					if (p2.has_value())
 					{
 						auto jumpto = p2.value().Func;
+						auto regto = p2.value().Reg;
 
 						bool ispartofthisfunc = false;
+						if (jumpto >= startfunc) 
+						{
+							ispartofthisfunc  = (jumpto - startfunc) < funcsize;
+						}
+
 
 						if (ispartofthisfunc)
 						{
 							auto oldindexpos =Item.second + (i - oldstartpos);
-							auto jumppos = Instruction::IsJump(Span(ByteCodeLayer->_Instructions.data(), ByteCodeLayer->_Instructions.size()),oldindexpos,is32mode).value();
+							auto jumppos = Instruction::IsJumpIf(Span(ByteCodeLayer->_Instructions.data(), ByteCodeLayer->_Instructions.size()), oldindexpos, is32mode).value().Func;
 
 							size_t newpos;
-							if (oldindexpos > jumppos)
 							{
-								newpos = oldindexpos + (oldindexpos - jumppos);
-							}
-							else
-							{
-								newpos = oldindexpos +(jumppos - oldindexpos);
+								size_t diff = jumpto - startfunc;
+
+							
+								newpos = oldstartpos + diff;
 							}
 
 								
 							
 							InstructionBuilder::Jumpv1(newpos, NewIns[i + 0]);
-							InstructionBuilder::Jumpv2(newpos, NewIns[i + 1]);
 							
+							if (is64mode) {
+								InstructionBuilder::Jumpv2(newpos, NewIns[i + 1]);
+							}
+							else
+							{
+								InstructionBuilder::Jumpifv2(newpos,regto, NewIns[i + 1]);
+							}
+
 							if (is64mode) 
 							{
 								InstructionBuilder::Jumpv3(newpos, NewIns[i + 2]);
-								InstructionBuilder::Jumpv4(newpos, NewIns[i + 3]);
+								InstructionBuilder::Jumpifv4(newpos,regto, NewIns[i + 3]);
 							}
-						}	
+						}
+						else
+						{
+							UCodeLangToDo();
+						}
 					}
 				}
 			}
