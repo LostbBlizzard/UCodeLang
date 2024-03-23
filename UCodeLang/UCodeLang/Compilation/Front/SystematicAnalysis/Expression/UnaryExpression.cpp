@@ -273,6 +273,116 @@ void SystematicAnalysis::OnExpressionNode(const UnaryExpressionNode& node)
 		}
 	}
 }
+Optional<SystematicAnalysis::OptionalTypeInfo>  SystematicAnalysis::IsOptionalType(const TypeSymbol& Type) const
+{
+	auto SybOp = Symbol_GetSymbol(Type);
+	if (SybOp)
+	{
+		auto Syb = SybOp.value();
+
+		auto name = ScopeHelper::GetNameFromFullName(Syb->FullName);
+
+		if (StringHelper::StartWith(name, UCode_OptionalType))
+		{
+			EnumInfo* info = Syb->Get_Info<EnumInfo>();
+
+			if (info->Fields.size() != 2 || !info->VariantData.has_value())
+			{
+				return {};
+			}
+			EnumVariantField* hasNone = nullptr;
+			EnumVariantField* hasSome = nullptr;
+
+			for (auto& Item : info->VariantData.value().Variants)
+			{
+				if (Item.Types.size() == 1)
+				{
+					hasSome = &Item;
+				}
+				else if (Item.Types.size() == 0)
+				{
+					hasNone = &Item;
+				}
+
+			}
+
+
+			if (hasSome && hasNone)
+			{
+				OptionalTypeInfo r;
+				r.SomeType = hasSome->Types.front();
+				return r;
+			}
+		}
+	}
+
+	return {};
+}
+Optional<SystematicAnalysis::ResultTypeInfo> SystematicAnalysis::IsResultType(const TypeSymbol& Type) const
+{
+	auto SybOp = Symbol_GetSymbol(Type);
+	if (SybOp)
+	{
+		auto Syb = SybOp.value();
+
+		auto name = ScopeHelper::GetNameFromFullName(Syb->FullName);
+
+		if (StringHelper::StartWith(name, UCode_ResultType))
+		{
+			EnumInfo* info = Syb->Get_Info<EnumInfo>();
+
+			const Symbol* Resultgeneric = Symbol_GetSymbol(UCode_ResultType, SymbolType::Generic_Enum).value().value();
+			const EnumInfo* ResultgenericInfo = Resultgeneric->Get_Info<EnumInfo>();
+
+			if (info->Fields.size() != 2 || !info->VariantData.has_value())
+			{
+				return {};
+			}
+
+			if (ResultgenericInfo->_GenericData._Genericlist.size() == 2
+				&& ResultgenericInfo->Fields.size() != 2 || !ResultgenericInfo->VariantData.has_value())
+			{
+				return {};
+			}
+
+			size_t Indexval = 0;
+			size_t Indexerr = 0;
+
+			if (ResultgenericInfo->VariantData.value().Variants[0].Types.front()._CustomTypeSymbol == ResultgenericInfo->_GenericData._Genericlist[0].SybID)
+			{
+				Indexval = 0;
+				Indexerr = 1;
+			}
+			else
+			{
+				Indexval = 1;
+				Indexerr = 0;
+			}
+
+			UCodeLangAssert(Indexval != Indexerr);
+
+			auto& variantinfo = info->VariantData.value().Variants;
+
+			EnumVariantField* hasval = &variantinfo[Indexval];
+			EnumVariantField* haserr = &variantinfo[Indexerr];
+
+			if (hasval && haserr)
+			{
+				ResultTypeInfo r;
+				r.SomeType = hasval->Types[0];
+				r.ErrorType = haserr->Types[0];
+
+				return { r };
+			}
+			else
+			{
+				return {};
+			}
+		}
+	}
+
+	return {};
+}
 
 
 UCodeLangFrontEnd

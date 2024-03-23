@@ -138,6 +138,8 @@ void SystematicAnalysis::OnForNode(const ForNode& node)
 			auto& ExType = _LastExpressionType;
 
 			auto HasInfo = Type_HasForOverLoadWith(ExType);
+			bool isvarableok = false;
+				
 			if (!HasInfo.HasValue)
 			{
 				auto  Token = _LastLookedAtToken.value();
@@ -155,11 +157,7 @@ void SystematicAnalysis::OnForNode(const ForNode& node)
 
 					if (syb->VarType.IsAn(TypesEnum::Var))
 					{
-						auto tep = Symbol_GetAnExplicitlyConvertedFunc(TypeForType);
-						if (tep.has_value())
-						{
-							GetFunc = Symbol_GetSymbol(tep.value()).value();
-						}
+						GetFunc = HasInfo.Value.value();
 					}
 					else
 					{
@@ -169,62 +167,74 @@ void SystematicAnalysis::OnForNode(const ForNode& node)
 							GetFunc = Tep.Value.value();
 						}
 					}
-
-					Optional<Symbol*>CheckFunc = {};
-					auto V = Type_HasUrinaryOverLoadWith(TypeForType, TokenType::QuestionMark);
-
-					if (V.HasValue && V.Value.has_value())
+					NullablePtr<Symbol> NextFunc = {};
+					String NextFuncName;
+					bool HasAnyNextFunc = false;
 					{
-						auto BoolType = TypeSymbol(TypesEnum::Bool);
-						auto retType = V.Value.value()->VarType;
-						if (Type_CanBeImplicitConverted(retType, BoolType, false))
+						NextFuncName += ToString(TypeForType);
+						ScopeHelper::GetApendedString(NextFuncName, "Next");
+
+						NextFunc = Symbol_GetSymbol(NextFuncName, SymbolType::Func);
+						if (NextFunc.has_value())
 						{
-							CheckFunc = V.Value.value();
-						}
-						else
-						{
-							auto  Token = _LastLookedAtToken;
-							LogError_CantCastImplicitTypes(Token.value(), BoolType, retType, false);
+							if (NextFunc.value()->Type != SymbolType::Func)
+							{
+								NextFunc = {};
+							}
 						}
 					}
 
-					if (!GetFunc.has_value())
+
+					const NeverNullPtr<Token> token = NeverNullptr(node._typeNode._name._ScopedName.front()._token);
+					if (!NextFunc.has_value())
 					{
-						const NeverNullPtr<Token> token = NeverNullptr(node._typeNode._name._ScopedName.front()._token);
+						ParInfo ThisPar;
+						ThisPar.IsOutPar = false;
+						ThisPar.Type = TypeForType;
+						ThisPar.Type._IsAddress = true;
 
-						if (syb->VarType.IsAn(TypesEnum::Var)) {
-							LogError(ErrorCodes::InValidType, token->OnLine, token->OnPos,
-								"The Type '" + ToString(TypeForType) + "' has no cast(->) overload.it is needed to access the object for the 'for' loop.");
-						}
-						else
-						{
-							LogError(ErrorCodes::InValidType, token->OnLine, token->OnPos,
-								"The Type '" + ToString(TypeForType) + "' has no explicit cast(->) overload for the type '" + ToString(syb->VarType) + "'.it is needed to access the object for  the 'for' loop.");
-						}
-
-						syb->VarType.SetType(TypesEnum::Null);
-					}
-					else if (!CheckFunc.has_value())
-					{
-						const NeverNullPtr<Token> token = NeverNullptr(node._typeNode._name._ScopedName.back()._token);
-
-						LogError(ErrorCodes::InValidType, token->OnLine, token->OnPos,
-							"The Type '" + ToString(TypeForType) + "' has no exist(?) overload.it is needed to check when to end the loop.");
-
-						syb->VarType.SetType(TypesEnum::Null);
+						LogError_CantFindFuncError(token, NextFuncName, {}, { ThisPar }, TypesEnum::Any);
 					}
 					else
 					{
-						ForExpresion_Data g;
-						g.FuncGetLoopAble = HasInfo.Value.value();
-						g.FuncToGet = GetFunc.value();
-						g.FuncToCheck = CheckFunc.value();
-						_For_Datas.AddValue(Symbol_GetSymbolID(node), g);
+						auto nfunc = NextFunc.value().value();
+						auto finfo = nfunc->Get_Info<FuncInfo>();
+
+						bool ok = true;
+						Optional<OptionalTypeInfo> typeinfo;
+						if (!finfo->IsObjectCall())
+						{
+							ok = false;
+							LogError(ErrorCodes::InValidName, "The Funcion '" + nfunc->FullName + "' must be a Object Call",token);
+						}
+						else
+						{
+							auto& Ret = finfo->Ret;
+
+							auto optinfo = IsOptionalType(Ret);
+							typeinfo = std::move(optinfo);
+							if (!optinfo.has_value())
+							{
+								ok = false;
+								LogError(ErrorCodes::InValidName, "The Funcion '" + nfunc->FullName + "' must return an OptionalType", token);
+							}
+						}
+
+						if (ok)
+						{	
+							auto type = typeinfo.value().SomeType;
+
+							ForExpresion_Data g;
+							g.FuncGetLoopAble = HasInfo.Value.value();
+							g.FuncNext = nfunc;
+							_For_Datas.AddValue(Symbol_GetSymbolID(node), g);
 
 
 
-						auto token = NeverNullptr(node._typeNode._name._ScopedName.back()._token);
-						Type_DeclareVariableTypeCheck(syb->VarType, g.FuncToGet->Get_Info<FuncInfo>()->Ret, token);
+							auto token = NeverNullptr(node._typeNode._name._ScopedName.back()._token);
+							Type_DeclareVariableTypeCheck(syb->VarType,type, token);
+							isvarableok = true;
+						}
 					}
 				}
 				else
@@ -233,6 +243,10 @@ void SystematicAnalysis::OnForNode(const ForNode& node)
 				}
 			}
 
+			if (!isvarableok)
+			{
+				syb->VarType = TypeSymbol(TypesEnum::Null);
+			}
 
 			for (const auto& node2 : node._Body._Nodes)
 			{
@@ -325,8 +339,8 @@ void SystematicAnalysis::OnForNode(const ForNode& node)
 			const ForExpresion_Data& Data = _For_Datas.GetValue(Symbol_GetSymbolID(node));
 			{
 				FileDependency_AddDependencyToCurrentFile(Data.FuncGetLoopAble);
-				FileDependency_AddDependencyToCurrentFile(Data.FuncToCheck);
-				FileDependency_AddDependencyToCurrentFile(Data.FuncToGet);
+				//FileDependency_AddDependencyToCurrentFile(Data.FuncToCheck);
+				//FileDependency_AddDependencyToCurrentFile(Data.FuncToGet);
 			}
 
 			{
@@ -355,8 +369,8 @@ void SystematicAnalysis::OnForNode(const ForNode& node)
 				auto BoolJumps = IR_GetJumpsIndex();
 				{//get if check
 					Get_FuncInfo f;
-					f.Func = Data.FuncToCheck->Get_Info<FuncInfo>();
-					f.SymFunc = Data.FuncToCheck;
+					//f.Func = Data.FuncToCheck->Get_Info<FuncInfo>();
+					//f.SymFunc = Data.FuncToCheck;
 					f.ThisPar = Get_FuncInfo::ThisPar_t::PushFromLast;
 
 
@@ -380,8 +394,8 @@ void SystematicAnalysis::OnForNode(const ForNode& node)
 				{//get item
 					_IR_LastExpressionField = Loopobject;
 					Get_FuncInfo f;
-					f.Func = Data.FuncToGet->Get_Info<FuncInfo>();
-					f.SymFunc = Data.FuncToGet;
+					//f.Func = Data.FuncToGet->Get_Info<FuncInfo>();
+					//f.SymFunc = Data.FuncToGet;
 					f.ThisPar = Get_FuncInfo::ThisPar_t::PushFromLast;
 
 					if (f.Func->Pars[0].Type.IsAddress())

@@ -392,8 +392,7 @@ private:
 	struct ForExpresion_Data
 	{
 		Symbol* FuncGetLoopAble = nullptr;
-		Symbol* FuncToGet = nullptr;
-		Symbol* FuncToCheck = nullptr;
+		Symbol* FuncNext = nullptr;
 	};
 	using CastExpressionNode_Data = PostFixExpressionNode_Data;
 	using AssignExpression_Data = BinaryExpressionNode_Data;
@@ -1306,6 +1305,19 @@ private:
 	void OnForTypeNode(const ForTypeNode& node);
 
 
+	struct OptionalTypeInfo
+	{
+		TypeSymbol SomeType;
+	};
+	Optional<OptionalTypeInfo> IsOptionalType(const TypeSymbol& Type) const;
+
+	struct ResultTypeInfo
+	{
+		TypeSymbol SomeType;
+		TypeSymbol ErrorType;
+	};
+	Optional<ResultTypeInfo> IsResultType(const TypeSymbol& Type) const;
+		
 	TypeSymbol Type_MakeFutureFromType(const TypeSymbol& BaseType);
 	bool Type_IsFuture(const TypeSymbol& Future);
 	TypeSymbol Type_GetBaseFromFuture(const TypeSymbol& Future);
