@@ -77,6 +77,18 @@ struct Vec2
 		Y = y;
 	}
 };
+
+template<typename T>
+struct Array3
+{
+	Array<T, 3> arrays;
+	Array3(T a, T b, T c)
+	{
+		arrays[0] = a;
+		arrays[1] = b;
+		arrays[2] = c;
+	}
+};
 inline String ModeType(OptimizationFlags Flags)
 {
 	if (Flags == OptimizationFlags::O_None)
@@ -100,7 +112,7 @@ inline String ModeType(OptimizationFlags Flags)
 	return r;
 }
 
-static const Array<TestInfo, 132> Tests{
+static const Array<TestInfo, 133> Tests{
 
 	TestInfo("main_0", "BasicTests/main.uc", "Main", SuccessCondition::Compilation),
 
@@ -281,7 +293,9 @@ static const Array<TestInfo, 132> Tests{
 	
 	TestInfo("GenericPackWithType","Generics/GenericPackWithType.uc", "main", SuccessCondition::CompilationFail),
 	
-	TestInfo("GenericPackWithType 2","Generics/GenericPackWithType 2.uc", "main", SuccessCondition::Compilation,bool(true)),
+	TestInfo("GenericPackWithType 2","Generics/GenericPackWithType 2.uc", "main", SuccessCondition::RunTimeValue,bool(true)),
+	
+	TestInfo("CompileTime ForNode Spit", "Objects/CompileTimeForNodeSplit.uc", "main", SuccessCondition::RunTimeValue, Array3<int>(1, 2, 3)),
 };
 struct SkipTestRange
 {
