@@ -1739,15 +1739,23 @@ UAssembly::StripFuncs UAssembly::StripFunc(UClib& lib, const StripFuncSettings& 
 							auto oldindexpos =Item.second + (i - oldstartpos);
 							auto jumppos =Instruction::IsJump(Span(ByteCodeLayer->_Instructions.data(), ByteCodeLayer->_Instructions.size()),oldindexpos,is32mode).value();
 
-							auto diff = jumppos - oldindexpos;
+							size_t newpos;
+							if (oldindexpos > jumppos)
+							{
+								newpos = oldindexpos + (oldindexpos - jumppos);
+							}
+							else
+							{
+								newpos = oldindexpos +(jumppos - oldindexpos);
+							}
 
-							InstructionBuilder::Jumpv1(jumpto + diff, NewIns[i + 0]);
-							InstructionBuilder::Jumpv2(jumpto + diff, NewIns[i + 1]);
+							InstructionBuilder::Jumpv1(newpos, NewIns[i + 0]);
+							InstructionBuilder::Jumpv2(newpos, NewIns[i + 1]);
 							
 							if (is64mode)
 							{
-								InstructionBuilder::Jumpv3(jumpto + diff, NewIns[i + 2]);
-								InstructionBuilder::Jumpv4(jumpto + diff, NewIns[i + 3]);
+								InstructionBuilder::Jumpv3(newpos, NewIns[i + 2]);
+								InstructionBuilder::Jumpv4(newpos, NewIns[i + 3]);
 							}
 						}
 					}
@@ -1766,15 +1774,25 @@ UAssembly::StripFuncs UAssembly::StripFunc(UClib& lib, const StripFuncSettings& 
 							auto oldindexpos =Item.second + (i - oldstartpos);
 							auto jumppos = Instruction::IsJump(Span(ByteCodeLayer->_Instructions.data(), ByteCodeLayer->_Instructions.size()),oldindexpos,is32mode).value();
 
-							auto diff = jumppos - oldindexpos;
+							size_t newpos;
+							if (oldindexpos > jumppos)
+							{
+								newpos = oldindexpos + (oldindexpos - jumppos);
+							}
+							else
+							{
+								newpos = oldindexpos +(jumppos - oldindexpos);
+							}
 
-							InstructionBuilder::Jumpv1(jumpto + diff, NewIns[i + 0]);
-							InstructionBuilder::Jumpv2(jumpto + diff, NewIns[i + 1]);
+								
+							
+							InstructionBuilder::Jumpv1(newpos, NewIns[i + 0]);
+							InstructionBuilder::Jumpv2(newpos, NewIns[i + 1]);
 							
 							if (is64mode) 
 							{
-								InstructionBuilder::Jumpv3(jumpto + diff, NewIns[i + 2]);
-								InstructionBuilder::Jumpv4(jumpto + diff, NewIns[i + 3]);
+								InstructionBuilder::Jumpv3(newpos, NewIns[i + 2]);
+								InstructionBuilder::Jumpv4(newpos, NewIns[i + 3]);
 							}
 						}	
 					}
