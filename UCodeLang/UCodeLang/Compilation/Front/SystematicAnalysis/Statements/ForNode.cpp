@@ -161,7 +161,7 @@ void SystematicAnalysis::OnForNode(const ForNode& node)
 				OnExpressionTypeNode(Ex, GetValueMode::Read);
 				_LookingForTypes.pop();
 			}
-			auto& ExType = _LastExpressionType;
+			auto ExType = _LastExpressionType;
 
 			auto HasInfo = Type_HasForOverLoadWith(ExType);
 			bool isvarableok = false;
@@ -227,7 +227,49 @@ void SystematicAnalysis::OnForNode(const ForNode& node)
 						ThisPar.Type = TypeForType;
 						ThisPar.Type._IsAddress = true;
 
-						LogError_CantFindFuncError(token, NextFuncName, {}, { ThisPar }, TypesEnum::Any);
+						String Msg;
+						Msg += "Cant loop over '" + ToString(ExType) + "'";
+						
+						{
+							bool hasloopfuncion = false;
+							for (size_t i = 0; i < 10; i++)
+							{
+								String NextFuncName;
+
+								NextFuncName += ToString(TypeForType);
+
+								String name = "Next";
+								if (i != 0)
+								{
+									name += std::to_string(i+1);
+								}
+
+								ScopeHelper::GetApendedString(NextFuncName, name);
+
+								NullablePtr<Symbol> NextFunc = {};
+								NextFunc = Symbol_GetSymbol(NextFuncName, SymbolType::Func);
+								if (NextFunc.has_value())
+								{
+									if (NextFunc.value()->Type != SymbolType::Func)
+									{
+										NextFunc = {};
+									}
+								}
+
+								if (NextFunc.has_value()) 
+								{
+									hasloopfuncion = true;
+									break;
+								}
+							}
+
+							if (hasloopfuncion)
+							{
+								Msg += " and split the iterator into " + std::to_string(node._OtherVarables.size() + 1);
+							}
+						}
+						LogError(ErrorCodes::InValidType,Msg, token);
+						
 					}
 					else
 					{
