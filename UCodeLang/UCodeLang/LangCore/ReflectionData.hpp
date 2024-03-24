@@ -275,11 +275,13 @@ struct Class_Data
 {
 	ReflectionCustomTypeID TypeID = {};
 	size_t Size = 0;
+	AccessModifierType AccessModifier = AccessModifierType::Default;
+	bool IsExported = false;
 	UsedTags Attributes;
 	Vector<ClassField> Fields;
 	Vector<ClassMethod> Methods;
 	Vector<InheritedTrait_Data> InheritedTypes;
-	
+		
 	const ClassMethod* Get_ClassInit() const
 	{
 		return Get_ClassMethod(ClassInitializefuncName);
@@ -360,20 +362,30 @@ struct Enum_Data
 	Optional<String> DestructorFuncFullName;
 	Optional<String> MoveFuncFullName;
 	Optional<String> CopyFuncFullName;
+	
+	AccessModifierType AccessModifier = AccessModifierType::Default;
+	bool IsExported = false;
 };
 struct Alias_Data
 {
 	ReflectionTypeInfo Type;
 	Optional<ReflectionCustomTypeID> HardAliasTypeID;
+
+	AccessModifierType AccessModifier = AccessModifierType::Default;
+	bool IsExported = false;
 };
 struct Eval_Data
 {
 	TypedRawReflectionData Value;
 
+	AccessModifierType AccessModifier = AccessModifierType::Default;
+	bool IsExported = false;
 };
 struct Tag_Data
 {
 	ReflectionCustomTypeID TypeID = {};
+	AccessModifierType AccessModifier = AccessModifierType::Default;
+	bool IsExported = false;
 	Vector<ClassField> Fields;
 	Vector<ClassMethod> Methods;
 	~Tag_Data()
@@ -389,6 +401,8 @@ struct TraitMethod
 struct Trait_Data
 {
 	ReflectionCustomTypeID TypeID = {};
+	AccessModifierType AccessModifier = AccessModifierType::Default;
+	bool IsExported = false;
 	Vector<ClassField> Fields;
 	Vector<TraitMethod> Methods;
 	~Trait_Data()
@@ -440,6 +454,8 @@ struct GenericClass_Data
 	{
 
 	}
+	AccessModifierType AccessModifier = AccessModifierType::Default;
+	bool IsExported = false;
 };
 
 
@@ -450,6 +466,8 @@ struct GenericFunction_Data
 	{
 
 	}
+	AccessModifierType AccessModifier = AccessModifierType::Default;
+	bool IsExported = false;
 };
 struct GenericEnum_Data
 {
@@ -458,6 +476,8 @@ struct GenericEnum_Data
 	{
 
 	}
+	AccessModifierType AccessModifier = AccessModifierType::Default;
+	bool IsExported = false;
 };
 struct GenericAlias_Data
 {
@@ -466,6 +486,8 @@ struct GenericAlias_Data
 	{
 
 	}
+	AccessModifierType AccessModifier = AccessModifierType::Default;
+	bool IsExported = false;
 };
 struct GenericTrait_Data
 {
@@ -474,6 +496,8 @@ struct GenericTrait_Data
 	{
 
 	}
+	AccessModifierType AccessModifier = AccessModifierType::Default;
+	bool IsExported = false;
 };
 struct GenericTag_Data
 {
@@ -482,6 +506,8 @@ struct GenericTag_Data
 	{
 
 	}
+	AccessModifierType AccessModifier = AccessModifierType::Default;
+	bool IsExported = false;
 };
 struct GenericForType_Data
 {
@@ -490,6 +516,8 @@ struct GenericForType_Data
 	{
 
 	}
+	AccessModifierType AccessModifier = AccessModifierType::Default;
+	bool IsExported = false;
 };
 struct NameSpace_Data
 {
@@ -500,14 +528,16 @@ struct NameSpace_Data
 };
 struct ForType_Data
 {
-	String _Scope;
 	ReflectionTypeInfo _TargetType;
+	String _Scope;
+	AccessModifierType AccessModifier = AccessModifierType::Default;
+	bool IsExported = false;
 	Vector<ClassMethod> _AddedMethods;
-
 	~ForType_Data()
 	{
 
 	}
+	
 };
 class AssemblyNode
 {
