@@ -141,6 +141,9 @@ void SystematicAnalysis::OnAliasNode(const AliasNode& node)
 				{
 					V.HardAliasTypeID = Type_GetTypeID(TypesEnum::CustomType, Syb.ID);
 				}
+				V.AccessModifier = Syb.Access;
+				V.IsExported = false;
+
 				FileDependency_AddDependencyToCurrentFile(Syb.VarType);
 			}
 			else

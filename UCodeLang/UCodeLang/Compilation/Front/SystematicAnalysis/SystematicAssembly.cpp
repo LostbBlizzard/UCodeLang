@@ -1049,7 +1049,8 @@ void SystematicAnalysis::Assembly_AddClass(const Vector<Unique_ptr<AttributeNode
 
 	VClass.Size = Type_GetSize(AsType).value();
 	VClass.TypeID = Type_GetTypeID(AsType._Type, AsType._CustomTypeSymbol);
-
+	VClass.AccessModifier = ClassSyb->Access;
+	VClass.IsExported = ClassSyb->Get_NodeInfo<ClassNode>()->_IsExport;
 	for (const auto& node : Class->Fields)
 	{
 		auto& Item = VClass.Fields.emplace_back();
@@ -1101,6 +1102,8 @@ void SystematicAnalysis::Assembly_AddEnum(const NeverNullPtr<Symbol> ClassSyb)
 	Enum_Data &EnumData = _Lib.Get_Assembly().AddEnum(ScopeHelper::GetNameFromFullName(Syb.FullName), RemoveSymboolFuncOverloadMangling(Syb.FullName));
 	EnumData.BaseType = Assembly_ConvertToType(ClassInf->Basetype);
 	EnumData.TypeID = Type_GetTypeID(TypesEnum::CustomType, Syb.ID);
+	EnumData.AccessModifier = ClassSyb->Access;
+	EnumData.IsExported = ClassSyb->Get_NodeInfo<EnumNode>()->_IsExport;
 
 	if (ClassInf->FuncDestructer)
 	{

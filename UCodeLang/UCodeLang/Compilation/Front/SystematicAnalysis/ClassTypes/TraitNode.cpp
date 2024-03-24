@@ -217,6 +217,8 @@ void SystematicAnalysis::OnTrait(const TraitNode& node)
 
 		Trait_Data& TraitData = _Lib.Get_Assembly().AddTrait(ScopeHelper::GetNameFromFullName(Syb.FullName), RemoveSymboolFuncOverloadMangling(Syb.FullName));
 		TraitData.TypeID = Type_GetTypeID(TypesEnum::CustomType, Syb.ID);
+		TraitData.AccessModifier = Syb.Access;
+		TraitData.IsExported = node._IsExport;
 
 		for (auto& Item : info->_Vars)
 		{

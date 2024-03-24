@@ -168,6 +168,10 @@ String UAssembly::ToString(const UClib* Lib, Optional<Path> SourceFiles, bool Sh
 		
 			if (hasany)
 			{
+				if (Class.IsExported)
+				{
+					r += " export";
+				}
 				r += ":\n";
 				r += ".size:" + std::to_string(Class.Size) + "\n";
 
@@ -214,6 +218,10 @@ String UAssembly::ToString(const UClib* Lib, Optional<Path> SourceFiles, bool Sh
 		case ClassType::Alias:
 		{
 			auto& Class = Item->Get_AliasData();
+			if (Class.IsExported)
+			{
+				r += " export";
+			}
 			r += "$" + Item->FullName + " = ";
 
 			if (Class.HardAliasTypeID.has_value()) {
@@ -227,6 +235,10 @@ String UAssembly::ToString(const UClib* Lib, Optional<Path> SourceFiles, bool Sh
 			auto& Enum = Item->Get_EnumData();
 			r += "$" + Item->FullName + " enum[" + ToString(Enum.BaseType,Assembly) + "]";
 
+			if (Enum.IsExported)
+			{
+				r += " export";
+			}
 			bool hasany = Enum.Values.size();
 			if (hasany)
 			{
@@ -291,6 +303,12 @@ String UAssembly::ToString(const UClib* Lib, Optional<Path> SourceFiles, bool Sh
 
 			auto& TagData = Item->Get_TagData();
 			bool hasany = TagData.Fields.size() || TagData.Fields.size();
+			
+			if (TagData.IsExported)
+			{
+				r += " export";
+			}
+
 			if (hasany)
 			{
 				r += ":\n";
@@ -346,7 +364,11 @@ String UAssembly::ToString(const UClib* Lib, Optional<Path> SourceFiles, bool Sh
 		{
 			r += "$" + Item->FullName + " trait:\n";
 			auto& TraitData = Item->Get_TraitData();
-		
+
+			if (TraitData.IsExported)
+			{
+				r += " export";
+			}
 
 		}
 		break;
@@ -373,6 +395,10 @@ String UAssembly::ToString(const UClib* Lib, Optional<Path> SourceFiles, bool Sh
 			auto& TraitData = Item->Get_ForType();
 			r += "$for " + ToString(TraitData._TargetType,Assembly);
 
+			if (TraitData.IsExported)
+			{
+				r += " export";
+			}
 			if (TraitData._AddedMethods.size())
 			{
 				r += ": \n";
