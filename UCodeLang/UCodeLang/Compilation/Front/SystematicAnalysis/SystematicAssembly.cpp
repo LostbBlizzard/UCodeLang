@@ -473,7 +473,7 @@ void SystematicAnalysis::Assembly_LoadClassSymbol(const Class_Data &Item, const 
 			InfoItem.Name = FieldItem.Name;
 			// InfoItem.offset = FieldItem.offset;
 
-			auto &FieldSyb = Symbol_AddSymbol(SymbolType::Class_Field, Name, ScopeHelper::ApendedStrings(FullName, FieldItem.Name), AccessModifierType::Public);
+			auto &FieldSyb = Symbol_AddSymbol(SymbolType::Class_Field, Name, ScopeHelper::ApendedStrings(FullName, FieldItem.Name), FieldItem.Protection);
 			_Table.AddSymbolID(FieldSyb, id);
 		}
 	}
@@ -914,7 +914,7 @@ void SystematicAnalysis::Assembly_LoadSymbol(const ClassMethod &Item, Systematic
 	if (Mode == LoadLibMode::GetTypes)
 	{
 		auto Name = ScopeHelper::GetNameFromFullName(Item.FullName);
-		auto &Syb = Symbol_AddSymbol(SymbolType::Func, Name, Item.FullName, AccessModifierType::Public);
+		auto &Syb = Symbol_AddSymbol(SymbolType::Func, Name, Item.FullName, Item.Protection);
 		_Table.AddSymbolID(Syb, Symbol_GetSymbolID(&Item));
 		Syb.OutputIR = false;
 		Syb.PassState = PassType::BuidCode;
