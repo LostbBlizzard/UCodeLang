@@ -170,14 +170,41 @@ String UAssembly::ToString(const UClib* Lib, Optional<Path> SourceFiles, bool Sh
 			{
 				r += ":\n";
 				r += ".size:" + std::to_string(Class.Size) + "\n";
+
+				Optional<AccessModifierType> _AccessModifier;
+
 				for (auto& Item2 : Class.Fields)
 				{
+					if (!_AccessModifier.has_value() || _AccessModifier.value() != Item2.Protection)
+					{
+						r += "\n";
+						r += Item2.Protection == AccessModifierType::Public ?
+							"public" :
+							"private";
+
+						r += ": \n";
+
+						_AccessModifier = Item2.Protection;
+					}
+
 					r += " " + ToString(Item2.Type, Assembly) + " " + Item2.Name + ";//Offset " + std::to_string(Item2.offset) + "\n";
 				}
 				r += "\n";
 
 				for (auto& Item2 : Class.Methods)
 				{
+					if (!_AccessModifier.has_value() || _AccessModifier.value() != Item2.Protection)
+					{
+						r += "\n";
+						r += Item2.Protection == AccessModifierType::Public ?
+							"public" :
+							"private";
+
+						r += ": \n";
+
+						_AccessModifier = Item2.Protection;
+					}
+
 					ToString(r, Item2, Lib);
 				}
 			}
