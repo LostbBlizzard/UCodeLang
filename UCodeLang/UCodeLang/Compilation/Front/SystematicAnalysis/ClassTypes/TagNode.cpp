@@ -108,6 +108,8 @@ void SystematicAnalysis::OnTag(const TagTypeNode& node)
 			TagData.TypeID = Type_GetTypeID(TypesEnum::CustomType, Syb.ID);
 
 			TagData.Fields.resize(info->Fields.size());
+			TagData.AccessModifier = Syb.Access;
+			TagData.IsExported = node._IsExport;
 		
 			size_t offset = 0;
 			for (size_t i = 0; i < info->Fields.size(); i++)
