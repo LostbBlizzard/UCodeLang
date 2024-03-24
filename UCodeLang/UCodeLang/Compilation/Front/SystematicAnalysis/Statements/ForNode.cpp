@@ -25,14 +25,32 @@ void SystematicAnalysis::OnForNode(const ForNode& node)
 
 		syb = &Symbol_AddSymbol(SymbolType::StackVarable, (String)StrVarName, FullName, AccessModifierType::Public);
 		_Table.AddSymbolID(*syb, sybId);
-
-
 		{
 			DeclareVariableInfo* info = new DeclareVariableInfo();
 
 			syb->Info.reset(info);
 
 			info->LineNumber = node._Name->OnLine;
+		}
+
+		for (auto& Item : node._OtherVarables)
+		{	
+			auto StrVarName = Item._Name->Value._String;
+			auto FullName = _Table._Scope.GetApendedString(StrVarName);
+
+			Symbol_RedefinitionCheck(FullName, SymbolType::StackVarable, NeverNullptr(node._Name));
+
+			SymbolID sybId = Symbol_GetSymbolID(&Item);
+
+			auto SymItem = &Symbol_AddSymbol(SymbolType::StackVarable, (String)StrVarName, FullName, AccessModifierType::Public);
+			_Table.AddSymbolID(*SymItem, sybId);
+
+		
+			DeclareVariableInfo* info = new DeclareVariableInfo();
+
+			SymItem->Info.reset(info);
+
+			info->LineNumber = Item._Name->OnLine;
 		}
 
 
@@ -127,10 +145,18 @@ void SystematicAnalysis::OnForNode(const ForNode& node)
 				Type_Convert(node._typeNode, VarType);
 				VarType.SetAsLocation();
 			}
+			for (auto& Item : node._OtherVarables)
+			{
+				auto& sym = Symbol_GetSymbol(Symbol_GetSymbolID(&Item));
+
+				auto& VarType = sym->VarType;
+				Type_Convert(Item._typeNode, VarType);
+				VarType.SetAsLocation();
+			}
 
 			auto Ex = node._Modern_List._Value.get();
 
-			{
+			{	
 				_LookingForTypes.push(TypeSymbol(TypesEnum::Any));
 				OnExpressionTypeNode(Ex, GetValueMode::Read);
 				_LookingForTypes.pop();
@@ -172,7 +198,15 @@ void SystematicAnalysis::OnForNode(const ForNode& node)
 					bool HasAnyNextFunc = false;
 					{
 						NextFuncName += ToString(TypeForType);
-						ScopeHelper::GetApendedString(NextFuncName, "Next");
+
+						String name = "Next";
+						if (node._OtherVarables.size())
+						{
+							uintptr_t val = node._OtherVarables.size() + 1;
+							name += std::to_string(val);
+						}
+
+						ScopeHelper::GetApendedString(NextFuncName, name);
 
 						NextFunc = Symbol_GetSymbol(NextFuncName, SymbolType::Func);
 						if (NextFunc.has_value())
@@ -212,11 +246,42 @@ void SystematicAnalysis::OnForNode(const ForNode& node)
 							auto& Ret = finfo->Ret;
 
 							auto optinfo = IsOptionalType(Ret);
-							typeinfo = std::move(optinfo);
 							if (!optinfo.has_value())
 							{
 								ok = false;
 								LogError(ErrorCodes::InValidName, "The Funcion '" + nfunc->FullName + "' must return an OptionalType", token);
+							}
+							else if (finfo->Pars.size() != 1)
+							{
+								ok = false;
+								LogError_CanIncorrectParCount(token, nfunc->FullName, 1, finfo->Pars.size());
+							}
+
+							typeinfo = std::move(optinfo);
+
+							if (typeinfo.has_value() && node._OtherVarables.size())
+							{
+								auto base = typeinfo.value().SomeType;
+								size_t fieldcount = node._OtherVarables.size() + 1;
+
+								auto syb = Symbol_GetSymbol(base);
+
+								if (!syb.has_value()  || syb.value()->Type != SymbolType::Type_class)
+								{
+									ok = false;
+									LogError(ErrorCodes::InValidType, "The Type '" + ToString(base) + "' must be a Class/Struct",token);
+								}
+								else
+								{
+									ClassInfo* info = syb.value()->Get_Info<ClassInfo>();
+
+									if (info->Fields.size() != fieldcount)
+									{
+										ok = false;
+										LogError(ErrorCodes::InValidType, "The Type Class/Struct '" + ToString(base) + "' must have " + std::to_string(fieldcount) + " fields", token);
+									}
+								}
+
 							}
 						}
 
@@ -230,10 +295,33 @@ void SystematicAnalysis::OnForNode(const ForNode& node)
 							_For_Datas.AddValue(Symbol_GetSymbolID(node), g);
 
 
+							if (node._OtherVarables.size()) 
+							{
+								auto syb2 = Symbol_GetSymbol(type);
+								ClassInfo* info = syb2.value()->Get_Info<ClassInfo>();
+							
+								auto token = NeverNullptr(node._typeNode._name._ScopedName.back()._token);
+								Type_DeclareVariableTypeCheck(syb->VarType, info->Fields[0].Type, token);
+						
+								for (size_t i = 0; i < node._OtherVarables.size(); i++)
+								{
+									auto& item = node._OtherVarables[i];
+									auto varsyb = Symbol_GetSymbol(Symbol_GetSymbolID(&item));
+									
+									auto token = NeverNullptr(item._Name);
+									Type_DeclareVariableTypeCheck(syb->VarType, info->Fields[i + 1].Type, token);
 
-							auto token = NeverNullptr(node._typeNode._name._ScopedName.back()._token);
-							Type_DeclareVariableTypeCheck(syb->VarType,type, token);
-							isvarableok = true;
+								}
+
+								isvarableok = true;
+
+							}
+							else
+							{
+								auto token = NeverNullptr(node._typeNode._name._ScopedName.back()._token);
+								Type_DeclareVariableTypeCheck(syb->VarType, type, token);
+								isvarableok = true;
+							}
 						}
 					}
 				}
@@ -246,6 +334,13 @@ void SystematicAnalysis::OnForNode(const ForNode& node)
 			if (!isvarableok)
 			{
 				syb->VarType = TypeSymbol(TypesEnum::Null);
+
+				for (size_t i = 0; i < node._OtherVarables.size(); i++)
+				{
+					auto& item = node._OtherVarables[i];
+					auto varsyb = Symbol_GetSymbol(Symbol_GetSymbolID(&item));
+					varsyb->VarType = TypeSymbol(TypesEnum::Null);
+				}
 			}
 
 			for (const auto& node2 : node._Body._Nodes)
