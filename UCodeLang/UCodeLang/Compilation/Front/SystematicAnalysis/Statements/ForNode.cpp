@@ -309,7 +309,7 @@ void SystematicAnalysis::OnForNode(const ForNode& node)
 									auto varsyb = Symbol_GetSymbol(Symbol_GetSymbolID(&item));
 									
 									auto token = NeverNullptr(item._Name);
-									Type_DeclareVariableTypeCheck(syb->VarType, info->Fields[i + 1].Type, token);
+									Type_DeclareVariableTypeCheck(varsyb->VarType, info->Fields[i + 1].Type, token);
 
 								}
 
@@ -450,6 +450,7 @@ void SystematicAnalysis::OnForNode(const ForNode& node)
 			{
 				Get_FuncInfo f;
 				f.Func = Data.FuncGetLoopAble->Get_Info<FuncInfo>();
+	
 				f.SymFunc = Data.FuncGetLoopAble;
 				f.ThisPar = Get_FuncInfo::ThisPar_t::PushFromLast;
 				IR_Build_FuncCall(f, {}, {});
@@ -493,13 +494,52 @@ void SystematicAnalysis::OnForNode(const ForNode& node)
 
 				{//get item
 					_IR_LastExpressionField = Loopobject;
-					
-					syb->IR_Ins = IR_OptionalGetSomeType(OptType,opt,OptionalGetValueMode::Move);
+					auto sometypeval = IR_OptionalGetSomeType(OptType, opt, OptionalGetValueMode::Move);
 
-					Debug_Add_SetLineNumber(NeverNullptr(node._Name), _IR_LookingAtIRBlock->GetIndex());
-					Debug_Add_SetVarableInfo(*syb, _IR_LookingAtIRBlock->GetIndex());
 
-					IR_Build_AddDestructorToStack(syb, syb->ID, syb->IR_Ins);
+					if (node._OtherVarables.size())
+					{
+						auto sometype = IsOptionalType(OptType).value().SomeType;
+
+						bool isadress = sometype.IsAddress();
+						IRType typeir = IR_ConvertToIRType(sometype);
+						const IRStruct* structir = _IR_Builder.GetSymbol(typeir._symbol)->Get_ExAs<IRStruct>();
+
+						syb->IR_Ins = isadress ?
+							_IR_LookingAtIRBlock->New_Member_Dereference(sometypeval, typeir, 0) :
+							_IR_LookingAtIRBlock->New_Member_Access(sometypeval, structir, 0);
+
+						Debug_Add_SetLineNumber(NeverNullptr(node._Name), _IR_LookingAtIRBlock->GetIndex());
+						Debug_Add_SetVarableInfo(*syb, _IR_LookingAtIRBlock->GetIndex());
+
+						IR_Build_AddDestructorToStack(syb, syb->ID, syb->IR_Ins);
+
+						for (size_t i = 0; i < node._OtherVarables.size(); i++)
+						{
+							auto& Item = node._OtherVarables[i];
+							auto& Itemsym = Symbol_GetSymbol(Symbol_GetSymbolID(&Item));
+
+							Itemsym->IR_Ins = isadress ?
+								_IR_LookingAtIRBlock->New_Member_Dereference(sometypeval, typeir, i + 1) :
+								_IR_LookingAtIRBlock->New_Member_Access(sometypeval, structir, i + 1);
+
+							Debug_Add_SetLineNumber(NeverNullptr(Item._Name), _IR_LookingAtIRBlock->GetIndex());
+							Debug_Add_SetVarableInfo(*Itemsym, _IR_LookingAtIRBlock->GetIndex());
+
+							IR_Build_AddDestructorToStack(Itemsym, Itemsym->ID, Itemsym->IR_Ins);
+
+						}
+
+					}
+					else
+					{
+						syb->IR_Ins = sometypeval;
+
+						Debug_Add_SetLineNumber(NeverNullptr(node._Name), _IR_LookingAtIRBlock->GetIndex());
+						Debug_Add_SetVarableInfo(*syb, _IR_LookingAtIRBlock->GetIndex());
+
+						IR_Build_AddDestructorToStack(syb, syb->ID, syb->IR_Ins);
+					}
 				}
 
 				for (const auto& node2 : node._Body._Nodes)
