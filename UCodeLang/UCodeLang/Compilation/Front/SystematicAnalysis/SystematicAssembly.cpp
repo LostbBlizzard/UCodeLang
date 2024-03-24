@@ -1050,7 +1050,15 @@ void SystematicAnalysis::Assembly_AddClass(const Vector<Unique_ptr<AttributeNode
 	VClass.Size = Type_GetSize(AsType).value();
 	VClass.TypeID = Type_GetTypeID(AsType._Type, AsType._CustomTypeSymbol);
 	VClass.AccessModifier = ClassSyb->Access;
-	VClass.IsExported = ClassSyb->Get_NodeInfo<ClassNode>()->_IsExport;
+
+	if (ClassSyb->NodePtr) 
+	{
+		VClass.IsExported = ClassSyb->Get_NodeInfo<ClassNode>()->_IsExport;
+	}
+	else
+	{
+		VClass.IsExported = true;//most likey generated from enum or something similar
+	}
 	for (const auto& node : Class->Fields)
 	{
 		auto& Item = VClass.Fields.emplace_back();
@@ -1066,7 +1074,17 @@ void SystematicAnalysis::Assembly_AddClass(const Vector<Unique_ptr<AttributeNode
 		ScopeHelper::GetApendedString(fullnameforfield, node.Name);
 		auto& fieldsymbol = Symbol_GetSymbol(fullnameforfield, SymbolType::Class_Field);
 
-		Item.Protection = fieldsymbol.value()->Access;
+		if (fieldsymbol.has_value()) 
+		{
+			Item.Protection = fieldsymbol.value()->Access;
+		}
+		else
+		{
+			Item.Protection = AccessModifierType::Public;//most likey generated from enum or something similar
+
+		}
+
+			
 	}
 
 	for (const auto &Trait : Class->_InheritedTypes)
