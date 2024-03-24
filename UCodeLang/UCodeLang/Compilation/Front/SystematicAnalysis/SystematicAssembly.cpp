@@ -961,6 +961,11 @@ void SystematicAnalysis::Assembly_LoadSymbol(const NameSpace_Data& Item,const St
 }
 void SystematicAnalysis::Assembly_LoadSymbol(const ClassMethod &Item, SystematicAnalysis::LoadLibMode Mode)
 {
+	if (!Item.IsExport)
+	{
+		return;
+	}
+
 	if (Mode == LoadLibMode::GetTypes)
 	{
 		auto Name = ScopeHelper::GetNameFromFullName(Item.FullName);

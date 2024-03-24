@@ -224,6 +224,7 @@ public:
 	bool IsUnsafe = false;
 	bool IsExternC = false;
 	bool IsRemoved = false;
+	bool IsExport = false;
 	AccessModifierType Protection = AccessModifierType::Default;
 
 	UsedTags Attributes;

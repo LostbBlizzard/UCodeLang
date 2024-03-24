@@ -399,6 +399,7 @@ void UClib::ToBytes(BitMaker& Output, const ClassMethod& Data)
 	Output.WriteType(Data.IsUnsafe);
 	Output.WriteType(Data.IsExternC);
 	Output.WriteType(Data.IsRemoved);
+	Output.WriteType(Data.IsExport);
 	Output.WriteType((AccessModifierType_t)Data.Protection);
 
 	ToBytes(Output, Data.Attributes);
@@ -1262,6 +1263,7 @@ void UClib::FromBytes(BitReader& Input, ClassMethod& Data)
 	Input.ReadType(Data.IsUnsafe);
 	Input.ReadType(Data.IsExternC);
 	Input.ReadType(Data.IsRemoved);
+	Input.ReadType(Data.IsExport);
 	Input.ReadType(*(AccessModifierType_t*)&Data.Protection);
 
 	FromBytes(Input, Data.Attributes);
