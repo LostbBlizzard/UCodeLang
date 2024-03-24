@@ -351,6 +351,7 @@ void UClib::ToBytes(BitMaker& Output, const ClassField& Item2)
 	Output.WriteType(Item2.Name);
 	ToBytes(Output, Item2.Type);
 	Output.WriteType((Size_tAsBits)Item2.offset);
+	Output.WriteType((AccessModifierType_t)Item2.Protection);
 }
 void UClib::ToBytes(BitMaker& Output, const Tag_Data& Data)
 {
@@ -388,6 +389,7 @@ void UClib::ToBytes(BitMaker& Output, const ClassMethod& Data)
 	Output.WriteType(Data.IsUnsafe);
 	Output.WriteType(Data.IsExternC);
 	Output.WriteType(Data.IsRemoved);
+	Output.WriteType((AccessModifierType_t)Data.Protection);
 
 	ToBytes(Output, Data.Attributes);
 }
@@ -1139,6 +1141,10 @@ void UClib::FromBytes(BitReader& reader, ClassField& Item2)
 	Size_tAsBits offset;
 	reader.ReadType(offset, offset);
 	Item2.offset = offset;
+
+	AccessModifierType_t proc = (AccessModifierType_t)AccessModifierType::Default;
+	reader.ReadType(proc,proc);
+	Item2.Protection = (AccessModifierType)proc;
 }
 void UClib::FromBytes(BitReader& reader, Alias_Data& Alias)
 {
@@ -1223,6 +1229,7 @@ void UClib::FromBytes(BitReader& Input, ClassMethod& Data)
 	Input.ReadType(Data.IsUnsafe);
 	Input.ReadType(Data.IsExternC);
 	Input.ReadType(Data.IsRemoved);
+	Input.ReadType(*(AccessModifierType_t*)&Data.Protection);
 
 	FromBytes(Input, Data.Attributes);
 }

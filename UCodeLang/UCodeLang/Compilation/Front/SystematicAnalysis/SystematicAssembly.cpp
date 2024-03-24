@@ -1050,9 +1050,9 @@ void SystematicAnalysis::Assembly_AddClass(const Vector<Unique_ptr<AttributeNode
 	VClass.Size = Type_GetSize(AsType).value();
 	VClass.TypeID = Type_GetTypeID(AsType._Type, AsType._CustomTypeSymbol);
 
-	for (const auto &node : Class->Fields)
+	for (const auto& node : Class->Fields)
 	{
-		auto &Item = VClass.Fields.emplace_back();
+		auto& Item = VClass.Fields.emplace_back();
 
 		UAddress Size;
 		Type_GetSize(node.Type, Size);
@@ -1060,6 +1060,12 @@ void SystematicAnalysis::Assembly_AddClass(const Vector<Unique_ptr<AttributeNode
 		Item.Name = ScopeHelper::GetNameFromFullName(node.Name);
 		Item.Type = Assembly_ConvertToType(node.Type);
 		Item.offset = Type_GetOffset(*Class, &node).value();
+
+		String fullnameforfield = ClassSyb->FullName;
+		ScopeHelper::GetApendedString(fullnameforfield, node.Name);
+		auto& fieldsymbol = Symbol_GetSymbol(fullnameforfield, SymbolType::Class_Field);
+
+		Item.Protection = fieldsymbol.value()->Access;
 	}
 
 	for (const auto &Trait : Class->_InheritedTypes)

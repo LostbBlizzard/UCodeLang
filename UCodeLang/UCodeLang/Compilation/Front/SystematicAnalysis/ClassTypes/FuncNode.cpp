@@ -795,13 +795,14 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 		V.FullName = RemoveSymboolFuncOverloadMangling(FullName);
 		V.DecorationName = RemoveSymboolFuncOverloadMangling(DecName);
 		V.RetType = Assembly_ConvertToType(Info->Ret);
-		;
+	
 
 		V.IsThisFunction = Info->FrontParIsUnNamed;
 		V.IsExternC = Info->IsExternC;
 		V.IsUnsafe = Info->IsUnsafe;
 		V.IsRemoved = Info->IsRemoved;
-		
+		V.Protection = syb->Access;
+
 		for (size_t i = 0; i < Info->Pars.size(); i++)
 		{
 			auto& Item = Info->Pars[i];

@@ -177,7 +177,8 @@ class ClassField
 public:
 	String Name;
 	ReflectionTypeInfo Type;
-	size_t offset=NullAddress;
+	size_t offset = NullAddress;
+	AccessModifierType Protection = AccessModifierType::Default;
 };
 class UsedTagValueData
 {
@@ -223,6 +224,7 @@ public:
 	bool IsUnsafe = false;
 	bool IsExternC = false;
 	bool IsRemoved = false;
+	AccessModifierType Protection = AccessModifierType::Default;
 
 	UsedTags Attributes;
 };
