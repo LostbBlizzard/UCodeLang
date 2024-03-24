@@ -1245,6 +1245,12 @@ void UAssembly::ToString(String& r, ClassMethod& Item2, const UClib* Lib)
 	{
 		r += '\n';
 	}
+	if (Item2.IsExport)
+	{
+		r += "export ";
+	}
+
+		
 
 	r += "|" + ScopeHelper::GetNameFromFullName(Item2.FullName) + "[";
 

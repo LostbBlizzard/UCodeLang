@@ -802,6 +802,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 		V.IsUnsafe = Info->IsUnsafe;
 		V.IsRemoved = Info->IsRemoved;
 		V.Protection = syb->Access;
+		V.IsExport = node._Signature._IsExport;
 
 		for (size_t i = 0; i < Info->Pars.size(); i++)
 		{

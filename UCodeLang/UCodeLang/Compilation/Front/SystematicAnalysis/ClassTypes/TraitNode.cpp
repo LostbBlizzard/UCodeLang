@@ -245,6 +245,7 @@ void SystematicAnalysis::OnTrait(const TraitNode& node)
 			method.method.IsRemoved = funcinfo->IsRemoved;
 			method.method.IsExternC = funcinfo->IsExternC;
 			method.method.RetType = Assembly_ConvertToType(funcinfo->Ret);
+			method.method.IsExport = Item.Syb->Get_NodeInfo<FuncNode>()->_Signature._IsExport;
 
 			method.method.ParsType.resize(funcinfo->Pars.size());
 			for (size_t i = 0; i < funcinfo->Pars.size(); i++)
