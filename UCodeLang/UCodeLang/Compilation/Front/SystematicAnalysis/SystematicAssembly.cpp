@@ -228,16 +228,24 @@ void SystematicAnalysis::Assembly_LoadLibSymbols(const UClib &lib, ImportLibInfo
 		for (auto &Item : Classes)
 		{
 			Optional<String_view> TextOp;
+			AccessModifierType Access = AccessModifierType::Default;
+			bool IsExport = false;
 			if (Item->Get_Type() == ClassType::GenericClass)
 			{
-				TextOp = Item->Get_GenericClass().Base.Implementation;
+				auto& data = Item->Get_GenericClass();
+				TextOp = data.Base.Implementation;
+				Access = data.AccessModifier;
+				IsExport = data.IsExported;
 			}
 			else if (Item->Get_Type() == ClassType::GenericFunction)
 			{
-				TextOp = Item->Get_GenericFunctionData().Base.Implementation;
+				auto& data = Item->Get_GenericFunctionData();
+				TextOp = data.Base.Implementation;
+				Access = data.AccessModifier;
+				IsExport = data.IsExported;
 			}
 
-			if (TextOp.has_value())
+			if (TextOp.has_value() && IsExport)
 			{
 				StringsFromLoadLib.push_back(std::make_unique<String>(TextOp.value()));
 				String_view Text = *StringsFromLoadLib.back().get();
@@ -355,9 +363,21 @@ void SystematicAnalysis::Assembly_LoadLibSymbols(const UClib &lib, ImportLibInfo
 
 		for (auto &Item : Classes)
 		{
-
 			if (Item->Get_Type() == ClassType::GenericClass || Item->Get_Type() == ClassType::GenericFunction)
 			{
+				bool Export;
+				if (Item->Get_Type() == ClassType::GenericClass)
+				{
+					Export = Item->Get_GenericClass().IsExported;
+				}
+				else
+				{
+					Export = Item->Get_GenericFunctionData().IsExported;
+				}
+				if (!Export) { continue; }
+
+					
+
 				auto Sym = Symbol_GetSymbol(Item->FullName, SymbolType::Any);
 				UCodeLangAssert(Sym);
 
@@ -437,6 +457,11 @@ void SystematicAnalysis::Assembly_LoadLibSymbols(const UClib &lib, ImportLibInfo
 }
 void SystematicAnalysis::Assembly_LoadClassSymbol(const Class_Data &Item, const String &FullName, const String &Scope, SystematicAnalysis::LoadLibMode Mode)
 {
+	if (!Item.IsExported)
+	{
+		return;
+	}
+
 	auto TepScope = std::move(_Table._Scope);
 
 	_Table._Scope = {};
@@ -445,7 +470,7 @@ void SystematicAnalysis::Assembly_LoadClassSymbol(const Class_Data &Item, const 
 	if (Mode == LoadLibMode::GetTypes)
 	{
 		auto Name = ScopeHelper::GetNameFromFullName(FullName);
-		auto &Syb = Symbol_AddSymbol(SymbolType::Type_class, Name, FullName, AccessModifierType::Public);
+		auto &Syb = Symbol_AddSymbol(SymbolType::Type_class, Name, FullName, Item.AccessModifier);
 		_Table.AddSymbolID(Syb, Symbol_GetSymbolID(&Item));
 
 		ClassInfo *Info = new ClassInfo();
@@ -504,6 +529,11 @@ void SystematicAnalysis::Assembly_LoadClassSymbol(const Class_Data &Item, const 
 }
 void SystematicAnalysis::Assembly_LoadEnumSymbol(const Enum_Data &Item, const String &FullName, const String &Scope, SystematicAnalysis::LoadLibMode Mode)
 {
+	if (!Item.IsExported)
+	{
+		return;
+	}
+
 	auto TepScope = std::move(_Table._Scope);
 
 	_Table._Scope = {};
@@ -512,7 +542,7 @@ void SystematicAnalysis::Assembly_LoadEnumSymbol(const Enum_Data &Item, const St
 	if (Mode == LoadLibMode::GetTypes)
 	{
 		auto Name = ScopeHelper::GetNameFromFullName(FullName);
-		auto &Syb = Symbol_AddSymbol(SymbolType::Enum, Name, FullName, AccessModifierType::Public);
+		auto &Syb = Symbol_AddSymbol(SymbolType::Enum, Name, FullName, Item.AccessModifier);
 		_Table.AddSymbolID(Syb, Symbol_GetSymbolID(&Item));
 
 		Syb.PassState = PassType::BuidCode;
@@ -615,6 +645,11 @@ void SystematicAnalysis::Assembly_LoadEnumSymbol(const Enum_Data &Item, const St
 }
 void SystematicAnalysis::Assembly_LoadAliasSymbol(const Alias_Data &Item, const String &FullName, const String &Scope, SystematicAnalysis::LoadLibMode Mode)
 {
+	if (!Item.IsExported)
+	{
+		return;
+	}
+
 	auto TepScope = std::move(_Table._Scope);
 
 	_Table._Scope = {};
@@ -627,7 +662,7 @@ void SystematicAnalysis::Assembly_LoadAliasSymbol(const Alias_Data &Item, const 
 			Item.HardAliasTypeID.has_value()
 				? SymbolType::Hard_Type_alias
 				: SymbolType::Type_alias,
-			Name, FullName, AccessModifierType::Public);
+			Name, FullName, Item.AccessModifier);
 		_Table.AddSymbolID(Syb, Symbol_GetSymbolID(&Item));
 
 		Syb.PassState = PassType::BuidCode;
@@ -649,6 +684,11 @@ void SystematicAnalysis::Assembly_LoadAliasSymbol(const Alias_Data &Item, const 
 }
 void SystematicAnalysis::Assembly_LoadTagSymbol(const Tag_Data &Item, const String &FullName, const String &Scope, SystematicAnalysis::LoadLibMode Mode)
 {
+	if (!Item.IsExported)
+	{
+		return;
+	}
+
 	auto TepScope = std::move(_Table._Scope);
 
 	_Table._Scope = {};
@@ -657,7 +697,7 @@ void SystematicAnalysis::Assembly_LoadTagSymbol(const Tag_Data &Item, const Stri
 	if (Mode == LoadLibMode::GetTypes)
 	{
 		auto Name = ScopeHelper::GetNameFromFullName(FullName);
-		auto &Syb = Symbol_AddSymbol(SymbolType::Tag_class, Name, FullName, AccessModifierType::Public);
+		auto &Syb = Symbol_AddSymbol(SymbolType::Tag_class, Name, FullName, Item.AccessModifier);
 		_Table.AddSymbolID(Syb, Symbol_GetSymbolID(&Item));
 
 		Syb.PassState = PassType::BuidCode;
@@ -677,6 +717,11 @@ void SystematicAnalysis::Assembly_LoadTagSymbol(const Tag_Data &Item, const Stri
 }
 void SystematicAnalysis::Assembly_LoadTraitSymbol(const Trait_Data &Item, const String &FullName, const String &Scope, SystematicAnalysis::LoadLibMode Mode)
 {
+	if (!Item.IsExported)
+	{
+		return;
+	}
+
 	auto TepScope = std::move(_Table._Scope);
 
 	_Table._Scope = {};
@@ -685,7 +730,7 @@ void SystematicAnalysis::Assembly_LoadTraitSymbol(const Trait_Data &Item, const 
 	if (Mode == LoadLibMode::GetTypes)
 	{
 		auto Name = ScopeHelper::GetNameFromFullName(FullName);
-		auto &Syb = Symbol_AddSymbol(SymbolType::Trait_class, Name, FullName, AccessModifierType::Public);
+		auto &Syb = Symbol_AddSymbol(SymbolType::Trait_class, Name, FullName, Item.AccessModifier);
 		_Table.AddSymbolID(Syb, Symbol_GetSymbolID(&Item));
 
 		auto &SybClass = Symbol_AddSymbol(SymbolType::Type_class, (String)Name + "%Class", _Table._Scope.ThisScope + "%Class", Syb.Access);
@@ -868,9 +913,14 @@ void SystematicAnalysis::Assembly_LoadTraitSymbol(const Trait_Data &Item, const 
 }
 void SystematicAnalysis::Assembly_LoadSymbol(const ForType_Data& Item, SystematicAnalysis::LoadLibMode Mode)
 {
+	if (!Item.IsExported)
+	{
+		return;
+	}
+
 	if (Mode == LoadLibMode::GetTypes)
 	{
-		auto &Syb = Symbol_AddSymbol(SymbolType::Func, Item._Scope, Item._Scope, AccessModifierType::Public);
+		auto &Syb = Symbol_AddSymbol(SymbolType::Func, Item._Scope, Item._Scope, Item.AccessModifier);
 		_Table.AddSymbolID(Syb, Symbol_GetSymbolID(&Item));
 	
 		auto Funcinfo = new ForTypeInfo();
