@@ -87,7 +87,46 @@ void SystematicAnalysis::OnTag(const TagTypeNode& node)
 		}
 		if (_PassType == PassType::FixedTypes)
 		{
+			bool ispublic = node._Access == AccessModifierType::Public;
+			if (node._IsExport && ispublic)
+			{
+				for (size_t i = 0; i < info->Fields.size(); i++)
+				{
+					auto& cfield = info->Fields[i];
 
+					bool ispublic = false;
+					const Token* t = nullptr;
+					{
+						size_t fieldcount = 0;
+						for (auto& Item : node._Nodes)
+						{
+							if (Item->Get_Type() == NodeType::DeclareVariableNode)
+							{
+								auto* declar = DeclareVariableNode::As(Item.get());
+								if (fieldcount == i)
+								{
+									t = declar->_Name.token;
+									ispublic = declar->_Access == AccessModifierType::Public;
+									break;
+								}
+								fieldcount++;
+							}
+						}
+					}
+
+					if (ispublic)
+					{
+						if (!Type_IsTypeExported(cfield.Type))
+						{
+							LogError_TypeIsNotExport(NeverNullptr(t), cfield.Type, NeverNullptr(&Syb));
+						}
+					}
+				}
+			}
+			if (!ispublic && node._IsExport)
+			{
+				LogError_ExportIsPrivate(NeverNullptr(node._AttributeName.token), NeverNullptr(&Syb));
+			}
 		}
 	}
 

@@ -192,6 +192,47 @@ void SystematicAnalysis::OnTrait(const TraitNode& node)
 			_Table.RemoveScope();
 		}
 		_ClassStack.pop();
+
+		bool ispublic = node._Access == AccessModifierType::Public;
+		if (node._IsExport && ispublic)
+		{
+			for (size_t i = 0; i < info->_Vars.size(); i++)
+			{
+				auto& cfield = info->_Vars[i];
+
+				bool ispublic = false;
+				const Token* t = nullptr;
+				{
+					size_t fieldcount = 0;
+					for (auto& Item : node._Nodes)
+					{
+						if (Item->Get_Type() == NodeType::DeclareVariableNode)
+						{
+							auto* declar = DeclareVariableNode::As(Item.get());
+							if (fieldcount == i)
+							{
+								t = declar->_Name.token;
+								ispublic = declar->_Access == AccessModifierType::Public;
+								break;
+							}
+							fieldcount++;
+						}
+					}
+				}
+
+				if (ispublic)
+				{
+					if (!Type_IsTypeExported(cfield.Syb->VarType))
+					{
+						LogError_TypeIsNotExport(NeverNullptr(t), cfield.Syb->VarType, NeverNullptr(&Syb));
+					}
+				}
+			}
+		}
+		if (!ispublic && node._IsExport)
+		{
+			LogError_ExportIsPrivate(NeverNullptr(node._Name.token), NeverNullptr(&Syb));
+		}
 	}
 	else if (_PassType == PassType::BuidCode && !Isgeneric_t)
 	{
