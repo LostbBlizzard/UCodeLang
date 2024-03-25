@@ -1,8 +1,7 @@
 
+$PathChar export= ULang::Native::PathChar;
 
-$PathChar = ULang::Native::PathChar;
+$PathString export= String_t<PathChar>;
+$PathSpan export= StringSpan_t<PathChar>;
 
-$PathString = String_t<PathChar>;
-$PathSpan = StringSpan_t<PathChar>;
-
-$Path;
+$Path export;

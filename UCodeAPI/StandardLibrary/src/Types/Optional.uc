@@ -1,4 +1,4 @@
 
-$Optional<T> enum:
+$Optional<T> enum export:
  Opt[T Value],
  NoOpt,

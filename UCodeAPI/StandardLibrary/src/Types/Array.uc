@@ -1,10 +1,10 @@
 
 
-$Array<T,(Size)>;
+$Array<T,(Size)> export;
 
 
 /*
-$Array<T,(Size)>:
+$Array<T,(Size)> export:
  private:
   T[/Size] _data;
  public:
