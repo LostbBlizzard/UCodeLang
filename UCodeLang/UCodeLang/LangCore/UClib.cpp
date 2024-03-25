@@ -428,12 +428,15 @@ void UClib::ToBytes(BitMaker& Output, const ClassMethod::Par& Par)
 }
 void UClib::ToBytes(BitMaker& Output, const FuncPtr_Data& FuncPtrData)
 {
+	Output.WriteType(FuncPtrData.TypeID);
 	ToBytes(Output, FuncPtrData.RetType);
 	Output.WriteType((BitMaker::SizeAsBits)FuncPtrData.ParsType.size());
 	for (auto& Item : FuncPtrData.ParsType)
 	{
 		ToBytes(Output, Item);
 	}
+	Output.WriteType((AccessModifierType_t)FuncPtrData.AccessModifier);
+	Output.WriteType(FuncPtrData.IsExported);
 }
 void UClib::ToBytes(BitMaker& Output, const GenericClass_Data& FuncPtrData)
 {
@@ -1089,6 +1092,7 @@ void UClib::FromBytes(BitReader& Input, InheritedTrait_Data& Data)
 }
 void UClib::FromBytes(BitReader& reader, FuncPtr_Data& Ptr)
 {
+	reader.ReadType(Ptr.TypeID);
 	FromBytes(reader, Ptr.RetType);
 
 	BitMaker::SizeAsBits V = 0;
@@ -1098,6 +1102,8 @@ void UClib::FromBytes(BitReader& reader, FuncPtr_Data& Ptr)
 	{
 		FromBytes(reader, Ptr.ParsType[i]);
 	}
+	reader.ReadType(*(AccessModifierType_t*)&Ptr.AccessModifier, *(AccessModifierType_t*)&Ptr.AccessModifier);
+	reader.ReadType(Ptr.IsExported, Ptr.IsExported);
 }
 void UClib::FromBytes(BitReader& Input, ClassMethod::Par& Data)
 {
