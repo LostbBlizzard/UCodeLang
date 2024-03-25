@@ -1,6 +1,6 @@
 
 
-$Map<K,T>:
+$Map<K,T> export:
  $Hash = uintptr;
  public: 
   int a =0;

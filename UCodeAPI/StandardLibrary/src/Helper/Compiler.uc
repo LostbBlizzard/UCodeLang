@@ -1,10 +1,10 @@
 
-$Compiler:
- eval |Is64Bit[] => true;
- eval |Is32Bit[] => true;
+$Compiler export:
+ export eval |Is64Bit[] => true;
+ export eval |Is32Bit[] => true;
 
- eval |IsBackendC89[] => true;
- eval |IsBackendUCodeVM[] => true;
- eval |IsBackendWasm[] => true;
+ export eval |IsBackendC89[] => true;
+ export eval |IsBackendUCodeVM[] => true;
+ export eval |IsBackendWasm[] => true;
 
- eval |IsBackendVM[] => true;
+ export eval |IsBackendVM[] => true;

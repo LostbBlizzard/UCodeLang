@@ -1,2 +1,2 @@
 
-$Shared_ptr<T>;
+$Shared_ptr<T> export;

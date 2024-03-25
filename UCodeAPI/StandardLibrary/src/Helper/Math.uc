@@ -1,16 +1,16 @@
 
 $Math:
- eval |PI<T>[] => 3.14;
+ export eval |PI<T>[] => 3.14;
  
- |Max<T>[T A,T B]:
+ export |Max<T>[T A,T B]:
   if A > B:ret A;
   ret B;
 
- |Min<T>[T A,T B]:
+ export |Min<T>[T A,T B]:
   if A < B:ret A;
   ret B;
  
- |Pow<T>[T val,T power] => val;//TODO
+ export |Pow<T>[T val,T power] => val;//TODO
 
- |Lerp<T>[T start,T end,T time]:
+ export |Lerp<T>[T start,T end,T time]:
   ret start + (end - start) * time;
