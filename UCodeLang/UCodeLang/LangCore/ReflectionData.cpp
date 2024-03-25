@@ -28,6 +28,7 @@ Optional<ReflectionCustomTypeID> ClassAssembly::GetReflectionTypeID(const Assemb
 	case ClassType::GenericFunction:break;
 	case ClassType::NameSpace:break;
 	case ClassType::ForType:break;
+	case ClassType::Eval:break;
 	default:
 		UCodeLangUnreachable();
 		break;

@@ -433,6 +433,17 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node, 
 			}
 
 		}
+		else
+		{
+			auto data= syb->Get_Info<ConstantExpressionInfo>();
+
+			auto& eval = _Lib.Get_Assembly().AddEvalVarable((String)node._Name.token->Value._String, syb->FullName);
+			eval.IsExported = node._IsExport;
+			eval.Value._Data.Resize(data->Ex.ObjectSize);
+			memcpy(eval.Value._Data.Get_Data(), data->Ex.Object_AsPointer.get(), data->Ex.ObjectSize);
+
+			eval.Value._Type = Assembly_ConvertToType(syb->VarType);
+		}
 	}
 
 	syb->PassState = _PassType;

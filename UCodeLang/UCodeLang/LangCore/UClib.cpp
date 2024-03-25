@@ -166,6 +166,13 @@ void UClib::ToBytes(BitMaker& Output, const ClassAssembly& Assembly)
 			ToBytes(Output, TagData);
 		}
 		break;
+		case ClassType::Eval:
+		{
+			auto& TagData = Item->Get_EvalData();
+
+			ToBytes(Output, TagData);
+		}
+		break;
 		default:
 			UCodeLangUnreachable();
 			break;
@@ -462,6 +469,12 @@ void UClib::ToBytes(BitMaker& Output, const ForType_Data& FuncPtrData)
 	{
 		ToBytes(Output, Item);
 	}
+}
+void UClib::ToBytes(BitMaker& Output, const Eval_Data& FuncPtrData)
+{
+	ToBytes(Output, FuncPtrData.Value);
+	ToBytes(Output, (AccessModifierType_t)FuncPtrData.AccessModifier);
+	ToBytes(Output, FuncPtrData.IsExported);
 }
 void UClib::ToBytes(BitMaker& Output, const GenericBase_Data& FuncPtrData)
 {
@@ -875,6 +888,12 @@ void UClib::FromBytes(BitReader& reader, ClassAssembly& Assembly)
 			FromBytes(reader, Tag);
 		}
 		break;
+		case ClassType::Eval:
+		{
+			auto& Tag = _Node.Get_EvalData();
+			FromBytes(reader, Tag);
+		}
+		break;
 		default:
 			UCodeLangUnreachable();
 			break;
@@ -1085,6 +1104,11 @@ void UClib::FromBytes(BitReader& Input, ClassMethod::Par& Data)
 	Input.ReadType(Data.IsOutPar);
 	FromBytes(Input, Data.Type);
 }
+void UClib::FromBytes(BitReader& Input, TypedRawReflectionData& Data)
+{
+	FromBytes(Input,Data._Type);
+	FromBytes(Input,Data._Data);
+}
 void UClib::FromBytes(BitReader& reader, GenericClass_Data& Ptr)
 {
 	FromBytes(reader, Ptr.Base);
@@ -1147,6 +1171,12 @@ void UClib::FromBytes(BitReader& Input, ForType_Data& Data)
 
 		Data._AddedMethods.push_back(std::move(m));
 	}
+}
+void UClib::FromBytes(BitReader& Input, Eval_Data& Data)
+{
+	FromBytes(Input,Data.Value);
+	Input.ReadType(*(AccessModifierType_t*)&Data.AccessModifier, *(AccessModifierType_t*)&Data.AccessModifier);
+	Input.ReadType(Data.IsExported, Data.IsExported);
 }
 void UClib::FromBytes(BitReader& reader, Vector<UsedTagValueData>& Attributes)
 {
@@ -1347,6 +1377,13 @@ void UClib::FixAssemblyRawValues(Endian AssemblyEndian, NTypeSize BitSize, const
 			{
 				FixRawValue(AssemblyEndian, BitSize, Assembly, Item._Data, Data.BaseType);
 			}
+		}
+		break;
+		case ClassType::Eval:
+		{
+			Eval_Data& Data = Item->Get_EvalData();
+
+			FixRawValue(AssemblyEndian, BitSize, Assembly, Data.Value);
 		}
 		break;
 		default:

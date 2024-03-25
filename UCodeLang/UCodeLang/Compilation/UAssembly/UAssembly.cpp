@@ -414,6 +414,22 @@ String UAssembly::ToString(const UClib* Lib, Optional<Path> SourceFiles, bool Sh
 			}
 		}
 		break;
+		case ClassType::Eval:
+		{
+			auto& TraitData = Item->Get_EvalData();
+			if (TraitData.IsExported)
+			{
+				r += " export ";
+			}
+			r += "eval ";
+			r += ToString(TraitData.Value._Type, Assembly);
+			r += " ";
+			r += Item->FullName;
+			r += " = ";
+			r += ToString(TraitData.Value,Assembly,Lib->BitSize);
+			r += ";\n";
+		}
+		break;
 		default:
 			UCodeLangUnreachable();
 			break;
