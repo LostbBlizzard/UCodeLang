@@ -373,11 +373,29 @@ GotNodeType Parser::GetClassTypeNode(Node*& out)
 
 
 
-
+	bool isexport = false;
 	auto ColonToken = TryGetToken();
+
+	auto oldindex = _TokenIndex;
+	if (ColonToken->Type == TokenType::KeyWord_export)
+	{
+		NextToken();
+		if (TryGetToken()->Type == TokenType::equal ||
+			TryGetToken()->Type == TokenType::Semicolon)
+		{
+			isexport = true;
+			ColonToken = TryGetToken();
+		}
+		else
+		{
+			_TokenIndex = oldindex;
+		}
+	}
+
 	if (ColonToken->Type == TokenType::equal)
 	{
 		auto V = AliasNode::Gen();
+		V->IsExport = isexport;
 		out = V->As();
 		return GetAlias(ClassToken, std::move(TepGenerics), *V);
 	}
@@ -392,6 +410,7 @@ GotNodeType Parser::GetClassTypeNode(Node*& out)
 		output->_Access = GetModifier();
 		output->_Attributes = Get_TepAttributes();
 		output->EndOfClass = ColonToken;
+		output->_IsExport = isexport;
 		return GotNodeType::Success;
 	}
 	else if (ColonToken->Type == TokenType::KeyWord_Enum)
