@@ -285,7 +285,14 @@ String UAssembly::ToString(const UClib* Lib, Optional<Path> SourceFiles, bool Sh
 		{
 			auto& FuncPtr = Item->Get_FuncPtr();
 
-			r += "$" + Item->FullName + " = |[";
+			r += "$" + Item->FullName;
+			
+			if (FuncPtr.IsExported)
+			{
+				r += " export";
+			}
+			
+			r+=" = |[";
 
 			for (auto& Item : FuncPtr.ParsType)
 			{

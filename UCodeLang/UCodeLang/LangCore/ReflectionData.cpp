@@ -23,7 +23,7 @@ Optional<ReflectionCustomTypeID> ClassAssembly::GetReflectionTypeID(const Assemb
 	case ClassType::Trait:Value = Item->Get_TraitData().TypeID; break;
 	case ClassType::Tag:Value = Item->Get_TagData().TypeID; break;
 	case ClassType::StaticArray:Value = Item->Get_StaticArray().TypeID; break;
-	case ClassType::FuncPtr:break;
+	case ClassType::FuncPtr:Value = Item->Get_FuncPtr().TypeID; break;
 	case ClassType::GenericClass:break;
 	case ClassType::GenericFunction:break;
 	case ClassType::NameSpace:break;
