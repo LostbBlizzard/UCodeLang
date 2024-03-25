@@ -283,10 +283,10 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 		if (Isgeneric_t)
 		{
 			auto& GenericList = Node._generic;
-			Generic_GenericAliasFixTypes(GenericList,IsgenericInstantiation, ClassInf->_GenericData);
+			Generic_GenericAliasFixTypes(GenericList, IsgenericInstantiation, ClassInf->_GenericData);
 		}
 
-		
+
 
 		{
 			const FieldInfo* bigestoffsetfield = nullptr;
@@ -308,6 +308,45 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 			else
 			{
 				ClassInf->Size = 0;
+			}
+		}
+
+		bool ispublic = Node._Access == AccessModifierType::Public;
+		if (Node._IsExport && ispublic)
+		{
+			for (size_t i = 0; i < ClassInf->Fields.size(); i++)
+			{
+				auto& cfield = ClassInf->Fields[i];
+
+				bool ispublic = false;
+				const Token* t = nullptr;
+				{
+					size_t fieldcount = 0;
+					for (auto& Item : Node._Nodes)
+					{
+						if (Item->Get_Type() == NodeType::DeclareVariableNode)
+						{
+							auto* declar = DeclareVariableNode::As(Item.get());
+							if (fieldcount == i)
+							{
+								t = declar->_Name.token;
+								ispublic = declar->_Access == AccessModifierType::Public;
+								break;
+							}
+							fieldcount++;
+						}
+					}
+				}
+
+				if (ispublic)
+				{
+					if (!Type_IsTypeExported(cfield.Type))
+					{
+
+
+						LogError_TypeIsNotExport(NeverNullptr(t), cfield.Type, NeverNullptr(&Syb));
+					}
+				}
 			}
 		}
 	}
