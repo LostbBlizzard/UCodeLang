@@ -2097,6 +2097,7 @@ private:
 	void LogError_UseDotAndNotScopeResolution(const NeverNullPtr<Symbol>& Sym, const NeverNullPtr<Token>& ItemToken);
 	void LogError_TypeIsNotCopyable(const NeverNullPtr<Token> Token, const TypeSymbol& Ex0Type);
 	void LogError_TypeIsNotExport(const NeverNullPtr<Token> Token, const TypeSymbol Type,NeverNullPtr<Symbol> Symbol);
+	void LogError_ExportIsPrivate(const NeverNullPtr<Token> Token, NeverNullPtr<Symbol> Symbol);
 
 	ReadVarErrorCheck_t TryLogError_OnReadVar(String_view VarName, const NeverNullPtr<Token> Token, const NullablePtr<Symbol> Syb);
 	void TryLogError_OnWritingVar(NeverNullPtr<Symbol> Symbol, const NeverNullPtr<Token> Token, const String_view Name);

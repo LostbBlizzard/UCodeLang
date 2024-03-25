@@ -550,6 +550,7 @@ void Parser::ClassTypeAccessModifierInerScope(Vector<Unique_ptr<Node>>& Out)
 		{
 		case TokenType::EndTab:goto EndLoop;
 		case TokenType::Class:V = GetClassNode(); break;
+		case TokenType::KeyWord_export:
 		case TokenType::KeyWord_unsafe:
 		case TokenType::KeyWord_extern:
 		case Parser::declareFunc:V = GetFuncNode(); break;

@@ -349,6 +349,10 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 				}
 			}
 		}
+		if (!ispublic && Node._IsExport)
+		{
+			LogError_ExportIsPrivate(NeverNullptr(Node._className.token),NeverNullptr(&Syb));
+		}
 	}
 	if (_PassType == PassType::BuidCode)
 	{
