@@ -160,7 +160,7 @@ void SystematicAnalysis::OnEnum(const EnumNode& node)
 							ClassInf->SizeInitialized = true;
 							ClassInf->Size = NewSize;
 
-							
+
 						}
 
 						EnumVa.Variants.push_back(std::move(V));
@@ -169,11 +169,11 @@ void SystematicAnalysis::OnEnum(const EnumNode& node)
 					{
 						EnumVariantField V;
 						V.Types.push_back(Type_ConvertAndValidateType(VariantType_, NodeSyb_t::Parameter));
-						
+
 						if (Symbol_HasDestructor(V.Types.front())) {
 							enumInf->HasDestructer = true;
 						}
-						
+
 						EnumVa.Variants.push_back(std::move(V));
 					}
 				}
@@ -245,7 +245,40 @@ void SystematicAnalysis::OnEnum(const EnumNode& node)
 
 				Field.Ex = ex.EvaluatedObject;
 			}
+
+
+			bool ispublic = node._Access == AccessModifierType::Public;
+			if (node._IsExport && ispublic)
+			{
+				if (!Type_IsTypeExported(enumInf->Basetype))
+				{
+					LogError_TypeIsNotExport(NeverNullptr(node._EnumName.token), enumInf->Basetype, NeverNullptr(&Syb));
+				}
+
+				if (enumInf->VariantData.has_value())
+				{
+					for (size_t i = 0; i < enumInf->VariantData.value().Variants.size(); i++)
+					{
+						auto& Item = enumInf->VariantData.value().Variants[i];
+				
+
+						for (auto& Item2 : Item.Types)
+						{
+							if (!Type_IsTypeExported(Item2))
+							{
+								LogError_TypeIsNotExport(NeverNullptr(node._Values[i]._Name.token), Item2,NeverNullptr(&Syb));
+							}
+						}
+					}
+				}
+			}
+
+			if (!ispublic && node._IsExport)
+			{
+				LogError_ExportIsPrivate(NeverNullptr(node._EnumName.token),NeverNullptr(&Syb));
+			}
 		}
+	
 
 		if (enumInf->HasDestructer)
 		{
