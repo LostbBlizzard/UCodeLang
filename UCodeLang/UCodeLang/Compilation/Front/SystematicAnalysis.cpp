@@ -3325,6 +3325,11 @@ void SystematicAnalysis::LogError_TypeIsNotExport(const NeverNullPtr<Token> Toke
 {
 	LogError(ErrorCodes::InValidType, "Cant Export '" + Symbol->FullName + "' because '" + ToString(Type) + "' is a type that is not exported", Token);
 }
+void SystematicAnalysis::LogError_ExportIsPrivate(const NeverNullPtr<Token> Token, NeverNullPtr<Symbol> Symbol)
+{
+	LogError(ErrorCodes::InValidType, "Cant Export '" + Symbol->FullName + "' because its private", Token);
+}
+
 void SystematicAnalysis::LogError(ErrorCodes Err, size_t Line, size_t Pos, const String& MSG)
 {
 	String Str;

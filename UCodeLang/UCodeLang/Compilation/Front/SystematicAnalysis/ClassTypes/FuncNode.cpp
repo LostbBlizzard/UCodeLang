@@ -963,7 +963,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 			auto Token = NeverNullptr(node._Signature._Name.token);
 			LogError_BeMoreSpecifiicForRetType(FuncName, Token);
 		}
-		else 
+		else
 		{
 			FuncRetCheck(*node._Signature._Name.token, syb, Info);
 			auto Token = NeverNullptr(node._Signature._Name.token);
@@ -971,7 +971,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 		}
 
 
-		bool ispublic = node._Signature._Access ==AccessModifierType::Public;
+		bool ispublic = node._Signature._Access == AccessModifierType::Public;
 		if (node._Signature._IsExport && ispublic)
 		{
 			if (!Type_IsTypeExported(Info->Ret))
@@ -987,7 +987,11 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 				}
 			}
 		}
-		
+
+		if (!ispublic && node._Signature._IsExport)
+		{
+			LogError_ExportIsPrivate(NeverNullptr(node._Signature._Name.token), syb);
+		}
 	}
 
 	_FuncStack.pop_back();
