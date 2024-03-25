@@ -1631,6 +1631,45 @@ NullablePtr<Symbol> SystematicAnalysis::GetTepFuncPtrSyb(const String& TepFuncPt
 
 	return V2;
 }
+bool SystematicAnalysis::Type_IsTypeExported(TypeSymbol type)
+{
+	Type_RemoveTypeattributes(type);
+
+
+	if (Type_IsPrimitive(type))
+	{
+		return true;
+	}
+
+	auto symop = Symbol_GetSymbol(type);
+	if (symop.has_value())
+	{
+		auto& sym = symop.value();
+		bool hasnode = sym->NodePtr;
+
+		if (!hasnode)
+		{
+			//Most likely generate from enum
+			return true;
+		}
+
+		switch (sym->Type)
+		{
+		case SymbolType::Type_class:
+		{
+			return sym->Get_NodeInfo<ClassNode>()->_IsExport;
+		}
+		break;
+		default:
+			UCodeLangUnreachable();
+			break;
+		}
+
+	}
+
+
+	return false;
+}
 
 #define TepFuncPtrNameMangleStr "_tepfptr|"
 String SystematicAnalysis::GetTepFuncPtrName(const FuncInfo* SymbolVar)
@@ -3281,6 +3320,10 @@ void SystematicAnalysis::LogError_CantBindTypeItNotTypeInfo(const NeverNullPtr<T
 void SystematicAnalysis::LogError_yieldnotAsync(const NeverNullPtr<Token> token)
 {
 	LogError(ErrorCodes::InValidType, "yield Expression must be type async<T>.", token);
+}
+void SystematicAnalysis::LogError_TypeIsNotExport(const NeverNullPtr<Token> Token, const TypeSymbol Type, NeverNullPtr<Symbol> Symbol)
+{
+	LogError(ErrorCodes::InValidType, "Cant Export '" + Symbol->FullName + "' because '" + ToString(Type) + "' is a type that is not exported", Token);
 }
 void SystematicAnalysis::LogError(ErrorCodes Err, size_t Line, size_t Pos, const String& MSG)
 {

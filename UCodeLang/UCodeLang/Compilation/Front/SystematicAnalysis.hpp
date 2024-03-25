@@ -1165,6 +1165,7 @@ private:
 	void IR_Build_AddDestructorToStack(const TypeSymbol& Type, IRInstruction* OnVarable);
 	void Type_DeclareVariableTypeCheck(TypeSymbol& VarType, const TypeSymbol& Ex, const NeverNullPtr<Token> Token);
 	void Type_DeclareVarableCheck(TypeSymbol& VarType, const Node* Ex, const NeverNullPtr<Token> Token);
+	bool Type_IsTypeExported(TypeSymbol type);
 
 	void OnAssignExpressionNode(const AssignExpressionNode& node);
 	void OnIfNode(const IfNode& node);
@@ -2095,6 +2096,7 @@ private:
 	void LogError_UseScopeResolutionAndNotDot(const NeverNullPtr<Symbol>& Sym, const NeverNullPtr<Token>& ItemToken);
 	void LogError_UseDotAndNotScopeResolution(const NeverNullPtr<Symbol>& Sym, const NeverNullPtr<Token>& ItemToken);
 	void LogError_TypeIsNotCopyable(const NeverNullPtr<Token> Token, const TypeSymbol& Ex0Type);
+	void LogError_TypeIsNotExport(const NeverNullPtr<Token> Token, const TypeSymbol Type,NeverNullPtr<Symbol> Symbol);
 
 	ReadVarErrorCheck_t TryLogError_OnReadVar(String_view VarName, const NeverNullPtr<Token> Token, const NullablePtr<Symbol> Syb);
 	void TryLogError_OnWritingVar(NeverNullPtr<Symbol> Symbol, const NeverNullPtr<Token> Token, const String_view Name);
