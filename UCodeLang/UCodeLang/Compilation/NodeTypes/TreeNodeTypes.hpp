@@ -746,7 +746,7 @@ struct AliasNode :Node
 
 	
 	bool _IsHardAlias = false;
-	
+	bool IsExport = false;
 	AliasType _AliasType = AliasType::Type;
 	Unique_ptr<Node> _Node;
 

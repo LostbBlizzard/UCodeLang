@@ -218,11 +218,14 @@ String UAssembly::ToString(const UClib* Lib, Optional<Path> SourceFiles, bool Sh
 		case ClassType::Alias:
 		{
 			auto& Class = Item->Get_AliasData();
+			r += "$" + Item->FullName;
+
 			if (Class.IsExported)
 			{
 				r += " export";
 			}
-			r += "$" + Item->FullName + " = ";
+
+			r += " = ";
 
 			if (Class.HardAliasTypeID.has_value()) {
 				r += "!";

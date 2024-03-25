@@ -437,8 +437,11 @@ struct StaticArray_Data
 };
 struct FuncPtr_Data
 {
+	ReflectionCustomTypeID TypeID = {};
 	ReflectionTypeInfo RetType;
 	Vector<ClassMethod::Par> ParsType;
+	AccessModifierType AccessModifier = AccessModifierType::Default;
+	bool IsExported = false;
 	~FuncPtr_Data()
 	{
 
