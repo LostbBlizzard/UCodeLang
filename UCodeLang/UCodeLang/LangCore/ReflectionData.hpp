@@ -832,6 +832,15 @@ public:
 		r.Name = Name;
 		r.FullName = FullName;
 		return r.Get_ForType();
+	}
+	inline Eval_Data& AddEvalVarable(const String& Name, const String& FullName = "")
+	{
+		auto V = std::make_unique<AssemblyNode>(ClassType::Eval);
+		Classes.push_back(std::move(V));
+		auto& r = *Classes.back();
+		r.Name = Name;
+		r.FullName = FullName;
+		return r.Get_EvalData();
 	}	
 	
 	static void PushCopyClasses(const ClassAssembly& source, ClassAssembly& Out);
