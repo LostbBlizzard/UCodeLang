@@ -1,16 +1,16 @@
 
 
 
-$OpenedFile;
+$OpenedFile export;
 
-$OpenFileError;
+$OpenFileError export;
 
 $File:
- |Open[PathSpan path] -> OpenedFile!OpenFileError;
- |Open[imut PathString& path] -> OpenedFile!OpenFileError;
+ export |Open[PathSpan path] -> OpenedFile!OpenFileError;
+ export |Open[imut PathString& path] -> OpenedFile!OpenFileError;
 
- |GetString[PathSpan path] -> String!OpenFileError;
- |GetString[imut PathString& path] ->  String!OpenFileError;
+ export |GetString[PathSpan path] -> String!OpenFileError;
+ export |GetString[imut PathString& path] ->  String!OpenFileError;
 
- |GetBytes[PathSpan path] -> byte[]!OpenFileError;
- |GetBytes[imut PathString& path] ->  byte[]!OpenFileError;
+ export |GetBytes[PathSpan path] -> byte[]!OpenFileError;
+ export |GetBytes[imut PathString& path] ->  byte[]!OpenFileError;

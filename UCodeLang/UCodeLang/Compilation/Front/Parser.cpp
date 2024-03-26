@@ -229,6 +229,7 @@ GotNodeType Parser::GetNamespaceNode(NamespaceNode& out)
 		case TokenType::Class:V = GetClassNode(); break;
 		case TokenType::KeyWord_unsafe:
 		case TokenType::KeyWord_extern:
+		case TokenType::KeyWord_export:
 		case Parser::declareFunc:V = GetFuncNode(); break;
 		case TokenType::KeyWord_use:V = GetUseNode(); break;
 		case TokenType::Left_Bracket:V = GetAttribute(); break;
@@ -268,7 +269,7 @@ GotNodeType Parser::GetAlias(const Token* AliasName, GenericValuesNode&& AliasGe
 	out.Generic = std::move(AliasGenerics);
 	out._Access = GetModifier();
 
-
+	
 	auto ClassToken = TryGetToken(); TokenTypeCheck(ClassToken, TokenType::equal);
 	NextToken();
 
@@ -376,7 +377,7 @@ GotNodeType Parser::GetClassTypeNode(Node*& out)
 	bool isexport = false;
 	auto ColonToken = TryGetToken();
 
-	auto oldindex = _TokenIndex;
+	auto oldindex = _TokenIndex;	
 	if (ColonToken->Type == TokenType::KeyWord_export)
 	{
 		NextToken();

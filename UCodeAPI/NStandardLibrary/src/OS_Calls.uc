@@ -1,7 +1,7 @@
 ULang::Native:
- $PathChar = FilePathChar;
+ $PathChar export= FilePathChar;
 
- |OS_PrintChar[char Value] -> void: 
+ export |OS_PrintChar[char Value] -> void: 
 
   $if compiler::IsBackendC11():
    putchar(Value);
@@ -9,7 +9,7 @@ ULang::Native:
    putchar(Value);
 
 
- |OS_PrintSpan[imut char[&] Buffer,uintptr Size] -> void:
+ export |OS_PrintSpan[imut char[&] Buffer,uintptr Size] -> void:
 
   $if compiler::IsBackendC11():
    
@@ -20,15 +20,15 @@ ULang::Native:
    putspan(Buffer,Size);
 
 
- |OS_PrintClear[] -> void;
- |OS_Malloc[uintptr Size]: 
+ export |OS_PrintClear[] -> void;
+ export |OS_Malloc[uintptr Size]: 
 
   $if compiler::IsBackendC11():
    ret malloc(Size);
   $else:
    ret __Malloc(Size);
 
- |OS_Free[byte[&] Block]:
+ export |OS_Free[byte[&] Block]:
    
    $if compiler::IsBackendC11():
     free(Block);
