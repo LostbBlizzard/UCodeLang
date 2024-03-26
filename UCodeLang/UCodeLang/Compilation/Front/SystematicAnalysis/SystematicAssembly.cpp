@@ -457,7 +457,12 @@ void SystematicAnalysis::Assembly_LoadLibSymbols(const UClib &lib, ImportLibInfo
 }
 void SystematicAnalysis::Assembly_LoadClassSymbol(const Class_Data &Item, const String &FullName, const String &Scope, SystematicAnalysis::LoadLibMode Mode)
 {
-	if (!Item.IsExported && Scope == ScopeHelper::_globalAssemblyObject)
+	bool isexpot = Item.IsExported;
+	if (FullName == "")
+	{
+		isexpot = true;
+	}
+	if (!isexpot)
 	{
 		return;
 	}

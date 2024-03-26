@@ -180,7 +180,8 @@ void SystematicAnalysis::OnTag(const TagTypeNode& node)
 
 			VClass.Base.Implementation = ClassStr + String(ClassBody);
 			VClass.Base.Implementation += "\n\n";
-			
+			VClass.AccessModifier = Syb.Access;
+			VClass.IsExported = node._IsExport;
 		}
 	}
 

@@ -624,6 +624,8 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 
 			VClass.Base.Implementation = ClassStr + String(ClassBody);
 			VClass.Base.Implementation += "\n\n";
+			VClass.AccessModifier = Syb.Access;
+			VClass.IsExported = Node._IsExport;
 		}
 	}
 
