@@ -3397,14 +3397,16 @@ GotNodeType Parser::DoTagType(TagTypeNode* output, const Token* ClassToken, Gene
 	output->_AttributeName.token = ClassToken;
 	output->_generic = std::move(TepGenerics);
 
-	auto ColonToken = TryGetToken();
-	if (ColonToken->Type == TokenType::Semicolon) { NextToken(); return GotNodeType::Success; }
-
 	if (TryGetToken()->Type == TokenType::KeyWord_export)
 	{
 		output->_IsExport = true;
 		NextToken();
 	}
+
+	auto ColonToken = TryGetToken();
+	if (ColonToken->Type == TokenType::Semicolon) { NextToken(); return GotNodeType::Success; }
+
+	
 
 	TokenTypeCheck(ColonToken, TokenType::Colon); NextToken();
 	auto StartToken = TryGetToken(); TokenTypeCheck(StartToken, TokenType::StartTab); NextToken();
@@ -4108,14 +4110,16 @@ GotNodeType Parser::DoTraitType(TraitNode* output, const Token* ClassToken, Gene
 	output->_Name.token = ClassToken;
 	output->_generic = std::move(TepGenerics);
 
-	auto ColonToken = TryGetToken();
-	if (ColonToken->Type == TokenType::Semicolon) { NextToken(); return GotNodeType::Success; }
-
 	if (TryGetToken()->Type == TokenType::KeyWord_export)
 	{
 		output->_IsExport = true;
 		NextToken();
 	}
+
+	auto ColonToken = TryGetToken();
+	if (ColonToken->Type == TokenType::Semicolon) { NextToken(); return GotNodeType::Success; }
+
+	
 
 	TokenTypeCheck(ColonToken, TokenType::Colon); NextToken();
 	auto StartToken = TryGetToken(); TokenTypeCheck(StartToken, TokenType::StartTab); NextToken();
