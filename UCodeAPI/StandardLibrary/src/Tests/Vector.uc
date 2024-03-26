@@ -7,7 +7,7 @@ Tests:
   List.Push(5);
   ret List.Size() == 1 && List[uintptr(0)] == 5;
 
- [SkipedTest]
+ [Test]
  |Vector_2[]:
   int[] List = [];
   List.Push(5);
@@ -17,7 +17,7 @@ Tests:
 
   ret span.Size() == 1 && span[uintptr(0)] == 15;
 
- [SkipedTest]
+ [Test]
  |Vector_3[]:
   int[] List = [];
   List.Push(5);
