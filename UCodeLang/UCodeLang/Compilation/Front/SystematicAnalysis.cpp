@@ -1633,6 +1633,11 @@ NullablePtr<Symbol> SystematicAnalysis::GetTepFuncPtrSyb(const String& TepFuncPt
 }
 bool SystematicAnalysis::Type_IsTypeExported(TypeSymbol type)
 {
+	if (type._Type == TypesEnum::Null)
+	{
+		return true;
+	}
+
 	Type_RemoveTypeattributes(type);
 
 
@@ -1652,12 +1657,31 @@ bool SystematicAnalysis::Type_IsTypeExported(TypeSymbol type)
 			//Most likely generate from enum
 			return true;
 		}
+		if (Type_IsUnMapType(type))
+		{
+			return true;
+		}
 
 		switch (sym->Type)
 		{
 		case SymbolType::Type_class:
 		{
 			return sym->Get_NodeInfo<ClassNode>()->_IsExport;
+		}
+		break;
+		case SymbolType::Enum:
+		{
+			return sym->Get_NodeInfo<EnumNode>()->_IsExport;
+		}
+		break;
+		case SymbolType::Trait_class:
+		{
+			return sym->Get_NodeInfo<TraitNode>()->_IsExport;
+		}
+		break;
+		case SymbolType::Hard_Type_alias:
+		{
+			return sym->Get_NodeInfo<AliasNode>()->IsExport;
 		}
 		break;
 		default:
