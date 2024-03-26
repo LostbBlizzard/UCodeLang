@@ -372,7 +372,7 @@ String UAssembly::ToString(const UClib* Lib, Optional<Path> SourceFiles, bool Sh
 		break;
 		case ClassType::Trait:
 		{
-			r += "$" + Item->FullName + " trait:\n";
+			r += "$" + Item->FullName + " trait";
 			auto& TraitData = Item->Get_TraitData();
 
 			if (TraitData.IsExported)
@@ -380,6 +380,15 @@ String UAssembly::ToString(const UClib* Lib, Optional<Path> SourceFiles, bool Sh
 				r += " export";
 			}
 
+			bool hasany = false;
+			if (hasany)
+			{
+				r += ":\n";
+			}
+			else
+			{
+				r += ";\n";
+			}
 		}
 		break;
 		case ClassType::GenericClass:

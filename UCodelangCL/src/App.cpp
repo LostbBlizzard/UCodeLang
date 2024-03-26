@@ -438,7 +438,6 @@ void ParseLine(String_view& Line)
 
 		if (!buildfile(_PathAsPath, _Compiler))
 		{
-			AppErrin(_Compiler.Get_Errors().ToString());
 			_This.ExeRet = EXIT_FAILURE;
 		}
 		else
