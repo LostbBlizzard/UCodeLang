@@ -115,7 +115,7 @@ void SystematicAnalysis::BuildCode()
 	UCodeLangAssert(_PassType == PassType::FixedTypes);
 	for (auto& Item : _Table.Symbols)
 	{
-		if (!Item->OutputIR || StringHelper::Contains(Item->FullName,GenericTestStr)) { continue; }
+		if (!Item->OutputIR || StringHelper::Contains(Item->FullName, GenericTestStr)) { continue; }
 		UCodeLangAssert(Item->ValidState == SymbolValidState::valid);
 
 
@@ -262,7 +262,7 @@ void SystematicAnalysis::BuildCode()
 
 
 				Set_SymbolContext(std::move(Info->Context.value()));
-				
+
 				_Table._Scope.ReMoveScope();
 
 				OnForTypeNode(*node);
@@ -505,11 +505,11 @@ void SystematicAnalysis::OnNamespace(const NamespaceNode& node)
 	if (_PassType == PassType::BuidCode)
 	{
 		auto name = Namespace;
-		bool hasnamespace = _Lib.Get_Assembly().Find_Node(ClassType::NameSpace,_Table._Scope.ThisScope);
+		bool hasnamespace = _Lib.Get_Assembly().Find_Node(ClassType::NameSpace, _Table._Scope.ThisScope);
 
 		if (hasnamespace == false)
 		{
-			NameSpace_Data& VClass = _Lib.Get_Assembly().AddNameSpace(name,_Table._Scope.ThisScope);
+			NameSpace_Data& VClass = _Lib.Get_Assembly().AddNameSpace(name, _Table._Scope.ThisScope);
 		}
 	}
 
@@ -1575,9 +1575,9 @@ void SystematicAnalysis::Type_DeclareVariableTypeCheck(TypeSymbol& VarType, cons
 	}
 
 
-	if (!Type_CanBeImplicitConverted(Ex, VarType, false,true))
+	if (!Type_CanBeImplicitConverted(Ex, VarType, false, true))
 	{
-		LogError_CantCastImplicitTypes(Token, Ex, VarType, false,true);
+		LogError_CantCastImplicitTypes(Token, Ex, VarType, false, true);
 	}
 }
 void SystematicAnalysis::Type_DeclareVarableCheck(TypeSymbol& VarType, const Node* Ex, const NeverNullPtr<Token> Token)
@@ -1649,7 +1649,7 @@ bool SystematicAnalysis::Type_IsTypeExported(TypeSymbol type)
 	auto symop = Symbol_GetSymbol(type);
 	if (symop.has_value())
 	{
-		auto& sym = symop.value();
+		auto sym = symop.value();
 		bool hasnode = sym->NodePtr;
 
 		if (!hasnode)
@@ -2662,7 +2662,7 @@ String SystematicAnalysis::ToString(const TypeSymbol& Type, const RawEvaluatedOb
 				}
 			}
 		}
-		
+
 	}break;
 	default:
 		break;
@@ -2701,14 +2701,14 @@ void SystematicAnalysis::LogError_EmptyInvalidError(const NeverNullPtr<Token> To
 	LogError(ErrorCodes::InValidType, Token->OnLine, Token->OnPos, "Reached Invaild Statemet");
 }
 
-void SystematicAnalysis::LogError_CantCastImplicitTypes(const NeverNullPtr<Token> Token, const TypeSymbol& Ex1Type, const TypeSymbol& UintptrType, bool ReassignMode,bool isdeclare)
+void SystematicAnalysis::LogError_CantCastImplicitTypes(const NeverNullPtr<Token> Token, const TypeSymbol& Ex1Type, const TypeSymbol& UintptrType, bool ReassignMode, bool isdeclare)
 {
 	if (Ex1Type.IsBadType() || UintptrType.IsBadType()
 		|| Type_IsUnMapType(UintptrType) || Type_IsUnMapType(Ex1Type)) {
 		return;
 	}
 
-	bool V1 = Type_IsAddessAndLValuesRulesfollowed(Ex1Type, UintptrType, ReassignMode,isdeclare);
+	bool V1 = Type_IsAddessAndLValuesRulesfollowed(Ex1Type, UintptrType, ReassignMode, isdeclare);
 	if (!V1 || Type_CanDoTypeToTrait(Ex1Type, UintptrType))
 	{
 		LogError(ErrorCodes::InValidName, Token->OnLine, Token->OnPos
@@ -2945,10 +2945,10 @@ void SystematicAnalysis::LogError_CantFindFuncError(const NeverNullPtr<Token> To
 
 			if (unpacktypepack)
 			{
-				auto& symop = Symbol_GetSymbol(Item.Type);
+				auto symop = Symbol_GetSymbol(Item.Type);
 				if (symop.has_value())
 				{
-					auto& sym = symop.value();
+					auto sym = symop.value();
 
 					if (sym->Type == SymbolType::Type_Pack)
 					{

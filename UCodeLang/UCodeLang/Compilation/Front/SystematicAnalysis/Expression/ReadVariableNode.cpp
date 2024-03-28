@@ -128,8 +128,8 @@ void SystematicAnalysis::OnReadVariable(const ReadVariableNode& nod)
 
 				if (symop.has_value())
 				{
-					auto& sym = symop.value();
-	
+					auto sym = symop.value();
+
 					bool unpacktype = false;
 
 					if (unpacktype)
@@ -184,7 +184,7 @@ void SystematicAnalysis::OnReadVariable(const ReadVariableNode& nod)
 				}
 				else if (LookIsAddress == true && AmIsAddress == true)
 				{
-					if (_GetExpressionMode.top() == GetValueMode::ReadAndWrite) 
+					if (_GetExpressionMode.top() == GetValueMode::ReadAndWrite)
 					{
 						_IR_LastExpressionField = IR_Build_Member_AsValue(V);
 					}
@@ -649,7 +649,7 @@ bool SystematicAnalysis::Symbol_MemberTypeSymbolFromVar(size_t Start, size_t End
 		{
 			auto& Data = _Varable.top();
 
-			if (Out._Symbol->Type == SymbolType::ParameterVarable || Out._Symbol->Type == SymbolType::StackVarable) 
+			if (Out._Symbol->Type == SymbolType::ParameterVarable || Out._Symbol->Type == SymbolType::StackVarable)
 			{
 				Data._UsedSymbols.push_back(Out._Symbol);
 			}
@@ -1098,7 +1098,7 @@ bool SystematicAnalysis::Symbol_StepGetMemberTypeSymbolFromVar(const ScopedNameN
 					Out.Type = TypesEnum::Null;
 					return false;
 				}
-				ClassInfo* CInfo = TypeAsSymbol->Type == SymbolType::Type_class  ? TypeAsSymbol->Get_Info<ClassInfo>() : TypeAsSymbol->Get_Info<TagInfo>();
+				ClassInfo* CInfo = TypeAsSymbol->Type == SymbolType::Type_class ? TypeAsSymbol->Get_Info<ClassInfo>() : TypeAsSymbol->Get_Info<TagInfo>();
 
 
 				auto FeldInfo = CInfo->GetField(ItemTokenString);
@@ -1181,8 +1181,8 @@ bool SystematicAnalysis::Symbol_StepGetMemberTypeSymbolFromVar(const ScopedNameN
 		{
 			String ClassSym = ScopeHelper::GetReMoveScope(Out._Symbol->FullName);
 			auto LamdbSym = GetSymbolsWithName(ClassSym).front();
-			
-			if (IsSymbolLambdaObjectClass(NeverNullptr(LamdbSym))) 
+
+			if (IsSymbolLambdaObjectClass(NeverNullptr(LamdbSym)))
 			{
 				UCodeLangAssert(_PassType == PassType::BuidCode);
 
@@ -1225,7 +1225,7 @@ bool SystematicAnalysis::Symbol_StepGetMemberTypeSymbolFromVar(const ScopedNameN
 				{
 					if (_PassType == PassType::FixedTypes)
 					{
-						LogError_CantFindVarMemberError(ItemToken,ItemTokenString, Out.Type);
+						LogError_CantFindVarMemberError(ItemToken, ItemTokenString, Out.Type);
 					}
 
 					Out._Symbol = nullptr;
@@ -1430,13 +1430,13 @@ void  SystematicAnalysis::BuildMember_Access(const GetMemberTypeSymbolFromVar_t&
 	Symbol* LastVarSym = nullptr;
 	//
 
-	if (In._Symbol->Type == SymbolType::Class_Field 
-		&& _FuncStack.size() 
+	if (In._Symbol->Type == SymbolType::Class_Field
+		&& _FuncStack.size()
 		&& _ClassStack.size()
 		&& _ClassStack.top().Info)
 	{
 		auto& Func = _FuncStack.back().Pointer;
-	
+
 		auto ThisParSym = Symbol_GetSymbol(Func->Pars.front().Type).value();
 		TypeSymbol ObjectType;
 		Variant<IRPar*, IRInstruction*> PointerIr;
@@ -1449,7 +1449,7 @@ void  SystematicAnalysis::BuildMember_Access(const GetMemberTypeSymbolFromVar_t&
 		{
 			ClassInfo* f = ThisParSym->Get_Info<ClassInfo>();
 			auto parsym = Symbol_GetSymbol(ScopeHelper::ApendedStrings(ThisParSym->FullName, ThisSymbolName), SymbolType::ParameterVarable).value();
-			
+
 			PointerIr = _IR_LookingAtIRBlock->New_Member_Dereference(
 				&_IR_LookingAtIRFunc->Pars.front(),
 				_IR_LookingAtIRFunc->Pars.front().type,
@@ -1473,7 +1473,7 @@ void  SystematicAnalysis::BuildMember_Access(const GetMemberTypeSymbolFromVar_t&
 		auto IRStructV = IR_Build_ConvertToIRClassIR(*objecttypesyb);
 		auto F = _IR_Builder.GetSymbol(IRStructV)->Get_ExAs<IRStruct>();
 
-		
+
 		const String_view& Str = Token->Type == TokenType::KeyWord_This ? ThisSymbolName : Token->Value._String;
 		ClassInfo* V = objecttypesyb->Get_Info<ClassInfo>();
 
@@ -1484,12 +1484,12 @@ void  SystematicAnalysis::BuildMember_Access(const GetMemberTypeSymbolFromVar_t&
 			auto CInfo2 = ClassSym2->Get_Info<ClassInfo>();
 
 			V = CInfo2;
-		}	
+		}
 
 		size_t MemberIndex = V->GetFieldIndex(Str).value();
 
 
-		if (auto ir = PointerIr.Get_If<IRPar*>()) 
+		if (auto ir = PointerIr.Get_If<IRPar*>())
 		{
 			Output = _IR_LookingAtIRBlock->New_Member_Dereference(*ir, IRType(IRSymbol(IRStructV)), MemberIndex);
 		}
@@ -1511,7 +1511,7 @@ void  SystematicAnalysis::BuildMember_Access(const GetMemberTypeSymbolFromVar_t&
 
 		auto& Func = _FuncStack.back();
 		Last_Type = *Func.Pointer->GetObjectForCall();
-	
+
 		auto& lookingfortype = _LookingForTypes.top();
 		if (1 == In.End && !lookingfortype.IsAddress())
 		{
@@ -1521,14 +1521,14 @@ void  SystematicAnalysis::BuildMember_Access(const GetMemberTypeSymbolFromVar_t&
 			Output = _IR_LookingAtIRBlock->NewLoad_Dereferenc(Output, IR_ConvertToIRType(newtype));
 			Last_Type = newtype;
 		}
-		LastVarSym =Symbol_GetSymbol(ScopeHelper::ApendedStrings(_FuncStack.front().Pointer->FullName, ThisSymbolName),SymbolType::ParameterVarable).value().value();
+		LastVarSym = Symbol_GetSymbol(ScopeHelper::ApendedStrings(_FuncStack.front().Pointer->FullName, ThisSymbolName), SymbolType::ParameterVarable).value().value();
 	}
 	else if (In._Symbol->Type == SymbolType::Class_Field)
 	{
-		
+
 		auto token = In.Start[0]._token;
 
-		auto sym  = Symbol_GetSymbol(token->Value._String,SymbolType::Any).value();
+		auto sym = Symbol_GetSymbol(token->Value._String, SymbolType::Any).value();
 
 		Last_Type = sym->VarType;
 
