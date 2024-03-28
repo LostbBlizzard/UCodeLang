@@ -1181,7 +1181,15 @@ void SystematicAnalysis::Assembly_AddEnum(const NeverNullPtr<Symbol> ClassSyb)
 	EnumData.BaseType = Assembly_ConvertToType(ClassInf->Basetype);
 	EnumData.TypeID = Type_GetTypeID(TypesEnum::CustomType, Syb.ID);
 	EnumData.AccessModifier = ClassSyb->Access;
-	EnumData.IsExported = ClassSyb->Get_NodeInfo<EnumNode>()->_IsExport;
+
+	if (ClassSyb->NodePtr) 
+	{
+		EnumData.IsExported = ClassSyb->Get_NodeInfo<EnumNode>()->_IsExport;
+	}
+	else
+	{
+		EnumData.IsExported = true;
+	}
 
 	if (ClassInf->FuncDestructer)
 	{

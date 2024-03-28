@@ -476,8 +476,8 @@ void UClib::ToBytes(BitMaker& Output, const ForType_Data& FuncPtrData)
 void UClib::ToBytes(BitMaker& Output, const Eval_Data& FuncPtrData)
 {
 	ToBytes(Output, FuncPtrData.Value);
-	ToBytes(Output, (AccessModifierType_t)FuncPtrData.AccessModifier);
-	ToBytes(Output, FuncPtrData.IsExported);
+	Output.WriteType((AccessModifierType_t)FuncPtrData.AccessModifier);
+	Output.WriteType(FuncPtrData.IsExported);
 }
 void UClib::ToBytes(BitMaker& Output, const GenericBase_Data& FuncPtrData)
 {
