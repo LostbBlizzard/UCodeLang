@@ -275,16 +275,16 @@ bool RunTestForFlag(const TestInfo &Test, OptimizationFlags flag, std::ostream &
 #if !NoTry
 			}
 
-			catch (const std::exception &ex)
+			catch (const std::exception& ex)
 			{
 				RunTime.UnLoad();
 				ErrStream << "fail from jit test [exception] '" << ex.what() << "' : "
-						  << "'" << Test.TestName << ModeType(flag) << "'" << std::endl;
+					<< "'" << Test.TestName << ModeType(flag) << "'" << std::endl;
 				return false;
 			}
 #endif
-			RunTime.UnLoad();
 
+			UCodeLangDefer(RunTime.UnLoad());
 			if (Test.Condition == SuccessCondition::RunTimeValue)
 			{
 				std::unique_ptr<Byte[]> RetState = std::make_unique<Byte[]>(Test.RunTimeSuccessSize);
@@ -316,15 +316,15 @@ bool RunTestForFlag(const TestInfo &Test, OptimizationFlags flag, std::ostream &
 				RunTime.Call(StaticVariablesUnLoadFunc);
 #if !NoTry
 			}
-			catch (const std::exception &ex)
+			catch (const std::exception& ex)
 			{
 				RunTime.UnLoad();
 				ErrStream << "fail from UCodeRunTime test [exception] '" << ex.what() << "' : "
-						  << "'" << Test.TestName << ModeType(flag) << "'" << std::endl;
+					<< "'" << Test.TestName << ModeType(flag) << "'" << std::endl;
 				return false;
 			}
 #endif
-			RunTime.UnLoad();
+			UCodeLangDefer(RunTime.UnLoad());
 
 			if (Test.Condition == SuccessCondition::RunTimeValue)
 			{
