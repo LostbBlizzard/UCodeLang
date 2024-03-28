@@ -25,7 +25,7 @@ void SystematicAnalysis::OnFuncCallNode(const FuncCallNode& node)
 	{
 		for (auto& Item : node.Parameters._Nodes)
 		{
-			if (Item->Get_Type() != NodeType::OutExpression) 
+			if (Item->Get_Type() != NodeType::OutExpression)
 			{
 				OnExpressionTypeNode(Item.get(), GetValueMode::Read);
 			}
@@ -51,9 +51,9 @@ void SystematicAnalysis::OnFuncCallNode(const FuncCallNode& node)
 				auto& Data = _Varable.top();
 
 
-				String ThisP = ScopeHelper::ApendedStrings(_FuncStack.front().Pointer->FullName,ThisSymbolName);
+				String ThisP = ScopeHelper::ApendedStrings(_FuncStack.front().Pointer->FullName, ThisSymbolName);
 
-				Data._UsedSymbols.push_back(Symbol_GetSymbol(ThisP,SymbolType::ParameterVarable).value().value());
+				Data._UsedSymbols.push_back(Symbol_GetSymbol(ThisP, SymbolType::ParameterVarable).value().value());
 			}
 
 			_FuncToSyboID.AddValue(symid, std::move(Info));
@@ -97,7 +97,7 @@ void SystematicAnalysis::IR_Build_EnumOut(NeverNullPtr<Symbol> EnumSymbol, IRIns
 	{
 		IRInstruction* ThisObj = ThisEnum;
 		IRInstruction* BoolObj = nullptr;
-		
+
 
 
 		IRInstruction* ThisobjV = nullptr;
@@ -238,7 +238,7 @@ void SystematicAnalysis::IR_Build_EnumOut(NeverNullPtr<Symbol> EnumSymbol, size_
 
 		_LookingForTypes.pop();
 	}
-	IR_Build_EnumOut(EnumSymbol,ThisObj, EnumIndex, Pars, 1);
+	IR_Build_EnumOut(EnumSymbol, ThisObj, EnumIndex, Pars, 1);
 
 }
 void SystematicAnalysis::IR_Build_FuncCall(Get_FuncInfo Func, const ScopedNameNode& Name, const ValueParametersNode& Pars)
@@ -294,19 +294,19 @@ void SystematicAnalysis::IR_Build_FuncCall(Get_FuncInfo Func, const ScopedNameNo
 			return;\
 		}\
 
-				auto ScopedName = Str_GetScopedNameAsString(Name);
+		auto ScopedName = Str_GetScopedNameAsString(Name);
 		auto SymbolsV = Symbol_GetSymbol(ScopedName, SymbolType::Any);
 		if (SymbolsV && SymbolsV.value()->Type == SymbolType::Type_alias)
 		{
 			ScopedName = ToString(SymbolsV.value()->VarType);
 		}
-				
+
 		PrimitiveTypeCall(Uint8TypeName, TypesEnum::uInt8, _IR_LastExpressionField = _IR_LookingAtIRBlock->NewLoad((UInt8)0);)
 		else PrimitiveTypeCall(Uint16TypeName, TypesEnum::uInt16, _IR_LastExpressionField = _IR_LookingAtIRBlock->NewLoad((UInt16)0))
-		else PrimitiveTypeCall(Uint32TypeName, TypesEnum::uInt32, _IR_LastExpressionField = _IR_LookingAtIRBlock->NewLoad((UInt32)0))
-		else PrimitiveTypeCall(Uint64TypeName, TypesEnum::uInt64, _IR_LastExpressionField = _IR_LookingAtIRBlock->NewLoad(((UInt64)0)))
+else PrimitiveTypeCall(Uint32TypeName, TypesEnum::uInt32, _IR_LastExpressionField = _IR_LookingAtIRBlock->NewLoad((UInt32)0))
+	else PrimitiveTypeCall(Uint64TypeName, TypesEnum::uInt64, _IR_LastExpressionField = _IR_LookingAtIRBlock->NewLoad(((UInt64)0)))
 
-		else PrimitiveTypeCall(Sint8TypeName, TypesEnum::sInt8, _IR_LastExpressionField = _IR_LookingAtIRBlock->NewLoad((Int8)0);)
+	else PrimitiveTypeCall(Sint8TypeName, TypesEnum::sInt8, _IR_LastExpressionField = _IR_LookingAtIRBlock->NewLoad((Int8)0);)
 		else PrimitiveTypeCall(Sint16TypeName, TypesEnum::sInt16, _IR_LastExpressionField = _IR_LookingAtIRBlock->NewLoad((Int16)0))
 		else PrimitiveTypeCall(Sint32TypeName, TypesEnum::sInt32, _IR_LastExpressionField = _IR_LookingAtIRBlock->NewLoad((Int32)0))
 		else PrimitiveTypeCall(Sint64TypeName, TypesEnum::sInt64, _IR_LastExpressionField = _IR_LookingAtIRBlock->NewLoad((Int64)0))
@@ -499,7 +499,7 @@ void SystematicAnalysis::IR_Build_FuncCall(Get_FuncInfo Func, const ScopedNameNo
 			if (Func.ThisPar == Get_FuncInfo::ThisPar_t::PushFromScopedName)
 			{
 				_LookingForTypes.push(Func.Func->Pars[0].Type);
-				
+
 				_GetExpressionMode.push(GetValueMode::Read);
 				GetMemberTypeSymbolFromVar_t V;
 				Symbol_MemberTypeSymbolFromVar(0, Name._ScopedName.size() - 1, Name, V);
@@ -531,7 +531,7 @@ void SystematicAnalysis::IR_Build_FuncCall(Get_FuncInfo Func, const ScopedNameNo
 						UseedTopIR = false;
 					}
 				}
-			
+
 				if (!UseedTopIR)
 				{
 					IRLocation_Cotr tep;
@@ -668,7 +668,7 @@ void SystematicAnalysis::IR_Build_FuncCall(Get_FuncInfo Func, const ScopedNameNo
 		}
 		auto& FuncParInfo = FuncParInfoPtr;
 
-		
+
 
 		_LookingForTypes.push(FuncParInfo.Type);
 
@@ -687,7 +687,7 @@ void SystematicAnalysis::IR_Build_FuncCall(Get_FuncInfo Func, const ScopedNameNo
 			OnExpressionTypeNode(Item.get(), GetValueMode::Read);
 			IR_Build_ImplicitConversion(_IR_LastExpressionField, _LastExpressionType, FuncParInfo.Type);
 		}
-		
+
 		bool unpackparpack = true;
 		if (unpackparpack)
 		{
@@ -696,7 +696,7 @@ void SystematicAnalysis::IR_Build_FuncCall(Get_FuncInfo Func, const ScopedNameNo
 			auto symop = Symbol_GetSymbol(extype);
 			if (symop.has_value())
 			{
-				auto& sym = symop.value();
+				auto sym = symop.value();
 
 				if (sym->Type == SymbolType::Type_Pack)
 				{
@@ -768,7 +768,7 @@ void SystematicAnalysis::IR_Build_FuncCall(Get_FuncInfo Func, const ScopedNameNo
 	}
 	else if (Syb->Type == SymbolType::Func)
 	{
-			_IR_LastExpressionField = _IR_LookingAtIRBlock->NewCall(IR_GetIRID(Func.Func));
+		_IR_LastExpressionField = _IR_LookingAtIRBlock->NewCall(IR_GetIRID(Func.Func));
 	}
 	else if (Syb->Type == SymbolType::StackVarable)
 	{
@@ -847,7 +847,7 @@ void SystematicAnalysis::IR_Build_FuncCall(Get_FuncInfo Func, const ScopedNameNo
 }
 
 
-bool FuncInferFuncCountOk(SymbolType symtype,const FuncInfo* Info,size_t parcount,bool& islastparispack)
+bool FuncInferFuncCountOk(SymbolType symtype, const FuncInfo* Info, size_t parcount, bool& islastparispack)
 {
 	bool r = Info->Pars.size() == parcount;
 	{
@@ -874,7 +874,7 @@ bool FuncInferFuncCountOk(SymbolType symtype,const FuncInfo* Info,size_t parcoun
 
 	return r;
 }
-void TryaddParPackInferTypes(bool islastparpack,const FuncInfo* Info,size_t parcount,bool PushThisPar,bool& Inferautopushtis,Vector<ParInfo>& Infer,bool useinferpars)
+void TryaddParPackInferTypes(bool islastparpack, const FuncInfo* Info, size_t parcount, bool PushThisPar, bool& Inferautopushtis, Vector<ParInfo>& Infer, bool useinferpars)
 {
 	if (islastparpack)
 	{
@@ -1108,11 +1108,11 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 
 				if (parcount != 0 && !Type_CanBeImplicitConverted(ex, FuncType, true))
 				{
-					LogError_CantCastImplicitTypes(_LastLookedAtToken.value(),ex, FuncType, true);
+					LogError_CantCastImplicitTypes(_LastLookedAtToken.value(), ex, FuncType, true);
 				}
 				_LastExpressionType = FuncType;
 
-				
+
 			}
 			else
 			{
@@ -1175,10 +1175,10 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 			}
 		}
 
-		if (auto maintypesym = Symbol_GetSymbol(maintype).value_unchecked()) 
+		if (auto maintypesym = Symbol_GetSymbol(maintype).value_unchecked())
 		{
 			String mytypestr = ToString(maintype);
-			
+
 			for (auto& Item : fortypeSyms)
 			{
 				if (Item->Type == SymbolType::ForType)
@@ -1363,16 +1363,16 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 							generics.push_back(TypeSymbol(mytypegenericalias->VarType));
 						}
 
-					
+
 						auto newsymname = Generic_SymbolGenericFullName(Item, generics);
-						auto hasthisformade = Symbol_GetSymbol(newsymname,SymbolType::ForType);
+						auto hasthisformade = Symbol_GetSymbol(newsymname, SymbolType::ForType);
 
 						if (!hasthisformade.has_value())
 						{
 							Generic_TypeInstantiate_ForType(NeverNullptr(Item), generics);
-							hasthisformade = Symbol_GetSymbol(newsymname,SymbolType::ForType);
+							hasthisformade = Symbol_GetSymbol(newsymname, SymbolType::ForType);
 						}
-		
+
 						{
 							ForTypeInfo* info = hasthisformade.value()->Get_Info<ForTypeInfo>();
 
@@ -1381,7 +1381,7 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 								Symbols.push_back(Item);
 							}
 						}
-	
+
 					}
 
 				}
@@ -1428,7 +1428,7 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 				bool islastparispack = false;
 				bool PushThisPar = Info->IsObjectCall();
 				size_t parcount = PushThisPar ? Pars._Nodes.size() + 1 : Pars._Nodes.size();
-				if (FuncInferFuncCountOk(Item->Type,Info,parcount,islastparispack)) 
+				if (FuncInferFuncCountOk(Item->Type, Info, parcount, islastparispack))
 				{
 					//Infer = Info->Pars;
 					//Inferautopushtis = false;
@@ -1456,7 +1456,7 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 							const auto& Funcnode = Item->Get_NodeInfo<FuncNode>();
 							auto& rettypenode = Funcnode->_Signature._ReturnType;
 
-							if (rettypenode._name._ScopedName.back()._generic.get()) 
+							if (rettypenode._name._ScopedName.back()._generic.get())
 							{
 								auto& _generic = *rettypenode._name._ScopedName.back()._generic;
 								for (auto& Gtype : _generic._Values)
@@ -1503,7 +1503,7 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 							{
 								if (typemap.HasValue(GItem.SybID))
 								{
-									RetType =Opt<ParInfo>({ Item.IsOutPar,typemap.GetValue(GItem.SybID) });
+									RetType = Opt<ParInfo>({ Item.IsOutPar,typemap.GetValue(GItem.SybID) });
 									break;
 								}
 							}
@@ -1515,7 +1515,7 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 						}
 
 
-						TryaddParPackInferTypes(islastparispack, Info, parcount, false, Inferautopushtis, R,true);
+						TryaddParPackInferTypes(islastparispack, Info, parcount, false, Inferautopushtis, R, true);
 						Infer = std::move(R);
 					}
 				}
@@ -1544,10 +1544,10 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 						Infer = Info->Pars;
 						Inferautopushtis = PushThisPar;
 
-						TryaddParPackInferTypes(islastparpack, Info, parcount, PushThisPar, Inferautopushtis, Infer,false);
+						TryaddParPackInferTypes(islastparpack, Info, parcount, PushThisPar, Inferautopushtis, Infer, false);
 					}
 				}
-			}	
+			}
 			else if (Item->Type == SymbolType::Tag_class)
 			{
 				TagInfo* V = Item->Get_Info<TagInfo>();
@@ -1592,8 +1592,8 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 								for (auto& Item : VariantInfo.Types)
 								{
 									Infer.push_back({ false,Item });
-								} 
-							}	
+								}
+							}
 						}
 					}
 
@@ -1606,7 +1606,7 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 				String Scope = V->FullName;
 				ScopeHelper::GetApendedString(Scope, GenericTestStr);
 				ScopeHelper::GetApendedString(Scope, ClassConstructorfunc);
-				
+
 				auto ConstructorSymbols = GetSymbolsWithName(Scope, SymbolType::Any);
 
 
@@ -1719,12 +1719,12 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 					if (!last)
 					{
 						const Token* token = Name._ScopedName.back()._token;
-	
+
 						String msg;
 						msg += "Argment " + std::to_string(i);
 						msg += " is invaid because it is an Type_Pack but is not the last Argment";
 
-						LogError(ErrorCodes::InValidType, msg,NeverNullptr(token));
+						LogError(ErrorCodes::InValidType, msg, NeverNullptr(token));
 
 						Get_FuncInfo V;
 						return V;
@@ -1826,7 +1826,7 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 							Eval_Set_ObjectAs(ValEx, (UInt64)Count);
 						}
 
-						F.EvalObject =Opt(std::move(ValEx.EvaluatedObject));
+						F.EvalObject = Opt(std::move(ValEx.EvaluatedObject));
 
 
 
@@ -1875,7 +1875,7 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 			}
 		}
 	}
-	
+
 	//TypeInfo
 	{
 		bool IsTypeInfo = ValueTypes.size() && ValueTypes.front().Type.IsTypeInfo();
@@ -1979,7 +1979,7 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 
 		}
 	}
-	
+
 	//compiler
 	{
 		if (Name._ScopedName.size() == 2)
@@ -2606,7 +2606,7 @@ StartSymbolsLoop:
 			TagInfo* V = Item->Get_Info<TagInfo>();
 
 			const TagTypeNode& node = *Item->Get_NodeInfo<TagTypeNode>();
-			
+
 			NullablePtr<Symbol>  classsymop;
 			/*
 			auto classsybOp = Generic_InstantiateOrFindGeneric_Class(
@@ -2944,13 +2944,13 @@ StartSymbolsLoop:
 
 
 					const FuncSignatureNode* Signature = &Item.SymFunc->Get_NodeInfo<FuncNode>()->_Signature;
-					
+
 					if (GenericInput.size() != Signature->_generic._Values.size())
 					{
 						continue;
 					}
 					_Table.AddScope(std::to_string((uintptr_t)Item.Func));
-					
+
 					for (size_t i = 0; i < Signature->_generic._Values.size(); i++)
 					{
 						auto& Item = Signature->_generic._Values[i];
@@ -2993,7 +2993,7 @@ StartSymbolsLoop:
 		if (RValue.SymFunc->Type == SymbolType::GenericFunc)
 		{
 			Vector<TypeSymbol> GenericInput;
-			auto Info  = RValue.SymFunc->Get_Info<FuncInfo>();
+			auto Info = RValue.SymFunc->Get_Info<FuncInfo>();
 
 			bool PushThisPar = Info->IsObjectCall();
 
@@ -3046,7 +3046,7 @@ StartSymbolsLoop:
 									auto symop = Symbol_GetSymbol(last.Type);
 									if (symop.has_value())
 									{
-										auto& sym = symop.value();
+										auto sym = symop.value();
 
 										if (GInfo.SybID == sym->ID)
 										{
@@ -3218,7 +3218,7 @@ Optional< Optional<SystematicAnalysis::Get_FuncInfo>> SystematicAnalysis::Type_F
 	if (LastParIsPack && IsParPack)
 	{
 		bool parcountcheck = Info->Pars.size() - 1 >= ValueTypes.size();
-	
+
 		if (!(Info->Pars.size() == 1 && ValueTypes.size()))
 		{
 			parcountcheck = false;
@@ -3375,9 +3375,9 @@ Optional< Optional<SystematicAnalysis::Get_FuncInfo>> SystematicAnalysis::Type_F
 	bool cangenericinputbeused = false;
 
 	bool isinputcountgood = false;
-	
+
 	if (IsParPack)
-	{	
+	{
 		isinputcountgood = true;
 	}
 	else
@@ -3391,7 +3391,7 @@ Optional< Optional<SystematicAnalysis::Get_FuncInfo>> SystematicAnalysis::Type_F
 
 		const FuncNode* fnode = Item->Get_NodeInfo<FuncNode>();
 
-		const auto& fpars = fnode->_Signature._Parameters._Parameters;		
+		const auto& fpars = fnode->_Signature._Parameters._Parameters;
 		const auto& fInput = GenericInput;
 		const auto& fgenericnode = fnode->_Signature._generic;
 
@@ -3403,10 +3403,10 @@ Optional< Optional<SystematicAnalysis::Get_FuncInfo>> SystematicAnalysis::Type_F
 		//Lambda because it's never used any were else
 		std::function<Optional<String>(const TypeNode&)> lazyattemp;
 
-		
-		lazyattemp = [this,&lazyattemp,&fInput,&fgenericnode,&fpars](const TypeNode& node) -> Optional<String>
-		{
-				if (node._name._ScopedName.back()._token->Type== TokenType::Name)
+
+		lazyattemp = [this, &lazyattemp, &fInput, &fgenericnode, &fpars](const TypeNode& node) -> Optional<String>
+			{
+				if (node._name._ScopedName.back()._token->Type == TokenType::Name)
 				{
 					String fullname;
 					node._name.GetScopedName(fullname);
@@ -3421,12 +3421,12 @@ Optional< Optional<SystematicAnalysis::Get_FuncInfo>> SystematicAnalysis::Type_F
 							return ToString(fin);
 						}
 					}
-					
+
 					auto sym = Symbol_GetSymbol(fullname, SymbolType::Type);
 					if (sym)
 					{
 						const auto typegenics = node._name._ScopedName.back()._generic.get();
-						bool hasgenics = typegenics ?  typegenics->_Values.size() : 0;
+						bool hasgenics = typegenics ? typegenics->_Values.size() : 0;
 
 						if (hasgenics)
 						{
@@ -3449,7 +3449,7 @@ Optional< Optional<SystematicAnalysis::Get_FuncInfo>> SystematicAnalysis::Type_F
 					}
 				}
 				return {};
-		};
+			};
 
 		if (ValueTypes.size() != 0)
 		{
@@ -3712,7 +3712,7 @@ void SystematicAnalysis::IR_Build_DestructorCall(const ObjectToDrop& Object)
 				case ObjectToDropType::Operator:
 					FuncInfo.ThisPar = Get_FuncInfo::ThisPar_t::OnIRlocationStackNonedef;
 
-					
+
 
 					IRInstruction* ir;
 					switch (Object._Operator.Type)
@@ -3721,7 +3721,7 @@ void SystematicAnalysis::IR_Build_DestructorCall(const ObjectToDrop& Object)
 						ir = _IR_LookingAtIRBlock->NewLoad(Object._Operator.Pointer);
 						break;
 					case IROperatorType::IRParameter:
-						ir =  _IR_LookingAtIRBlock->NewLoad(Object._Operator.Parameter);
+						ir = _IR_LookingAtIRBlock->NewLoad(Object._Operator.Parameter);
 						break;
 					default:
 						UCodeLangUnreachable();
@@ -3800,7 +3800,7 @@ SystematicAnalysis::Get_FuncInfo SystematicAnalysis::Type_GetFunc(const TypeSymb
 	copyname._Isimmutable = false;
 	copyname._MoveData = MoveData::None;
 	copyname._IsAddress = false;
-	
+
 	String B = ToString(copyname);
 	Token T;
 	T.Type = TokenType::Name;

@@ -34,7 +34,7 @@ void SystematicAnalysis::OnForNode(const ForNode& node)
 		}
 
 		for (auto& Item : node._OtherVarables)
-		{	
+		{
 			auto StrVarName = Item._Name->Value._String;
 			auto FullName = _Table._Scope.GetApendedString(StrVarName);
 
@@ -45,7 +45,7 @@ void SystematicAnalysis::OnForNode(const ForNode& node)
 			auto SymItem = &Symbol_AddSymbol(SymbolType::StackVarable, (String)StrVarName, FullName, AccessModifierType::Public);
 			_Table.AddSymbolID(*SymItem, sybId);
 
-		
+
 			DeclareVariableInfo* info = new DeclareVariableInfo();
 
 			SymItem->Info.reset(info);
@@ -108,7 +108,7 @@ void SystematicAnalysis::OnForNode(const ForNode& node)
 					auto& Ex = _LastExpressionType;
 					auto token = node._typeNode._name._ScopedName.back()._token;
 					Type_DeclareVariableTypeCheck(VarType, Ex, NeverNullptr(token));
-				
+
 				}
 			}
 
@@ -147,7 +147,7 @@ void SystematicAnalysis::OnForNode(const ForNode& node)
 			}
 			for (auto& Item : node._OtherVarables)
 			{
-				auto& sym = Symbol_GetSymbol(Symbol_GetSymbolID(&Item));
+				auto sym = Symbol_GetSymbol(Symbol_GetSymbolID(&Item));
 
 				auto& VarType = sym->VarType;
 				Type_Convert(Item._typeNode, VarType);
@@ -156,7 +156,7 @@ void SystematicAnalysis::OnForNode(const ForNode& node)
 
 			auto Ex = node._Modern_List._Value.get();
 
-			{	
+			{
 				_LookingForTypes.push(TypeSymbol(TypesEnum::Any));
 				OnExpressionTypeNode(Ex, GetValueMode::Read);
 				_LookingForTypes.pop();
@@ -165,7 +165,7 @@ void SystematicAnalysis::OnForNode(const ForNode& node)
 
 			auto HasInfo = Type_HasForOverLoadWith(ExType);
 			bool isvarableok = false;
-				
+
 			if (!HasInfo.HasValue)
 			{
 				auto  Token = _LastLookedAtToken.value();
@@ -229,7 +229,7 @@ void SystematicAnalysis::OnForNode(const ForNode& node)
 
 						String Msg;
 						Msg += "Cant loop over '" + ToString(ExType) + "'";
-						
+
 						{
 							bool hasloopfuncion = false;
 							for (size_t i = 0; i < 10; i++)
@@ -241,7 +241,7 @@ void SystematicAnalysis::OnForNode(const ForNode& node)
 								String name = "Next";
 								if (i != 0)
 								{
-									name += std::to_string(i+1);
+									name += std::to_string(i + 1);
 								}
 
 								ScopeHelper::GetApendedString(NextFuncName, name);
@@ -256,7 +256,7 @@ void SystematicAnalysis::OnForNode(const ForNode& node)
 									}
 								}
 
-								if (NextFunc.has_value()) 
+								if (NextFunc.has_value())
 								{
 									hasloopfuncion = true;
 									break;
@@ -268,8 +268,8 @@ void SystematicAnalysis::OnForNode(const ForNode& node)
 								Msg += " and split the iterator into " + std::to_string(node._OtherVarables.size() + 1);
 							}
 						}
-						LogError(ErrorCodes::InValidType,Msg, token);
-						
+						LogError(ErrorCodes::InValidType, Msg, token);
+
 					}
 					else
 					{
@@ -281,7 +281,7 @@ void SystematicAnalysis::OnForNode(const ForNode& node)
 						if (!finfo->IsObjectCall())
 						{
 							ok = false;
-							LogError(ErrorCodes::InValidName, "The Funcion '" + nfunc->FullName + "' must be a Object Call",token);
+							LogError(ErrorCodes::InValidName, "The Funcion '" + nfunc->FullName + "' must be a Object Call", token);
 						}
 						else
 						{
@@ -308,10 +308,10 @@ void SystematicAnalysis::OnForNode(const ForNode& node)
 
 								auto syb = Symbol_GetSymbol(base);
 
-								if (!syb.has_value()  || syb.value()->Type != SymbolType::Type_class)
+								if (!syb.has_value() || syb.value()->Type != SymbolType::Type_class)
 								{
 									ok = false;
-									LogError(ErrorCodes::InValidType, "The Type '" + ToString(base) + "' must be a Class/Struct",token);
+									LogError(ErrorCodes::InValidType, "The Type '" + ToString(base) + "' must be a Class/Struct", token);
 								}
 								else
 								{
@@ -328,7 +328,7 @@ void SystematicAnalysis::OnForNode(const ForNode& node)
 						}
 
 						if (ok)
-						{	
+						{
 							auto type = typeinfo.value().SomeType;
 
 							ForExpresion_Data g;
@@ -337,19 +337,19 @@ void SystematicAnalysis::OnForNode(const ForNode& node)
 							_For_Datas.AddValue(Symbol_GetSymbolID(node), g);
 
 
-							if (node._OtherVarables.size()) 
+							if (node._OtherVarables.size())
 							{
 								auto syb2 = Symbol_GetSymbol(type);
 								ClassInfo* info = syb2.value()->Get_Info<ClassInfo>();
-							
+
 								auto token = NeverNullptr(node._typeNode._name._ScopedName.back()._token);
 								Type_DeclareVariableTypeCheck(syb->VarType, info->Fields[0].Type, token);
-						
+
 								for (size_t i = 0; i < node._OtherVarables.size(); i++)
 								{
 									auto& item = node._OtherVarables[i];
 									auto varsyb = Symbol_GetSymbol(Symbol_GetSymbolID(&item));
-									
+
 									auto token = NeverNullptr(item._Name);
 									Type_DeclareVariableTypeCheck(varsyb->VarType, info->Fields[i + 1].Type, token);
 
@@ -492,7 +492,7 @@ void SystematicAnalysis::OnForNode(const ForNode& node)
 			{
 				Get_FuncInfo f;
 				f.Func = Data.FuncGetLoopAble->Get_Info<FuncInfo>();
-	
+
 				f.SymFunc = Data.FuncGetLoopAble;
 				f.ThisPar = Get_FuncInfo::ThisPar_t::PushFromLast;
 				IR_Build_FuncCall(f, {}, {});
@@ -559,7 +559,7 @@ void SystematicAnalysis::OnForNode(const ForNode& node)
 						for (size_t i = 0; i < node._OtherVarables.size(); i++)
 						{
 							auto& Item = node._OtherVarables[i];
-							auto& Itemsym = Symbol_GetSymbol(Symbol_GetSymbolID(&Item));
+							auto Itemsym = Symbol_GetSymbol(Symbol_GetSymbolID(&Item));
 
 							Itemsym->IR_Ins = isadress ?
 								_IR_LookingAtIRBlock->New_Member_Dereference(sometypeval, typeir, i + 1) :

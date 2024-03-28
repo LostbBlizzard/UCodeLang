@@ -88,12 +88,12 @@ bool SystematicAnalysis::Type_IsimmutableRulesfollowed(const TypeSymbol& TypeToC
 	{
 		return true;
 		//return TypeToCheck.IsAddress() && Type.IsAddress();
-		
+
 	}
 
 	return false;
 }
-bool SystematicAnalysis::Type_IsAddessAndLValuesRulesfollowed(const TypeSymbol& TypeToCheck, const TypeSymbol& Type, bool ReassignMode,bool isdeclare) const
+bool SystematicAnalysis::Type_IsAddessAndLValuesRulesfollowed(const TypeSymbol& TypeToCheck, const TypeSymbol& Type, bool ReassignMode, bool isdeclare) const
 {
 	if (ReassignMode) { return true; }
 	bool CheckIsLocation = TypeToCheck.IsLocationValue() || TypeToCheck.IsAddress();
@@ -297,40 +297,40 @@ bool SystematicAnalysis::Type_GetSize(const TypeSymbol& Type, size_t& OutSize)
 				return true;
 			}
 			else
-			if (Info->VariantData.has_value())
-			{
-				auto tagsize = Type_GetSize(Info->Basetype, OutSize);
-				auto& Item = Info->VariantData.value();
-
-
-				if (!Item.VariantSize.has_value())
+				if (Info->VariantData.has_value())
 				{
-					size_t MaxSize = 0;
+					auto tagsize = Type_GetSize(Info->Basetype, OutSize);
+					auto& Item = Info->VariantData.value();
 
-					for (auto& Item2 : Item.Variants)
+
+					if (!Item.VariantSize.has_value())
 					{
-						size_t ItemSize = 0;
-						for (auto& Item3 : Item2.Types)
-						{
-							UAddress tep = 0;
-							Type_GetSize(Item3, tep);
-							ItemSize += tep;
-						}
-						if (ItemSize > MaxSize)
-						{
-							MaxSize = ItemSize;
-						}
-					}
-					Item.VariantSize = MaxSize;
-				}
-				OutSize += Item.VariantSize.value();
+						size_t MaxSize = 0;
 
-				return true;
-			}
-			else
-			{
-				return Type_GetSize(Info->Basetype, OutSize);
-			}
+						for (auto& Item2 : Item.Variants)
+						{
+							size_t ItemSize = 0;
+							for (auto& Item3 : Item2.Types)
+							{
+								UAddress tep = 0;
+								Type_GetSize(Item3, tep);
+								ItemSize += tep;
+							}
+							if (ItemSize > MaxSize)
+							{
+								MaxSize = ItemSize;
+							}
+						}
+						Item.VariantSize = MaxSize;
+					}
+					OutSize += Item.VariantSize.value();
+
+					return true;
+				}
+				else
+				{
+					return Type_GetSize(Info->Basetype, OutSize);
+				}
 		}
 		else if (V.Type == SymbolType::Func_ptr
 			|| V.Type == SymbolType::Hard_Func_ptr)
@@ -368,7 +368,7 @@ bool SystematicAnalysis::Type_GetSize(const TypeSymbol& Type, size_t& OutSize)
 		{
 			OutSize = 0;
 			return true;
-		}	
+		}
 		else
 		{
 			OutSize = 0;
@@ -499,7 +499,7 @@ bool SystematicAnalysis::Type_IsSIntType(const TypeSymbol& TypeToCheck) const
 bool SystematicAnalysis::Type_IsCompatible(const IsCompatiblePar& FuncPar, const Vector<ParInfo>& ValueTypes, bool _ThisTypeIsNotNull, const NeverNullPtr<Token> Token)
 {
 	size_t valcount = ValueTypes.size();
-	
+
 	bool unpackparpack = true;
 	bool typepack = false;
 	if (ValueTypes.size())
@@ -508,7 +508,7 @@ bool SystematicAnalysis::Type_IsCompatible(const IsCompatiblePar& FuncPar, const
 		auto symop = Symbol_GetSymbol(lastpartype);
 		if (symop.has_value())
 		{
-			auto& val = symop.value();
+			auto val = symop.value();
 
 			if (val->Type == SymbolType::Type_Pack)
 			{
@@ -582,7 +582,7 @@ bool SystematicAnalysis::Type_IsCompatible(const IsCompatiblePar& FuncPar, const
 	for (size_t i = _ThisTypeIsNotNull ? 1 : 0; i < FuncPar.Pars->size(); i++)
 	{
 		auto& Item = (*FuncPar.Pars)[i];
-		
+
 		bool Item2IsOutpar = false;
 		const TypeSymbol* Item2ptr = nullptr;
 		if (_TypePack.has_value())
@@ -602,9 +602,9 @@ bool SystematicAnalysis::Type_IsCompatible(const IsCompatiblePar& FuncPar, const
 		else
 		{
 			Item2ptr = &ValueTypes[i].Type;
-			Item2IsOutpar= ValueTypes[i].IsOutPar;
+			Item2IsOutpar = ValueTypes[i].IsOutPar;
 		}
-		
+
 		auto& Item2 = *Item2ptr;
 		if (Item.IsOutPar != Item2IsOutpar)
 		{
@@ -690,7 +690,7 @@ int SystematicAnalysis::Type_GetCompatibleScore(const IsCompatiblePar& Func, con
 		auto symop = Symbol_GetSymbol(lastpartype);
 		if (symop.has_value())
 		{
-			auto& val = symop.value();
+			auto val = symop.value();
 
 			if (val->Type == SymbolType::Type_Pack)
 			{
@@ -720,7 +720,7 @@ int SystematicAnalysis::Type_GetCompatibleScore(const IsCompatiblePar& Func, con
 			if (ValueTypesIndex >= ValueTypes.size() - 1)
 			{
 				auto newindex = i - (ValueTypes.size() - 1);
-				
+
 				parinfo.IsOutPar = false;
 				parinfo.Type = _TypePack.value()[newindex];
 			}
@@ -736,9 +736,9 @@ int SystematicAnalysis::Type_GetCompatibleScore(const IsCompatiblePar& Func, con
 				auto symop = Symbol_GetSymbol(par.Type);
 				if (symop.has_value())
 				{
-					auto& sym = symop.value();
+					auto sym = symop.value();
 
-					if (sym->Type == SymbolType::Type_Pack || sym->Type ==SymbolType::Unmaped_Generic_Type)
+					if (sym->Type == SymbolType::Type_Pack || sym->Type == SymbolType::Unmaped_Generic_Type)
 					{
 						if (ValueTypesIndex >= ValueTypes.size())
 						{
@@ -860,7 +860,7 @@ bool SystematicAnalysis::Type_AreTheSameWithOutimmutable(const TypeSymbol& TypeA
 }
 bool SystematicAnalysis::Type_HasDefaultConstructorFunc(const TypeSymbol& Type) const
 {
-	if (Type.IsAddress() == false) 
+	if (Type.IsAddress() == false)
 	{
 		auto symOp = Symbol_GetSymbol(Type);
 		if (symOp.has_value())
@@ -873,7 +873,7 @@ bool SystematicAnalysis::Type_HasDefaultConstructorFunc(const TypeSymbol& Type) 
 
 				for (auto& Item : GetSymbolsWithName(scopename))
 				{
-					if (Item->Type == SymbolType::Func) 
+					if (Item->Type == SymbolType::Func)
 					{
 						auto funcinfo = Item->Get_Info<FuncInfo>();
 						if (funcinfo->Pars.size() == 1)
@@ -1247,7 +1247,7 @@ SystematicAnalysis::UrinaryOverLoadWith_t SystematicAnalysis::Type_HasUrinaryOve
 						return { {true} };
 					}
 				}
-			}	
+			}
 		}
 	}
 	else
@@ -1970,13 +1970,13 @@ bool SystematicAnalysis::Type_IsValid(TypeSymbol& Out)
 {
 	return false;
 }
-bool SystematicAnalysis::Type_CanBeImplicitConverted(const TypeSymbol& TypeToCheck, const TypeSymbol& Type, bool ReassignMode,bool isdeclare)
+bool SystematicAnalysis::Type_CanBeImplicitConverted(const TypeSymbol& TypeToCheck, const TypeSymbol& Type, bool ReassignMode, bool isdeclare)
 {
 	if (Type_AreTheSameWithOutMoveAndimmutable(TypeToCheck, Type))
 	{
 		bool V0 = Type_IsimmutableRulesfollowed(TypeToCheck, Type);
 
-		bool V1 = Type_IsAddessAndLValuesRulesfollowed(TypeToCheck, Type, ReassignMode,isdeclare);
+		bool V1 = Type_IsAddessAndLValuesRulesfollowed(TypeToCheck, Type, ReassignMode, isdeclare);
 
 		if (TypeToCheck._ValueInfo != TypeValueInfo::IsValue
 			&& !TypeToCheck.IsMovedType() && (!Type_IsCopyable(TypeToCheck))
