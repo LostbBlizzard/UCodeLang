@@ -136,7 +136,7 @@ void SystematicAnalysis::OnExpressionNode(const IndexedExpresionNode& node)
 				_LastExpressionType = f->Ret;
 
 				TypeSymbol lookingfor = _LookingForTypes.top();
-				if (!lookingfor.IsAddress())
+				if (!lookingfor.IsAddress() && !IsWrite(_GetExpressionMode.top()))
 				{
 					_LastExpressionType._IsAddress = false;
 					_LastExpressionType._Isimmutable = false;
