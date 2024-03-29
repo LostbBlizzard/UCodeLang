@@ -340,7 +340,9 @@ bool SystematicAnalysis::IR_Build_ImplicitConversion(IRInstruction* Ex, const Ty
 						par._IsAddress = false;
 						if (Type_AreTheSame(par, ExType))
 						{
-							IRInstruction* ret = _IR_LookingAtIRBlock->NewLoad(IR_ConvertToIRType(ToType));
+							auto v = ToType;
+							v._IsAddress = false;	
+							IRInstruction* ret = _IR_LookingAtIRBlock->NewLoad(IR_ConvertToIRType(v));
 
 							_IR_LookingAtIRBlock->NewPushParameter(_IR_LookingAtIRBlock->NewLoadPtr(ret));
 
