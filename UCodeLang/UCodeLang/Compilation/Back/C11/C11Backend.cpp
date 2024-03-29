@@ -792,7 +792,7 @@ void C11Backend::ToString(UCodeLang::String& r, const IRFunc* Item, UCodeLang::C
 					r += (String)IRReturnValue + " = ";
 					if (docast)
 					{
-						r += "(" + ToString(_Func->ReturnType) + ")(";
+						r += "*(" + ToString(_Func->ReturnType) + "*)(&";
 					}
 					r += ToString(State, *I, I->Target());
 					if (docast)
@@ -814,7 +814,7 @@ void C11Backend::ToString(UCodeLang::String& r, const IRFunc* Item, UCodeLang::C
 
 					if (docast)
 					{
-						r += "(" + ToString(I->ObjectType) + ")(";
+						r += "*(" + ToString(I->ObjectType) + "*)(&";
 					}
 					r += ToString(State, *I, I->Target());
 
@@ -965,16 +965,32 @@ void C11Backend::ToString(UCodeLang::String& r, const IRFunc* Item, UCodeLang::C
 						r += " = ";
 					}
 					r += FromIDToCindentifier(I->Target().identifier) + "(";
-					for (auto& Item : State.TepPushedParameters)
+					auto func = _Input->GetFunc(I->Target().identifier);
+					for (size_t i = 0; i < State.TepPushedParameters.size(); i++)
 					{
-						r += State.PointerToName.GetValue(Item->Target().Pointer);
+						auto& Item = State.TepPushedParameters[i];
+						auto& par = func->Pars[i];
+
+						if (_Input->GetType(Item) != par.type)
+						{
+							r += "*(";
+							r += ToString(par.type);
+							r += "*)&";
+							r += State.PointerToName.GetValue(Item->Target().Pointer);
+						}
+						else
+						{
+							r += State.PointerToName.GetValue(Item->Target().Pointer);
+						}
+
 						if (&Item != &State.TepPushedParameters.back())
 						{
 							r += ",";
 						}
+
 					}
 					State.TepPushedParameters.clear();
-					r += ")";
+						r += ")";
 				}break;
 				case IRInstructionType::CallFuncPtr:
 				{

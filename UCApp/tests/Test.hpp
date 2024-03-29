@@ -278,29 +278,29 @@ static const Array<TestInfo, 136> Tests{
 	TestInfo("GetBytes",  "Array/GetBytes.uc", "main", SuccessCondition::RunTimeValue,(bool)1),
 	
 	TestInfo("MoveDrops",  "NewAndDrop/MoveDrops.uc", "main", SuccessCondition::RunTimeValue,(int)5),
-	TestInfo("MoveDrops 2",  "NewAndDrop/MoveDrops2.uc", "main", SuccessCondition::RunTimeValue,(int)5),
+	TestInfo("MoveDrops_2",  "NewAndDrop/MoveDrops2.uc", "main", SuccessCondition::RunTimeValue,(int)5),
 
 	TestInfo("GenericTypePackUnPack","Generics/GenericTypePackUnPack.uc", "main", SuccessCondition::RunTimeValue,(int)15),
-	TestInfo("GenericTypePackUnPack 2","Generics/GenericTypePackUnPack.uc", "main2", SuccessCondition::RunTimeValue,(int)30),
+	TestInfo("GenericTypePackUnPack_2","Generics/GenericTypePackUnPack.uc", "main2", SuccessCondition::RunTimeValue,(int)30),
 
-	TestInfo("TypePackWithNone ","Generics/TypePackWithNone.uc", "main", SuccessCondition::RunTimeValue,(int)5),
-	TestInfo("TypePackWithNone 2","Generics/TypePackWithNone.uc", "main2", SuccessCondition::RunTimeValue,(int)0),
+	TestInfo("TypePackWithNone","Generics/TypePackWithNone.uc", "main", SuccessCondition::RunTimeValue,(int)5),
+	TestInfo("TypePackWithNone_2","Generics/TypePackWithNone.uc", "main2", SuccessCondition::RunTimeValue,(int)0),
 	
 	TestInfo("GenericEvalWithType","Generics/GenericEvalWithType.uc", "main", SuccessCondition::RunTimeValue,(uintptr_t)3),
-	TestInfo("GenericEvalWithType 2","Generics/GenericEvalWithType 2.uc", "main", SuccessCondition::CompilationFail),
+	TestInfo("GenericEvalWithType_2","Generics/GenericEvalWithType2.uc", "main", SuccessCondition::CompilationFail),
 	
 	TestInfo("UnusedGenericPackParameter","Bugs/UnusedGenericPackParameter.uc", "main", SuccessCondition::CompilationFail),
 	
 	TestInfo("GenericPackWithType","Generics/GenericPackWithType.uc", "main", SuccessCondition::CompilationFail),
 	
-	TestInfo("GenericPackWithType 2","Generics/GenericPackWithType 2.uc", "main", SuccessCondition::RunTimeValue,bool(true)),
+	TestInfo("GenericPackWithType_2","Generics/GenericPackWithType2.uc", "main", SuccessCondition::RunTimeValue,bool(true)),
 	
-	TestInfo("CompileTime ForNode Spit", "Objects/CompileTimeForNodeSplit.uc", "main", SuccessCondition::RunTimeValue, Array3<int>(1, 2, 3)),
+	TestInfo("CompileTime_ForNode_Spit", "Objects/CompileTimeForNodeSplit.uc", "main", SuccessCondition::RunTimeValue,bool(true)),
 	
 	TestInfo("GetFields4", "Eval/GetFields4.uc", "main", SuccessCondition::RunTimeValue, (size_t)27),
 	
 	TestInfo("CustomForLoop", "Array/CustomForLoop.uc", "main", SuccessCondition::RunTimeValue, (int)6),
-	TestInfo("CustomForLoop 2", "Array/CustomForLoop2.uc", "main", SuccessCondition::RunTimeValue, (int)9),
+	TestInfo("CustomForLoop_2", "Array/CustomForLoop2.uc", "main", SuccessCondition::RunTimeValue, (int)9),
 };
 struct SkipTestRange
 {

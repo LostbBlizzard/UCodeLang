@@ -12,4 +12,4 @@ $Array<T,[uintptr](Count)>:
 |main[]:
  int[3] r = [1,2,3];
 
- ret r;
+ ret unsafe r.base[0] == 1 && r.base[1] == 2 && r.base[2] == 3;
