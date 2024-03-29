@@ -539,7 +539,18 @@ void SystematicAnalysis::OnStringLiteral(const StringliteralNode* nod, bool& ret
 				irpointer = _IR_LookingAtIRBlock->NewAdd(IR_Load_UIntptr(mult), irpointer);
 			}
 			auto irsize = IR_Load_UIntptr(SpanSize);
-			IRInstruction* irspan = _IR_LookingAtIRBlock->NewLoad(IR_ConvertToIRType(SpanStringType));
+
+			IRInstruction* irspan =nullptr;
+			if (_IR_IRlocations.size() && _IR_IRlocations.top().UsedlocationIR == false)
+			{
+				irspan = _IR_IRlocations.top().Value;
+				_IR_IRlocations.top().UsedlocationIR = true;
+			}
+			else
+			{
+				irspan = _IR_LookingAtIRBlock->NewLoad(IR_ConvertToIRType(SpanStringType));
+			}
+
 
 			FuncInfo* func = nullptr;
 
