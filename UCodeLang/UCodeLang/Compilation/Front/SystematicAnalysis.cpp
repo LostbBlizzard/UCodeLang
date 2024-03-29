@@ -1562,12 +1562,14 @@ void SystematicAnalysis::Type_DeclareVariableTypeCheck(TypeSymbol& VarType, cons
 
 			if (WasImutable) { VarType.SetAsimmutable(); }
 			if (WasIsAddress) { VarType.SetAsAddress(); }
+			else { VarType._IsAddress = false; }
 			if (WasIsAddressArry) { VarType.SetAsAddressArray(); }
 
 			if (OldTypeInfo == TypeInfoPrimitive::Null)
 			{
 				VarType._TypeInfo = OldTypeInfo;
 			}
+			VarType._MoveData = MoveData::None;
 			VarType.SetAsLocation();
 
 

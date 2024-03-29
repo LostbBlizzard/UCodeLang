@@ -50,8 +50,13 @@ $Vector<T> export:
    $if compiler::IsDebug():
      if Index >= _size:panic("Index is out of bounds");
 
-   var r = move this[_size - 1];
-   
+   var r = move this[Index];
+   for [uintptr i = Index + 1;i < _size;i++]:
+    this[i-1] = move this[i];
+  
+   _size--;
+
+   ret r;
 
   export |Push[this&,imut T& Val] -> void:
    Resize(_size + 1);

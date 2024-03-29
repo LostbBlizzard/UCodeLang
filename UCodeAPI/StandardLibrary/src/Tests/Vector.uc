@@ -27,7 +27,7 @@ Tests:
 
   ret List[0] == 5 && List[1] == 20 && List[2] == 15;
 
- [SkipedTest]
+ [Test]
  |Vector_4[]:
   int[] List = [];
   List.Push(5);
@@ -37,12 +37,12 @@ Tests:
 
   ret List[0] == 15 && List.Size() == 1 && a == 5;
 
- [SkipedTest]
+ [Test]
  |Vector_5[]:
   int[] List = [];
   List.Push(5);
   List.Push(15);
 
-  var a = List.Remove(0);
+  var a = List.Pop();
 
   ret a == 15 && List.Size() == 1;
