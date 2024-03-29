@@ -3606,7 +3606,7 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetPointerOf(const IRlocData& 
 
 		if (auto Val = Value.Info.Get_If<IRlocData_StackPost>())
 		{
-			_Stack.AddReUpdatePostFunc(PushIns(), Val->offset);
+			_Stack.AddReUpdatePostFunc(PushIns(), Val->offset - _Stack.PushedOffset);
 		}
 		else if (auto Val2 = Value.Info.Get_If<IRlocData_StackPre>())
 		{
