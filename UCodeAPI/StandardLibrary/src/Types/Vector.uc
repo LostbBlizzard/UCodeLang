@@ -68,30 +68,26 @@ $Vector<T> export:
    this[_size - 1] = Val;
 
   export |Insert[this&,uintptr Index,imut T& Item] -> void:
+   $if compiler::IsDebug():
+     if Index > _size:panic("Index is out of bounds");
+
    Resize(_size + 1);
 
    //shift all the elements
-   uintptr i = _size - 2;
-   while true:
-    unsafe _data[i+1] =move _data[i];
-    
-    if i == Index: break;
-
-    i--;
+   for [uintptr i = _size - 1;i >= Index;i--]:
+    unsafe _data[i] =move _data[i - 1];    
 
    unsafe _data[Index] = Item;
 
   export |Insert[this&,uintptr Index,moved T Item] -> void:
+   $if compiler::IsDebug():
+     if Index > _size:panic("Index is out of bounds");
+
    Resize(_size + 1);
 
    //shift all the elements
-   uintptr i = _size - 2;
-   while true:
-    unsafe _data[i+1] =move _data[i];
-    
-    if i == Index: break;
-
-    i--;
+   for [uintptr i = _size - 1;i >= Index;i--]:
+    unsafe _data[i] =move _data[i - 1];    
 
    unsafe _data[Index] = Item;
 

@@ -46,3 +46,16 @@ Tests:
   var a = List.Pop();
 
   ret a == 15 && List.Size() == 1;
+
+ [Test]
+ |Vector_6[]:
+  int[] List = [];
+  List.Push(5);
+
+  var a = List[0];
+
+  List.Insert(0,10);
+
+  var b = List[0];
+
+  ret a == 5 && b == 10; 
