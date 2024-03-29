@@ -2025,6 +2025,10 @@ bool SystematicAnalysis::Type_CanBeImplicitConverted(const TypeSymbol& TypeToChe
 		{
 			return false;
 		}
+		if ((V0 && V1) && Type.IsMovedType() && !TypeToCheck.IsMovedType())
+		{
+			return false;
+		}
 
 		return V0 && V1;
 	}
