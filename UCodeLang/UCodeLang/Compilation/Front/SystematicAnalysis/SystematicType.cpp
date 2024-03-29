@@ -1034,6 +1034,9 @@ SystematicAnalysis::CompoundOverLoadWith_t SystematicAnalysis::Type_HasCompoundO
 
 					auto V = GetSymbolsWithName(funcName, SymbolType::Func);
 
+					Optional<Symbol*> BestFit;
+					Optional<int> BestScore;
+
 					for (auto& Item : V)
 					{
 						Symbol_Update_FuncSym_ToFixedTypes(NeverNullptr(Item));
@@ -1041,16 +1044,34 @@ SystematicAnalysis::CompoundOverLoadWith_t SystematicAnalysis::Type_HasCompoundO
 						{
 							auto funcInfo = Item->Get_Info<FuncInfo>();
 							if (funcInfo->Pars.size() == 2)
-							{
-								bool r = Type_CanBeImplicitConverted(TypeA, funcInfo->Pars[0].Type)
-									&& Type_CanBeImplicitConverted(TypeB, funcInfo->Pars[1].Type);
+							{				
+								auto ParA = funcInfo->Pars[0];
+								auto ParB = funcInfo->Pars[1];
+					
+								bool r = Type_CanBeImplicitConverted(TypeA, ParA.Type)
+									&& Type_CanBeImplicitConverted(TypeB, ParB.Type);
 								if (r)
-								{
-									return { r, Item };
+								{	
+									ParInfo pinfo;
+									pinfo.Type = TypeA;
+									ParInfo pinfo2;
+									pinfo2.Type = TypeB;
+
+									int itemscore = (Type_GetCompatibleScore(pinfo, ParA) + Type_GetCompatibleScore(pinfo2, ParB)) / 2;
+
+									if (!BestScore.has_value() || BestScore.value() < itemscore)
+									{
+										BestFit = Item;
+										BestScore = itemscore;
+									}
 								}
 
 							}
 						}
+					}
+					if (BestFit.has_value())
+					{
+						return { true, BestFit.value() };
 					}
 					break;
 				}
