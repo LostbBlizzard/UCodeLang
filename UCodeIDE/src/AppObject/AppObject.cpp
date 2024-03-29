@@ -3419,16 +3419,17 @@ void AppObject::ShowDebugerMenu(UCodeVMWindow& windowdata)
                     }
                     _AnyInterpreter.Call(callFuncContext.current_method);
 
+                    if (callFuncContext._LastRet.Size())
+                    {
+                        _AnyInterpreter.Get_Return(callFuncContext._LastRet.Data(), callFuncContext._LastRet.Size());
+                    }
+
                     if (windowdata.CallStaticVarOnReload || callFuncContext.CallStaticAndThreadDeInit)
                     {
                         _AnyInterpreter.Call(StaticVariablesUnLoadFunc);
                         _AnyInterpreter.Call(ThreadVariablesUnLoadFunc);
                     }
 
-                    if (callFuncContext._LastRet.Size())
-                    {
-                        _AnyInterpreter.Get_Return(callFuncContext._LastRet.Data(), callFuncContext._LastRet.Size());
-                    }
                 }
                 ImGui::SameLine();
                 if (ImGui::Button(((String)"Step Into:" + MethodString).c_str()))
