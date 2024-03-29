@@ -3572,7 +3572,7 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetPointerOf(const IRlocData& 
 		CopyValues(V, Src);
 
 		InstructionBuilder::GetPointerOfStackSub(_Ins, R, 0);
-		_Stack.AddReUpdatePostFunc(PushIns(), stack.offset);
+		_Stack.AddReUpdatePostFunc(PushIns(), stack.offset - _Stack.PushedOffset);
 
 		// make all read/writes point to stack.
 
