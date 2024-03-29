@@ -974,7 +974,7 @@ SystematicAnalysis::BinaryOverLoadWith_t SystematicAnalysis::Type_HasBinaryOverL
 								auto ParA = funcInfo->Pars[0];
 								auto ParB = funcInfo->Pars[1];
 								bool r = Type_CanBeImplicitConverted(TypeA, ParA.Type)
-									&& Type_CanBeImplicitConverted(TypeB, ParA.Type);
+									&& Type_CanBeImplicitConverted(TypeB, ParB.Type);
 								if (r)
 								{
 									ParInfo pinfo;
