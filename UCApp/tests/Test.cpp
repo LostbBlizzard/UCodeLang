@@ -915,7 +915,7 @@ int RunTests(bool MultThread)
 			// geting 32bit gcc is too much work.
 			if (mode == TestMode::CLang89BackEnd)
 			{
-				if (hasgcc == false || UCodeLang_32BitSytem)
+				if (hasgcc == false)
 				{
 					MyTestInfo.TestsSkiped += Tests.size();
 					continue;

@@ -206,6 +206,8 @@ IRType IRBuilder::GetType(const IRInstruction* IR, const IROperator& Op) const
 		}
 		case IROperatorType::Value:
 			return  IR->ObjectType;
+		case IROperatorType::Get_Func_Pointer:
+			return  IR->ObjectType;
 		default:
 			break;
 		}

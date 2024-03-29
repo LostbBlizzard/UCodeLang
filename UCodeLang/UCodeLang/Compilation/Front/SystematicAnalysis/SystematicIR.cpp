@@ -193,7 +193,7 @@ bool SystematicAnalysis::IR_Build_ImplicitConversion(IRInstruction* Ex, const Ty
 
 	if (Type_AreTheSame(ExType, ToType))
 	{
-		bool ShouldCallCopyFunc = ExType._ValueInfo != TypeValueInfo::IsValue;
+		bool ShouldCallCopyFunc = ExType._ValueInfo != TypeValueInfo::IsValue && !ExType.IsAddress();
 		if (ShouldCallCopyFunc)
 		{
 			auto GetSymOp = Symbol_GetSymbol(ExType);
