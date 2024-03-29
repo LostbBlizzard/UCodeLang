@@ -143,7 +143,7 @@ void SystematicAnalysis::OnForNode(const ForNode& node)
 			{
 				auto& VarType = syb->VarType;
 				Type_Convert(node._typeNode, VarType);
-				VarType.SetAsLocation();
+				VarType.SetAsLocation();		
 			}
 			for (auto& Item : node._OtherVarables)
 			{
@@ -343,7 +343,17 @@ void SystematicAnalysis::OnForNode(const ForNode& node)
 								ClassInfo* info = syb2.value()->Get_Info<ClassInfo>();
 
 								auto token = NeverNullptr(node._typeNode._name._ScopedName.back()._token);
+								
+								if (node._typeNode._name._ScopedName.front()._token->Type == TokenType::KeyWorld_var)
+								{
+									if (info->Fields[0].Type.IsAddress())
+									{
+										syb->VarType._IsAddress = true;
+									}
+								}
 								Type_DeclareVariableTypeCheck(syb->VarType, info->Fields[0].Type, token);
+								
+								
 
 								for (size_t i = 0; i < node._OtherVarables.size(); i++)
 								{
@@ -351,6 +361,13 @@ void SystematicAnalysis::OnForNode(const ForNode& node)
 									auto varsyb = Symbol_GetSymbol(Symbol_GetSymbolID(&item));
 
 									auto token = NeverNullptr(item._Name);
+									if (node._typeNode._name._ScopedName.front()._token->Type == TokenType::KeyWorld_var)
+									{
+										if (info->Fields[i + 1].Type.IsAddress())
+										{
+											varsyb->VarType._IsAddress = true;
+										}
+									}
 									Type_DeclareVariableTypeCheck(varsyb->VarType, info->Fields[i + 1].Type, token);
 
 								}
@@ -361,6 +378,13 @@ void SystematicAnalysis::OnForNode(const ForNode& node)
 							else
 							{
 								auto token = NeverNullptr(node._typeNode._name._ScopedName.back()._token);
+								if (node._typeNode._name._ScopedName.front()._token->Type == TokenType::KeyWorld_var)
+								{
+									if (type.IsAddress())
+									{
+										syb->VarType._IsAddress = true;
+									}
+								}
 								Type_DeclareVariableTypeCheck(syb->VarType, type, token);
 								isvarableok = true;
 							}
