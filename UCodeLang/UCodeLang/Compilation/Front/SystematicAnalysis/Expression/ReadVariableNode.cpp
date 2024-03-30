@@ -1403,7 +1403,7 @@ IRInstruction* SystematicAnalysis::IR_Build_Member_DereferenceValue(const GetMem
 }
 IRInstruction* SystematicAnalysis::IR_Build_Member_AsValue(const GetMemberTypeSymbolFromVar_t& In)
 {
-	if (In.Type.IsAddress() || In.Type.IsAddressArray())
+	if (In.Type.IsAddress() || In.Type.IsAddressArray() || In.Type.IsMovedType())
 	{
 		return IR_Build_Member_DereferenceValue(In);
 	}
