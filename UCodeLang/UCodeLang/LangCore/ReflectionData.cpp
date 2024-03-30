@@ -635,6 +635,113 @@ Optional<Optional<Vector<ClassAssembly::OnDoDefaultConstructorCall>>> ClassAssem
 {
 	using InerRetType = Optional<Vector<ClassAssembly::OnDoDefaultConstructorCall>>;
 
+	if (IsPrimitve(Type._Type))
+	{
+		return { InerRetType() };
+	}
+	else if (auto v = Find_Node(Type._CustomTypeID))
+	{
+		switch (v->Get_Type())
+		{
+		case ClassType::Class:
+		{
+			auto& info = v->Get_ClassData();
+			if (auto d = info.Get_ClassDestructor())
+			{
+				Vector<ClassAssembly::OnDoDefaultConstructorCall> drop;
+				ClassAssembly::OnDoDefaultConstructorCall p;
+				p.MethodToCall = d;
+				p.ThisPtr = Object;
+				drop.push_back(std::move(p));
+
+				InerRetType r = { std::move(drop) };
+				return  r;
+			}
+		}
+		break;
+		case ClassType::Alias:
+		{
+			auto& info = v->Get_AliasData();
+			return CallDestructor(info.Type, Object, Is32Bit);
+		}
+		break;
+		case ClassType::Enum:
+		{
+			auto& info = v->Get_EnumData();
+			InerRetType r = {};
+			if (info.DestructorFuncFullName)
+			{
+				auto f = Find_Func(info.DestructorFuncFullName.value());
+				if (f)
+				{
+					Vector<ClassAssembly::OnDoDefaultConstructorCall> drop;
+					ClassAssembly::OnDoDefaultConstructorCall p;
+					p.MethodToCall = f;
+					p.ThisPtr = Object;
+					drop.push_back(std::move(p));
+
+					r = std::move(drop);
+				}
+			}
+
+			if (!r.has_value())
+			{
+				size_t keysize = GetSize(info.BaseType, Is32Bit).value();
+				void* key = Object;
+				for (auto& Item : info.Values)
+				{
+					bool isthis = memcmp(key, Item._Data.Get_Data(), keysize) == 0;
+
+					if (isthis && Item.EnumVariantType.has_value())
+					{
+						auto& variant = Item.EnumVariantType.value();
+						void* varantobject = (void*)((uintptr_t)Object + (uintptr_t)keysize);
+						return 	CallDestructor(variant, varantobject, Is32Bit);
+					}
+				}
+			}
+			return r;
+		}
+		break;
+		case ClassType::StaticArray:
+		{
+			auto& info = v->Get_StaticArray();
+			size_t basesize = GetSize(info.BaseType, Is32Bit).value_or(0);
+
+
+			Vector<ClassAssembly::OnDoDefaultConstructorCall> r;
+
+			for (size_t i = 1; i < info.Count; i++)
+			{
+				void* itemobject = (void*)((size_t)Object + (i * basesize));
+
+				auto g = CallDefaultConstructor(info.BaseType, itemobject, Is32Bit);
+				if (g.has_value() && g.value().has_value())
+				{
+					auto& d = g.value().value();
+					for (auto& Item : d)
+					{
+						ClassAssembly::OnDoDefaultConstructorCall p;
+						p.MethodToCall = Item.MethodToCall;
+						p.ThisPtr = Item.ThisPtr;
+						r.push_back(std::move(p));
+					}
+				}
+				else
+				{
+					return {};
+				}
+			}
+
+			return r;
+		}
+		break;
+		default:
+			UCodeLangUnreachable();
+			break;
+		}
+	}
+
 	return {};
 }
 Optional<ClassAssembly::ParsedValue> ClassAssembly::ParseToValue(const String_view txt, const ClassAssembly& Assembly, Vector<ReflectionTypeInfo> Hints)
