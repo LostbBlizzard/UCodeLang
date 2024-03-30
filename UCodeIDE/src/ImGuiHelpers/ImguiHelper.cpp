@@ -961,7 +961,7 @@ bool ImguiHelper::DrawVector(const char* label, UCodeLang::ReflectionVector& vec
 		UCodeLang::ReflectionVector& Objectbuf = *(UCodeLang::ReflectionVector*)Object;
 		auto Item = Objectbuf[Index];
 
-		//UCodeObjectField(Item, vector.GetElementType(), assembly);
+		UCodeObjectField(Item, vector.GetElementType(), assembly);
 	};
 
 	Info._AddNewValue = [&assembly](void* Object, size_t Index)
