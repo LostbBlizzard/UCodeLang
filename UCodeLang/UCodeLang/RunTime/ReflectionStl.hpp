@@ -126,16 +126,16 @@ public:
 	{
 		UCodeLangAssert(_Info->Insert_Copy_Method);//This Method may not exist if type is not copyable
 		_ptr.PushParameter(_UObject);
-		_ptr.PushParameter(&Obj,sizeof(void*));
 		_ptr.PushParameter(index);
+		_ptr.PushParameter(&Obj,sizeof(void*));
 		
 		_ptr.Call(_Info->Insert_Copy_Method);
 	}
 	inline void insert(size_t index,void*&& Obj)
 	{
 		_ptr.PushParameter(_UObject);
-		_ptr.PushParameter(&Obj, sizeof(void*));
 		_ptr.PushParameter(index);
+		_ptr.PushParameter(&Obj, sizeof(void*));
 
 		_ptr.Call(_Info->Insert_Moved_Method);
 	}

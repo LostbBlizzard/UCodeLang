@@ -787,6 +787,7 @@ void SystematicAnalysis::OnStatementsWithSetableRet(const StatementsNode& node, 
 				}
 
 				RetOut = NewType;
+				RetOut._MoveData = MoveData::None;
 				Type_Get_LookingForType() = RetOut;
 
 				if (_LastExpressionType._Type == TypesEnum::Var)
@@ -1208,7 +1209,7 @@ IRType SystematicAnalysis::IR_ConvertToIRType(const TypeSymbol& Value)
 		break;
 	}
 
-	if (Value.IsAddress() || Value.IsAddressArray())
+	if (Value.IsAddress() || Value.IsAddressArray() || Value.IsMovedType())
 	{
 		r._Type = IRTypes::pointer;
 	}

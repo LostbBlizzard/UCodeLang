@@ -256,6 +256,7 @@ bool SystematicAnalysis::IR_Build_ImplicitConversion(IRInstruction* Ex, const Ty
 
 						auto v = ExType;
 						v._IsAddress = false;
+						v._MoveData = MoveData::None;
 						auto tep = _IR_LookingAtIRBlock->NewLoad(IR_ConvertToIRType(v));
 
 						_IR_LookingAtIRBlock->NewPushParameter(_IR_LookingAtIRBlock->NewLoadPtr(tep));

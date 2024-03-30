@@ -686,6 +686,11 @@ else PrimitiveTypeCall(Uint32TypeName, TypesEnum::uInt32, _IR_LastExpressionFiel
 		{
 			OnExpressionTypeNode(Item.get(), GetValueMode::Read);
 			IR_Build_ImplicitConversion(_IR_LastExpressionField, _LastExpressionType, FuncParInfo.Type);
+
+			if (!FuncParInfo.Type.IsAddress() && _LastExpressionType.IsMovedType())
+			{
+				_IR_LastExpressionField = _IR_LookingAtIRBlock->NewLoadPtr(_IR_LastExpressionField);
+			}
 		}
 
 		bool unpackparpack = true;
