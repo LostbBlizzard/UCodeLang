@@ -1152,6 +1152,47 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 	Vector<ParInfo> ValueTypes;
 	ValueTypes.reserve(_ThisTypeIsNotNull ? Pars._Nodes.size() + 1 : Pars._Nodes.size());
 
+	if (StringHelper::Contains(ScopedName, TraitClassEnd))
+	{
+		String NewScopeName;
+		Vector<String> Scopes;
+
+		while (ScopedName.size())
+		{
+			auto name = ScopeHelper::GetNameFromFullName(ScopedName);
+			ScopeHelper::ReMoveScope(ScopedName);
+
+			Scopes.push_back(name);
+		}
+		for (auto riter = Scopes.rbegin();
+			 riter != Scopes.rend(); ++riter)
+		{
+			auto& Item = *riter;
+
+			if (StringHelper::EndWith(Item, TraitClassEnd))
+			{
+				Item = Item.substr(0, Item.size() + 1 - sizeof(TraitClassEnd));
+
+				ScopeHelper::GetApendedString(NewScopeName, Item);
+
+				auto symop = Symbol_GetSymbol(NewScopeName, SymbolType::Generic_Trait);
+
+				if (symop.has_value())
+				{
+					auto& sym = symop.value();
+					if (sym->Type == SymbolType::Generic_Trait)
+					{
+						ScopeHelper::GetApendedString(NewScopeName, GenericTestStr);
+					}
+				}
+				continue;
+			}
+
+			ScopeHelper::GetApendedString(NewScopeName, Item);
+		}
+		ScopedName = std::move(NewScopeName);
+	}
+
 	auto Symbols = GetSymbolsWithName(ScopedName, SymbolType::Any);
 
 	Vector<ParInfo> Infer;
