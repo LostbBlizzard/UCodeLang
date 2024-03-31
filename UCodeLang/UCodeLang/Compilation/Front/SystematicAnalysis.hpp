@@ -15,6 +15,7 @@ UCodeLangFrontStart
 
 #define GenericTestStr CompilerGenerated("___GenericTest")
 #define ForTypeScope CompilerGenerated("ForType")
+#define TraitClassEnd CompilerGenerated("TraitClass")
 
 constexpr size_t EnumVarantKeyIndex = 0;
 constexpr size_t EnumVarantUnionIndex = 1;

@@ -271,6 +271,16 @@ void SystematicAnalysis::BuildCode()
 
 			}
 			break;
+			case SymbolType::Trait_class:
+			{
+				auto Info = Symbol->Get_Info<TraitInfo>();
+				auto node = TraitNode::As(Symbol->Get_NodeInfo<Node>());
+
+				Set_SymbolContext(std::move(Info->Context.value()));
+				OnTrait(*node);
+				Info->Context = SaveAndMove_SymbolContext();
+			}
+			break;
 			default:
 				UCodeLangUnreachable();
 				break;

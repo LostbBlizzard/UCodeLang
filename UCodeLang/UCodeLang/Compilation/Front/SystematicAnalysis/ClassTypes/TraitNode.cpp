@@ -35,7 +35,7 @@ void SystematicAnalysis::OnTrait(const TraitNode& node)
 
 
 		auto& SybClass = Symbol_AddSymbol(SymbolType::Type_class
-			, (String)ClassName + "%Class", _Table._Scope.ThisScope + "%Class", node._Access);
+			, (String)ClassName + TraitClassEnd, _Table._Scope.ThisScope + TraitClassEnd, node._Access);
 		_Table.AddSymbolID(SybClass, Symbol_GetSymbolID(node._Name));
 
 		Syb.NodePtr = node.As();
