@@ -11,6 +11,7 @@ void SystematicAnalysis::OnTrait(const TraitNode& node)
 	const String ClassName = IsgenericInstantiation ? ScopeHelper::GetNameFromFullName(_Generic_GenericSymbolStack.top()._IR_GenericFuncName) : node._Name.AsString();
 
 	_Table.AddScope(ClassName);
+	UCodeLangDefer(_Table.RemoveScope();)
 	SymbolID sybId = Symbol_GetSymbolID(node);//Must be pass AddScope thats how GetSymbolID works for Generics.
 
 	auto& Syb = _PassType == PassType::GetTypes ?
@@ -21,7 +22,6 @@ void SystematicAnalysis::OnTrait(const TraitNode& node)
 	//we may jump to this node non linearly
 	if (Syb.PassState == _PassType)
 	{
-		_Table.RemoveScope();
 		return;
 	}
 
@@ -56,7 +56,7 @@ void SystematicAnalysis::OnTrait(const TraitNode& node)
 		{
 			_Table.AddScope(GenericTestStr);
 		}
-
+		
 		ClassStackInfo classStackInfo;
 		classStackInfo.Syb = &SybClass;
 		classStackInfo.Info = TepClass;
@@ -107,7 +107,21 @@ void SystematicAnalysis::OnTrait(const TraitNode& node)
 
 				info->_Vars.push_back(_Func);
 			}break;
-			default:break;
+			case NodeType::AliasNode:
+			{
+				AliasNode& funcnode = *AliasNode::As(node.get());
+				OnAliasNode(funcnode);
+			}
+			break;
+			case NodeType::ClassNode:
+			{
+				ClassNode& funcnode = *ClassNode::As(node.get());
+				OnClassNode(funcnode);
+			}
+			break;
+			default:
+				UCodeLangUnreachable();
+				break;
 			}
 		}
 
@@ -155,16 +169,17 @@ void SystematicAnalysis::OnTrait(const TraitNode& node)
 		}
 
 		auto TepClass = info->TraitClassInfo->Get_Info<ClassInfo>();
-
-		if (CheckgenericForErr)
-		{
-			_Table.AddScope(GenericTestStr);
-		}
+	
 
 		ClassStackInfo classStackInfo;
 		classStackInfo.Syb = Symbol_GetSymbol(Symbol_GetSymbolID(node._Name)).value();
 		classStackInfo.Info = TepClass;
 		_ClassStack.push(classStackInfo);
+
+		if (CheckgenericForErr)
+		{
+			_Table.AddScope(GenericTestStr);
+		}
 
 		for (const auto& node : node._Nodes)
 		{
@@ -182,7 +197,21 @@ void SystematicAnalysis::OnTrait(const TraitNode& node)
 				OnDeclareVariablenode(funcnode, DeclareStaticVariableNode_t::ClassField);
 			}
 			break;
-			default:break;
+			case NodeType::AliasNode:
+			{
+				AliasNode& funcnode = *AliasNode::As(node.get());
+				OnAliasNode(funcnode);
+			}
+			break;
+			case NodeType::ClassNode:
+			{
+				ClassNode& funcnode = *ClassNode::As(node.get());
+				OnClassNode(funcnode);
+			}
+			break;
+			default:
+				UCodeLangUnreachable();
+				break;
 			}
 		}
 
@@ -317,8 +346,7 @@ void SystematicAnalysis::OnTrait(const TraitNode& node)
 		}
 	}
 
-
-	_Table.RemoveScope();
+	Syb.PassState = _PassType;
 }
 
 void SystematicAnalysis::Symbol_InheritTrait(NeverNullPtr<Symbol> Syb, ClassInfo* ClassInfo, const NeverNullPtr<Symbol> Trait, const NeverNullPtr<Token> ClassNameToken)

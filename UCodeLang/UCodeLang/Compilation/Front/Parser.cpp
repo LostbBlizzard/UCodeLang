@@ -4139,6 +4139,7 @@ GotNodeType Parser::DoTraitType(TraitNode* output, const Token* ClassToken, Gene
 		case TokenType::KeyWord_extern:
 		case TokenType::KeyWord_unsafe:
 		case Parser::declareFunc:V = GetFuncNode(); break;
+		case TokenType::Class:V = GetClassNode(); break;
 		case TokenType::KeyWorld_public:
 		{
 			NextToken(); TokenTypeCheck(TryGetToken(), TokenType::Colon); NextToken();

@@ -218,6 +218,10 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 						continue;
 					}
 
+					if (CheckgenericForErr) { continue; }
+
+					Symbol_Update_TraitSym_ToFixedTypes(Syb);
+
 					auto CInfo = Syb->Get_Info<TraitInfo>();
 					auto classnode = TraitNode::As(Syb->Get_NodeInfo<UCodeLang::Node>());
 					Syb = Generic_InstantiateOrFindGeneric_Trait(NeverNullptr(Item._Name.token), Syb, classnode->_generic, CInfo->_GenericData, Item._generic).value();

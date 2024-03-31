@@ -150,7 +150,7 @@ void SystematicAnalysis::Generic_TypeInstantiate(const NeverNullPtr<Symbol> Clas
 
 void SystematicAnalysis::Generic_TypeInstantiate_Trait(const NeverNullPtr<Symbol> Trait, const Vector<TypeSymbol>& GenericInput)
 {
-	UCodeLangAssert(Trait->Type == SymbolType::Trait_class);
+	UCodeLangAssert(Trait->Type == SymbolType::Generic_Trait);
 
 	const String NewName = Generic_SymbolGenericName(Trait, GenericInput);
 	const String FullName = Generic_SymbolGenericFullName(Trait, GenericInput);
@@ -183,7 +183,7 @@ void SystematicAnalysis::Generic_TypeInstantiate_Trait(const NeverNullPtr<Symbol
 
 
 		auto& addedSymbol = *_Table.Symbols[NewSymbolIndex].get();
-		UCodeLangAssert(addedSymbol.FullName == NewName);
+		UCodeLangAssert(addedSymbol.FullName == FullName);
 		UCodeLangAssert(addedSymbol.Type == SymbolType::Trait_class);
 		UCodeLangAssert(addedSymbol.PassState == PassType::GetTypes);
 
