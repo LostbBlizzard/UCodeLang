@@ -143,23 +143,33 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 						FuncInfo* V = Item->Get_Info<FuncInfo>();
 						if (V->Pars.size() == 1)
 						{
-							HasDefaultConstructor = true;
+							auto& ThisPar = V->Pars[0];
+							bool isthisfunc = ThisPar.Type.IsAddress() && ThisPar.IsOutPar == false && ThisPar.Type._CustomTypeSymbol == SybID;
+							if (isthisfunc)
+							{
+								HasDefaultConstructor = true;
+							}
 						}
 						if (V->Pars.size() == 2)
 						{
-							auto& OtherPar = V->Pars[1];
-							if (OtherPar.Type.IsAddress() && OtherPar.IsOutPar == false && OtherPar.Type._CustomTypeSymbol == SybID)
+							auto& ThisPar = V->Pars[0];
+							bool isthisfunc = ThisPar.Type.IsAddress() && ThisPar.IsOutPar == false && ThisPar.Type._CustomTypeSymbol == SybID;
+							if (isthisfunc) 
 							{
-
-								if (OtherPar.Type._MoveData == MoveData::None)
+								auto& OtherPar = V->Pars[1];
+								if (OtherPar.Type.IsAddress() && OtherPar.IsOutPar == false && OtherPar.Type._CustomTypeSymbol == SybID)
 								{
-									HasCopyConstructor = true;
-								}
-								else
-								{
-									HasMoveConstructor = true;
-								}
 
+									if (OtherPar.Type._MoveData == MoveData::None)
+									{
+										HasCopyConstructor = true;
+									}
+									else
+									{
+										HasMoveConstructor = true;
+									}
+
+								}
 							}
 						}
 					}
