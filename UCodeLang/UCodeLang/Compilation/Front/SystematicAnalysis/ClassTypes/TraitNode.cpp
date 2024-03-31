@@ -109,14 +109,24 @@ void SystematicAnalysis::OnTrait(const TraitNode& node)
 			}break;
 			case NodeType::AliasNode:
 			{
+				size_t Index = _Table.Symbols.size();
+				
 				AliasNode& funcnode = *AliasNode::As(node.get());
 				OnAliasNode(funcnode);
+
+				Symbol* funcSyb = _Table.Symbols[Index].get();
+				info->_Symbols.push_back(funcSyb);
 			}
 			break;
 			case NodeType::ClassNode:
 			{
+				size_t Index = _Table.Symbols.size();
+
 				ClassNode& funcnode = *ClassNode::As(node.get());
 				OnClassNode(funcnode);
+
+				Symbol* funcSyb = _Table.Symbols[Index].get();
+				info->_Symbols.push_back(funcSyb);
 			}
 			break;
 			default:
@@ -401,7 +411,6 @@ void SystematicAnalysis::Symbol_InheritTrait(NeverNullPtr<Symbol> Syb, ClassInfo
 		}
 	
 	}
-
 	
 	for (auto& Item : Traitinfo->_Funcs)
 	{
@@ -512,6 +521,35 @@ void SystematicAnalysis::Symbol_InheritTrait(NeverNullPtr<Symbol> Syb, ClassInfo
 			Push_ExtendedErr("Were this = " + Syb->FullName + ".When instantiateing trait " + Trait->FullName, ClassNameToken);
 		}
 
+		auto OnTraitSymbol = [this](Symbol* Item)
+			{
+				if (Item->Type == SymbolType::Type_alias || Item->Type == SymbolType::Hard_Type_alias || Item->Type == SymbolType::Generic_Alias)
+				{
+					OnAliasNode(*Item->Get_NodeInfo<AliasNode>());
+				}
+				else if (Item->Type == SymbolType::Type_class || Item->Type == SymbolType::Generic_class)
+				{
+					OnClassNode(*Item->Get_NodeInfo<ClassNode>());
+				}
+				else
+				{
+					UCodeLangUnreachable();
+				}
+
+			};
+
+		for (auto& Item : Traitinfo->_Symbols)
+		{
+			auto SybsIndex = _Table.Symbols.size();
+
+			OnTraitSymbol(Item);
+
+
+			auto Symbol = _Table.Symbols[SybsIndex].get();	
+			_GeneratedTraitSymbols.push_back(Symbol);
+		}
+
+
 		for (auto& Item : IDSyb.AddedFuncs)
 		{
 			const FuncNode& func = *(FuncNode*)Item.FuncNode;
@@ -525,15 +563,19 @@ void SystematicAnalysis::Symbol_InheritTrait(NeverNullPtr<Symbol> Syb, ClassInfo
 
 		}
 
-
 		_PassType = PassType::FixedTypes;
+
+		for (auto& Item : Traitinfo->_Symbols)
+		{
+			OnTraitSymbol(Item);	
+		}
 
 		for (auto& Item : IDSyb.AddedFuncs)
 		{
 			const FuncNode& func = *(FuncNode*)Item.FuncNode;
 			OnFuncNode(func);
 		}
-
+		
 		{
 			_PassType = oldpass;
 			_ClassStack.pop();

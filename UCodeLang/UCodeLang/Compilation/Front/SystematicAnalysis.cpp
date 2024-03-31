@@ -187,6 +187,43 @@ void SystematicAnalysis::BuildCode()
 	}
 	{
 		auto oldcontext = SaveAndMove_SymbolContext();
+
+		for (auto& Symbol : _GeneratedTraitSymbols)
+		{
+			switch (Symbol->Type)
+			{
+			case SymbolType::Type_class:
+			{
+				auto Info = Symbol->Get_Info<ClassInfo>();
+				auto node = ClassNode::As(Symbol->Get_NodeInfo<Node>());
+
+
+				Set_SymbolContext(std::move(Info->Context.value()));
+				OnClassNode(*node);
+				Info->Context = SaveAndMove_SymbolContext();
+			}
+			break;
+			case SymbolType::Type_alias:
+			{
+				auto Info = Symbol->Get_Info<AliasInfo>();
+				auto node = AliasNode::As(Symbol->Get_NodeInfo<Node>());
+
+
+				Set_SymbolContext(std::move(Info->Context.value()));
+				OnAliasNode(*node);
+				Info->Context = SaveAndMove_SymbolContext();
+			}
+			break;
+			default:
+				UCodeLangUnreachable();
+				break;
+			}
+		}
+
+		Set_SymbolContext(std::move(oldcontext));
+	}
+	{
+		auto oldcontext = SaveAndMove_SymbolContext();
 		for (auto& Item : _Generic_GeneratedGenericSymbol)
 		{
 			auto Symbol = Symbol_GetSymbol(Item.ID);

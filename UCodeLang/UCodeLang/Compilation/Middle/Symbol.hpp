@@ -854,6 +854,7 @@ public:
 
 	Vector<TraitFunc> _Funcs;
 	Vector<TraitVar> _Vars;
+	Vector<Symbol*> _Symbols;
 	Symbol* TraitClassInfo = nullptr;
 	Generic _GenericData;
 	Optional<SymbolContext> Context;

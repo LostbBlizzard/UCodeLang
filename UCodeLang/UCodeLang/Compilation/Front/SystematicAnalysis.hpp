@@ -913,6 +913,7 @@ private:
 	IRBlockDebugInfo* _Debug_LastLookAtDebugBlock = nullptr;
 	Optional<SymbolID> _Type_UnMapTypeSymbol;
 	Vector<GeneratedGenericSymbolData> _Generic_GeneratedGenericSymbol;
+	Vector<Symbol*> _GeneratedTraitSymbols;
 	Vector<NeverNullPtr<Symbol>> _InlineEnums;
 
 	Vector<Unique_ptr<String>> StringsFromLoadLib;
