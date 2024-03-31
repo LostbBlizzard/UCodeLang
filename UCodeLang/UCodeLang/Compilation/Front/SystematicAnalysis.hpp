@@ -801,6 +801,10 @@ private:
 		GenericFuncInfo Info;
 		Vector<TypeSymbol> Types;
 	};
+	struct CaptureErrorContext
+	{
+		size_t errcount = 0;
+	};
 
 	//Members
 	CompilationErrors* _ErrorsOutput = nullptr;
@@ -994,6 +998,8 @@ private:
 		_Table.Useings = std::move(Context.Useings);
 		_ClassStack = std::move(Context._ClassStack);
 	}
+	CaptureErrorContext GetErrorCaptureContext();
+	bool ErrorCaptureHasErrors(const CaptureErrorContext& capture);
 
 
 	void Push_ExtendedErr(String Err, const NeverNullPtr<Token> token)

@@ -464,12 +464,15 @@ bool SystematicAnalysis::Symbol_MemberTypeSymbolFromVar(size_t Start, size_t End
 				V._token = ScopeName._token;
 				Tep._name._ScopedName.push_back(std::move(V));
 				auto& Other = *ScopeName._generic;
-				auto& _generic = *Tep._name._ScopedName.back()._generic;
 
-				{//can't copy TypeNode but we need anyway.
-					_generic._Values.resize(Other._Values.size());
-					memcpy(_generic._Values.data(), Other._Values.data(), sizeof(TypeNode) * Other._Values.size());
+				if (Tep._name._ScopedName.back()._generic.get())
+				{
+					auto& _generic = *Tep._name._ScopedName.back()._generic;
+					{//can't copy TypeNode but we need anyway.
+						_generic._Values.resize(Other._Values.size());
+						memcpy(_generic._Values.data(), Other._Values.data(), sizeof(TypeNode) * Other._Values.size());
 
+					}
 				}
 
 				TypeSymbol Type;
@@ -480,7 +483,10 @@ bool SystematicAnalysis::Symbol_MemberTypeSymbolFromVar(size_t Start, size_t End
 					Out._Symbol = Symbol_GetSymbol(Type).value_unchecked();
 				}
 
-				{// TypeNode has Unique_ptr we do this to not free it.
+				if (Tep._name._ScopedName.back()._generic.get()) 
+				{	
+					auto& _generic = *Tep._name._ScopedName.back()._generic;
+					// TypeNode has Unique_ptr we do this to not free it.
 					new (_generic._Values.data()) TypeNode[Other._Values.size()];
 				}
 			}

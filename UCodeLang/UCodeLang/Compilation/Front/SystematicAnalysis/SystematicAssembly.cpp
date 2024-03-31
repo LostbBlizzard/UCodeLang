@@ -1337,6 +1337,18 @@ Class_Data* SystematicAnalysis::Assembly_GetAssemblyClass(const String& FullName
 	}
 	UCodeLangUnreachable();
 }
+
+SystematicAnalysis::CaptureErrorContext SystematicAnalysis::GetErrorCaptureContext()
+{
+	SystematicAnalysis::CaptureErrorContext r;
+	r.errcount = this->_ErrorsOutput->Get_ErrorCount();
+
+	return r;
+}
+bool SystematicAnalysis::ErrorCaptureHasErrors(const CaptureErrorContext& capture)
+{
+	return capture.errcount != this->_ErrorsOutput->Get_ErrorCount();
+}
 void SystematicAnalysis::Lib_BuildLibs(bool DoIR)
 {
 	// if (_Settings->_Type != OutPutType::IRAndSymbols)

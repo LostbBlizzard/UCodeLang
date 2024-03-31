@@ -573,6 +573,11 @@ NullablePtr<Symbol> SystematicAnalysis::Generic_InstantiateOrFindGenericSymbol(c
 
 	Symbol_Update_Sym_ToFixedTypes(SybV);
 
+	if (SybV->ValidState == SymbolValidState::Invalid)
+	{
+		return {};
+	}
+
 	if (SybV->Type == SymbolType::Generic_class)
 	{
 		auto CInfo = SybV->Get_Info<ClassInfo>();
