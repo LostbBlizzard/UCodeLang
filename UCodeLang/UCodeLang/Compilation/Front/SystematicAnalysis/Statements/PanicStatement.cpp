@@ -38,42 +38,50 @@ void SystematicAnalysis::OnPanicStatement(const PanicNode& node)
 				auto ptrtype = ex;
 				ptrtype._IsAddress = true;
 
-				auto func1Op= Symbol_GetSymbol(ScopeHelper::ApendedStrings(typev->FullName, "Data"), SymbolType::Func);
-				if (func1Op.has_value())
+				NullablePtr<Symbol> func1Op;
 				{
-					auto func1 = func1Op.value();
+					auto& symbols = GetSymbolsWithName(ScopeHelper::ApendedStrings(typev->FullName, "Data"));
 
-					if (func1->Type == SymbolType::Func)
+					for (auto& func1 : symbols)
 					{
-						auto funcinfo = func1->Get_Info<FuncInfo>();
-
-						if (funcinfo->Pars.size() == 1
-							&& funcinfo->Pars[0].Type._CustomTypeSymbol == ptrtype._CustomTypeSymbol) 
+						if (func1->Type == SymbolType::Func)
 						{
-							if (Type_AreTheSame(funcinfo->Ret,dataret))
+							auto funcinfo = func1->Get_Info<FuncInfo>();
+
+							if (funcinfo->Pars.size() == 1
+								&& funcinfo->Pars[0].Type._CustomTypeSymbol == ptrtype._CustomTypeSymbol)
 							{
-								hasdatafunc = true;
+								if (Type_AreTheSame(funcinfo->Ret, dataret))
+								{
+									hasdatafunc = true;
+									func1Op = func1;
+									break;
+								}
 							}
 						}
 					}
 				}
 
-				auto func2Op = Symbol_GetSymbol(ScopeHelper::ApendedStrings(typev->FullName, "Size"), SymbolType::Func);
-				if (func2Op.has_value())
+				NullablePtr<Symbol> func2Op;
 				{
-					auto func2 = func2Op.value();
-
-					if (func2->Type == SymbolType::Func)
+					auto& symbols = GetSymbolsWithName(ScopeHelper::ApendedStrings(typev->FullName, "Size"));
+					
+					for (auto& func2 : symbols)
 					{
-						auto funcinfo = func2->Get_Info<FuncInfo>();
-
-						if (funcinfo->Pars.size() == 1
-							&& funcinfo->Pars[0].Type._CustomTypeSymbol == ptrtype._CustomTypeSymbol)
+						if (func2->Type == SymbolType::Func)
 						{
+							auto funcinfo = func2->Get_Info<FuncInfo>();
 
-							if (funcinfo->Ret ._Type == TypesEnum::uIntPtr) 
+							if (funcinfo->Pars.size() == 1
+								&& funcinfo->Pars[0].Type._CustomTypeSymbol == ptrtype._CustomTypeSymbol)
 							{
-								hassizefunc = true;
+
+								if (funcinfo->Ret._Type == TypesEnum::uIntPtr)
+								{
+									hassizefunc = true;
+									func2Op = func2;
+									break;
+								}
 							}
 						}
 					}
