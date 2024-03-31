@@ -428,7 +428,7 @@ bool SystematicAnalysis::Symbol_MemberTypeSymbolFromVar(size_t Start, size_t End
 
 			if (IsWrite(Mod))
 			{
-				TryLogError_OnWritingVar(SymbolVar, Token, String_view(Str));
+				TryLogError_OnWritingVar(SymbolVar, Token, String_view(Str),Mod);
 			}
 			if (IsRead(Mod))
 			{
