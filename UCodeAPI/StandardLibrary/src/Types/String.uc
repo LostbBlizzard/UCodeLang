@@ -17,7 +17,7 @@ $StringSpan_t<T> export:
    _size = size;
 
   export |Size[imut this&] => _size;
-  export unsafe |iData[imut this&] -> imut T[&]:ret _data;
+  export unsafe |Data[imut this&] -> imut T[&]:ret _data;
   export unsafe |Data[this&] -> T[&]:ret _data; 
 
   export |==[imut this&,imut this& Other] -> bool:
@@ -32,7 +32,7 @@ $StringSpan_t<T> export:
   export |!=[imut this&,imut this& Other] => !(this == Other);
 
   export |AsSpan[this&] -> T[:]:ret unsafe [_data,_size];
-  export |iAsSpan[imut this&] -> imut T[:]:ret unsafe [_data,_size];
+  export |AsSpan[imut this&] -> imut T[:]:ret unsafe [_data,_size];
 
   
   export |ToStr[MySpan& span] -> this: ret unsafe [span.Data(),span.Size()];
@@ -66,7 +66,7 @@ $String_t<T> export:
    Resize(span.Size());
    for [uintptr i = 0;i < span.Size();i++]:this[i] = span[i];
 
-  export unsafe |iData[imut this&] -> imut T[&]:ret unsafe _base.iData();
+  export unsafe |Data[imut this&] -> imut T[&]:ret unsafe _base.Data();
   export unsafe |Data[this&] -> T[&]:ret unsafe _base.Data();
   
 
@@ -94,19 +94,19 @@ $String_t<T> export:
   export |Append[this&,moved Span<T> Val] -> void:_base.Append(Val);
 
   export |==[imut this&,imut this& Other] -> bool:
-   ret this.iStr() == Other.iStr();
+   ret this.Str() == Other.Str();
 
   export |!=[imut this&,imut this& Other]:ret !(this == Other);
 
   export |+[imut this&,imut this& Other] -> this:
-   ret this + Other.iStr(); 
+   ret this + Other.Str(); 
 
   export |+=[this&,imut this& Other] -> void:
-   this += Other.iStr();
+   this += Other.Str();
 
 
   export |==[imut this&, IPar<MyStringSpan> Other] -> bool:
-   ret this.iStr() == Other;
+   ret this.Str() == Other;
 
   export |!=[imut this&, IPar<MyStringSpan> Other]:ret !(this == Other);
 
@@ -116,13 +116,13 @@ $String_t<T> export:
    ret copy;
 
   export |+=[this&, IPar<MyStringSpan> Other] -> void:
-   _base.Append(Other.iAsSpan());
+   _base.Append(Other.AsSpan());
 
   export |AsSpan[this&] -> T[:]:ret unsafe [];
-  export |iAsSpan[imut this&] -> imut T[:]:ret unsafe [];
+  export |AsSpan[imut this&] -> imut T[:]:ret unsafe [];
 
   export |Str[this&] -> MyStringSpan:ret unsafe [];
-  export |iStr[imut this&] -> imut MyStringSpan:ret unsafe [];
+  export |Str[imut this&] -> imut MyStringSpan:ret unsafe [];
 
   export |[][this&,Range_t<uintptr> Range] -> MyStringSpan:ret Str()[Range];
   export |[][imut this&,Range_t<uintptr> Range] -> imut MyStringSpan:ret Str()[Range]; 

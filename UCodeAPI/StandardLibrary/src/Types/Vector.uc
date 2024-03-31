@@ -1,5 +1,5 @@
 
-$Vector<T> export:
+$Vector<T>[Buffer_t<T>] export:
  private: 
   T[&] _data;
   uintptr _size;
@@ -14,7 +14,7 @@ $Vector<T> export:
    if ptr != uintptr(0):
    unsafe drop(_data);
 
-  export unsafe |iData[imut this&] -> imut T[&]:ret _data;
+  export unsafe |Data[imut this&] -> imut T[&]:ret _data;
   export unsafe |Data[this&] -> T[&]:ret _data;
 
   export |Size[imut this&] => _size;
@@ -122,11 +122,10 @@ $Vector<T> export:
     
     ret unsafe _data[Index];
 
-
   //Span
 
   export |[][this&,Range_t<uintptr> Range] -> T[:]:ret AsSpan()[Range]; 
   export |[][imut this&,Range_t<uintptr> Range] -> imut T[:]:ret AsSpan()[Range];
 
   export |AsSpan[this&] -> T[:]:ret unsafe [_data,_size];
-  export |iAsSpan[imut this&] -> imut T[:]:ret unsafe [_data,_size];
+  export |AsSpan[imut this&] -> imut T[:]:ret unsafe [_data,_size];

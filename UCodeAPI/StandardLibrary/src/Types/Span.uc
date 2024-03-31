@@ -12,7 +12,7 @@ $Span<T> export:
    _size = size;
   export |Size[imut this&] => _size;
   export unsafe |Data[this&] => _data;
-  export unsafe |iData[imut this&] => _data;
+  export unsafe |Data[imut this&] => _data;
   
 
   export |[][this&,uintptr Index] -> T&:
