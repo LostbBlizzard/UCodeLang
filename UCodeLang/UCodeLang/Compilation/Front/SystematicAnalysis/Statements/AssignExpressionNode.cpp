@@ -8,7 +8,7 @@ void SystematicAnalysis::OnAssignExpressionNode(const AssignExpressionNode& node
 	if (_PassType == PassType::GetTypes)
 	{
 		OnExpressionTypeNode(node._Expression._Value.get(), GetValueMode::Read);
-		OnExpressionTypeNode(node._ToAssign._Value.get(), GetValueMode::Write);
+		OnExpressionTypeNode(node._ToAssign._Value.get(),node._ReassignAddress ? GetValueMode::WritePointerReassment : GetValueMode::Write);
 
 		if (node._ReassignAddress && !IsInUnSafeBlock())
 		{
@@ -19,7 +19,7 @@ void SystematicAnalysis::OnAssignExpressionNode(const AssignExpressionNode& node
 	else if (_PassType == PassType::FixedTypes)
 	{
 		_LookingForTypes.push(TypesEnum::Var);
-		OnExpressionTypeNode(node._ToAssign._Value.get(), GetValueMode::Write);
+		OnExpressionTypeNode(node._ToAssign._Value.get(),node._ReassignAddress ? GetValueMode::WritePointerReassment : GetValueMode::Write);
 		_LookingForTypes.pop();
 
 		auto AssignType = _LastExpressionType;

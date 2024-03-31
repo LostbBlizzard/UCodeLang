@@ -2697,11 +2697,13 @@ String SystematicAnalysis::ToString(const TypeSymbol& Type, const RawEvaluatedOb
 	return CompilerRet;
 }
 
-void SystematicAnalysis::TryLogError_OnWritingVar(NeverNullPtr<Symbol> Symbol, const NeverNullPtr<Token> Token, const String_view Name)
+void SystematicAnalysis::TryLogError_OnWritingVar(NeverNullPtr<Symbol> Symbol, const NeverNullPtr<Token> Token, const String_view Name,GetValueMode mode)
 {
-	if (Symbol->VarType.Isimmutable())
-	{
-		LogError_CantModifyiMutableError(Token, Name);
+	if (mode != GetValueMode::WritePointerReassment) {
+		if (Symbol->VarType.Isimmutable())
+		{
+			LogError_CantModifyiMutableError(Token, Name);
+		}
 	}
 }
 
