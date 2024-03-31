@@ -231,7 +231,10 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 
 					auto CInfo = InheritSyb->Get_Info<TraitInfo>();
 					auto classnode = TraitNode::As(InheritSyb->Get_NodeInfo<UCodeLang::Node>());
-					InheritSyb = Generic_InstantiateOrFindGeneric_Trait(NeverNullptr(Item._Name.token), InheritSyb, classnode->_generic, CInfo->_GenericData, Item._generic).value();
+					auto trait = Generic_InstantiateOrFindGeneric_Trait(NeverNullptr(Item._Name.token), InheritSyb, classnode->_generic, CInfo->_GenericData, Item._generic);
+					if (!trait.has_value()) { continue; }
+					
+					InheritSyb = trait.value();
 				}
 
 				/*

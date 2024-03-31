@@ -1158,6 +1158,23 @@ SystematicAnalysis::IndexOverLoadWith_t SystematicAnalysis::Type_HasIndexedOverL
 		{
 
 			String funcName = Syb->FullName;
+
+			if (StringHelper::EndWith((String_view)funcName,TraitClassEnd))
+			{
+				funcName = funcName.substr(0,funcName.size() - sizeof(TraitClassEnd) + 1);
+
+				auto& SymOp = Symbol_GetSymbol(funcName, SymbolType::Trait_class);
+				if (SymOp.has_value())
+				{
+					auto& Sym = SymOp.value();
+
+					if (Sym->Type == SymbolType::Generic_Trait)
+					{
+						ScopeHelper::GetApendedString(funcName, GenericTestStr);
+					}
+				}
+			}
+
 			ScopeHelper::GetApendedString(funcName, Overload_Index_Func);
 
 			auto V = GetSymbolsWithName(funcName, SymbolType::Func);

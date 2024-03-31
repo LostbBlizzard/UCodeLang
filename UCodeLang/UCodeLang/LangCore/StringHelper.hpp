@@ -46,13 +46,15 @@ public:
 	static bool EndWith(const String_view string, const String_view MatchString)
 	{
 		if (string.size() < MatchString.size()) { return false; }
+		size_t v = 0;
 		for (int i = MatchString.size() - 1; i >= 0; i--)
 		{
-			if (string[i] != MatchString[i])
+			if (string[string.size() - 1 - v] != MatchString[i])
 			{
 				return false;
 				break;
 			}
+			v++;
 		}
 		return true;
 	}
