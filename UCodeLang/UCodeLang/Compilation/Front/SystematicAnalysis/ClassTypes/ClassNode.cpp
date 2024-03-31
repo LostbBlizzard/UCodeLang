@@ -95,6 +95,7 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 			Assembly_AddClass(Node._Attributes, &Syb);
 		}
 
+		CaptureErrorContext errorcontext = GetErrorCaptureContext();
 
 		for (const auto& node : Node._Nodes)
 		{
@@ -201,36 +202,42 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 					LogError_CantFindTypeError(NeverNullptr(Item._Name.token), Str);
 					continue;
 				}
-				auto Syb = SybOp.value();
+				auto InheritSyb = SybOp.value();
 				if (Item._generic._Values.size() == 0)
 				{
-					if (Syb->Type != SymbolType::Trait_class)
+					if (InheritSyb->Type != SymbolType::Trait_class)
 					{
-						LogError_ExpectedSymbolToBea(NeverNullptr(Item._Name.token), *Syb, SymbolType::Trait_class);
+						LogError_ExpectedSymbolToBea(NeverNullptr(Item._Name.token), *InheritSyb, SymbolType::Trait_class);
 						continue;
 					}
 				}
 				else
 				{
-					if (Syb->Type != SymbolType::Generic_Trait)
+					if (InheritSyb->Type != SymbolType::Generic_Trait)
 					{
-						LogError_ExpectedSymbolToBea(NeverNullptr(Item._Name.token), *Syb, SymbolType::Generic_Trait);
+						LogError_ExpectedSymbolToBea(NeverNullptr(Item._Name.token), *InheritSyb, SymbolType::Generic_Trait);
 						continue;
 					}
 
-					if (CheckgenericForErr) { continue; }
+					//if (CheckgenericForErr) { continue; }
 
-					Symbol_Update_TraitSym_ToFixedTypes(Syb);
+					Symbol_Update_TraitSym_ToFixedTypes(InheritSyb);
 
-					auto CInfo = Syb->Get_Info<TraitInfo>();
-					auto classnode = TraitNode::As(Syb->Get_NodeInfo<UCodeLang::Node>());
-					Syb = Generic_InstantiateOrFindGeneric_Trait(NeverNullptr(Item._Name.token), Syb, classnode->_generic, CInfo->_GenericData, Item._generic).value();
+					if (InheritSyb->ValidState == SymbolValidState::Invalid)
+					{
+						Syb.ValidState = SymbolValidState::Invalid;
+						continue;
+					}
+
+					auto CInfo = InheritSyb->Get_Info<TraitInfo>();
+					auto classnode = TraitNode::As(InheritSyb->Get_NodeInfo<UCodeLang::Node>());
+					InheritSyb = Generic_InstantiateOrFindGeneric_Trait(NeverNullptr(Item._Name.token), InheritSyb, classnode->_generic, CInfo->_GenericData, Item._generic).value();
 				}
 
 				/*
 				for (auto& Item2 : ClassInf->_InheritedTypes)
 				{
-					if (Syb == Item2)
+					if (InheritSyb == Item2)
 					{
 						LogError(ErrorCodes::InValidType, Item.Token->OnLine, Item.Token->OnPos,
 							"duplicate Inherit Trait");
@@ -240,7 +247,7 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 
 
 				ClassInfo_InheritTypeInfo _Data;
-				_Data.Syb = Syb.value();
+				_Data.Syb = InheritSyb.value();
 				ClassInf->_InheritedTypes.push_back(_Data);
 
 
@@ -272,6 +279,15 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 			_Table.RemoveScope();
 			Syb.FullName = _Table._Scope.ThisScope;
 		}
+		if (Isgeneric_t) 
+		{
+			bool hasanyerrors = ErrorCaptureHasErrors(errorcontext);
+			
+			if (hasanyerrors)
+			{
+				Syb.ValidState = SymbolValidState::Invalid;
+			}
+		}
 	}
 	else
 	{
@@ -284,6 +300,7 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 
 	if (_PassType == PassType::FixedTypes)//auto make funcs
 	{
+		CaptureErrorContext errorcontext = GetErrorCaptureContext();
 		if (Isgeneric_t)
 		{
 			auto& GenericList = Node._generic;
@@ -355,7 +372,17 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 		}
 		if (!ispublic && Node._IsExport)
 		{
-			LogError_ExportIsPrivate(NeverNullptr(Node._className.token),NeverNullptr(&Syb));
+			LogError_ExportIsPrivate(NeverNullptr(Node._className.token), NeverNullptr(&Syb));
+		}
+
+		if (Isgeneric_t)
+		{
+			bool hasanyerrors = ErrorCaptureHasErrors(errorcontext);
+
+			if (hasanyerrors)
+			{
+				Syb.ValidState = SymbolValidState::Invalid;
+			}
 		}
 	}
 	if (_PassType == PassType::BuidCode)

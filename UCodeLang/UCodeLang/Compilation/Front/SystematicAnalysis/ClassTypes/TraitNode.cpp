@@ -180,6 +180,7 @@ void SystematicAnalysis::OnTrait(const TraitNode& node)
 		{
 			_Table.AddScope(GenericTestStr);
 		}
+		CaptureErrorContext errorcontext = GetErrorCaptureContext();
 
 		for (const auto& node : node._Nodes)
 		{
@@ -261,6 +262,15 @@ void SystematicAnalysis::OnTrait(const TraitNode& node)
 		if (!ispublic && node._IsExport)
 		{
 			LogError_ExportIsPrivate(NeverNullptr(node._Name.token), NeverNullptr(&Syb));
+		}
+
+		if (Isgeneric_t) 
+		{
+			bool hasanyerrors = ErrorCaptureHasErrors(errorcontext);
+			if (hasanyerrors)
+			{
+				Syb.ValidState = SymbolValidState::Invalid;
+			}
 		}
 	}
 	else if (_PassType == PassType::BuidCode && !Isgeneric_t)
