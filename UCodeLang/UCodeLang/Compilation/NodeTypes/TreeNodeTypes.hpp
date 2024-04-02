@@ -1107,6 +1107,7 @@ struct TraitNode :Node
 	AccessModifierType _Access = AccessModifierType::Default;
 	GenericValuesNode _generic;
 	bool _IsExport = false;
+	const Token* EndOfClass = nullptr;
 	AddforNodeAndWithList(TraitNode);
 
 };

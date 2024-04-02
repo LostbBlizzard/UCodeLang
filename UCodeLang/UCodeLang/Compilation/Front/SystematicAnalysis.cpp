@@ -3222,30 +3222,34 @@ String SystematicAnalysis::ToString(SymbolType Value) const
 	case SymbolType::Null:return "null";
 	case SymbolType::Any:return "Any";
 	case SymbolType::Varable_t:return "Varable_t";
-	case SymbolType::StackVarable:return "StackVarable";
-	case SymbolType::ParameterVarable:return "ParameterVarable";
+	case SymbolType::StackVarable:return "Stack Varable";
+	case SymbolType::ParameterVarable:return "Parameter Varable";
 	case SymbolType::Type:return "Type";
-	case SymbolType::Type_alias:return "Type_alias";
-	case SymbolType::Hard_Type_alias:return "Hard_Type_alias";
-	case SymbolType::Type_class:return "Type_class";
-	case SymbolType::Class_Field:return "Class_Field";
+	case SymbolType::Type_alias:return "Type Alias";
+	case SymbolType::Hard_Type_alias:return "Hard Type Alias";
+	case SymbolType::Type_class:return "Type Class";
+	case SymbolType::Class_Field:return "Class Field";
 	case SymbolType::Enum:return "Enum";
 	case SymbolType::Func:return "Func";
 	case SymbolType::ImportedDllFunc:return "ImportedDllFunc";
 	case SymbolType::ImportedLibFunc:return "ImportedLibFunc";
-	case SymbolType::FuncCall:return "FuncCall";
-	case SymbolType::GenericFunc:return "GenericFunc";
-	case SymbolType::Generic_class:return"Generic_class";
-	case SymbolType::Unmaped_Generic_Type:return "Unmaped_Generic_Type";
-	case SymbolType::Unmaped_Varable:return "Unmaped_Varable";
+	case SymbolType::FuncCall:return "Func Call";
+	case SymbolType::GenericFunc:return "Generic Func";
+	case SymbolType::Generic_class:return"Generic Class";
+	case SymbolType::Unmaped_Generic_Type:return "Unmaped Generic Type";
+	case SymbolType::Unmaped_Varable:return "Unmaped Varable";
 	case SymbolType::Namespace:return "Namespace";
-	case SymbolType::Hard_Func_ptr:return "Hard_Func_ptr";
-	case SymbolType::Func_ptr:return "Func_ptr";
-	case SymbolType::ConstantExpression:return "ConstantExpression";
-	case SymbolType::Generic_Alias:return "Generic_Alias";
-	case SymbolType::Generic_Tag:return "Generic_Tag";
-	case SymbolType::Generic_Enum:return "Generic_Enum";
-	default:return "[n/a]";
+	case SymbolType::Hard_Func_ptr:return "Hard Func ptr";
+	case SymbolType::Func_ptr:return "Func ptr";
+	case SymbolType::ConstantExpression:return "Constant Expression";
+	case SymbolType::Generic_Alias:return "Generic Alias";
+	case SymbolType::Generic_Tag:return "Generic Tag";
+	case SymbolType::Generic_Enum:return "Generic Enum";
+	case SymbolType::Trait_class:return "Trait Class";
+	case SymbolType::Generic_Trait:return "Generic Trait";
+	default:
+		UCodeLangUnreachable();
+		return "[n/a]";
 	}
 }
 void SystematicAnalysis::LogError_CanIncorrectStaticArrCount(const NeverNullPtr<Token> Token, const TypeSymbol& Type, size_t Count, size_t FuncCount)

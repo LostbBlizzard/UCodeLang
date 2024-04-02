@@ -198,7 +198,7 @@ void SystematicAnalysis::OnAliasNode(const AliasNode& node)
 
 			String_view ClassBody =
 				String_view(&Text[node._AliasName.token->OnPos],
-					node.EndOfClass->OnPos - node._AliasName.token->OnPos);
+					node.EndOfClass->OnPos - node._AliasName.token->OnPos + 1);
 
 			auto newfullname = RemoveSymboolFuncOverloadMangling(Syb.FullName);
 			GenericClass_Data& VClass = _Lib.Get_Assembly().AddGenericClass(
