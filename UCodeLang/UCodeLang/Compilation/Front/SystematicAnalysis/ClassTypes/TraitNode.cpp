@@ -283,154 +283,185 @@ void SystematicAnalysis::OnTrait(const TraitNode& node)
 			}
 		}
 	}
-	else if (_PassType == PassType::BuidCode && !Isgeneric_t)
+	else if (_PassType == PassType::BuidCode)
 	{
-		//
-		TraitInfo* info = Syb.Get_Info<TraitInfo>();
-		auto StructVtablueClass = _IR_Builder.NewStruct(_IR_Builder.ToID(Str_GetTraitVStructTableName(Syb.FullName)));
-
-		for (auto& Item : info->_Funcs)
+		if (Isgeneric_t)
 		{
-			FuncInfo* ItemInfo = Item.Syb->Get_Info<FuncInfo>();
-			auto StrFunc = GetTepFuncPtrName(ItemInfo);
-			auto PtrFunc = GetTepFuncPtrSyb(StrFunc, ItemInfo).value();
-			PtrFunc->FullName = StrFunc;
-			TypeSymbol PtrType = PtrFunc->ID;
+			TraitInfo* info = Syb.Get_Info<TraitInfo>();
+			
+			String_view Text = _LookingAtFile->FileText;
 
-			auto IRType = IR_ConvertToIRType(PtrType);
+			String ClassStr = "$";
+			ClassStr += node._Name.token->Value._String;
 
-			IRStructField V;
-			V.Type = IRType;
-			StructVtablueClass->Fields.push_back(V);
-		}
-
-
-		Trait_Data& TraitData = _Lib.Get_Assembly().AddTrait(ScopeHelper::GetNameFromFullName(Syb.FullName), RemoveSymboolFuncOverloadMangling(Syb.FullName));
-		TraitData.TypeID = Type_GetTypeID(TypesEnum::CustomType, Syb.ID);
-		TraitData.AccessModifier = Syb.Access;
-		TraitData.IsExported = node._IsExport;
-
-		TraitData.Fields.reserve(info->_Vars.size());
-		for (auto& Item : info->_Vars)
-		{
-			auto Name = ScopeHelper::GetNameFromFullName(Item.Syb->FullName);
-			auto& VarType = Item.Syb->VarType;
-
-			ClassField field;
-			field.Name = Name;
-			field.Type = Assembly_ConvertToType(VarType);
-
-			TraitData.Fields.push_back(std::move(field));
-		}
-
-		TraitData.Methods.reserve(info->_Funcs.size());
-		for (auto& Item : info->_Funcs)
-		{
-			auto Name = ScopeHelper::GetNameFromFullName(Item.Syb->FullName);
-			FuncInfo* funcinfo = Item.Syb->Get_Info<FuncInfo>();
-
-			TraitMethod method;
-
-			method.method.FullName = funcinfo->FullName;
-			method.method.IsThisFunction = funcinfo->FrontParIsUnNamed;
-			method.method.IsUnsafe = funcinfo->IsUnsafe;
-			method.method.IsRemoved = funcinfo->IsRemoved;
-			method.method.IsExternC = funcinfo->IsExternC;
-			method.method.RetType = Assembly_ConvertToType(funcinfo->Ret);
-
-			bool isexport = true;
-			if (Item.Syb->NodePtr) 
+			size_t offset = 0;
+			if (node.EndOfClass->Type == TokenType::Semicolon)
 			{
-				isexport = Item.Syb->Get_NodeInfo<FuncNode>()->_Signature._IsExport;
+				offset += 1;
 			}
 
-			method.method.IsExport = isexport;
-			method.method.ParsType.resize(funcinfo->Pars.size());
-			for (size_t i = 0; i < funcinfo->Pars.size(); i++)
-			{
-				method.method.ParsType[i].IsOutPar = funcinfo->Pars[i].IsOutPar;
-				method.method.ParsType[i].Type = Assembly_ConvertToType(funcinfo->Pars[i].Type);
-			}
 
-			if (Item.HasBody)
-			{
-				const FuncNode* body = Item.Syb->Get_NodeInfo<FuncNode>();
+			String_view ClassBody =
+				String_view(&Text[node._Name.token->OnPos],
+					node.EndOfClass->OnPos - node._Name.token->OnPos + offset);
 
-				auto nametoken = body->_Signature._Name.token;
-				auto endtoken = body->EndOfFunc;
+			GenericClass_Data& VClass = _Lib.Get_Assembly().AddGenericClass((String)ScopeHelper::GetNameFromFullName(Syb.FullName), RemoveSymboolFuncOverloadMangling(Syb.FullName));
 
-				String_view filetext = this->_LookingAtFile->FileText;
-				
-				method.FuncBody = GetImplementationFromFunc(filetext, nametoken, endtoken);
-			}
+			VClass.Base.Implementation = ClassStr + String(ClassBody);
+			VClass.Base.Implementation += "\n\n";
+			VClass.AccessModifier = Syb.Access;
+			VClass.IsExported = node._IsExport;
 
-			TraitData.Methods.push_back(std::move(method));
 		}
-
-
-		TraitData.Symbols.reserve(info->_Symbols.size());
-
-		for (auto& Item : info->_Symbols)
+		else
 		{
-			TraitSymbol method;
-			method.AccessModifier = Item->Access;
+			//
+			TraitInfo* info = Syb.Get_Info<TraitInfo>();
+			auto StructVtablueClass = _IR_Builder.NewStruct(_IR_Builder.ToID(Str_GetTraitVStructTableName(Syb.FullName)));
 
-			String implementtion = "";
-			bool isexport;
-
-			switch (Item->Type)
+			for (auto& Item : info->_Funcs)
 			{
-			case SymbolType::Type_class:
+				FuncInfo* ItemInfo = Item.Syb->Get_Info<FuncInfo>();
+				auto StrFunc = GetTepFuncPtrName(ItemInfo);
+				auto PtrFunc = GetTepFuncPtrSyb(StrFunc, ItemInfo).value();
+				PtrFunc->FullName = StrFunc;
+				TypeSymbol PtrType = PtrFunc->ID;
+
+				auto IRType = IR_ConvertToIRType(PtrType);
+
+				IRStructField V;
+				V.Type = IRType;
+				StructVtablueClass->Fields.push_back(V);
+			}
+
+
+			Trait_Data& TraitData = _Lib.Get_Assembly().AddTrait(ScopeHelper::GetNameFromFullName(Syb.FullName), RemoveSymboolFuncOverloadMangling(Syb.FullName));
+			TraitData.TypeID = Type_GetTypeID(TypesEnum::CustomType, Syb.ID);
+			TraitData.AccessModifier = Syb.Access;
+			TraitData.IsExported = node._IsExport;
+
+			TraitData.Fields.reserve(info->_Vars.size());
+			for (auto& Item : info->_Vars)
 			{
-				auto nod = Item->Get_NodeInfo<ClassNode>();
-				isexport = nod->_IsExport;
+				auto Name = ScopeHelper::GetNameFromFullName(Item.Syb->FullName);
+				auto& VarType = Item.Syb->VarType;
 
-				String_view Text = _LookingAtFile->FileText;
+				ClassField field;
+				field.Name = Name;
+				field.Type = Assembly_ConvertToType(VarType);
 
-				String ClassStr = "$";
-				ClassStr += nod->_className.token->Value._String;
+				TraitData.Fields.push_back(std::move(field));
+			}
 
-				size_t offset = 0;
-				if (nod->EndOfClass->Type == TokenType::Semicolon)
+			TraitData.Methods.reserve(info->_Funcs.size());
+			for (auto& Item : info->_Funcs)
+			{
+				auto Name = ScopeHelper::GetNameFromFullName(Item.Syb->FullName);
+				FuncInfo* funcinfo = Item.Syb->Get_Info<FuncInfo>();
+
+				TraitMethod method;
+
+				method.method.FullName = funcinfo->FullName;
+				method.method.IsThisFunction = funcinfo->FrontParIsUnNamed;
+				method.method.IsUnsafe = funcinfo->IsUnsafe;
+				method.method.IsRemoved = funcinfo->IsRemoved;
+				method.method.IsExternC = funcinfo->IsExternC;
+				method.method.RetType = Assembly_ConvertToType(funcinfo->Ret);
+
+				bool isexport = true;
+				if (Item.Syb->NodePtr)
 				{
-					offset += 1;
+					isexport = Item.Syb->Get_NodeInfo<FuncNode>()->_Signature._IsExport;
 				}
 
+				method.method.IsExport = isexport;
+				method.method.ParsType.resize(funcinfo->Pars.size());
+				for (size_t i = 0; i < funcinfo->Pars.size(); i++)
+				{
+					method.method.ParsType[i].IsOutPar = funcinfo->Pars[i].IsOutPar;
+					method.method.ParsType[i].Type = Assembly_ConvertToType(funcinfo->Pars[i].Type);
+				}
 
-				String_view ClassBody =
-					String_view(&Text[nod->_className.token->OnPos],
-						nod->EndOfClass->OnPos - nod->_className.token->OnPos + offset);
+				if (Item.HasBody)
+				{
+					const FuncNode* body = Item.Syb->Get_NodeInfo<FuncNode>();
 
-				implementtion = ClassStr + String(ClassBody);
-				implementtion += "\n\n";
+					auto nametoken = body->_Signature._Name.token;
+					auto endtoken = body->EndOfFunc;
+
+					String_view filetext = this->_LookingAtFile->FileText;
+
+					method.FuncBody = GetImplementationFromFunc(filetext, nametoken, endtoken);
+				}
+
+				TraitData.Methods.push_back(std::move(method));
 			}
-			break;
-			case SymbolType::Type_alias:
+
+
+			TraitData.Symbols.reserve(info->_Symbols.size());
+
+			for (auto& Item : info->_Symbols)
 			{
-				auto nod = Item->Get_NodeInfo<AliasNode>();
-				isexport = nod->IsExport;
+				TraitSymbol method;
+				method.AccessModifier = Item->Access;
 
-				String_view Text = _LookingAtFile->FileText;
+				String implementtion = "";
+				bool isexport;
 
-				String ClassStr = "$";
-				ClassStr += nod->_AliasName.token->Value._String;
+				switch (Item->Type)
+				{
+				case SymbolType::Type_class:
+				{
+					auto nod = Item->Get_NodeInfo<ClassNode>();
+					isexport = nod->_IsExport;
 
-				String_view ClassBody =
-					String_view(&Text[nod->_AliasName.token->OnPos],
-						nod->EndOfClass->OnPos - nod->_AliasName.token->OnPos + 1);
+					String_view Text = _LookingAtFile->FileText;
 
-				implementtion = ClassStr + String(ClassBody);
-				implementtion += "\n\n";
-			}
-			break;
-			default:
-				UCodeLangUnreachable();
+					String ClassStr = "$";
+					ClassStr += nod->_className.token->Value._String;
+
+					size_t offset = 0;
+					if (nod->EndOfClass->Type == TokenType::Semicolon)
+					{
+						offset += 1;
+					}
+
+
+					String_view ClassBody =
+						String_view(&Text[nod->_className.token->OnPos],
+							nod->EndOfClass->OnPos - nod->_className.token->OnPos + offset);
+
+					implementtion = ClassStr + String(ClassBody);
+					implementtion += "\n\n";
+				}
 				break;
-			}
-			method.IsExported = isexport;
-			method.Implementation = std::move(implementtion);
+				case SymbolType::Type_alias:
+				{
+					auto nod = Item->Get_NodeInfo<AliasNode>();
+					isexport = nod->IsExport;
 
-			TraitData.Symbols.push_back(std::move(method));
+					String_view Text = _LookingAtFile->FileText;
+
+					String ClassStr = "$";
+					ClassStr += nod->_AliasName.token->Value._String;
+
+					String_view ClassBody =
+						String_view(&Text[nod->_AliasName.token->OnPos],
+							nod->EndOfClass->OnPos - nod->_AliasName.token->OnPos + 1);
+
+					implementtion = ClassStr + String(ClassBody);
+					implementtion += "\n\n";
+				}
+				break;
+				default:
+					UCodeLangUnreachable();
+					break;
+				}
+				method.IsExported = isexport;
+				method.Implementation = std::move(implementtion);
+
+				TraitData.Symbols.push_back(std::move(method));
+			}
 		}
 	}
 
