@@ -272,6 +272,18 @@ void UClib::ToBytes(BitMaker& Output, const Trait_Data& TraitData)
 	{
 		ToBytes(Output, Item2);
 	}
+
+	Output.WriteType((Size_tAsBits)TraitData.Symbols.size());
+	for (auto& Item2 : TraitData.Symbols)
+	{
+		ToBytes(Output, Item2);
+	}
+}
+void UClib::ToBytes(BitMaker& Output, const TraitSymbol& TraitData)
+{
+	Output.WriteType(TraitData.Implementation);
+	Output.WriteType((AccessModifierType_t)TraitData.AccessModifier);
+	Output.WriteType(TraitData.IsExported);
 }
 void UClib::ToBytes(BitMaker& Output, const InheritedTrait_Data& TraitData)
 {
@@ -1085,6 +1097,22 @@ void UClib::FromBytes(BitReader& Input, Trait_Data& Data)
 			FromBytes(Input, Item2);
 		}
 	}
+	
+	{
+
+		Size_tAsBits  Methods_Sizebits = 0;
+		size_t Methods_Size;
+
+		Input.ReadType(Methods_Sizebits, Methods_Sizebits);
+		Methods_Size = Methods_Sizebits;
+
+		Data.Symbols.resize(Methods_Size);
+		for (size_t i2 = 0; i2 < Methods_Size; i2++)
+		{
+			auto& Item2 = Data.Symbols[i2];
+			FromBytes(Input, Item2);
+		}
+	}
 }
 void UClib::FromBytes(BitReader& Input, InheritedTrait_Data& Data)
 {
@@ -1313,6 +1341,12 @@ void UClib::FromBytes(BitReader& Input, ReflectionTypeInfo& Data)
 	Input.ReadType(Data._Isimmutable, Data._Isimmutable);
 	Input.ReadType(Data._IsDynamic, Data._IsDynamic);
 	Input.ReadType(*(ReflectionMoveData_t*)&Data._MoveData, *(ReflectionMoveData_t*)&Data._MoveData);
+}
+void UClib::FromBytes(BitReader& Input, TraitSymbol& Data)
+{
+	Input.ReadType(Data.Implementation);
+	Input.ReadType(*(AccessModifierType_t*)&Data.AccessModifier);
+	Input.ReadType(Data.IsExported);
 }
 void UClib::FixRawValue(Endian AssemblyEndian, NTypeSize BitSize, const ClassAssembly& Types, ReflectionRawData& RawValue, const ReflectionTypeInfo& Type)
 {
