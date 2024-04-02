@@ -1009,8 +1009,20 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 String SystematicAnalysis::GetImplementationFromFunc(String_view filetext, const Token* nametoken, const Token* endtoken)
 {
 
-	String funcstr = (String)"|" + (String)nametoken->Value._String;
+	String funcstr = (String)"|";
 
+	if (nametoken->Type == TokenType::Name)
+	{
+		funcstr += nametoken->Value._String;
+	}
+	else if (nametoken->Type == TokenType::KeyWord_for)
+	{
+		funcstr += "for";
+	}
+	else
+	{
+		UCodeLangUnreachable();
+	}
 
 
 	size_t offset = 0;

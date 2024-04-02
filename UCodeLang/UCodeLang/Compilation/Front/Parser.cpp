@@ -269,7 +269,7 @@ GotNodeType Parser::GetAlias(const Token* AliasName, GenericValuesNode&& AliasGe
 	out.Generic = std::move(AliasGenerics);
 	out._Access = GetModifier();
 
-	
+
 	auto ClassToken = TryGetToken(); TokenTypeCheck(ClassToken, TokenType::equal);
 	NextToken();
 
@@ -310,10 +310,10 @@ GotNodeType Parser::GetAlias(const Token* AliasName, GenericValuesNode&& AliasGe
 		r = GetType(out._Type, false, false);
 	}
 	auto SemicolonToken = TryGetToken(); TokenTypeCheck(SemicolonToken, TokenType::Semicolon);
+	out.EndOfClass = TryGetToken();
 	NextToken();
 
 
-	out.EndOfClass = TryGetToken();
 	return r;
 }
 GotNodeType Parser::GetClassTypeNode(Node*& out)

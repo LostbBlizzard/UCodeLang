@@ -399,6 +399,12 @@ struct TraitMethod
 	ClassMethod method;
 	Optional<String> FuncBody;
 };
+struct TraitSymbol
+{
+	String Implementation;
+	AccessModifierType AccessModifier = AccessModifierType::Default;
+	bool IsExported = false;
+};
 struct Trait_Data
 {
 	ReflectionCustomTypeID TypeID = {};
@@ -406,6 +412,7 @@ struct Trait_Data
 	bool IsExported = false;
 	Vector<ClassField> Fields;
 	Vector<TraitMethod> Methods;
+	Vector<TraitSymbol> Symbols;
 	~Trait_Data()
 	{
 

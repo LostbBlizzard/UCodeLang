@@ -310,6 +310,7 @@ void SystematicAnalysis::OnTrait(const TraitNode& node)
 		TraitData.AccessModifier = Syb.Access;
 		TraitData.IsExported = node._IsExport;
 
+		TraitData.Fields.reserve(info->_Vars.size());
 		for (auto& Item : info->_Vars)
 		{
 			auto Name = ScopeHelper::GetNameFromFullName(Item.Syb->FullName);
@@ -322,6 +323,7 @@ void SystematicAnalysis::OnTrait(const TraitNode& node)
 			TraitData.Fields.push_back(std::move(field));
 		}
 
+		TraitData.Methods.reserve(info->_Funcs.size());
 		for (auto& Item : info->_Funcs)
 		{
 			auto Name = ScopeHelper::GetNameFromFullName(Item.Syb->FullName);
@@ -363,6 +365,72 @@ void SystematicAnalysis::OnTrait(const TraitNode& node)
 			}
 
 			TraitData.Methods.push_back(std::move(method));
+		}
+
+
+		TraitData.Symbols.reserve(info->_Symbols.size());
+
+		for (auto& Item : info->_Symbols)
+		{
+			TraitSymbol method;
+			method.AccessModifier = Item->Access;
+
+			String implementtion = "";
+			bool isexport;
+
+			switch (Item->Type)
+			{
+			case SymbolType::Type_class:
+			{
+				auto nod = Item->Get_NodeInfo<ClassNode>();
+				isexport = nod->_IsExport;
+
+				String_view Text = _LookingAtFile->FileText;
+
+				String ClassStr = "$";
+				ClassStr += nod->_className.token->Value._String;
+
+				size_t offset = 0;
+				if (nod->EndOfClass->Type == TokenType::Semicolon)
+				{
+					offset += 1;
+				}
+
+
+				String_view ClassBody =
+					String_view(&Text[nod->_className.token->OnPos],
+						nod->EndOfClass->OnPos - nod->_className.token->OnPos + offset);
+
+				implementtion = ClassStr + String(ClassBody);
+				implementtion += "\n\n";
+			}
+			break;
+			case SymbolType::Type_alias:
+			{
+				auto nod = Item->Get_NodeInfo<AliasNode>();
+				isexport = nod->IsExport;
+
+				String_view Text = _LookingAtFile->FileText;
+
+				String ClassStr = "$";
+				ClassStr += nod->_AliasName.token->Value._String;
+
+				String_view ClassBody =
+					String_view(&Text[nod->_AliasName.token->OnPos],
+						nod->EndOfClass->OnPos - nod->_AliasName.token->OnPos + 1);
+
+				implementtion = ClassStr + String(ClassBody);
+				implementtion += "\n\n";
+			}
+			break;
+			default:
+				UCodeLangUnreachable();
+				break;
+			}
+			method.IsExported = isexport;
+			method.Implementation = std::move(implementtion);
+
+			TraitData.Symbols.push_back(std::move(method));
 		}
 	}
 

@@ -433,6 +433,7 @@ else
 	static void ToBytes(BitMaker& Output, const NameSpace_Data& FuncPtrData);
 	static void ToBytes(BitMaker& Output, const ForType_Data& FuncPtrData);
 	static void ToBytes(BitMaker& Output, const Eval_Data& FuncPtrData);
+	static void ToBytes(BitMaker& Output, const TraitSymbol& TraitData);
 	//
 	static bool FromBytes(UClib* Lib, const BytesView& Data);
 
@@ -472,6 +473,7 @@ else
 	static void FromBytes(BitReader& Input, NameSpace_Data& Data);
 	static void FromBytes(BitReader& Input, ForType_Data& Data);
 	static void FromBytes(BitReader& Input, Eval_Data& Data);
+	static void FromBytes(BitReader& Input, TraitSymbol& Data);
 	//
 
 	static void FixRawValue(Endian AssemblyEndian, NTypeSize BitSize, const ClassAssembly& Types, TypedRawReflectionData& RawValue)

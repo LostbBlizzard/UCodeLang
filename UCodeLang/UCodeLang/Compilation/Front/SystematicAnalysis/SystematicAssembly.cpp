@@ -775,6 +775,64 @@ void SystematicAnalysis::Assembly_LoadTraitSymbol(const Trait_Data& Item, const 
 		auto oldscope = _Table._Scope.ThisScope;
 		_Table._Scope.ThisScope = Syb.FullName;
 
+		ClassStackInfo stackinfo;
+		stackinfo.Syb = &SybClass;
+
+		_ClassStack.push(stackinfo);
+
+		{
+			FrontEnd::Lexer _Lexer;
+			FrontEnd::Parser _Parser;
+			// this feals off
+			_Lexer.Set_ErrorsOutput(_ErrorsOutput);
+			_Parser.Set_ErrorsOutput(_ErrorsOutput);
+
+			_Lexer.Set_Settings(_Settings);
+			_Parser.Set_Settings(_Settings);
+
+			for (auto& Item : Item.Symbols)
+			{
+				_Lexer.Reset();
+				_Parser.Reset();
+
+				StringsFromLoadLib.push_back(std::make_unique<String>(Item.Implementation));
+				String_view Text = *StringsFromLoadLib.back().get();
+
+				_Lexer.Lex(Text);
+
+				TokensFromLoadLib.push_back(std::make_unique<Vector<Token>>(std::move(_Lexer.Get_Tokens())));
+				auto& tokenslist = *TokensFromLoadLib.back().get();
+
+				_Parser.Parse(Text, tokenslist);
+
+				NodesFromLoadLib.push_back(std::make_unique<FileNode>(std::move(_Parser.Get_Tree())));
+
+				auto& list = NodesFromLoadLib.back()->_Nodes;
+				for (auto& Item2 : list)
+				{
+					size_t Index = _Table.Symbols.size();
+					switch (Item2->Get_Type())
+					{
+					case NodeType::ClassNode:
+					{
+						OnClassNode(*ClassNode::As(Item2.get()));
+					}
+					break;
+					case NodeType::AliasNode:
+					{
+						OnAliasNode(*AliasNode::As(Item2.get()));
+					}
+					break;
+					default:UCodeLangUnreachable();
+						break;
+					}
+					Symbol* funcSyb = _Table.Symbols[Index].get();
+					enumInfo->_Symbols.push_back(funcSyb);
+				}
+			}
+		}
+		_ClassStack.pop();
+
 		for (auto& Item : Item.Methods)
 		{
 			Symbol* funcsyb = nullptr;
@@ -866,6 +924,28 @@ void SystematicAnalysis::Assembly_LoadTraitSymbol(const Trait_Data& Item, const 
 
 		auto oldscope = _Table._Scope.ThisScope;
 		_Table._Scope.ThisScope = Syb.FullName;
+
+		for (auto& Item : info->_Symbols)
+		{
+			switch (Item->Type)
+			{
+			case SymbolType::Type_class:
+			{
+				auto nod = Item->Get_NodeInfo<ClassNode>();
+				OnClassNode(*nod);
+			}
+			break;
+			case SymbolType::Type_alias:
+			{
+				auto nod = Item->Get_NodeInfo<AliasNode>();
+				OnAliasNode(*nod);
+			}
+			break;
+			default:
+				UCodeLangUnreachable();
+				break;
+			} 
+		}
 
 		for (size_t i = 0; i < info->_Funcs.size(); i++)
 		{
