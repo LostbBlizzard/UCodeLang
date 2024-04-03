@@ -775,6 +775,14 @@ void SystematicAnalysis::Assembly_LoadTraitSymbol(const Trait_Data& Item, const 
 		auto oldscope = _Table._Scope.ThisScope;
 		_Table._Scope.ThisScope = Syb.FullName;
 
+
+		{
+			for (auto& Item : Item.GenericAlias)
+			{
+				auto& varsyb = Symbol_AddSymbol(SymbolType::Type_alias, Item.AliasName, ScopeHelper::ApendedStrings(FullName, Item.AliasName), AccessModifierType::Private);
+				_Table.AddSymbolID(varsyb, Symbol_GetSymbolID(&Item));
+			}
+		}
 		ClassStackInfo stackinfo;
 		stackinfo.Syb = &SybClass;
 
@@ -927,6 +935,13 @@ void SystematicAnalysis::Assembly_LoadTraitSymbol(const Trait_Data& Item, const 
 
 		auto oldscope = _Table._Scope.ThisScope;
 		_Table._Scope.ThisScope = Syb.FullName;
+		{
+			for (auto& Item : Item.GenericAlias)
+			{
+				auto& item = _Table.GetSymbol(Symbol_GetSymbolID(&Item));
+				item.VarType = Assembly_LoadType(Item.Type);
+			}
+		}
 
 		for (auto& Item : info->_Symbols)
 		{
