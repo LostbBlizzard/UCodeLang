@@ -73,7 +73,7 @@ void SystematicAnalysis::Assembly_LoadLibSymbols()
 
 			if (LoadLibMode::GetTypes == Mode)
 			{
-				_FilesData.AddValue(NeverNullptr((FileNode_t*)&FileNode), {});
+				_FilesData.AddValue(NeverNullptr((FileNode_t*)&FileNode), std::make_shared<FileNodeData>());
 				ImportLibInfo V;
 				for (auto& LibNode : Item->_Assembly.Classes)
 				{
@@ -603,17 +603,17 @@ void SystematicAnalysis::Assembly_LoadEnumSymbol(const Enum_Data& Item, const St
 					Symbol* Sym = Symbol_GetSymbol(Type).value_unchecked();
 					if (Sym)
 					{
-						if (Syb.Type == SymbolType::Type_class)
+						if (Sym->Type == SymbolType::Type_class)
 						{
 							bool IsUnNamed = false;
-							if (Syb.FullName.back() == '!') // the unnamed Enum Symbol post fix
+							if (Sym->FullName.back() == '!') // the unnamed Enum Symbol post fix
 							{
 								IsUnNamed = true;
 							}
 
 							if (IsUnNamed)
 							{
-								ClassInfo* CInfo = Syb.Get_Info<ClassInfo>();
+								ClassInfo* CInfo = Sym->Get_Info<ClassInfo>();
 
 								VariantItem.Types.resize(CInfo->Fields.size()); // Field type may not be loaded.
 
@@ -806,6 +806,9 @@ void SystematicAnalysis::Assembly_LoadTraitSymbol(const Trait_Data& Item, const 
 				_Parser.Parse(Text, tokenslist);
 
 				NodesFromLoadLib.push_back(std::make_unique<FileNode>(std::move(_Parser.Get_Tree())));
+
+				_FilesData.AddValue(NeverNullptr((FileNode_t*)NodesFromLoadLib.back().get()),
+									std::make_shared<FileNodeData>());
 
 				auto& list = NodesFromLoadLib.back()->_Nodes;
 				for (auto& Item2 : list)

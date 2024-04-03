@@ -94,12 +94,9 @@ bool SystematicAnalysis::Analyze(const Vector<NeverNullPtr<FileNode>>& Files, co
 		if (!_ErrorsOutput->Has_Errors())
 		{
 			Lib_BuildLibs(false);//Because of generics the ClassAssembly may need them.
+			Lib_BuildLibs(true);//Because of Enums  may need them.
 
-			BuildCode();
-			if (!_ErrorsOutput->Has_Errors())
-			{
-				Lib_BuildLibs(true);
-			}
+			BuildCode();	
 		}
 	};
 
