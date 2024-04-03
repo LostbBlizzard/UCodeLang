@@ -462,7 +462,17 @@ void SystematicAnalysis::OnTrait(const TraitNode& node)
 
 				TraitData.Symbols.push_back(std::move(method));
 			}
-		}
+		
+			TraitData.GenericAlias.reserve(info->_GenericAlias.size());
+			for (auto& Item : info->_GenericAlias)
+			{
+				TraitAlias val;
+				val.AliasName = Item.Name;
+				val.Type = Assembly_ConvertToType(Item.Type);
+
+				TraitData.GenericAlias.push_back(std::move(val));
+			}
+}
 	}
 
 	Syb.PassState = _PassType;

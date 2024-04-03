@@ -405,6 +405,11 @@ struct TraitSymbol
 	AccessModifierType AccessModifier = AccessModifierType::Default;
 	bool IsExported = false;
 };
+struct TraitAlias
+{
+	String AliasName;
+	ReflectionTypeInfo Type;
+};
 struct Trait_Data
 {
 	ReflectionCustomTypeID TypeID = {};
@@ -413,6 +418,7 @@ struct Trait_Data
 	Vector<ClassField> Fields;
 	Vector<TraitMethod> Methods;
 	Vector<TraitSymbol> Symbols;
+	Vector<TraitAlias> GenericAlias;
 	~Trait_Data()
 	{
 

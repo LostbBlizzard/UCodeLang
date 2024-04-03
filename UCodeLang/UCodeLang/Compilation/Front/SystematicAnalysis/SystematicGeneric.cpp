@@ -196,6 +196,19 @@ void SystematicAnalysis::Generic_TypeInstantiate_Trait(const NeverNullPtr<Symbol
 			UCodeLangAssert(addedSymbol.PassState == PassType::FixedTypes);
 		}
 
+		{
+			TraitInfo* info = addedSymbol.Get_Info<TraitInfo>();
+			info->_GenericAlias.resize(GenericInput.size());
+			for (size_t i = 0; i < GenericInput.size(); i++)
+			{
+				TraitGenericAlias alias;
+				alias.Type = GenericInput[i];
+				alias.Name = node->_generic._Values[i].token->Value._String;
+
+				info->_GenericAlias.push_back(std::move(alias));
+			}
+		}
+
 		Pop_AddToGeneratedGenricSymbol(addedSymbol, GenericInput);
 
 		//

@@ -830,7 +830,11 @@ struct TraitVar
 {
 	Symbol* Syb = nullptr;
 };
-
+struct TraitGenericAlias
+{
+	String Name;
+	TypeSymbol Type;
+};
 class TraitInfo :public Symbol_Info
 {
 public:
@@ -855,6 +859,7 @@ public:
 	Vector<TraitFunc> _Funcs;
 	Vector<TraitVar> _Vars;
 	Vector<Symbol*> _Symbols;
+	Vector<TraitGenericAlias> _GenericAlias;
 	Symbol* TraitClassInfo = nullptr;
 	Generic _GenericData;
 	Optional<SymbolContext> Context;
