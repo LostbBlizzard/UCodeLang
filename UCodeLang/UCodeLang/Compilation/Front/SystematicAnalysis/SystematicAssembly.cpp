@@ -738,8 +738,12 @@ void SystematicAnalysis::Assembly_LoadTraitSymbol(const Trait_Data& Item, const 
 		auto& Syb = Symbol_AddSymbol(SymbolType::Trait_class, Name, FullName, Item.AccessModifier);
 		_Table.AddSymbolID(Syb, Symbol_GetSymbolID(&Item));
 
-		auto& SybClass = Symbol_AddSymbol(SymbolType::Type_class, (String)Name + "%Class", _Table._Scope.ThisScope + "%Class", Syb.Access);
+		_Table.AddScope(Name);
+
+		auto& SybClass = Symbol_AddSymbol(SymbolType::Type_class, (String)Name + TraitClassEnd, _Table._Scope.ThisScope + TraitClassEnd, Syb.Access);
 		_Table.AddSymbolID(SybClass, Symbol_GetSymbolID(&Item.Methods));
+
+		_Table.RemoveScope();
 
 		SybClass.VarType = SybClass.ID;
 		SybClass.PassState = PassType::BuidCode;
@@ -943,6 +947,28 @@ void SystematicAnalysis::Assembly_LoadTraitSymbol(const Trait_Data& Item, const 
 			}
 		}
 
+		for (size_t i = 0; i < info->_Funcs.size(); i++)
+		{
+			auto& Item2 = info->_Funcs[i];
+			if (Item2.HasBody)
+			{
+				Node* node = (Node*)Item2.Syb->NodePtr;
+
+				OnFuncNode(*FuncNode::As(node));
+			}
+			else
+			{
+				FuncInfo* finfo = Item2.Syb->Get_Info<FuncInfo>();
+				LoadFuncInfoFixTypes(finfo, Item.Methods[i].method);
+				if (Item.Methods[i].method.IsThisFunction)
+				{
+					auto& FuncP = finfo->Pars.front();
+					FuncP.Type._Type = TypesEnum::CustomType;
+					FuncP.Type._CustomTypeSymbol = info->TraitClassInfo->ID;
+				}
+			}
+		}
+
 		for (auto& Item : info->_Symbols)
 		{
 			switch (Item->Type)
@@ -965,27 +991,7 @@ void SystematicAnalysis::Assembly_LoadTraitSymbol(const Trait_Data& Item, const 
 			} 
 		}
 
-		for (size_t i = 0; i < info->_Funcs.size(); i++)
-		{
-			auto& Item2 = info->_Funcs[i];
-			if (Item2.HasBody)
-			{
-				Node* node = (Node*)Item2.Syb->NodePtr;
-
-				OnFuncNode(*FuncNode::As(node));
-			}
-			else
-			{
-				FuncInfo* finfo = Item2.Syb->Get_Info<FuncInfo>();
-				LoadFuncInfoFixTypes(finfo, Item.Methods[i].method);
-				if (Item.Methods[i].method.IsThisFunction)
-				{
-					auto& FuncP = finfo->Pars.front();
-					FuncP.Type._Type = TypesEnum::CustomType;
-					FuncP.Type._CustomTypeSymbol = info->TraitClassInfo->ID;
-				}
-			}
-		}
+	
 
 		_Table._Scope.ThisScope = oldscope;
 
