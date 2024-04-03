@@ -636,16 +636,21 @@ void SystematicAnalysis::Symbol_InheritTrait(NeverNullPtr<Symbol> Syb, ClassInfo
 				}
 
 			};
+		
+		{	
+			_Table.AddUseing(Trait->FullName);
+			
+			for (auto& Item : Traitinfo->_Symbols)
+			{
+				auto SybsIndex = _Table.Symbols.size();
 
-		for (auto& Item : Traitinfo->_Symbols)
-		{
-			auto SybsIndex = _Table.Symbols.size();
-
-			OnTraitSymbol(Item);
+				OnTraitSymbol(Item);
 
 
-			auto Symbol = _Table.Symbols[SybsIndex].get();	
-			_GeneratedTraitSymbols.push_back(Symbol);
+				auto Symbol = _Table.Symbols[SybsIndex].get();
+				_GeneratedTraitSymbols.push_back(Symbol);
+			}
+			_Table.Useings.pop_back();
 		}
 
 
@@ -664,9 +669,27 @@ void SystematicAnalysis::Symbol_InheritTrait(NeverNullPtr<Symbol> Syb, ClassInfo
 
 		_PassType = PassType::FixedTypes;
 
-		for (auto& Item : Traitinfo->_Symbols)
-		{
-			OnTraitSymbol(Item);	
+		{				
+			_Table.AddUseing(Trait->FullName);
+			for (auto& Item : Trait->Get_NodeInfo<TraitNode>()->_generic._Values)
+			{
+				String scope = Trait->FullName;
+				ScopeHelper::GetApendedString(scope,Item.token->Value._String);
+				auto& s = Symbol_GetSymbol(scope,SymbolType::Generic_Alias).value();
+				s->Access = AccessModifierType::Public;
+			}
+			for (auto& Item : Traitinfo->_Symbols)
+			{
+				OnTraitSymbol(Item);
+			}
+			for (auto& Item : Trait->Get_NodeInfo<TraitNode>()->_generic._Values)
+			{
+				String scope = Trait->FullName;
+				ScopeHelper::GetApendedString(scope,Item.token->Value._String);
+				auto& s = Symbol_GetSymbol(scope,SymbolType::Generic_Alias).value();
+				s->Access = AccessModifierType::Private;
+			}
+			_Table.Useings.pop_back();
 		}
 
 		for (auto& Item : IDSyb.AddedFuncs)
@@ -708,6 +731,40 @@ void SystematicAnalysis::Symbol_BuildTrait(const NeverNullPtr<Symbol> Syb, Class
 	}
 	{
 		Pop_ExtendedErr();
+	}
+
+	if (IDSyb.Syb->PassState == PassType::FixedTypes)
+	{
+		auto& symbol = IDSyb.Syb;
+		auto info = symbol->Get_Info<TraitInfo>();
+		auto context = SaveAndMove_SymbolContext();
+
+		NullablePtr<GenericFuncInfo> GenericFunc;
+		for (auto& Item : _Generic_GeneratedGenericSymbol)//I know this is slow i just need something working
+		{
+			if (Item.ID == symbol->ID)
+			{
+				GenericFunc = &Item.Info;
+				break;
+			}
+		}
+
+		if (GenericFunc.has_value()) 
+		{
+			_Generic_GenericSymbolStack.push(*GenericFunc.value());
+		}
+		Set_SymbolContext(info->Context.value());
+
+		OnTrait(*symbol->Get_NodeInfo<TraitNode>());
+
+		Set_SymbolContext(std::move(context));
+
+		if (GenericFunc.has_value())
+		{
+			_Generic_GenericSymbolStack.pop();
+		}
+
+		UCodeLangAssert(IDSyb.Syb->PassState == PassType::BuidCode);
 	}
 
 	{
