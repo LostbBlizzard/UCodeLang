@@ -361,7 +361,7 @@ void SystematicAnalysis::OnTrait(const TraitNode& node)
 
 				TraitMethod method;
 
-				method.method.FullName = funcinfo->FullName;
+				method.method.FullName = Item.Syb->FullName;
 				method.method.IsThisFunction = funcinfo->FrontParIsUnNamed;
 				method.method.IsUnsafe = funcinfo->IsUnsafe;
 				method.method.IsRemoved = funcinfo->IsRemoved;
