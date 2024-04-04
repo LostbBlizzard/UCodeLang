@@ -71,7 +71,7 @@ $Buffer_t<T> trait export:
   export |for[this&] => Iterator(this);
   export |for[imut this&] => IIterator(this);
 
-  export |Empty[imut this&] => Size() != 0;
+  export |Empty[imut this&] => Size() == 0;
 
   export |First[imut this&] -> imut T&?:
    if Size() == 0:
