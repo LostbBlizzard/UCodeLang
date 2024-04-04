@@ -1025,7 +1025,7 @@ String SystematicAnalysis::GetImplementationFromFunc(String_view filetext, const
 	}
 	else if (nametoken->Type == TokenType::Left_Bracket)
 	{
-		funcstr += "[]";
+		funcstr += "";
 	}
 	else
 	{

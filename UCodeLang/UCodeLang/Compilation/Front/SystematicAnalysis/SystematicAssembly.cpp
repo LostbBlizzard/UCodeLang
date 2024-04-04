@@ -817,6 +817,8 @@ void SystematicAnalysis::Assembly_LoadTraitSymbol(const Trait_Data& Item, const 
 
 				_Parser.Parse(Text, tokenslist);
 
+				UCodeLangAssert(!_ErrorsOutput->Has_Errors());
+				
 				NodesFromLoadLib.push_back(std::make_unique<FileNode>(std::move(_Parser.Get_Tree())));
 
 				_FilesData.AddValue(NeverNullptr((FileNode_t*)NodesFromLoadLib.back().get()),
@@ -871,6 +873,8 @@ void SystematicAnalysis::Assembly_LoadTraitSymbol(const Trait_Data& Item, const 
 				TokensFromLoadLib.push_back(std::make_unique<Vector<Token>>(std::move(_Lexer.Get_Tokens())));
 
 				_Parser.Parse(FuncStr, *TokensFromLoadLib.back());
+
+				UCodeLangAssert(!_ErrorsOutput->Has_Errors());
 
 				NodesFromLoadLib.push_back(std::make_unique<FileNode>(std::move(_Parser.Get_Tree())));
 				Node* node = NodesFromLoadLib.back()->_Nodes[0].get();
