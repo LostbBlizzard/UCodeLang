@@ -1,25 +1,21 @@
 
 
-$Array<T,(Size)> export;
-
-
-/*
-$Array<T,(Size)> export:
+$Array<T,[uintptr](ArraySize)>[Buffer_t<T>] export:
  private:
-  T[/Size] _data;
+  T[/ArraySize] _data;
  public:
-  unsafe |iData[imut this&] -> imut T[&]:ret _data;
-  unsafe |Data[this&] -> T[&]:ret _data;
+  unsafe |Data[imut this&] -> imut T[&]:ret unsafe _data[0];
+  unsafe |Data[this&] -> T[&]:ret unsafe _data[0];
 
-  |Size[imut this&] => Size;
+  |Size[imut this&] => ArraySize;
 
-  |[][this&,uintptr Index] -> T&:ret _data[Index];
-  |[][imut this&,uintptr Index] -> imut T&:ret _data[Index];
+  |[][this&,uintptr Index] -> T&:
+    $if compiler::IsDebug():
+      if Index >= ArraySize:panic("Index is out of bounds");
 
-  |[][this&,Range_t<uintptr> Range] -> T[:]:ret AsSpan()[Range]; 
-  |[][imut this&,Range_t<uintptr> Range] -> imut T[:]:ret AsSpan()[Range];
+    ret unsafe _data[Index];
+  |[][imut this&,uintptr Index] -> imut T&:
+    $if compiler::IsDebug():
+      if Index >= ArraySize:panic("Index is out of bounds");
 
-  |AsSpan[this&] -> T[:]:ret unsafe [_data,Size];
-  |iAsSpan[imut this&] -> imut T[:]:ret unsafe [_data,Size];
-
-*/
+    ret unsafe _data[Index];

@@ -1023,6 +1023,10 @@ String SystematicAnalysis::GetImplementationFromFunc(String_view filetext, const
 	{
 		funcstr += "new";
 	}
+	else if (nametoken->Type == TokenType::Left_Bracket)
+	{
+		funcstr += "[]";
+	}
 	else
 	{
 		UCodeLangUnreachable();

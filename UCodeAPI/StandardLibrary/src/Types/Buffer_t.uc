@@ -3,7 +3,8 @@ $Buffer_t<T> trait export:
  |[][this&,uintptr Index] -> T&;
  |[][imut this&,uintptr Index] -> T&;
  |Size[imut this&] -> uintptr;
-
+ unsafe |Data[imut this&] -> imut T[&];
+ unsafe |Data[this&] -> T[&];
 
  $ThisType = this;
  $Iterator export:
@@ -70,4 +71,32 @@ $Buffer_t<T> trait export:
   export |for[this&] => Iterator(this);
   export |for[imut this&] => IIterator(this);
 
+  export |Empty[imut this&] => Size() != 0;
+
+  export |First[imut this&] -> imut T&?:
+   if Size() == 0:
+    ret None;
+   ret Opt(this[0]);
+  
+  export |First[this&] -> T&?:
+   if Size() == 0:
+    ret None;
+   ret Opt(this[0]);
+  
+  export |Last[imut this&] -> imut T&?:
+   if Size() == 0:
+    ret None;
+   ret Opt(this[Size() - 1]);
+  
+  export |Last[this&] -> T&?:
+   if Size() == 0:
+    ret None;
+   ret Opt(this[Size() - 1]);
+
+
+  export |[][this&,Range_t<uintptr> Range] -> T[:]:ret AsSpan()[Range]; 
+  export |[][imut this&,Range_t<uintptr> Range] -> imut T[:]:ret AsSpan()[Range];
+
+  export |AsSpan[this&] -> T[:]:ret unsafe [Data(),Size()];
+  export |AsSpan[imut this&] -> imut T[:]:ret unsafe [Data(),Size()];
 
