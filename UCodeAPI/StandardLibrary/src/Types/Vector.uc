@@ -130,11 +130,4 @@ $Vector<T>[Buffer_t<T>] export:
       if Index >= _size:panic("Index is out of bounds");
     
     ret unsafe _data[Index];
-
-  //Span
-
-  export |[][this&,Range_t<uintptr> Range] -> T[:]:ret AsSpan()[Range]; 
-  export |[][imut this&,Range_t<uintptr> Range] -> imut T[:]:ret AsSpan()[Range];
-
-  export |AsSpan[this&] -> T[:]:ret unsafe [_data,_size];
-  export |AsSpan[imut this&] -> imut T[:]:ret unsafe [_data,_size];
+ 
