@@ -17,20 +17,14 @@ $Unique_ptr<T> export:
    if ptr != uintptr(0):
     unsafe drop(_ptr);
 
-  export |Make[] -> this:
+  export |Make<Arg...>[Arg pars] -> this:
    this r = [];
-   unsafe r._ptr =: unsafe new T();
+   unsafe r._ptr =: unsafe new T(pars);
    ret r;
 
 
   export |Get[this&] -> T&:ret _ptr;
   export |Get[imut this&] -> imut T&:ret _ptr;
-  
-  export |Write[this&,imut T& newvalue] -> void:Get() = newvalue;
-  export |Write[this&,moved T newvalue] -> void:Get() = newvalue;
-
-  export |ReadPtr[imut this&] -> imut T&:ret Get();
-
+   
   export |~>[this&] -> T&:ret Get();
-
   export |~>[imut this&] -> imut T&:ret Get();
