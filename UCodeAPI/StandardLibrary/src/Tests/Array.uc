@@ -14,3 +14,12 @@ Tests:
 
   ret r == 33; 
  
+ [Test]
+ |Array_2[]:
+  int[3] vals = [5,10,15];
+
+  int r = 0;
+
+  for [i,item : vals]:r += item + (i -> int);
+
+  ret r == 33; 

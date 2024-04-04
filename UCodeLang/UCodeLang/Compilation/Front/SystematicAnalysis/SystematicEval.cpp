@@ -517,10 +517,173 @@ bool SystematicAnalysis::Eval_Evaluate(EvaluatedEx& Out, const ReadVariableNode&
 	GetMemberTypeSymbolFromVar_t V;
 	return Eval_EvalutateScopedName(Out, nod._VariableName, V);
 }
+
+struct DoBinaryOpContext
+{
+	RawEvaluatedObject* Op1 = nullptr;
+	RawEvaluatedObject* Op2 = nullptr;
+	TokenType type;
+	RawEvaluatedObject* OpOut = nullptr;
+};
+template<typename T>
+static void DoBinaryIntOp(DoBinaryOpContext context)
+{
+	T& op1 = *(T*)context.Op1->Object_AsPointer.get();
+	T& op2 = *(T*)context.Op2->Object_AsPointer.get();
+	T& out = *(T*)context.OpOut->Object_AsPointer.get();
+	bool& outequal =*(bool*)context.OpOut->Object_AsPointer.get();
+
+	switch (context.type)
+	{
+	case TokenType::plus:
+		out = op1 + op2;
+		break;
+	case TokenType::minus:
+		out = op1 + op2;
+		break;
+	case TokenType::star:
+		out = op1 * op2;
+		break;
+	case TokenType::forwardslash:
+		out = op1 / op2;
+		break;
+	case TokenType::modulo:
+		out = op1 % op2;
+		break;
+	
+	case TokenType::equal:
+		outequal = op1 == op2;
+		break;
+	case TokenType::Notequal_Comparison:
+		outequal = op1 != op2;
+		break;
+	case TokenType::logical_and:
+		outequal = op1 && op2;
+		break;
+	case TokenType::logical_or:
+		outequal = op1 || op2;
+		break;
+	case TokenType::greater_than_or_equalto:
+		outequal = op1 >= op2;
+		break;
+	case TokenType::less_than_or_equalto:
+		outequal = op1 <= op2;
+		break;
+	case TokenType::greaterthan:
+		outequal = op1 > op2;
+		break;
+	case TokenType::lessthan:
+		outequal = op1 < op2;
+		break;
+
+	case TokenType::bitwise_LeftShift:
+		out = op1 << op2;
+		break;	
+	case TokenType::bitwise_RightShift:
+		out = op1 >> op2;
+		break;	
+	case TokenType::bitwise_and:
+		out = op1 && op2;
+		break;
+	case TokenType::bitwise_or:
+		out = op1 || op2;
+		break;
+	default:
+		UCodeLangUnreachable();
+		break;
+	}
+}
 bool SystematicAnalysis::Eval_Evaluate(EvaluatedEx& Out, const BinaryExpressionNode& node)
 {
 	auto Ex0node = node._Value0._Value.get();
 	auto Ex1node = node._Value1._Value.get();
+
+	OnExpressionTypeNode(Ex0node, GetValueMode::Read);//check
+	TypeSymbol Ex0Type = _LastExpressionType;
+	OnExpressionTypeNode(Ex1node, GetValueMode::Read);//check
+	TypeSymbol Ex1Type = _LastExpressionType;
+
+	auto overload = Type_HasBinaryOverLoadWith(Ex0Type, node._BinaryOp->Type, Ex1Type);
+	
+	if (!overload.HasValue) {
+		return false;
+	}
+
+	auto ex0 = Eval_Evaluate(Ex0Type, node._Value0);
+	auto ex1 = Eval_Evaluate(Ex1Type, node._Value1);
+
+	if (!ex0.has_value() && ex1.has_value())
+	{
+		return false;
+	}
+	
+	auto extype0 = ex0.value().Type;
+	auto extype1 = ex1.value().Type;
+
+	auto& exval0 = ex0.value().EvaluatedObject;
+	auto& exval1 = ex1.value().EvaluatedObject;
+	bool sametype = Type_AreTheSame(extype0, extype1);
+		
+	if (sametype)
+	{
+		if (extype0._Type == TypesEnum::Bool)
+		{
+			bool& val0 = *(bool*)exval0.Object_AsPointer.get();
+			bool& val1 = *(bool*)exval1.Object_AsPointer.get();
+		
+			auto outex = Eval_MakeExr(TypesEnum::Bool);
+
+			bool& outval = *(bool*)outex.Object_AsPointer.get();
+			switch (node._BinaryOp->Type)
+			{
+			case TokenType::equal:outval = val0 == val1; break;
+			case TokenType::Notequal_Comparison:outval = val0 != val1; break;
+			default:
+				UCodeLangUnreachable();
+				break;
+			}
+
+			Out.EvaluatedObject = std::move(outex);
+		}
+		else if (Type_IsIntType(extype0))
+		{
+			DoBinaryOpContext context;
+			context.Op1 = &exval0;
+			context.Op2 = &exval1;
+			context.OpOut = &Out.EvaluatedObject;
+			context.type = node._BinaryOp->Type;
+			TypeSymbol maintype = extype0;
+			if (maintype._Type == TypesEnum::uIntPtr)
+			{
+				maintype = Type_GetSize(TypesEnum::uIntPtr).value() == 8
+					? TypeSymbol(TypesEnum::uInt64) : TypeSymbol(TypesEnum::uInt32);
+			}
+			else if (maintype._Type == TypesEnum::sIntPtr)
+			{
+				maintype = Type_GetSize(TypesEnum::sIntPtr).value() == 8
+					? TypeSymbol(TypesEnum::sInt64) : TypeSymbol(TypesEnum::sInt32);
+			}
+
+			switch (maintype._Type)
+			{
+			case TypesEnum::sInt8:DoBinaryIntOp<Int8>(context); break;
+			case TypesEnum::sInt16:DoBinaryIntOp<Int16>(context);break;
+			case TypesEnum::sInt32:DoBinaryIntOp<Int32>(context);break;
+			case TypesEnum::sInt64:DoBinaryIntOp<Int64>(context);break;
+
+			case TypesEnum::uInt8:DoBinaryIntOp<UInt8>(context);break;
+			case TypesEnum::uInt16:DoBinaryIntOp<UInt16>(context);break;
+			case TypesEnum::uInt32:DoBinaryIntOp<UInt32>(context);break;
+			case TypesEnum::uInt64:DoBinaryIntOp<UInt64>(context);break;
+
+
+			default:
+					UCodeLangUnreachable();
+				break;
+			}
+			return true;
+		}
+	}
 
 	return false;
 }
