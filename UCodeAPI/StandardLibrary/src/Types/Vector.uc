@@ -5,6 +5,15 @@ $Vector<T>[Buffer_t<T>] export:
   uintptr _size;
   uintptr _capacity;
  public:
+  export |new<[T]Arg...>[this&,Arg args]:
+   _data = unsafe bitcast<T[&]>(0);
+   _size = 0;
+   _capacity = 0;
+
+   Reserve(args.Count());
+   $for [item : args]:
+     Push(item);
+
   export |new[this&]:
    _data = unsafe bitcast<T[&]>(0);
    _size = 0;

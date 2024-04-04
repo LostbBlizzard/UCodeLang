@@ -1019,6 +1019,10 @@ String SystematicAnalysis::GetImplementationFromFunc(String_view filetext, const
 	{
 		funcstr += "for";
 	}
+	else if (nametoken->Type == TokenType::KeyWord_new)
+	{
+		funcstr += "new";
+	}
 	else
 	{
 		UCodeLangUnreachable();
