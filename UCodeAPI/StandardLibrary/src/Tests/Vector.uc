@@ -59,3 +59,28 @@ Tests:
   var b = List[0];
 
   ret a == 5 && b == 10; 
+  
+ [Test]
+ |Vector_7[]:
+  int r = 0;
+  int[] vals = [];
+  vals.Push(5);
+  vals.Push(10);
+  vals.Push(15);
+  for [item : vals]:r += item;
+
+  ret r == 30;
+
+ [Test]
+ |Vector_8[]:
+  int[] vals = [];
+  vals.Push(5);
+  vals.Push(10);
+  vals.Push(15);
+
+  int r = 0;
+
+  for [i,item : vals]:r += item + (i -> int);
+
+  ret r == 33;
+

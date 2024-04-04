@@ -719,7 +719,7 @@ int SystematicAnalysis::Type_GetCompatibleScore(const IsCompatiblePar& Func, con
 		{
 			if (ValueTypesIndex >= ValueTypes.size() - 1)
 			{
-				auto newindex = i - (ValueTypes.size() - 1);
+				auto newindex = ValueTypesIndex - (ValueTypes.size() - 1);
 
 				parinfo.IsOutPar = false;
 				parinfo.Type = _TypePack.value()[newindex];

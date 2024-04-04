@@ -1275,7 +1275,7 @@ void ParseLine(String_view& Line)
 							AppErr(',');
 						}
 					}
-					AppErr("]\'");
+					AppErrin("]\'");
 				}
 			}
 		}
