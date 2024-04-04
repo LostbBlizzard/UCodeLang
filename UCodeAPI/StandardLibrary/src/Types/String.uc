@@ -1,6 +1,6 @@
 
 
-$StringSpan_t<T> export:
+$StringSpan_t<T>[Buffer_t<T>] export:
  private:
   T[&] _data;
   uintptr _size;
@@ -30,10 +30,6 @@ $StringSpan_t<T> export:
    ret true;
 
   export |!=[imut this&,imut this& Other] => !(this == Other);
-
-  export |AsSpan[this&] -> T[:]:ret unsafe [_data,_size];
-  export |AsSpan[imut this&] -> imut T[:]:ret unsafe [_data,_size];
-
   
   export |ToStr[MySpan& span] -> this: ret unsafe [span.Data(),span.Size()];
   export |ToStr[imut MySpan& span] -> this:ret unsafe [span.Data(),span.Size()];
@@ -49,10 +45,8 @@ $StringSpan_t<T> export:
 
     ret unsafe _data[Index];
 
-  export |[][this&,Range_t<uintptr> Range] -> this:ret ToStr(AsSpan()[Range]);
-  export |[][imut this&,Range_t<uintptr> Range] -> this:ret ToStr(AsSpan()[Range]);
-
-$String_t<T> export:
+ 
+$String_t<T>[Buffer_t<T>] export:
  private: 
   Vector<T> _base;//there's some optimizations we could do but I just need something working
  public:
@@ -118,15 +112,9 @@ $String_t<T> export:
   export |+=[this&, IPar<MyStringSpan> Other] -> void:
    _base.Append(Other.AsSpan());
 
-  export |AsSpan[this&] -> T[:]:ret unsafe [];
-  export |AsSpan[imut this&] -> imut T[:]:ret unsafe [];
-
   export |Str[this&] -> MyStringSpan:ret unsafe [];
   export |Str[imut this&] -> imut MyStringSpan:ret unsafe [];
-
-  export |[][this&,Range_t<uintptr> Range] -> MyStringSpan:ret Str()[Range];
-  export |[][imut this&,Range_t<uintptr> Range] -> imut MyStringSpan:ret Str()[Range]; 
-
+ 
 $String export = String_t<char>;
 $StringSpan export = StringSpan_t<char>;
 
