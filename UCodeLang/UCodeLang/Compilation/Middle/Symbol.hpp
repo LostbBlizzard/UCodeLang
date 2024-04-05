@@ -487,7 +487,7 @@ struct ClassInfo_InheritTypeInfo
 	Vector<FuncIndex> Funcs;
 	Vector<AddedVarInfo> AddedVar;
 };
-
+struct TraitGenericAlias;
 class ClassInfo :public Symbol_Info
 {
 public:
@@ -503,6 +503,7 @@ public:
 	bool SizeInitialized = false;
 
 	Generic _GenericData;
+	Vector<TraitGenericAlias> _GenericAlias;
 
 	ClassInfo()
 	{

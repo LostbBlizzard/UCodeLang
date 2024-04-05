@@ -643,6 +643,22 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 			{
 				Symbol_BuildTrait(&Syb, ClassInf, Item.Syb, NeverNullptr(Node._className.token));
 			}
+		
+			{
+				this->_ClassStack.push({});//the push and pop is dumb fix
+				Class_Data* Ptr = Assembly_GetAssemblyClass(ScopeHelper::ApendedStrings(Syb.FullName, "n/a"));
+				this->_ClassStack.pop();
+
+				Ptr->GenericAlias.reserve(ClassInf->_GenericAlias.size());
+				for (auto& Item : ClassInf->_GenericAlias)
+				{
+					TraitAlias val;
+					val.AliasName = Item.Name;
+					val.Type = Assembly_ConvertToType(Item.Type);
+
+					Ptr->GenericAlias.push_back(std::move(val));
+				}
+			}
 		}
 
 

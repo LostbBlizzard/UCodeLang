@@ -375,6 +375,12 @@ void UClib::ToBytes(BitMaker& Output, const Class_Data& ClassData)
 	{
 		ToBytes(Output, Item2);
 	}
+
+	Output.WriteType((Size_tAsBits)ClassData.GenericAlias.size());
+	for (auto& Item2 : ClassData.GenericAlias)
+	{
+		ToBytes(Output, Item2);
+	}
 }
 void UClib::ToBytes(UCodeLang::BitMaker& Output, const Vector<UsedTagValueData>& Attributes)
 {
@@ -1059,6 +1065,21 @@ void UClib::FromBytes(BitReader& reader, Class_Data& Class)
 		for (size_t i2 = 0; i2 < Size; i2++)
 		{
 			auto& Item2 = Class.InheritedTypes[i2];
+			FromBytes(reader, Item2);
+		}
+	}
+
+	{
+		Size_tAsBits Sizebits = 0;
+		size_t Size;
+
+		reader.ReadType(Sizebits, Sizebits);
+		Size = Sizebits;
+
+		Class.GenericAlias.resize(Size);
+		for (size_t i2 = 0; i2 < Size; i2++)
+		{
+			auto& Item2 = Class.GenericAlias[i2];
 			FromBytes(reader, Item2);
 		}
 	}
