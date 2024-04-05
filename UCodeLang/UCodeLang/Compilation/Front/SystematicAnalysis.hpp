@@ -848,6 +848,7 @@ private:
 	UnorderedMap<SymbolID, UnaryExpression_Data>  _UnaryDatas;
 
 	UnorderedMap<SymbolID, VarableMemberData> _VarableMemberDatas;//Var.$Item
+	UnorderedMap<AssemblyNode*, Symbol*> LibGenericSymbolLoad;
 
 	struct Test
 	{
