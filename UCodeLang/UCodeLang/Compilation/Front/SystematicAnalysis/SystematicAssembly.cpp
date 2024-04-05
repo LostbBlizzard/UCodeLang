@@ -212,7 +212,6 @@ void SystematicAnalysis::Assembly_LoadLibSymbols(const UClib& lib, ImportLibInfo
 			break;
 		}
 	}
-
 	if (Mode == LoadLibMode::GetTypes)
 	{
 		// this feals off
@@ -259,7 +258,17 @@ void SystematicAnalysis::Assembly_LoadLibSymbols(const UClib& lib, ImportLibInfo
 
 				UCodeLangAssert(!_ErrorsOutput->Has_Errors());
 
-				if (GetSymbolsWithName(Item->FullName).size())
+				bool shouldskip = false;
+				{
+					auto list = GetSymbolsWithName(Item->FullName);
+
+					for (auto& Item : list)
+					{
+						//TODO
+
+					}
+				}
+				if (shouldskip)
 				{
 					continue;
 				}
@@ -304,6 +313,7 @@ void SystematicAnalysis::Assembly_LoadLibSymbols(const UClib& lib, ImportLibInfo
 				for (auto& Item2 : list)
 				{
 					Push_ToNodeScope(*Item2.get());
+					auto nextsymindex = _Table.Symbols.size();
 					switch (Item2->Get_Type())
 					{
 					case NodeType::ClassNode:
@@ -331,6 +341,8 @@ void SystematicAnalysis::Assembly_LoadLibSymbols(const UClib& lib, ImportLibInfo
 						UCodeLangUnreachable();
 						break;
 					}
+					auto& sym = _Table.Symbols[nextsymindex];
+					LibGenericSymbolLoad.AddValue(Item, sym.get());
 
 					_PassType = pass;
 
@@ -375,10 +387,10 @@ void SystematicAnalysis::Assembly_LoadLibSymbols(const UClib& lib, ImportLibInfo
 					Export = Item->Get_GenericFunctionData().IsExported;
 				}
 				if (!Export) { continue; }
+				if (!LibGenericSymbolLoad.HasValue(Item)) { continue; }
 
 
-
-				auto Sym = Symbol_GetSymbol(Item->FullName, SymbolType::Any);
+				auto Sym = Nullableptr(LibGenericSymbolLoad.GetValue(Item)); 	
 				UCodeLangAssert(Sym);
 
 				Node* Item2 = (Node*)Sym.value()->NodePtr;
@@ -880,7 +892,7 @@ void SystematicAnalysis::Assembly_LoadTraitSymbol(const Trait_Data& Item, const 
 				Node* node = NodesFromLoadLib.back()->_Nodes[0].get();
 
 				ClassStackInfo info;
-				info.Syb = &Syb;
+				info.Syb = &SybClass;
 
 				_ClassStack.push(info);
 
@@ -892,7 +904,6 @@ void SystematicAnalysis::Assembly_LoadTraitSymbol(const Trait_Data& Item, const 
 
 				funcsyb = _Table.Symbols[Index].get();
 				funcsyb->OutputIR = false;
-				funcsyb->PassState = PassType::BuidCode;
 			}
 			else
 			{
@@ -950,17 +961,10 @@ void SystematicAnalysis::Assembly_LoadTraitSymbol(const Trait_Data& Item, const 
 				item.VarType = Assembly_LoadType(Item.Type);
 			}
 		}
-
 		for (size_t i = 0; i < info->_Funcs.size(); i++)
 		{
 			auto& Item2 = info->_Funcs[i];
-			if (Item2.HasBody)
-			{
-				Node* node = (Node*)Item2.Syb->NodePtr;
-
-				OnFuncNode(*FuncNode::As(node));
-			}
-			else
+			if (!Item2.HasBody)
 			{
 				FuncInfo* finfo = Item2.Syb->Get_Info<FuncInfo>();
 				LoadFuncInfoFixTypes(finfo, Item.Methods[i].method);
@@ -971,6 +975,16 @@ void SystematicAnalysis::Assembly_LoadTraitSymbol(const Trait_Data& Item, const 
 					FuncP.Type._CustomTypeSymbol = info->TraitClassInfo->ID;
 				}
 			}
+		}
+		for (size_t i = 0; i < info->_Funcs.size(); i++)
+		{
+			auto& Item2 = info->_Funcs[i];
+			if (Item2.HasBody)
+			{
+				Node* node = (Node*)Item2.Syb->NodePtr;
+
+				OnFuncNode(*FuncNode::As(node));
+			}	
 		}
 
 		for (auto& Item : info->_Symbols)
