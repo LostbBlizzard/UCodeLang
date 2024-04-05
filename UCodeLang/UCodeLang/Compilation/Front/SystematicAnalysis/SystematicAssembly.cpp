@@ -490,6 +490,13 @@ void SystematicAnalysis::Assembly_LoadClassSymbol(const Class_Data& Item, const 
 		auto& Syb = Symbol_AddSymbol(SymbolType::Type_class, Name, FullName, Item.AccessModifier);
 		_Table.AddSymbolID(Syb, Symbol_GetSymbolID(&Item));
 
+		{
+			for (auto& Item : Item.GenericAlias)
+			{
+				auto& varsyb = Symbol_AddSymbol(SymbolType::Type_alias, Item.AliasName, ScopeHelper::ApendedStrings(FullName, Item.AliasName), AccessModifierType::Private);
+				_Table.AddSymbolID(varsyb, Symbol_GetSymbolID(&Item));
+			}
+		}
 		ClassInfo* Info = new ClassInfo();
 		Syb.Info.reset(Info);
 
@@ -524,6 +531,13 @@ void SystematicAnalysis::Assembly_LoadClassSymbol(const Class_Data& Item, const 
 		auto& Syb = _Table.GetSymbol(Symbol_GetSymbolID(&Item));
 		ClassInfo* Info = Syb.Get_Info<ClassInfo>();
 
+		{
+			for (auto& Item : Item.GenericAlias)
+			{
+				auto& item = _Table.GetSymbol(Symbol_GetSymbolID(&Item));
+				item.VarType = Assembly_LoadType(Item.Type);
+			}
+		}
 		for (size_t i = 0; i < Item.Fields.size(); i++)
 		{
 			const auto& FieldItem = Item.Fields[i];

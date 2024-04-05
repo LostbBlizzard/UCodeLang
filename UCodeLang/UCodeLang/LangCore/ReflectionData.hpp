@@ -272,6 +272,7 @@ enum class ClassType :ClassType_t
 	ForType,
 	NameSpace,
 };
+struct TraitAlias;
 struct Class_Data
 {
 	ReflectionCustomTypeID TypeID = {};
@@ -281,8 +282,8 @@ struct Class_Data
 	UsedTags Attributes;
 	Vector<ClassField> Fields;
 	Vector<ClassMethod> Methods;
-	Vector<InheritedTrait_Data> InheritedTypes;
-		
+	Vector<InheritedTrait_Data> InheritedTypes;	
+	Vector<TraitAlias> GenericAlias;
 	const ClassMethod* Get_ClassInit() const
 	{
 		return Get_ClassMethod(ClassInitializefuncName);
