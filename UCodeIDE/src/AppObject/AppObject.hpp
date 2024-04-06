@@ -271,6 +271,7 @@ private:
 			String StringValue;
 		};
 		Vector<InsData> InsInfo;
+		UnorderedMap<UCodeLang::UAddress, size_t> MapToInsInfoIndex;
 		InsData& GetIns(UCodeLang::UAddress address)
 		{
 			return InsInfo[address];

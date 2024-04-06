@@ -3019,8 +3019,9 @@ void AppObject::ShowUCodeVMWindow()
                     {
                         if (ImGui::BeginTable("split2", 2, ImGuiTableFlags_NoSavedSettings | ImGuiTableFlags_Borders))
                         {
-                            for (auto& Item : windowdata.InsInfo)
+                            for (size_t i = 0; i < min(windowdata.InsInfo.size(),1000); i++)
                             {
+                                auto& Item = windowdata.InsInfo[i];
                                 bool IsOnIns = false;
 
                                 if (Debuger.IsinFunc())
@@ -3065,19 +3066,15 @@ void AppObject::ShowUCodeVMWindow()
 
 void AppObject::ShowCurrentFuncInsList()
 {
-    bool Start = false;
-    for (auto& Item : windowdata.InsInfo)
+    auto startoffunc = Debuger.GetStartofFunc(Debuger.GetCurrentInstruction());
+
+    for (size_t i = startoffunc; i < _RunTimeState.Get_Libs().GetInstructions().size(); i++)
     {
-        bool IsOnIns = Item.InsAddress == Debuger.GetCurrentInstruction();
-
-        if (Start == false)
+        if (windowdata.MapToInsInfoIndex.HasValue(i))
         {
-            Start = Item.InsAddress == Debuger.GetStartofFunc(Debuger.GetCurrentInstruction());
-        }
+            auto& Item = windowdata.InsInfo[windowdata.MapToInsInfoIndex.GetValue(i)];
 
-
-        if (Start)
-        {
+            bool IsOnIns = Item.InsAddress == Debuger.GetCurrentInstruction();
             ImGui::TableNextColumn();
 
 
@@ -3100,13 +3097,11 @@ void AppObject::ShowCurrentFuncInsList()
             }
 
             ImGui::TableNextRow();
-            if (Start)
+
+            auto& ins = _RunTimeState.GetInst(Item.InsAddress);
+            if (ins.OpCode == UCodeLang::InstructionSet::Return)
             {
-                auto& ins = _RunTimeState.GetInst(Item.InsAddress);
-                if (ins.OpCode == UCodeLang::InstructionSet::Return)
-                {
-                    break;
-                }
+                break;
             }
         }
     }
@@ -3118,6 +3113,7 @@ void AppObject::UpdateInsData(UCodeVMWindow& windowdata)
 {
     using namespace UCodeLang::UAssembly;
     windowdata.InsInfo.clear();
+    windowdata.MapToInsInfoIndex.clear();
     auto& RunTime = _RunTimeState;
 
     windowdata.InsInfo.reserve(RunTime.Get_Libs().GetInstructions().size());
@@ -3142,6 +3138,8 @@ void AppObject::UpdateInsData(UCodeVMWindow& windowdata)
         V.StringValue = std::move(Vstr.c_str());
 
         windowdata.InsInfo.push_back(std::move(V));
+
+        windowdata.MapToInsInfoIndex.AddValue(i, windowdata.InsInfo.size());
     }
 }
 
