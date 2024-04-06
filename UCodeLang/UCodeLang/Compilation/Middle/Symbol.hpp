@@ -419,6 +419,7 @@ public:
 	bool IsUnsafe = false;
 	bool IsExternC = false;
 	bool IsRemoved = false;
+	bool IsTraitDynamicDispatch = false;
 	bool IsObjectCall() const
 	{
 		return Pars.size() && (Pars.front().Type.IsAddress() && Pars.front().IsOutPar == false && FrontParIsUnNamed);

@@ -1878,6 +1878,28 @@ void SystematicAnalysis::Type_Convert(const TypeNode& V, TypeSymbol& Out)
 			LogError_DynamicMustBeRrait(V, Out);
 			Out.SetType(TypesEnum::Null);
 		}
+		else
+		{
+			auto Info = Symbol_GetSymbol(Out).value()->Get_Info<TraitInfo>();
+			bool HasDynamicDispatchFunc = false;
+			for (auto& Item : Info->_Funcs)
+			{
+				bool IsDynamic = Item.Syb->Get_Info<FuncInfo>()->IsTraitDynamicDispatch;
+				if (IsDynamic)
+				{
+					HasDynamicDispatchFunc = true;
+					break;
+				}
+			}
+
+			if (HasDynamicDispatchFunc == false)
+			{
+				auto Token = NeverNullptr(V._name._ScopedName.back()._token);
+				LogError(ErrorCodes::InValidType, "Trait cant be dynamic Because has no dynamic Funcions", Token);
+				Out = TypesEnum::Null;
+				return;
+			}
+		}
 		Out._IsDynamic = true;
 	}
 
@@ -2052,8 +2074,8 @@ bool SystematicAnalysis::Type_CanBeImplicitConverted(const TypeSymbol& TypeToChe
 
 
 	if (Type_CanDoTypeToTrait(TypeToCheck, Type))
-	{
-
+	{	
+		
 		if (TypeToCheck.IsAddress() || TypeToCheck._ValueInfo == TypeValueInfo::IsLocation)
 		{
 			return true;

@@ -225,6 +225,7 @@ public:
 	bool IsExternC = false;
 	bool IsRemoved = false;
 	bool IsExport = false;
+	bool IsTraitDynamicDispatch = false;
 	AccessModifierType Protection = AccessModifierType::Default;
 
 	UsedTags Attributes;

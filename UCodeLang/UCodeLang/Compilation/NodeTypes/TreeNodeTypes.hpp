@@ -532,6 +532,7 @@ struct FuncSignatureNode :Node
 
 	bool _IsRemoved = false;
 	bool _IsExport = false;
+	bool _HasDynamicKeyWordForTrait = false;
 };
 struct FuncBodyNode :Node
 {

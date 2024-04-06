@@ -753,17 +753,28 @@ else PrimitiveTypeCall(Uint32TypeName, TypesEnum::uInt32, _IR_LastExpressionFiel
 		auto TraitSyb = Symbol_GetSymbol(TraitType).value();
 		auto TraitAsIR = IR_ConvertToIRType(TraitType);
 
-		auto VPtrMember = _IR_LookingAtIRBlock->New_Member_Dereference(IRParsList.front(), TraitAsIR, 1);
+		auto VPtrMember = _IR_LookingAtIRBlock->New_Member_Dereference(IRParsList.front(), TraitAsIR, DymTraitIRVTableIndex);
 
 
 		TraitInfo* Info = TraitSyb->Get_Info<TraitInfo>();
-		size_t FuncIndex = Info->GetIndex_Func(Func.SymFunc).value();
-
+		
+		size_t FuncIndex = 0;
+		for (auto& Item : Info->_Funcs)
+		{
+			if (Func.SymFunc == Item.Syb)
+			{
+				break;
+			}
+			if (Item.Syb->Get_Info<FuncInfo>()->IsTraitDynamicDispatch)
+			{
+				FuncIndex++;
+			}
+		}
 		auto PtrCall = _IR_LookingAtIRBlock->New_Member_Dereference(VPtrMember, IRType(_IR_Builder.ToID(Str_GetTraitVStructTableName(TraitSyb->FullName))), FuncIndex);
 
 
 
-		IRParsList.front() = _IR_LookingAtIRBlock->New_Member_Dereference(IRParsList.front(), TraitAsIR, 0);
+		IRParsList.front() = _IR_LookingAtIRBlock->New_Member_Dereference(IRParsList.front(), TraitAsIR, DymTraitIRPointerIndex);
 
 		//
 		for (auto& Item : IRParsList)
@@ -3244,6 +3255,17 @@ StartSymbolsLoop:
 					LogError(ErrorCodes::InValidType, "trying to call 'unsafe' function but in safe mode", token);
 					return { };
 				}
+			}
+		}
+
+		if (RValue.ThisPar == Get_FuncInfo::ThisPar_t::PushFromScopedNameDynamicTrait)
+		{
+			auto funcinfo = RValue.SymFunc->Get_Info<FuncInfo>();
+			if (!funcinfo->IsTraitDynamicDispatch)
+			{
+				auto token = NeverNullptr(Name._ScopedName.back()._token);
+				LogError(ErrorCodes::InValidType, "trying to call non 'dynamic' function on dynamic trait", token);
+				return { };
 			}
 		}
 

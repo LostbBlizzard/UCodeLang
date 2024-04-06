@@ -388,6 +388,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 		newInfo->IsExternC = node._Signature.Externtype == ExternType::ExternC
 			|| node._Signature.Externtype == ExternType::ExternSystem;
 		newInfo->IsRemoved = node._Signature._IsRemoved;
+		newInfo->IsTraitDynamicDispatch = node._Signature._HasDynamicKeyWordForTrait;
 
 		syb->Info.reset(newInfo);
 
