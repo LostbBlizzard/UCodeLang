@@ -1066,7 +1066,23 @@ String SystematicAnalysis::IR_MangleName(const FuncInfo* Func)
 
 			if (auto Val = Symbol_GetSymbol(Item.Type).value_unchecked())
 			{
-				V.symbolFullName = Val->FullName;
+				if (Val->Type == SymbolType::Type_Pack)
+				{
+					auto info = Val->Get_Info<TypePackInfo>();
+
+					for (auto& ItemList : info->List) 
+					{
+						NameDecoratior::Par V;
+						V.par.Type = Assembly_ConvertToType(ItemList);
+						V.par.IsOutPar = Item.IsOutPar;
+						Vect.push_back(std::move(V));
+					}
+					continue;
+				}
+				else 
+				{
+					V.symbolFullName = Val->FullName;
+				}
 			}
 			Vect.push_back(std::move(V));
 		}

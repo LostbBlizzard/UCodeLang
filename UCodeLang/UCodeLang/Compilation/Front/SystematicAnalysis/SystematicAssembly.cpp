@@ -1,6 +1,7 @@
 #ifndef UCodeLangNoCompiler
 #include "UCodeLang/Compilation/Front/SystematicAnalysis.hpp"
 #include "UCodeLang/Compilation/Front/Lexer.hpp"
+#include "UCodeLang/Compilation/Helpers/NameDecoratior.hpp"
 UCodeLangFrontStart
 
 void
@@ -1141,37 +1142,37 @@ void SystematicAnalysis::Assembly_LoadSymbol(const ClassMethod& Item, Systematic
 		auto Funcinfo = new FuncInfo();
 		Syb.Info.reset(Funcinfo);
 
-		if (Name == ClassConstructorfunc)
+		if (StringHelper::StartWith(Name,ClassConstructorfunc))
 		{
 			Funcinfo->_FuncType = FuncInfo::FuncType::New;
 		}
-		else if (Name == ClassDestructorFunc)
+		else if (StringHelper::StartWith(Name,ClassDestructorFunc))
 		{
 			Funcinfo->_FuncType = FuncInfo::FuncType::Drop;
 		}
-		else if (Name == Overload_Cast_Func)
+		else if (StringHelper::StartWith(Name,Overload_Cast_Func))
 		{
 			Funcinfo->_FuncType = FuncInfo::FuncType::Cast;
 		}
-		else if (Name == Overload_For_Func)
+		else if (StringHelper::StartWith(Name,Overload_For_Func))
 		{
 			Funcinfo->_FuncType = FuncInfo::FuncType::For;
 		}
-		else if (Name == Overload_Invoke_Func)
+		else if (StringHelper::StartWith(Name,Overload_Invoke_Func))
 		{
 			Funcinfo->_FuncType = FuncInfo::FuncType::Invoke;
 		}
-		else if (Name == Overload_Index_Func)
+		else if (StringHelper::StartWith(Name,Overload_Index_Func))
 		{
 			Funcinfo->_FuncType = FuncInfo::FuncType::Index;
-		}
+		}	
 		else
 		{
 			bool wasset = false;
 			{
 				for (auto& item : Systematic_BinaryOverloadData::data)
 				{
-					if (Name == item.CompilerName)
+					if (StringHelper::StartWith(Name,item.CompilerName))
 					{
 						Funcinfo->_FuncType = item.Type;
 						wasset = true;
@@ -1183,7 +1184,7 @@ void SystematicAnalysis::Assembly_LoadSymbol(const ClassMethod& Item, Systematic
 			{
 				for (auto& item : Systematic_PostfixOverloadData::data)
 				{
-					if (Name == item.CompilerName)
+					if (StringHelper::StartWith(Name,item.CompilerName))
 					{
 						Funcinfo->_FuncType = item.Type;
 						break;
@@ -1194,7 +1195,7 @@ void SystematicAnalysis::Assembly_LoadSymbol(const ClassMethod& Item, Systematic
 			{
 				for (auto& item : Systematic_UrinaryOverloadData::data)
 				{
-					if (Name == item.CompilerName)
+					if (StringHelper::StartWith(Name,item.CompilerName))
 					{
 						Funcinfo->_FuncType = item.Type;
 						break;
@@ -1205,7 +1206,7 @@ void SystematicAnalysis::Assembly_LoadSymbol(const ClassMethod& Item, Systematic
 			{
 				for (auto& item : Systematic_CompoundOverloadData::data)
 				{
-					if (Name == item.CompilerName)
+					if (StringHelper::StartWith(Name,item.CompilerName))
 					{
 						Funcinfo->_FuncType = item.Type;
 						break;
@@ -1216,7 +1217,7 @@ void SystematicAnalysis::Assembly_LoadSymbol(const ClassMethod& Item, Systematic
 			{
 				for (auto& item : Systematic_MemberOverloadData::data)
 				{
-					if (Name == item.CompilerName)
+					if (StringHelper::StartWith(Name,item.CompilerName))
 					{
 						Funcinfo->_FuncType = item.Type;
 						break;
@@ -1240,7 +1241,19 @@ void SystematicAnalysis::Assembly_LoadSymbol(const ClassMethod& Item, Systematic
 
 void SystematicAnalysis::LoadFuncInfoGetTypes(UCodeLang::FrontEnd::FuncInfo* Funcinfo, const UCodeLang::ClassMethod& Item)
 {
-	Funcinfo->FullName = Item.FullName;
+	Funcinfo->FullName = "";
+	for (auto& val : Item.DecorationName)
+	{
+		if (val == NameDecoratior::ParSpit) 
+		{
+			if (StringHelper::Contains(Item.DecorationName, "Vector"))
+			{
+				int a = 0;
+			}
+			break;
+		}
+		Funcinfo->FullName += val;
+	}
 	Funcinfo->FrontParIsUnNamed = Item.IsThisFunction;
 	Funcinfo->IsUnsafe = Item.IsUnsafe;
 	Funcinfo->IsExternC = Item.IsExternC;

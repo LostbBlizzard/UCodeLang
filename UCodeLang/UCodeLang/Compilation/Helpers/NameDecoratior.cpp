@@ -14,7 +14,7 @@ String NameDecoratior::GetDecoratedName(const String_view funcName, const Vector
 
 	if (Pars.size())
 	{
-		r += "^";
+		r += ParSpit;
 		for (auto& Item : Pars)
 		{
 			r += DecoratedNameType(Item);
