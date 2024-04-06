@@ -13,12 +13,12 @@ Tests:
  |StringSpan_3[]:
   ret "Hello" == "Hello";
 
- [SkipedTest]
+ [Test]
  |StringSpan_4[]:
   String Txt = "Hello";
   ret Txt == "Hello";
 
- [SkipedTest]
+ [Test]
  |StringSpan_5[]:
   String Txt = "World";
   ret Txt != "Hello";

@@ -112,8 +112,8 @@ $String_t<T>[Buffer_t<T>] export:
   export |+=[this&, IPar<MyStringSpan> Other] -> void:
    _base.Append(Other.AsSpan());
 
-  export |Str[this&] -> MyStringSpan:ret unsafe [];
-  export |Str[imut this&] -> imut MyStringSpan:ret unsafe [];
+  export |Str[this&] -> MyStringSpan:ret unsafe [Data(),Size()];
+  export |Str[imut this&] -> imut MyStringSpan:ret unsafe [Data(),Size()];
  
 $String export = String_t<char>;
 $StringSpan export = StringSpan_t<char>;
