@@ -182,6 +182,12 @@ void SystematicAnalysis::OnReadVariable(const ReadVariableNode& nod)
 					_IR_LastExpressionField = IR_Build_Member_AsPointer(V);
 					V.Type.SetAsAddress();
 				}
+				else if (LookMove && V.Type.IsMovedType())
+				{
+					_IR_LastExpressionField = IR_Build_Member_GetValue(V);
+					V.Type.SetAsAddress();
+					V.Type._MoveData = MoveData::None;
+				}
 				else if (LookIsAddress == true && AmIsAddress == true)
 				{
 					if (_GetExpressionMode.top() == GetValueMode::ReadAndWrite)
@@ -1368,7 +1374,7 @@ IRInstruction* SystematicAnalysis::IR_Build_Member_GetValue(const GetMemberTypeS
 }
 IRInstruction* SystematicAnalysis::IR_Build_Member_AsPointer(const GetMemberTypeSymbolFromVar_t& In)
 {
-	if (In.Type.IsAddress() || In.Type.IsAddressArray())
+	if (In.Type.IsAddress() || In.Type.IsAddressArray() || In.Type.IsMovedType())
 	{
 		return IR_Build_Member_GetValue(In);
 	}
