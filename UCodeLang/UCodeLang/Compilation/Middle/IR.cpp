@@ -53,15 +53,15 @@ void IRBuilder::Fix_Size(IRStruct* Struct, bool is32mode)
 						}
 
 					}
-					size_t fieldsize = GetSize(Item.Type, is32mode);
-
-					if (fieldsize > CompilerRet)
-					{
-						CompilerRet = fieldsize;
-					}
-
 					Item.Offset = 0;
+				}	
+				size_t fieldsize = GetSize(Item.Type, is32mode);
+
+				if (fieldsize > CompilerRet)
+				{
+					CompilerRet = fieldsize;
 				}
+
 			}
 			Struct->ObjectSize = CompilerRet;
 			Struct->IsSizeSet = true;
