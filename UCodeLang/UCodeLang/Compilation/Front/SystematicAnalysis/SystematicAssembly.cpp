@@ -1256,10 +1256,6 @@ void SystematicAnalysis::LoadFuncInfoGetTypes(UCodeLang::FrontEnd::FuncInfo* Fun
 	{
 		if (val == NameDecoratior::ParSpit) 
 		{
-			if (StringHelper::Contains(Item.DecorationName, "Vector"))
-			{
-				int a = 0;
-			}
 			break;
 		}
 		Funcinfo->FullName += val;
@@ -1268,6 +1264,7 @@ void SystematicAnalysis::LoadFuncInfoGetTypes(UCodeLang::FrontEnd::FuncInfo* Fun
 	Funcinfo->IsUnsafe = Item.IsUnsafe;
 	Funcinfo->IsExternC = Item.IsExternC;
 	Funcinfo->IsRemoved = Item.IsRemoved;
+	Funcinfo->IsTraitDynamicDispatch = Item.IsTraitDynamicDispatch;
 
 	Funcinfo->Pars.resize(Item.ParsType.size());
 }
