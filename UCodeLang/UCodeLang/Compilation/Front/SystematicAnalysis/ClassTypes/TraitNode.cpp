@@ -56,7 +56,7 @@ void SystematicAnalysis::OnTrait(const TraitNode& node)
 		{
 			_Table.AddScope(GenericTestStr);
 		}
-		
+
 		ClassStackInfo classStackInfo;
 		classStackInfo.Syb = &SybClass;
 		classStackInfo.Info = TepClass;
@@ -110,7 +110,7 @@ void SystematicAnalysis::OnTrait(const TraitNode& node)
 			case NodeType::AliasNode:
 			{
 				size_t Index = _Table.Symbols.size();
-				
+
 				AliasNode& funcnode = *AliasNode::As(node.get());
 				OnAliasNode(funcnode);
 
@@ -135,8 +135,17 @@ void SystematicAnalysis::OnTrait(const TraitNode& node)
 			}
 		}
 
-
-		if (!HasDrop)
+		bool hasanyDynamicdispatchFuncions = false;
+		for (auto& item : info->_Funcs)
+		{
+			bool IsDynamicDispatch = item.Syb->Get_Info<FuncInfo>()->IsTraitDynamicDispatch;
+			if (IsDynamicDispatch)
+			{
+				hasanyDynamicdispatchFuncions = true;
+				break;
+			}
+		}
+		if (!HasDrop && hasanyDynamicdispatchFuncions)
 		{
 			String FuncDropFunc = _Table._Scope.ThisScope;
 			ScopeHelper::GetApendedString(FuncDropFunc, ClassDestructorFunc);
@@ -156,6 +165,7 @@ void SystematicAnalysis::OnTrait(const TraitNode& node)
 			Funcinfo->Pars.push_back({ false,FuncPtr });
 			Funcinfo->Ret = TypesEnum::Void;
 			Funcinfo->FrontParIsUnNamed = true;
+			Funcinfo->IsTraitDynamicDispatch = true;
 
 			_Func.HasBody = false;
 			info->_Funcs.push_back(_Func);
@@ -288,7 +298,7 @@ void SystematicAnalysis::OnTrait(const TraitNode& node)
 		if (Isgeneric_t)
 		{
 			TraitInfo* info = Syb.Get_Info<TraitInfo>();
-			
+
 			String_view Text = _LookingAtFile->FileText;
 
 			String ClassStr = "$";
@@ -317,21 +327,37 @@ void SystematicAnalysis::OnTrait(const TraitNode& node)
 		{
 			//
 			TraitInfo* info = Syb.Get_Info<TraitInfo>();
-			auto StructVtablueClass = _IR_Builder.NewStruct(_IR_Builder.ToID(Str_GetTraitVStructTableName(Syb.FullName)));
-
-			for (auto& Item : info->_Funcs)
+			bool hasanyDynamicdispatchFuncions = false;
+			for (auto& item : info->_Funcs)
 			{
-				FuncInfo* ItemInfo = Item.Syb->Get_Info<FuncInfo>();
-				auto StrFunc = GetTepFuncPtrName(ItemInfo);
-				auto PtrFunc = GetTepFuncPtrSyb(StrFunc, ItemInfo).value();
-				PtrFunc->FullName = StrFunc;
-				TypeSymbol PtrType = PtrFunc->ID;
+				bool IsDynamicDispatch = item.Syb->Get_Info<FuncInfo>()->IsTraitDynamicDispatch;
+				if (IsDynamicDispatch)
+				{
+					hasanyDynamicdispatchFuncions = true;
+					break;
+				}
+			}
+			if (hasanyDynamicdispatchFuncions)
+			{
+				auto StructVtablueClass = _IR_Builder.NewStruct(_IR_Builder.ToID(Str_GetTraitVStructTableName(Syb.FullName)));
 
-				auto IRType = IR_ConvertToIRType(PtrType);
+				for (auto& Item : info->_Funcs)
+				{
+					FuncInfo* ItemInfo = Item.Syb->Get_Info<FuncInfo>();
+					if (ItemInfo->IsTraitDynamicDispatch)
+					{
+						auto StrFunc = GetTepFuncPtrName(ItemInfo);
+						auto PtrFunc = GetTepFuncPtrSyb(StrFunc, ItemInfo).value();
+						PtrFunc->FullName = StrFunc;
+						TypeSymbol PtrType = PtrFunc->ID;
 
-				IRStructField V;
-				V.Type = IRType;
-				StructVtablueClass->Fields.push_back(V);
+						auto IRType = IR_ConvertToIRType(PtrType);
+
+						IRStructField V;
+						V.Type = IRType;
+						StructVtablueClass->Fields.push_back(V);
+					}
+				}
 			}
 
 
@@ -366,6 +392,7 @@ void SystematicAnalysis::OnTrait(const TraitNode& node)
 				method.method.IsUnsafe = funcinfo->IsUnsafe;
 				method.method.IsRemoved = funcinfo->IsRemoved;
 				method.method.IsExternC = funcinfo->IsExternC;
+				method.method.IsTraitDynamicDispatch = funcinfo->IsTraitDynamicDispatch;
 				method.method.RetType = Assembly_ConvertToType(funcinfo->Ret);
 
 				bool isexport = true;
@@ -462,7 +489,7 @@ void SystematicAnalysis::OnTrait(const TraitNode& node)
 
 				TraitData.Symbols.push_back(std::move(method));
 			}
-		
+
 			TraitData.GenericAlias.reserve(info->_GenericAlias.size());
 			for (auto& Item : info->_GenericAlias)
 			{
@@ -472,7 +499,7 @@ void SystematicAnalysis::OnTrait(const TraitNode& node)
 
 				TraitData.GenericAlias.push_back(std::move(val));
 			}
-}
+		}
 	}
 
 	Syb.PassState = _PassType;
@@ -776,7 +803,20 @@ void SystematicAnalysis::Symbol_BuildTrait(const NeverNullPtr<Symbol> Syb, Class
 
 		UCodeLangAssert(IDSyb.Syb->PassState == PassType::BuidCode);
 	}
+	auto& symbol = IDSyb.Syb;
+	auto info = symbol->Get_Info<TraitInfo>();
+	bool hasanyDynamicdispatchFuncions = false;
+	for (auto& item : info->_Funcs)
+	{
+		bool IsDynamicDispatch = item.Syb->Get_Info<FuncInfo>()->IsTraitDynamicDispatch;
+		if (IsDynamicDispatch)
+		{
+			hasanyDynamicdispatchFuncions = true;
+			break;
+		}
 
+	}
+	if (hasanyDynamicdispatchFuncions)
 	{
 		String VTableName = Str_GetClassWithTraitVTableName(Syb->FullName, Trait->FullName);
 		auto StaticVarableToID = _IR_Builder.ToID(VTableName);
@@ -802,15 +842,21 @@ void SystematicAnalysis::Symbol_BuildTrait(const NeverNullPtr<Symbol> Syb, Class
 		//
 
 		auto Ptr = _IR_LookingAtIRBlock->NewLoadPtr(StaticVarableToID);
+		size_t StaticVarMemberIndex = 0;
 		for (size_t i = 0; i < IDSyb.Funcs.size(); i++)
 		{
 			auto& Item = IDSyb.Funcs[i];
 
-
 			Symbol* Func = Item.Type == ClassInfo_InheritTypeInfo::FuncType::Added ? IDSyb.AddedFuncs[Item.Index].Func : IDSyb.OverLoadedFuncs[Item.Index].Func;
 
-			auto Member = _IR_LookingAtIRBlock->New_Member_Dereference(Ptr, StaticVarableType, i);
-			_IR_LookingAtIRBlock->NewStore(Member, _IR_LookingAtIRBlock->NewLoadFuncPtr(IR_GetIRID(Func->Get_Info<FuncInfo>())));
+			bool IsDynamicDispatch = info->_Funcs[i].Syb->Get_Info<FuncInfo>()->IsTraitDynamicDispatch;
+
+			if (IsDynamicDispatch)
+			{
+				auto Member = _IR_LookingAtIRBlock->New_Member_Dereference(Ptr, StaticVarableType, StaticVarMemberIndex);
+				_IR_LookingAtIRBlock->NewStore(Member, _IR_LookingAtIRBlock->NewLoadFuncPtr(IR_GetIRID(Func->Get_Info<FuncInfo>())));
+				StaticVarMemberIndex++;
+			}
 		}
 		//
 		_IR_LookingAtIRFunc = oldIRFunc;
@@ -840,7 +886,7 @@ bool SystematicAnalysis::Type_CanDoTypeToTrait(const TypeSymbol& TypeToCheck, co
 				auto Indexo = ClassF->Get_InheritedTypesIndex(SymbolB.value());
 
 				if (Indexo.has_value())
-				{
+				{	
 					return true;
 				}
 			}

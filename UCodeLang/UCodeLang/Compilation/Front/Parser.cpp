@@ -1011,6 +1011,13 @@ GotNodeType Parser::GetFuncSignatureNode(FuncSignatureNode& out)
 		funcToken = TryGetToken();
 	}
 
+	if (funcToken->Type == TokenType::KeyWord_dynamic)
+	{
+		out._HasDynamicKeyWordForTrait = true;
+		NextToken();
+		funcToken = TryGetToken();
+	}
+
 	if (funcToken->Type == TokenType::KeyWord_unsafe)
 	{
 		out._HasUnsafeKeyWord = true;
@@ -4131,6 +4138,36 @@ GotNodeType Parser::DoTraitType(TraitNode* output, const Token* ClassToken, Gene
 		auto T = TryGetToken();
 
 		TryGetNode V;
+
+		if (T->Type == TokenType::KeyWord_dynamic)
+		{
+
+			auto i = _TokenIndex;
+
+			NextToken();
+			if (TryGetToken()->Type == Parser::declareFunc)
+			{
+				_TokenIndex = i;
+				V = GetFuncNode();
+				if (T->Type != TokenType::Left_Bracket)
+				{
+					AttributeCheck();
+				}
+				else
+				{
+					continue;
+				}
+				if (V.Node)
+				{
+					output->_Nodes.push_back(Unique_ptr<Node>(V.Node));
+				}
+				continue;
+			}
+			else
+			{
+				_TokenIndex = i;
+			}
+		}
 
 		switch (T->Type)
 		{
