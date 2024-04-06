@@ -896,6 +896,15 @@ void SystematicAnalysis::Assembly_LoadTraitSymbol(const Trait_Data& Item, const 
 					}
 					Symbol* funcSyb = _Table.Symbols[Index].get();
 					enumInfo->_Symbols.push_back(funcSyb);
+
+
+					size_t EndIndex = _Table.Symbols.size();
+					for (size_t i = Index; i < EndIndex; i++)
+					{
+						Symbol* funcSyb = _Table.Symbols[i].get();
+
+						funcSyb->OutputIR = false;
+					}
 				}
 			}
 		}
@@ -1054,7 +1063,7 @@ void SystematicAnalysis::Assembly_LoadTraitSymbol(const Trait_Data& Item, const 
 
 		_ClassStack.pop();
 		//
-
+		/*
 		auto StructVtablueClass = _IR_Builder.NewStruct(_IR_Builder.ToID(Str_GetTraitVStructTableName(Syb.FullName)));
 
 		for (auto& Item : info->_Funcs)
@@ -1071,6 +1080,7 @@ void SystematicAnalysis::Assembly_LoadTraitSymbol(const Trait_Data& Item, const 
 			V.Type = IRType;
 			StructVtablueClass->Fields.push_back(V);
 		}
+		*/
 
 		_PassType = oldpasstype;
 	}

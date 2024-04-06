@@ -897,9 +897,18 @@ IRidentifierID SystematicAnalysis::IR_Build_ConvertToIRClassIR(const Symbol& Cla
 	{
 		return _Symbol_SybToIRMap.GetValue(ClassSybID);
 	}
+	
 	const ClassInfo* clasinfo = Class.Get_Info < ClassInfo>();
 
 	IRidentifierID V = _IR_Builder.ToID(Class.FullName);
+	for (auto& Item : _IR_Builder._Symbols)
+	{
+		if (Item->identifier == V)
+		{
+			_Symbol_SybToIRMap.AddValue(ClassSybID,V);
+			return V;
+		}
+	}
 
 	auto IRStuct = _IR_Builder.NewStruct(V);
 
@@ -935,7 +944,14 @@ IRidentifierID SystematicAnalysis::IR_Build_ConvertToStaticArray(const Symbol& C
 	}
 
 	IRidentifierID V = _IR_Builder.ToID(Class.FullName);
-
+	for (auto& Item : _IR_Builder._Symbols)
+	{
+		if (Item->identifier == V)
+		{
+			_Symbol_SybToIRMap.AddValue(ClassSybID,V);
+			return V;
+		}
+	}
 
 	auto IRStuct = _IR_Builder.NewStaticArray(V, IR_ConvertToIRType(clasinfo->Type), clasinfo->Count);
 
@@ -1051,6 +1067,14 @@ IRidentifierID SystematicAnalysis::IR_Build_ConveToIRVariantEnum(const Symbol& E
 
 
 		IRidentifierID V = _IR_Builder.ToID(Enum.FullName);
+		for (auto& Item : _IR_Builder._Symbols)
+		{
+			if (Item->identifier == V)
+			{
+				_Symbol_SybToIRMap.AddValue(ClassSybID, V);
+				return V;
+			}
+		}
 		auto IRStuct = _IR_Builder.NewStruct(V);
 
 
@@ -1181,6 +1205,15 @@ IRType SystematicAnalysis::IR_ConvertToIRType(const TypeSymbol& Value)
 			{
 				FuncPtrInfo* V = syb.Get_Info<FuncPtrInfo>();
 				IRidentifierID IRid = _IR_Builder.ToID(syb.FullName);
+				for (auto& Item : _IR_Builder._Symbols)
+				{
+					if (Item->identifier == IRid)
+					{
+						_Symbol_SybToIRMap.AddValue(syb.ID, IRid);
+						r = IRType(IRid);
+						return r;
+					}
+				}
 				IRType r = IRType(IRid);
 				auto tep = _IR_Builder.NewFuncPtr(_IR_Builder.ToID(syb.FullName), IR_ConvertToIRType(V->Ret));
 
@@ -1220,6 +1253,15 @@ IRType SystematicAnalysis::IR_ConvertToIRType(const TypeSymbol& Value)
 				String DynSybName = "Dynamic" + syb.FullName;
 
 				IRidentifierID IRid = _IR_Builder.ToID(DynSybName);
+				for (auto& Item : _IR_Builder._Symbols)
+				{
+					if (Item->identifier == IRid)
+					{
+						_Symbol_SybToIRMap.AddValue(syb.ID, IRid);
+						r = IRType(IRid);
+						return r;
+					}
+				}
 				auto StructIR = _IR_Builder.NewStruct(IRid);
 
 				{
