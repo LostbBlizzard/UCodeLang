@@ -451,6 +451,7 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 					V2.IsExternC = Funcinfo->IsExternC;
 					V2.IsUnsafe = Funcinfo->IsUnsafe;
 					V2.IsRemoved = Funcinfo->IsRemoved;
+					V2.IsExport = true;
 
 					for (size_t i = 0; i < Funcinfo->Pars.size(); i++)
 					{
@@ -518,6 +519,7 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 					V2.IsExternC = Funcinfo->IsExternC;
 					V2.IsUnsafe = Funcinfo->IsUnsafe;
 					V2.IsRemoved = Funcinfo->IsRemoved;
+					V2.IsExport = true;
 
 					for (size_t i = 0; i < Funcinfo->Pars.size(); i++)
 					{
@@ -594,6 +596,7 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 					V2.IsExternC = V.IsExternC;
 					V2.IsUnsafe = V.IsUnsafe;
 					V2.IsRemoved = V.IsRemoved;
+					V2.IsExport = true;
 
 					for (size_t i = 0; i < V.Pars.size(); i++)
 					{
@@ -626,6 +629,7 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 				V2.DecorationName = funcName;
 				V2.RetType = ReflectionTypes::Void;
 				V2.IsThisFunction = true;
+				V2.IsExport = true;
 
 				ClassMethod::Par p;
 				p.Type = Assembly_ConvertToType(TypeSymbol(Syb.ID));
