@@ -3227,6 +3227,7 @@ String SystematicAnalysis::ToString(SymbolType Value) const
 	case SymbolType::Type_class:return "Type Class";
 	case SymbolType::Class_Field:return "Class Field";
 	case SymbolType::Enum:return "Enum";
+	case SymbolType::Enum_Field:return "Enum Field";
 	case SymbolType::Func:return "Func";
 	case SymbolType::ImportedDllFunc:return "ImportedDllFunc";
 	case SymbolType::ImportedLibFunc:return "ImportedLibFunc";

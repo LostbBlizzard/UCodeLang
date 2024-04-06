@@ -517,7 +517,8 @@ else PrimitiveTypeCall(Uint32TypeName, TypesEnum::uInt32, _IR_LastExpressionFiel
 			else if (Func.ThisPar == Get_FuncInfo::ThisPar_t::OnIRlocationStack)
 			{
 
-				bool UseedTopIR = _IR_IRlocations.size() != 0 && _IR_IRlocations.top().UsedlocationIR == false;
+				bool UseedTopIR = _IR_IRlocations.size() != 0 && _IR_IRlocations.top().UsedlocationIR == true;
+				bool makenew = false;
 				if (UseedTopIR)
 				{
 					auto Type = Func.Func->Pars[0];
@@ -528,11 +529,11 @@ else PrimitiveTypeCall(Uint32TypeName, TypesEnum::uInt32, _IR_LastExpressionFiel
 
 					if (v._symbol.ID != _IR_IRlocations.top().Value->ObjectType._symbol.ID)
 					{
-						UseedTopIR = false;
+						makenew = true;
 					}
 				}
 
-				if (!UseedTopIR)
+				if (UseedTopIR || makenew || _IR_IRlocations.size() == 0)
 				{
 					IRLocation_Cotr tep;
 					tep.UsedlocationIR = false;
@@ -550,8 +551,8 @@ else PrimitiveTypeCall(Uint32TypeName, TypesEnum::uInt32, _IR_LastExpressionFiel
 				{
 					PushIRStackRet = _IR_IRlocations.top().Value;
 
+					UCodeLangAssert(_IR_IRlocations.top().UsedlocationIR == false);
 				}
-
 
 
 				{
@@ -560,7 +561,7 @@ else PrimitiveTypeCall(Uint32TypeName, TypesEnum::uInt32, _IR_LastExpressionFiel
 					IRParsList.push_back(Defe);
 				}
 
-				if (!UseedTopIR)
+				if (UseedTopIR)
 				{
 					_IR_IRlocations.pop();
 				}
@@ -568,8 +569,8 @@ else PrimitiveTypeCall(Uint32TypeName, TypesEnum::uInt32, _IR_LastExpressionFiel
 			}
 			else if (Func.ThisPar == Get_FuncInfo::ThisPar_t::OnIRlocationStackNonedef)
 			{
-				bool UseedTopIR = _IR_IRlocations.size() != 0 && _IR_IRlocations.top().UsedlocationIR == false;
-				if (!UseedTopIR)
+				bool UseedTopIR = _IR_IRlocations.size() != 0 && _IR_IRlocations.top().UsedlocationIR == true;
+				if (UseedTopIR || _IR_IRlocations.size() == 0)
 				{
 					IRLocation_Cotr tep;
 					tep.UsedlocationIR = false;
@@ -586,11 +587,12 @@ else PrimitiveTypeCall(Uint32TypeName, TypesEnum::uInt32, _IR_LastExpressionFiel
 				}
 
 				{
+					UCodeLangAssert(_IR_IRlocations.top().UsedlocationIR == false);
 					IRParsList.push_back(_IR_IRlocations.top().Value);
 					_IR_IRlocations.top().UsedlocationIR = true;
 				}
 
-				if (!UseedTopIR)
+				if (UseedTopIR)
 				{
 					_IR_IRlocations.pop();
 				}
