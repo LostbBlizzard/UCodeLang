@@ -652,6 +652,7 @@ void SystematicAnalysis::Assembly_LoadEnumSymbol(const Enum_Data& Item, const St
 									Seter.TypeToFix = &VariantItem.Types[ix];
 									_Lib_TypesToFix.push_back(Seter);
 								}
+								VariantItem.ClassSymbol = Sym->ID;
 							}
 							else
 							{
