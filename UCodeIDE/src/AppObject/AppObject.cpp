@@ -3068,7 +3068,7 @@ void AppObject::ShowCurrentFuncInsList()
 {
     auto startoffunc = Debuger.GetStartofFunc(Debuger.GetCurrentInstruction());
 
-    for (size_t i = startoffunc; i < _RunTimeState.Get_Libs().GetInstructions().size(); i++)
+    for (size_t i = startoffunc - 1; i < _RunTimeState.Get_Libs().GetInstructions().size(); i++)
     {
         if (windowdata.MapToInsInfoIndex.HasValue(i))
         {

@@ -550,10 +550,33 @@ void SystematicAnalysis::Assembly_LoadClassSymbol(const Class_Data& Item, const 
 			FieldSyb->VarType = InfoItem.Type;
 		}
 	}
+	
+	auto& Syb = _Table.GetSymbol(Symbol_GetSymbolID(&Item));
+	ClassInfo* Info = Syb.Get_Info<ClassInfo>();
+
 
 	for (auto& Item : Item.Methods)
 	{
+		auto nextsymindex = _Table.Symbols.size();
 		Assembly_LoadSymbol(Item, Mode);
+
+		if (Mode == LoadLibMode::GetTypes && Item.IsExport) 
+		{
+			auto& sym = _Table.Symbols[nextsymindex];
+			auto finfo = sym->Get_Info<FuncInfo>();
+			
+			if (finfo->FrontParIsUnNamed)
+			{	
+				if (finfo->Pars.size() == 1)
+				{
+					if (finfo->Get_Name() == ClassDestructorFunc)
+					{
+						Info->_WillHaveFielddeInit = true;
+					}
+				}
+			}
+
+		}
 	}
 
 	_Table._Scope = std::move(TepScope);
