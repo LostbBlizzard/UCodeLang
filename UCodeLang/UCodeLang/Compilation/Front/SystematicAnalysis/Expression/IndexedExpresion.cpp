@@ -353,6 +353,13 @@ void SystematicAnalysis::OnExpressionNode(const IndexedExpresionNode& node)
 			{
 				bool LookCopyByValue = _LookingForTypes.top().IsAddress()
 					|| _LookingForTypes.top().IsAddressArray();
+				if (LookCopyByValue == false)
+				{
+					if (_LookingForTypes.top().IsMovedType() && HasMoveContructerHasIRFunc(_LastExpressionType))
+					{
+						LookCopyByValue = true;
+					}
+				}
 
 				if (LookCopyByValue == false)
 				{
@@ -361,10 +368,14 @@ void SystematicAnalysis::OnExpressionNode(const IndexedExpresionNode& node)
 
 					if (CopyByValue || !IsWrite(_GetExpressionMode.top()))
 					{
+						auto v = _LookingForTypes.top();
+						v._MoveData = MoveData::None;
+
 						_IR_LastExpressionField = _IR_LookingAtIRBlock->NewLoad_Dereferenc(_IR_LastExpressionField
-							, IR_ConvertToIRType(_LookingForTypes.top()));
+							, IR_ConvertToIRType(v));
 
 						_LastExpressionType._IsAddress = false;
+						_LastExpressionType._MoveData = MoveData::None;
 					}
 				}
 				

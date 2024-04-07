@@ -591,8 +591,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 				auto& Classinfo = _ClassStack.top().Info;
 				auto classsybid = _ClassStack.top().Syb->ID;
 				auto& OtherPar = Info->Pars[1];
-				if (OtherPar.Type.IsAddress() && OtherPar.IsOutPar == false
-					&& OtherPar.Type._CustomTypeSymbol == classsybid)
+				if (OtherPar.IsOutPar == false && OtherPar.Type._CustomTypeSymbol == classsybid)
 				{
 					if (OtherPar.Type.IsMovedType())
 					{
@@ -601,7 +600,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 					}
 					else
 					{
-						if (!OtherPar.Type.Isimmutable())
+						if (!OtherPar.Type.Isimmutable() && OtherPar.Type.IsAddress())
 						{
 							auto ParToken = node._Signature._Parameters._Parameters[1]._Name.token;
 							LogError(ErrorCodes::InValidType,
