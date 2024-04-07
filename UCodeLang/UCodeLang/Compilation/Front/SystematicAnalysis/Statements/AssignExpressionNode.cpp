@@ -74,15 +74,27 @@ void SystematicAnalysis::OnAssignExpressionNode(const AssignExpressionNode& node
 
 		
 
-			
-
 		auto implictype = Type_AreTheSameWithOutMoveAndimmutable(ExpressionType, AssignType.Op1) ? AssignType.Op0 : AssignType.Op1;
 
-		IR_Build_ImplicitConversion(ExIR, ExpressionType, implictype);
+		bool domove_ctor = false;
+		bool ismoved = implictype.IsMovedType();
+		
+		TypeSymbol NewvalEx;
+		NewvalEx = ExpressionType;
+		if (implictype.IsMovedType() && HasMoveContructerHasIRFunc(ExpressionType))
+		{
+			implictype._MoveData = MoveData::None;
+			NewvalEx._MoveData = MoveData::None;
+			NewvalEx._ValueInfo = TypeValueInfo::IsValue;//seting this stops the move in ImplicitConversio 
+
+			domove_ctor = true;
+		}
+
+		IR_Build_ImplicitConversion(ExIR, NewvalEx, implictype);
 		ExIR = _IR_LastExpressionField;
 
 		auto t = AssignType.Op1;
-		if (Symbol_HasDestructor(AssignType.Op1))
+		if (Symbol_HasDestructor(AssignType.Op1) || domove_ctor)
 		{
 			t.SetAsAddress();
 		}
@@ -118,6 +130,11 @@ void SystematicAnalysis::OnAssignExpressionNode(const AssignExpressionNode& node
 				break;
 			}
 
+			if (domove_ctor)
+			{
+				AssignExType._IsAddress = false;
+			}
+
 			dropinfo._Operator = obj;
 			dropinfo.Type = AssignExType;
 
@@ -140,7 +157,34 @@ void SystematicAnalysis::OnAssignExpressionNode(const AssignExpressionNode& node
 			}
 		}
 
-		if (node._ReassignAddress)
+		if (domove_ctor) 
+		{
+			Symbol* move_ctor_sym = nullptr;
+			auto symop = Symbol_GetSymbol(ExpressionType);
+			auto sym = symop.value();
+			switch (sym->Type)
+			{
+			case SymbolType::Type_class:
+			{
+				move_ctor_sym = Symbol_GetSymbol(sym->Get_Info<ClassInfo>()->_ClassHasMoveConstructor.value()).value();
+			}
+			break;
+			default:
+				UCodeLangUnreachable();
+				break;
+			}
+
+			FuncInfo* move_ctor = move_ctor_sym->Get_Info<FuncInfo>();
+
+			auto par0 = AssignIR;
+			auto par1 = ExIR;
+
+			_IR_LookingAtIRBlock->NewPushParameter(par0);
+			_IR_LookingAtIRBlock->NewPushParameter(par1);
+
+			_IR_LookingAtIRBlock->NewCall(IR_GetIRID(move_ctor));
+		}
+		else if (node._ReassignAddress)
 		{
 			IR_WriteTo(ExIR, _IR_LastStoreField);
 		}
