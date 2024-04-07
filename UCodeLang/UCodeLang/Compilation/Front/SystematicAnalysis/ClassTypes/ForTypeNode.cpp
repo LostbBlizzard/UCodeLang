@@ -36,7 +36,7 @@ void SystematicAnalysis::OnForTypeNode(const ForTypeNode& node)
 		Sym.Info.reset(info);
 
 		info->Context = Save_SymbolContext();
-
+		info->Context.value().Scope.ReMoveScope();
 		Sym.PassState = _PassType;
 
 		Generic_InitGenericalias(node._generic, IsgenericInstantiation, info->_GenericData);
@@ -58,6 +58,11 @@ void SystematicAnalysis::OnForTypeNode(const ForTypeNode& node)
 			}
 
 			auto sym = Symbol_GetSymbol(SymID);
+			if (sym->PassState != PassType::GetTypes)
+			{
+				_Table.RemoveScope();
+				return;
+			}
 			sym->PassState = PassType::FixedTypes;
 			sym->VarType = type;
 

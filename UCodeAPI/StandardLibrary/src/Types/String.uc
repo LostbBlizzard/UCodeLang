@@ -5,7 +5,6 @@ $StringSpan_t<T>[Buffer_t<T>] export:
   T[&] _data;
   uintptr _size;
  public: 
-  $MyString = String_t<T>;
   $MySpan = Span<T>;
   
   export |new[this&]:
@@ -29,14 +28,7 @@ $StringSpan_t<T>[Buffer_t<T>] export:
 
    ret true;
 
-  export |!=[imut this&,imut this& Other] => !(this == Other);
-
-  export |+[imut this&,imut MyString& Other] => this + Other.Str();
-  export |+[imut this&,imut this& Other]:
-   MyString r = this;
-   r += Other;
-   ret r;
-   
+  export |!=[imut this&,imut this& Other] => !(this == Other);   
   
   export |ToStr[MySpan& span] -> this: ret unsafe [span.Data(),span.Size()];
   export |ToStr[imut MySpan& span] -> this:ret unsafe [span.Data(),span.Size()];
@@ -133,3 +125,12 @@ $String16Span export = StringSpan_t<utf16>;
 
 $String32 export = String_t<utf32>;
 $String32Span export= StringSpan_t<utf32>;
+
+
+$for<T> StringSpan_t<T>:
+  export |+[imut this&,imut String_t<T>& Other] => this + Other.Str();
+  export |+[imut this&,imut this& Other]:
+   String_t<T> r = this;
+   r += Other;
+   ret r;
+

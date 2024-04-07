@@ -1237,6 +1237,10 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 		if (auto maintypesym = Symbol_GetSymbol(maintype).value_unchecked())
 		{
 			String mytypestr = ToString(maintype);
+			if (StringHelper::StartWith(mytypestr, "imut"))
+			{
+				mytypestr = mytypestr.substr(sizeof("imut"));
+			}
 
 			for (auto& Item : fortypeSyms)
 			{
@@ -1275,6 +1279,30 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 
 					if (StringHelper::Contains(mytypestr, GennericName))
 					{
+						{
+							auto copy = mytypestr;
+							Vector<String> list;
+							while (copy.size())
+							{
+								list.push_back(ScopeHelper::GetNameFromFullName(copy));
+								ScopeHelper::ReMoveScope(copy);
+							}
+
+							bool isgood = false;
+							for (auto& Item : list)
+							{
+								if (Item == mytypestr)
+								{
+									isgood = true;
+									break;
+								}
+							}
+							
+							if (!isgood)
+							{
+								continue;
+							}
+						}
 						NullablePtr<Symbol> forgeneric;
 						NullablePtr<Symbol> FindSym;
 						{
@@ -1330,7 +1358,7 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 
 										if (gwnericcount == 0)
 										{
-											scope = scope.substr(0, scope.size() - i);
+											scope = scope.substr(0,i);
 											break;
 										}
 									}
@@ -1342,7 +1370,7 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 
 								}
 							}
-
+							
 							mytypebasesymbol = Symbol_GetSymbol(scope, SymbolType::Type).value();
 						}
 
