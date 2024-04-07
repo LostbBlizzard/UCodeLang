@@ -26,7 +26,7 @@ Tests:
  [Test]
  |StringSpan_6[]:
   String Txt = "Hello";
-  hi += " World";
+  Txt += " World";
   ret Txt == "Hello World";
  
  [Test]

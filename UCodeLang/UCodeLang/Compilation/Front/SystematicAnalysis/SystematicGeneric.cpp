@@ -450,7 +450,7 @@ void SystematicAnalysis::Generic_TypeInstantiate_ForType(const NeverNullPtr<Symb
 
 		auto& addedSymbol = *_Table.Symbols[NewSymbolIndex].get();
 
-		UCodeLangAssert(addedSymbol.FullName == NewName);
+		UCodeLangAssert(addedSymbol.FullName == FullName);
 		UCodeLangAssert(addedSymbol.Type == SymbolType::ForType);
 		UCodeLangAssert(addedSymbol.PassState == PassType::GetTypes);
 
