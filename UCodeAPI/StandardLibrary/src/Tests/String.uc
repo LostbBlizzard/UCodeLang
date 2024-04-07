@@ -22,3 +22,20 @@ Tests:
  |StringSpan_5[]:
   String Txt = "World";
   ret Txt != "Hello";
+ 
+ [Test]
+ |StringSpan_6[]:
+  String Txt = "Hello";
+  hi += " World";
+  ret Txt == "Hello World";
+ 
+ [Test]
+ |StringSpan_7[]:
+  var Txt = "Hello" + " World";
+  ret Txt == "Hello World";
+
+ [Test]
+ |StringSpan_8[]:
+  String v = " World";
+  var Txt = "Hello" + v;
+  ret Txt == "Hello World";
