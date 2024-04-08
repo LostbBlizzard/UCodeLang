@@ -109,17 +109,49 @@ void SystematicAnalysis::OnForTypeNode(const ForTypeNode& node)
 
 			Vector<ClassMethod> methods;
 			methods.reserve(node._Nodes.size());
+
+			ClassStackInfo info;
+			info.Syb = Symbol_GetSymbol(sym->VarType).value_unchecked();
+
+
+
+			_ClassStack.push(info);
 			for (auto& Item : node._Nodes)
 			{
 				OnFuncNode(*Item);
+				
+				auto t = Item->_Signature._Name.token;
+				
+				auto FullName = _Table._Scope.ThisScope;
+					switch (t->Type)
+					{
+					case TokenType::Name:
+					{
+						ScopeHelper::GetApendedString(FullName, t->Value._String);
+					}
+					break;
+					case TokenType::plus:
+					{
+						ScopeHelper::GetApendedString(FullName, Overload_Plus_Func);
+					}
+					break;
+					case TokenType::CompoundAdd:
+					{
+						ScopeHelper::GetApendedString(FullName, Overload_Compoundplus_Func);
+					}
+					break;
+					default:
+						UCodeLangUnreachable();
+						break;
+					}
 
-				auto FullName = _Table._Scope.ThisScope + (String)Item->_Signature._Name.token->Value._String;
 				Class_Data* Ptr = Assembly_GetAssemblyClass(RemoveSymboolFuncOverloadMangling(FullName));
 
 				auto last = std::move(Ptr->Methods.back());
 				Ptr->Methods.pop_back();
 				methods.push_back(std::move(last));
 			}
+			_ClassStack.pop();
 
 
 			auto& OutInfo = _Lib.Get_Assembly().AddForType(ScopeName, ScopeName);

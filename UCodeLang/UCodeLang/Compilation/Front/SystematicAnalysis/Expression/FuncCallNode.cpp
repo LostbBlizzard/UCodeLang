@@ -930,6 +930,307 @@ void TryaddParPackInferTypes(bool islastparpack, const FuncInfo* Info, size_t pa
 	}
 }
 
+Vector<Symbol*> SystematicAnalysis::Type_FindForTypeFuncions(const TypeSymbol& maintype, const String& FuncionName)
+{
+	auto fortypeSyms = GetSymbolsWithName(ForTypeScope, SymbolType::ForType);
+	
+	Vector<Symbol*> Symbols;
+	if (auto maintypesym = Symbol_GetSymbol(maintype).value_unchecked())
+	{
+		String mytypestr = ToString(maintype);
+		if (StringHelper::StartWith(mytypestr, "imut"))
+		{
+			mytypestr = mytypestr.substr(sizeof("imut"));
+		}
+
+		for (auto& Item : fortypeSyms)
+		{
+			if (Item->Type == SymbolType::ForType)
+			{
+				Symbol_Update_ForType_ToFixedTypes(Item);
+
+				bool isreferringtomytype = false;
+
+				auto fortype = Item->VarType;
+
+				isreferringtomytype = Type_AreTheSame(maintype, fortype);
+
+				if (isreferringtomytype)
+				{
+					ForTypeInfo* info = Item->Get_Info<ForTypeInfo>();
+
+					for (auto& Item : info->Funcs)
+					{
+						if (FuncionName.size() == 0 || ScopeHelper::GetNameFromFullName(Item->FullName) == FuncionName) 
+						{
+							Symbols.push_back(Item);
+						}
+					}
+				}
+			}
+			else if (Item->Type == SymbolType::GenericForType)
+			{
+
+
+				Symbol_Update_ForType_ToFixedTypes(Item);
+
+				ForTypeInfo* info = Item->Get_Info<ForTypeInfo>();
+				const ForTypeNode* fornod = Item->Get_NodeInfo<ForTypeNode>();
+
+				String GennericName;
+
+				fornod->_typetoaddto._name.GetScopedName(GennericName);
+				if (FuncionName == Overload_Compoundplus_Func)
+				{
+					int a = 0;
+				}
+				if (StringHelper::Contains(mytypestr, GennericName))
+				{
+					
+
+					{
+						bool isgood = false;
+
+						String scope = mytypestr;
+						{
+							size_t gwnericcount = 0;
+							for (int i = scope.size() - 1; i >= 0; i--)
+							{
+								char item = scope[i];
+
+								if (item == '<')
+								{
+									gwnericcount--;
+
+									if (gwnericcount == 0)
+									{
+										scope = scope.substr(0, i);
+										break;
+									}
+								}
+								else if (item == '>')
+								{
+									gwnericcount++;
+								}
+								else if (item == ScopeHelper::_ScopeSep)
+								{
+									break;
+								}
+
+
+							}
+						}
+
+						if (!StringHelper::EndWith(scope, GennericName))
+						{
+							continue;
+						}
+					}
+					NullablePtr<Symbol> forgeneric;
+					NullablePtr<Symbol> FindSym;
+					{
+						auto OldContext = SaveAndMove_SymbolContext();
+						Set_SymbolContext(info->Context.value());
+
+						FindSym = Symbol_GetSymbol(GennericName, SymbolType::Generic_class);
+
+						Set_SymbolContext(std::move(OldContext));
+					}
+
+					auto fortypetoken = NeverNullptr(fornod->_typetoaddto._name._ScopedName.front()._token);
+
+					if (!FindSym.has_value())
+					{
+						LogError_CantFindSymbolError(fortypetoken, GennericName);
+
+						return {};
+					}
+
+					auto foundsym = FindSym.value();
+
+					bool isgennerictype = (foundsym->Type == SymbolType::Generic_Alias
+						|| foundsym->Type == SymbolType::Generic_class
+						|| foundsym->Type == SymbolType::Generic_Enum);
+					//TODO Generic_traits
+
+
+					if (!isgennerictype)
+					{
+						LogError(ErrorCodes::InValidType, "The Symbol '" + foundsym->FullName + "' in for type must be an generic type", fortypetoken);
+
+						return {};
+					}
+
+					bool shouldmaketype = false;
+					{
+						_ClassStack.push({});//bad fix to stop error on Str_FuncGetName
+						for (auto& Item : fornod->_Nodes)
+						{
+							String_view funcstr;
+							FuncInfo::FuncType tep;
+
+							Str_FuncGetName(NeverNullptr(Item->_Signature._Name.token), funcstr, tep);
+
+							if (FuncionName.size() == 0 || funcstr == FuncionName)
+							{
+								shouldmaketype = true;
+								break;
+							}
+						}
+						_ClassStack.pop();
+					}
+					if (shouldmaketype == false)
+					{
+						continue;
+					}
+
+					NeverNullPtr<Generic> GenericData;
+					NeverNullPtr<Generic> MyBaseTypeGenericData;
+
+
+					NeverNullPtr<Symbol> mytypebasesymbol;
+					{
+						String scope = mytypestr;
+
+						{
+							size_t gwnericcount = 0;
+							for (int i = scope.size() - 1; i >= 0; i--)
+							{
+								char item = scope[i];
+
+								if (item == '<')
+								{
+									gwnericcount--;
+
+									if (gwnericcount == 0)
+									{
+										scope = scope.substr(0, i);
+										break;
+									}
+								}
+								else if (item == '>')
+								{
+									gwnericcount++;
+								}
+
+
+							}
+						}
+
+						mytypebasesymbol = Symbol_GetSymbol(scope, SymbolType::Type).value();
+					}
+
+					switch (mytypebasesymbol->Type)
+					{
+					case SymbolType::Generic_Alias:
+						MyBaseTypeGenericData = NeverNullptr(&mytypebasesymbol->Get_Info<Generic_AliasInfo>()->_GenericData);
+						break;
+					case SymbolType::Generic_class:
+						MyBaseTypeGenericData = NeverNullptr(&mytypebasesymbol->Get_Info<ClassInfo>()->_GenericData);
+						break;
+					case SymbolType::Generic_Enum:
+						MyBaseTypeGenericData = NeverNullptr(&mytypebasesymbol->Get_Info<EnumInfo>()->_GenericData);
+						break;
+					default:
+						continue;
+						break;
+					}
+
+					switch (foundsym->Type)
+					{
+					case SymbolType::Generic_Alias:
+						GenericData = NeverNullptr(&foundsym->Get_Info<Generic_AliasInfo>()->_GenericData);
+						break;
+					case SymbolType::Generic_class:
+						GenericData = NeverNullptr(&foundsym->Get_Info<ClassInfo>()->_GenericData);
+						break;
+					case SymbolType::Generic_Enum:
+						GenericData = NeverNullptr(&foundsym->Get_Info<EnumInfo>()->_GenericData);
+						break;
+					default:
+						UCodeLangUnreachable();
+						break;
+					}
+
+
+					size_t myTypeGenericCount = MyBaseTypeGenericData->GetMinimumCount();
+					size_t foundGenericCount = GenericData->GetMinimumCount();
+
+					if (myTypeGenericCount != foundGenericCount)
+					{
+						LogError_CanIncorrectGenericCount(fortypetoken, foundsym->FullName, myTypeGenericCount, foundGenericCount);
+						return {};
+					}
+
+					for (size_t i = 0; i < myTypeGenericCount; i++)
+					{
+						auto& mygen = MyBaseTypeGenericData->_Genericlist[i];
+						auto& foundgen = GenericData->_Genericlist[i];
+
+						if (mygen.IsConstantExpression() != foundgen.IsConstantExpression())
+						{
+							LogError(ErrorCodes::TreeAnalyerError, "Generic type/Generic Constant miss match on '" + std::to_string(i) + "' generic element", fortypetoken);
+							return {};
+						}
+					}
+
+					Vector<TypeSymbol> generics;
+
+					UCodeLangAssert(!GenericData->IsPack());
+					for (auto& item : MyBaseTypeGenericData->_Genericlist)
+					{
+						String GenericAliasName;
+
+						{
+							auto v = Symbol_GetSymbol(item.SybID);
+							GenericAliasName = ScopeHelper::GetNameFromFullName(v->FullName);
+						}
+
+						NeverNullPtr<Symbol> mytypegenericalias;
+						{
+							String scope = ScopeHelper::ApendedStrings(mytypestr, GenericAliasName);
+
+							mytypegenericalias = Symbol_GetSymbol(scope, SymbolType::Any).value();
+						}
+
+						generics.push_back(TypeSymbol(mytypegenericalias->VarType));
+					}
+
+
+					auto newsymname = Generic_SymbolGenericFullName(Item, generics);
+					auto hasthisformade = Symbol_GetSymbol(newsymname, SymbolType::ForType);
+
+					if (!hasthisformade.has_value())
+					{
+						Generic_TypeInstantiate_ForType(NeverNullptr(Item), generics);
+						hasthisformade = Symbol_GetSymbol(newsymname, SymbolType::ForType);
+					}
+
+					{
+						ForTypeInfo* info = hasthisformade.value()->Get_Info<ForTypeInfo>();
+
+						for (auto& Item : info->Funcs)
+						{
+							if (FuncionName.size() == 0 || ScopeHelper::GetNameFromFullName(Item->FullName) == FuncionName) 
+							{
+								Symbols.push_back(Item);
+							}
+						}
+					}
+
+				}
+
+			}
+
+		}
+	}
+
+	return Symbols;
+}
+Vector<Symbol*> SystematicAnalysis::Type_FindForTypeFuncions(const TypeSymbol& ThisType)
+{
+	return Type_FindForTypeFuncions(ThisType, "");
+}
 SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedNameNode& Name, const ValueParametersNode& Pars, TypeSymbol Ret)
 {
 
@@ -1212,10 +1513,7 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 	bool Inferautopushtis = false;
 
 	{//for type
-		auto fortypeSyms = GetSymbolsWithName(ForTypeScope, SymbolType::ForType);
-
 		TypeSymbol maintype;
-
 		if (ThisParType == Get_FuncInfo::ThisPar_t::PushFromScopedName)
 		{
 			auto v = _ThisType;
@@ -1234,247 +1532,12 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 			}
 		}
 
-		if (auto maintypesym = Symbol_GetSymbol(maintype).value_unchecked())
+		auto newlist =Type_FindForTypeFuncions(maintype,ScopeHelper::GetNameFromFullName(ScopedName));
+		for (auto& Item : newlist)
 		{
-			String mytypestr = ToString(maintype);
-			if (StringHelper::StartWith(mytypestr, "imut"))
-			{
-				mytypestr = mytypestr.substr(sizeof("imut"));
-			}
-
-			for (auto& Item : fortypeSyms)
-			{
-				if (Item->Type == SymbolType::ForType)
-				{
-					Symbol_Update_ForType_ToFixedTypes(Item);
-
-					bool isreferringtomytype = false;
-
-					auto fortype = Item->VarType;
-
-					isreferringtomytype = Type_AreTheSame(maintype, fortype);
-
-					if (isreferringtomytype)
-					{
-						ForTypeInfo* info = Item->Get_Info<ForTypeInfo>();
-
-						for (auto& Item : info->Funcs)
-						{
-							Symbols.push_back(Item);
-						}
-					}
-				}
-				else if (Item->Type == SymbolType::GenericForType)
-				{
-
-
-					Symbol_Update_ForType_ToFixedTypes(Item);
-
-					ForTypeInfo* info = Item->Get_Info<ForTypeInfo>();
-					const ForTypeNode* fornod = Item->Get_NodeInfo<ForTypeNode>();
-
-					String GennericName;
-
-					fornod->_typetoaddto._name.GetScopedName(GennericName);
-
-					if (StringHelper::Contains(mytypestr, GennericName))
-					{
-						{
-							auto copy = mytypestr;
-							Vector<String> list;
-							while (copy.size())
-							{
-								list.push_back(ScopeHelper::GetNameFromFullName(copy));
-								ScopeHelper::ReMoveScope(copy);
-							}
-
-							bool isgood = false;
-							for (auto& Item : list)
-							{
-								if (Item == mytypestr)
-								{
-									isgood = true;
-									break;
-								}
-							}
-							
-							if (!isgood)
-							{
-								continue;
-							}
-						}
-						NullablePtr<Symbol> forgeneric;
-						NullablePtr<Symbol> FindSym;
-						{
-							auto OldContext = SaveAndMove_SymbolContext();
-							Set_SymbolContext(info->Context.value());
-
-							FindSym = Symbol_GetSymbol(GennericName, SymbolType::Generic_class);
-
-							Set_SymbolContext(std::move(OldContext));
-						}
-
-						auto fortypetoken = NeverNullptr(fornod->_typetoaddto._name._ScopedName.front()._token);
-
-						if (!FindSym.has_value())
-						{
-							LogError_CantFindSymbolError(fortypetoken, GennericName);
-
-							return {};
-						}
-
-						auto foundsym = FindSym.value();
-
-						bool isgennerictype = (foundsym->Type == SymbolType::Generic_Alias
-							|| foundsym->Type == SymbolType::Generic_class
-							|| foundsym->Type == SymbolType::Generic_Enum);
-						//TODO Generic_traits
-
-
-						if (!isgennerictype)
-						{
-							LogError(ErrorCodes::InValidType, "The Symbol '" + foundsym->FullName + "' in for type must be an generic type", fortypetoken);
-
-							return {};
-						}
-
-						NeverNullPtr<Generic> GenericData;
-						NeverNullPtr<Generic> MyBaseTypeGenericData;
-
-
-						NeverNullPtr<Symbol> mytypebasesymbol;
-						{
-							String scope = mytypestr;
-
-							{
-								size_t gwnericcount = 0;
-								for (int i = scope.size() - 1; i >= 0; i--)
-								{
-									char item = scope[i];
-
-									if (item == '<')
-									{
-										gwnericcount--;
-
-										if (gwnericcount == 0)
-										{
-											scope = scope.substr(0,i);
-											break;
-										}
-									}
-									else if (item == '>')
-									{
-										gwnericcount++;
-									}
-
-
-								}
-							}
-							
-							mytypebasesymbol = Symbol_GetSymbol(scope, SymbolType::Type).value();
-						}
-
-						switch (mytypebasesymbol->Type)
-						{
-						case SymbolType::Generic_Alias:
-							MyBaseTypeGenericData = NeverNullptr(&mytypebasesymbol->Get_Info<Generic_AliasInfo>()->_GenericData);
-							break;
-						case SymbolType::Generic_class:
-							MyBaseTypeGenericData = NeverNullptr(&mytypebasesymbol->Get_Info<ClassInfo>()->_GenericData);
-							break;
-						case SymbolType::Generic_Enum:
-							MyBaseTypeGenericData = NeverNullptr(&mytypebasesymbol->Get_Info<EnumInfo>()->_GenericData);
-							break;
-						default:
-							continue;
-							break;
-						}
-
-						switch (foundsym->Type)
-						{
-						case SymbolType::Generic_Alias:
-							GenericData = NeverNullptr(&foundsym->Get_Info<Generic_AliasInfo>()->_GenericData);
-							break;
-						case SymbolType::Generic_class:
-							GenericData = NeverNullptr(&foundsym->Get_Info<ClassInfo>()->_GenericData);
-							break;
-						case SymbolType::Generic_Enum:
-							GenericData = NeverNullptr(&foundsym->Get_Info<EnumInfo>()->_GenericData);
-							break;
-						default:
-							UCodeLangUnreachable();
-							break;
-						}
-
-
-						size_t myTypeGenericCount = MyBaseTypeGenericData->GetMinimumCount();
-						size_t foundGenericCount = GenericData->GetMinimumCount();
-
-						if (myTypeGenericCount != foundGenericCount)
-						{
-							LogError_CanIncorrectGenericCount(fortypetoken, foundsym->FullName, myTypeGenericCount, foundGenericCount);
-							return {};
-						}
-
-						for (size_t i = 0; i < myTypeGenericCount; i++)
-						{
-							auto& mygen = MyBaseTypeGenericData->_Genericlist[i];
-							auto& foundgen = GenericData->_Genericlist[i];
-
-							if (mygen.IsConstantExpression() != foundgen.IsConstantExpression())
-							{
-								LogError(ErrorCodes::TreeAnalyerError, "Generic type/Generic Constant miss match on '" + std::to_string(i) + "' generic element", fortypetoken);
-								return {};
-							}
-						}
-
-						Vector<TypeSymbol> generics;
-
-						UCodeLangAssert(!GenericData->IsPack());
-						for (auto& item : MyBaseTypeGenericData->_Genericlist)
-						{
-							String GenericAliasName;
-
-							{
-								auto v = Symbol_GetSymbol(item.SybID);
-								GenericAliasName = ScopeHelper::GetNameFromFullName(v->FullName);
-							}
-
-							NeverNullPtr<Symbol> mytypegenericalias;
-							{
-								String scope = ScopeHelper::ApendedStrings(mytypestr, GenericAliasName);
-
-								mytypegenericalias = Symbol_GetSymbol(scope, SymbolType::Any).value();
-							}
-
-							generics.push_back(TypeSymbol(mytypegenericalias->VarType));
-						}
-
-
-						auto newsymname = Generic_SymbolGenericFullName(Item, generics);
-						auto hasthisformade = Symbol_GetSymbol(newsymname, SymbolType::ForType);
-
-						if (!hasthisformade.has_value())
-						{
-							Generic_TypeInstantiate_ForType(NeverNullptr(Item), generics);
-							hasthisformade = Symbol_GetSymbol(newsymname, SymbolType::ForType);
-						}
-
-						{
-							ForTypeInfo* info = hasthisformade.value()->Get_Info<ForTypeInfo>();
-
-							for (auto& Item : info->Funcs)
-							{
-								Symbols.push_back(Item);
-							}
-						}
-
-					}
-
-				}
-
-			}
+			Symbols.push_back(Item);
 		}
+			
 	}
 
 	{
