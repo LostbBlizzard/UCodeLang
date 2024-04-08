@@ -1515,6 +1515,19 @@ Class_Data* SystematicAnalysis::Assembly_GetAssemblyClass(const String& FullName
 			}
 		}
 	}
+	if (StringHelper::Contains(FullName,ForTypeScope))
+	{
+		auto& Assembly = _Lib.Get_Assembly();
+		auto globalAssemblyObjectName = (String_view)ScopeHelper::_globalAssemblyObject;
+
+		auto Ptr = Assembly.Find_Class(globalAssemblyObjectName);
+		if (Ptr == nullptr)
+		{
+			UCodeLangUnreachable();
+		}
+		return Ptr;
+
+	}
 	UCodeLangUnreachable();
 }
 

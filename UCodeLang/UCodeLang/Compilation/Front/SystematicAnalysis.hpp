@@ -1619,6 +1619,8 @@ private:
 
 
 
+	Vector<Symbol*> Type_FindForTypeFuncions(const TypeSymbol& ThisType);
+	Vector<Symbol*> Type_FindForTypeFuncions(const TypeSymbol& ThisType,const String& FuncionName);
 	Get_FuncInfo Type_GetFunc(const TypeSymbol& Name, const ValueParametersNode& Pars);
 	Get_FuncInfo Type_GetFunc(const ScopedNameNode& Name, const ValueParametersNode& Pars, TypeSymbol Ret);
 

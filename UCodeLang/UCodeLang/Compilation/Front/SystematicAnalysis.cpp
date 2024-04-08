@@ -297,8 +297,6 @@ void SystematicAnalysis::BuildCode()
 
 				Set_SymbolContext(std::move(Info->Context.value()));
 
-				_Table._Scope.ReMoveScope();
-
 				OnForTypeNode(*node);
 				Info->Context = SaveAndMove_SymbolContext();
 

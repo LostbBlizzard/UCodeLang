@@ -963,6 +963,12 @@ SystematicAnalysis::BinaryOverLoadWith_t SystematicAnalysis::Type_HasBinaryOverL
 					Optional<Symbol*> BestFit;
 					Optional<int> BestScore;
 
+					auto fortypefuncions = Type_FindForTypeFuncions(TypeA, Item.CompilerName);
+					for (auto& Item : fortypefuncions)
+					{
+						V.push_back(Item);
+					}
+
 					for (auto& Item : V)
 					{
 						Symbol_Update_FuncSym_ToFixedTypes(NeverNullptr(Item));
@@ -1036,6 +1042,12 @@ SystematicAnalysis::CompoundOverLoadWith_t SystematicAnalysis::Type_HasCompoundO
 
 					Optional<Symbol*> BestFit;
 					Optional<int> BestScore;
+
+					auto fortypefuncions = Type_FindForTypeFuncions(TypeA, Item.CompilerName);
+					for (auto& Item : fortypefuncions)
+					{
+						V.push_back(Item);
+					}
 
 					for (auto& Item : V)
 					{
@@ -2113,6 +2125,12 @@ bool SystematicAnalysis::Type_CanBeImplicitConverted(const TypeSymbol& TypeToChe
 						auto& Par = funcinfo->Pars[1];
 						auto par = Par.Type;
 						par._IsAddress = false;
+				
+						if (!TypeToCheck.Isimmutable()) 
+						{
+							par._Isimmutable = false;
+						}
+
 						if (Type_AreTheSame(par, TypeToCheck))
 						{
 							return true;
