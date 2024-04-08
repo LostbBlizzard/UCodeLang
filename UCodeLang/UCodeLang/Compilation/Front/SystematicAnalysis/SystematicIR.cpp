@@ -338,7 +338,12 @@ bool SystematicAnalysis::IR_Build_ImplicitConversion(IRInstruction* Ex, const Ty
 
 						auto& Par = funcinfo->Pars[1];
 						auto par = Par.Type;
-						par._IsAddress = false;
+						par._IsAddress = ExType.IsAddress();
+						par._ValueInfo = ExType._ValueInfo;
+						if (par.Isimmutable())
+						{
+							par._Isimmutable = ExType._Isimmutable;
+						}	
 						if (Type_AreTheSame(par, ExType))
 						{
 							auto v = ToType;

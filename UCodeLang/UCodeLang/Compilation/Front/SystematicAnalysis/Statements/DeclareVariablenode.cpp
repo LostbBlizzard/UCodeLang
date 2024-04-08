@@ -206,7 +206,7 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node, 
 					_IR_LookingAtIRBlock = _IR_LookingAtIRFunc->Blocks.front().get();
 
 					auto pos = _IR_LookingAtIRBlock->InsCount() ? _IR_LookingAtIRBlock->GetIndex() : 0;
-					Debug_Add_SetLineNumber(NeverNullptr(node._Name.token),pos);
+					Debug_Add_SetLineNumber(NeverNullptr(node._Name.token), pos);
 					Debug_Add_SetVarableInfo(*syb, pos);
 
 					if (Type_IsStructPassByRef(syb)) {
@@ -259,9 +259,19 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node, 
 					_IR_IRlocations.push({ OnVarable ,false });
 				}
 
-				OnExpressionTypeNode(node._Expression._Value.get(), GetValueMode::Read);
-			}
+				auto tep = _LookingForTypes.top();
+				if (DelareVarableImplicit.HasValue(sybId))
+				{
+					_LookingForTypes.top() = DelareVarableImplicit.GetValue(sybId);
+				}
 
+				OnExpressionTypeNode(node._Expression._Value.get(), GetValueMode::Read);
+
+				if (DelareVarableImplicit.HasValue(sybId))
+				{
+					_LookingForTypes.top() = tep;
+				}
+			}
 		}
 		else
 		{
@@ -351,7 +361,21 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node, 
 			auto Token = NeverNullptr(node._Type._name._ScopedName.back()._token);
 			Type_DeclareVariableTypeCheck(VarType, Ex, Token);
 
+			bool doesimplconv = !Type_AreTheSameWithOutMoveAndimmutable(VarType, Ex);
+			if (doesimplconv)
+			{
+				auto f = Symbol_GetAnImplicitConvertedFunc(VarType, Ex);
+				if (f.has_value()) 
+				{
+					TypeSymbol ToFindSymbol = f.value()->Pars[1].Type;
+					ToFindSymbol._Isimmutable = false;
+					DelareVarableImplicit.AddValue(sybId, ToFindSymbol);
+				}
+			}
+		
 
+	
+			
 
 			if (syb->Type == SymbolType::ConstantExpression && !VarType.IsNull())
 			{

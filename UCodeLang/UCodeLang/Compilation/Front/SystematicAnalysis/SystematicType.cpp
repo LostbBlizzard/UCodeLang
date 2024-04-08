@@ -2062,6 +2062,53 @@ bool SystematicAnalysis::Type_IsValid(TypeSymbol& Out)
 {
 	return false;
 }
+NullablePtr<FuncInfo> SystematicAnalysis::Symbol_GetAnImplicitConvertedFunc(const TypeSymbol& MainType, const TypeSymbol& ToType)
+{
+	if (auto syb = Symbol_GetSymbol(MainType).value_unchecked())
+	{
+		if (syb->Type == SymbolType::Type_class)
+		{
+			auto info = syb->Get_Info<ClassInfo>();
+
+
+			Symbol_Update_ClassSym_ToFixedTypes(NeverNullptr(syb));
+
+			String Scope = info->FullName;
+			ScopeHelper::GetApendedString(Scope, ClassConstructorfunc);
+
+			auto ConstructorSymbols = GetSymbolsWithName(Scope, SymbolType::Any);
+
+
+			for (auto& Item2 : ConstructorSymbols)
+			{
+				if (Item2->Type == SymbolType::Func)
+				{
+					FuncInfo* funcinfo = Item2->Get_Info<FuncInfo>();
+					if (funcinfo->Pars.size() == 2)
+					{
+						Symbol_Update_FuncSym_ToFixedTypes(NeverNullptr(Item2));
+
+						auto& Par = funcinfo->Pars[1];
+						auto par = Par.Type;
+						par._IsAddress = false;
+
+						if (!ToType.Isimmutable())
+						{
+							par._Isimmutable = false;
+						}
+
+						if (Type_AreTheSame(par, ToType))
+						{
+							return Nullableptr(funcinfo);
+						}
+					}
+				}
+
+			}
+		}
+	}
+	return {};
+}
 bool SystematicAnalysis::Type_CanBeImplicitConverted(const TypeSymbol& TypeToCheck, const TypeSymbol& Type, bool ReassignMode, bool isdeclare)
 {
 	if (Type_AreTheSameWithOutMoveAndimmutable(TypeToCheck, Type))
@@ -2098,50 +2145,11 @@ bool SystematicAnalysis::Type_CanBeImplicitConverted(const TypeSymbol& TypeToChe
 		}
 	}
 
-	if (auto syb = Symbol_GetSymbol(Type).value_unchecked())
+	auto implicefunc = Symbol_GetAnImplicitConvertedFunc(Type,TypeToCheck);
+	if (implicefunc.has_value())
 	{
-		if (syb->Type == SymbolType::Type_class)
-		{
-			auto info = syb->Get_Info<ClassInfo>();
-
-
-			Symbol_Update_ClassSym_ToFixedTypes(NeverNullptr(syb));
-
-			String Scope = info->FullName;
-			ScopeHelper::GetApendedString(Scope, ClassConstructorfunc);
-
-			auto ConstructorSymbols = GetSymbolsWithName(Scope, SymbolType::Any);
-
-
-			for (auto& Item2 : ConstructorSymbols)
-			{
-				if (Item2->Type == SymbolType::Func)
-				{
-					FuncInfo* funcinfo = Item2->Get_Info<FuncInfo>();
-					if (funcinfo->Pars.size() == 2)
-					{
-						Symbol_Update_FuncSym_ToFixedTypes(NeverNullptr(Item2));
-
-						auto& Par = funcinfo->Pars[1];
-						auto par = Par.Type;
-						par._IsAddress = false;
-				
-						if (!TypeToCheck.Isimmutable()) 
-						{
-							par._Isimmutable = false;
-						}
-
-						if (Type_AreTheSame(par, TypeToCheck))
-						{
-							return true;
-						}
-					}
-				}
-
-			}
-		}
+		return true;
 	}
-
 
 	return false;
 }

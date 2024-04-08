@@ -830,6 +830,7 @@ void SystematicAnalysis::OnStatementsWithSetableRet(const StatementsNode& node, 
 
 				RetOut = NewType;
 				RetOut._MoveData = MoveData::None;
+				RetOut._ValueInfo = TypeValueInfo::IsValue;
 				Type_Get_LookingForType() = RetOut;
 
 				if (_LastExpressionType._Type == TypesEnum::Var)
@@ -2552,6 +2553,10 @@ void SystematicAnalysis::Type_RemoveTypeattributes(TypeSymbol& tep_)
 	if (tep_.IsAddressArray())
 	{
 		tep_._IsAddressArray = false;
+	}
+	if (tep_._ValueInfo == TypeValueInfo::IsLocation)
+	{
+		tep_._ValueInfo = TypeValueInfo::IsValue;
 	}
 }
 String SystematicAnalysis::Generic_GetGenericExtendedErrValue(const Generic& Generic, const GenericValuesNode& GenericAsNode, const Vector<TypeSymbol>& GenericInput)
