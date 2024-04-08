@@ -671,7 +671,7 @@ else PrimitiveTypeCall(Uint32TypeName, TypesEnum::uInt32, _IR_LastExpressionFiel
 		auto& FuncParInfo = FuncParInfoPtr;
 
 
-
+		FuncParInfo.Type._ValueInfo = TypeValueInfo::IsValue;
 		_LookingForTypes.push(FuncParInfo.Type);
 
 		if (Item->Get_Type() == NodeType::OutExpression)
@@ -952,8 +952,10 @@ Vector<Symbol*> SystematicAnalysis::Type_FindForTypeFuncions(const TypeSymbol& m
 				bool isreferringtomytype = false;
 
 				auto fortype = Item->VarType;
-
-				isreferringtomytype = Type_AreTheSame(maintype, fortype);
+				auto mtype = maintype;
+				Type_RemoveTypeattributes(fortype);
+				Type_RemoveTypeattributes(mtype);
+				isreferringtomytype = Type_AreTheSame(mtype, fortype);
 
 				if (isreferringtomytype)
 				{
@@ -979,11 +981,7 @@ Vector<Symbol*> SystematicAnalysis::Type_FindForTypeFuncions(const TypeSymbol& m
 
 				String GennericName;
 
-				fornod->_typetoaddto._name.GetScopedName(GennericName);
-				if (FuncionName == Overload_Compoundplus_Func)
-				{
-					int a = 0;
-				}
+				fornod->_typetoaddto._name.GetScopedName(GennericName);	
 				if (StringHelper::Contains(mytypestr, GennericName))
 				{
 					
@@ -1066,7 +1064,7 @@ Vector<Symbol*> SystematicAnalysis::Type_FindForTypeFuncions(const TypeSymbol& m
 						_ClassStack.push({});//bad fix to stop error on Str_FuncGetName
 						for (auto& Item : fornod->_Nodes)
 						{
-							String_view funcstr;
+							String_view funcstr = Item->_Signature._Name.token->Value._String;
 							FuncInfo::FuncType tep;
 
 							Str_FuncGetName(NeverNullptr(Item->_Signature._Name.token), funcstr, tep);

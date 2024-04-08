@@ -849,6 +849,7 @@ private:
 
 	UnorderedMap<SymbolID, VarableMemberData> _VarableMemberDatas;//Var.$Item
 	UnorderedMap<AssemblyNode*, Symbol*> LibGenericSymbolLoad;
+	UnorderedMap<SymbolID, TypeSymbol> DelareVarableImplicit;
 
 	struct Test
 	{
@@ -1556,6 +1557,7 @@ private:
 
 	bool Type_IsValid(TypeSymbol& Out);
 	bool Type_CanBeImplicitConverted(const TypeSymbol& TypeToCheck, const TypeSymbol& Type, bool ReassignMode = true,bool isdeclare =false);
+	NullablePtr<FuncInfo> Symbol_GetAnImplicitConvertedFunc(const TypeSymbol& MainType, const TypeSymbol& ToType);
 	CastOverLoadWith_t  Type_CanBeExplicitlyConverted(const TypeSymbol& TypeToCheck, const TypeSymbol& Type);
 	Optional<FuncInfo*> Symbol_GetAnExplicitlyConvertedFunc(const TypeSymbol& TypeToCheck);
 
