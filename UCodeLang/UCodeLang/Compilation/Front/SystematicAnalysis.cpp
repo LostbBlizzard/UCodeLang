@@ -2491,7 +2491,7 @@ Optional < FuncInfo*> SystematicAnalysis::Symbol_GetAnExplicitlyConvertedFunc(co
 	}
 	return { nullptr };
 }
-bool SystematicAnalysis::HasMoveContructerHasIRFunc(const TypeSymbol& ExType)
+NullablePtr<Symbol> SystematicAnalysis::HasMoveContructer(const TypeSymbol& ExType)
 {
 	auto GetSymOp = Symbol_GetSymbol(ExType);
 	if (GetSymOp.has_value())
@@ -2503,11 +2503,15 @@ bool SystematicAnalysis::HasMoveContructerHasIRFunc(const TypeSymbol& ExType)
 
 			if (info->_ClassHasMoveConstructor)
 			{
-				return true;
+				return Symbol_GetSymbol(info->_ClassHasMoveConstructor.value()).AsNullable();
 			}
 		}
 	}
 	return false;
+}
+bool SystematicAnalysis::HasMoveContructerHasIRFunc(const TypeSymbol& ExType)
+{
+	return HasMoveContructer(ExType).has_value();
 }
 
 bool SystematicAnalysis::CheckForGenericInputIsConstantExpression(const FuncInfo* Info, const Vector<TypeSymbol>& GenericInput)

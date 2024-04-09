@@ -417,6 +417,14 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node, 
 				{
 					Class._WillHaveFielddeInit = true;
 				}
+				if (Type_IsCopyable(Item->Type) && !Type_IsPrimitive(Item->Type))
+				{
+					Class._ClassAutoGenerateCopyConstructor = true;
+				}
+				if (HasMoveContructerHasIRFunc(Item->Type))
+				{
+					Class._ClassAutoGenerateMoveConstructor = true;
+				}
 			}
 
 
