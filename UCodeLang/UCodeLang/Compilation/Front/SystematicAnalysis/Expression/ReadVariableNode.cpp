@@ -1673,7 +1673,7 @@ void SystematicAnalysis::StepBuildMember_Access(const ScopedName& Item, TypeSymb
 			case  SymbolType::ParameterVarable:
 			{
 				TypeSymbol& TypeSys = Last_Type;
-				if (TypeSys.IsAddress())
+				if (TypeSys.IsAddress() || TypeSys.IsMovedType())
 				{
 					Output = _IR_LookingAtIRBlock->New_Member_Dereference(LastVarSym->IR_Par, IR_ConvertToIRType(Sym->VarType), MemberIndex);
 				}

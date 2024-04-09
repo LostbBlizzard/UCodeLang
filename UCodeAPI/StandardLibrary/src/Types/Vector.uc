@@ -18,6 +18,23 @@ $Vector<T>[Buffer_t<T>] export:
    _data = unsafe bitcast<T[&]>(0);
    _size = 0;
    _capacity = 0;
+
+  export |new[this&,imut this& tocopyfrom]:
+   _data = unsafe new T[tocopyfrom._size];
+   _size = tocopyfrom._size;
+   _capacity = tocopyfrom._size;
+   for [uintptr i = 0;i < tocopyfrom._size;i++]:
+       unsafe _data[i] = tocopyfrom._data[i];
+  
+  export |new[this&,moved this tocopyfrom]:
+   _data = tocopyfrom._data;
+   _size = tocopyfrom._size;
+   _capacity = tocopyfrom._capacity;
+   
+   tocopyfrom._data = unsafe bitcast<T[&]>(0);
+   tocopyfrom._size = 0;
+   tocopyfrom._capacity = 0;
+
   export |drop[this&]:
    uintptr ptr =unsafe bitcast<uintptr>(_data);
    if ptr != uintptr(0):

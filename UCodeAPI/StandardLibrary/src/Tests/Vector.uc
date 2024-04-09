@@ -94,3 +94,27 @@ Tests:
 
   ret r == 33;
 
+ [Test]
+ |Vector_10[]:
+  int[] vals = [5,10,15]; 
+  int[] copy = vals;
+
+  int r = 0;
+
+  for [i,item : copy]:r += item + (i -> int);
+
+  ret r == 33;
+
+ [Test]
+ |Vector_11[]:
+  int[] vals = [5,10,15]; 
+  int[] copy = move vals;
+
+  int r = 0;
+
+  for [i,item : copy]:r += item + (i -> int);
+
+  ret r == 33 && vals.Size() == 0;
+
+
+
