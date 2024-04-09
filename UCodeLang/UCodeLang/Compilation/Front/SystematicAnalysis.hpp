@@ -1562,6 +1562,7 @@ private:
 	Optional<FuncInfo*> Symbol_GetAnExplicitlyConvertedFunc(const TypeSymbol& TypeToCheck);
 
 
+	NullablePtr<Symbol> HasMoveContructer(const TypeSymbol& ExType);
 	bool HasMoveContructerHasIRFunc(const TypeSymbol& ExType);
 	bool IR_Build_ImplicitConversion(IRInstruction* Ex, const TypeSymbol ExType, const TypeSymbol& ToType);
 	void IR_Build_ExplicitConversion(IRInstruction* Ex, const TypeSymbol ExType, const TypeSymbol& ToType, const CastExpressionNode_Data& Data);
