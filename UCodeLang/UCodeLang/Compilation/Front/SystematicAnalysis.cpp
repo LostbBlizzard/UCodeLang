@@ -2509,6 +2509,28 @@ NullablePtr<Symbol> SystematicAnalysis::HasMoveContructer(const TypeSymbol& ExTy
 	}
 	return false;
 }
+NullablePtr<Symbol> SystematicAnalysis::HasCopyContructer(const TypeSymbol& ExType)
+{
+	auto GetSymOp = Symbol_GetSymbol(ExType);
+	if (GetSymOp.has_value())
+	{
+		auto GetSym = GetSymOp.value();
+		if (GetSym->Type == SymbolType::Type_class)
+		{
+			auto info = GetSym->Get_Info<ClassInfo>();
+
+			if (info->_ClassHasCopyConstructor)
+			{
+				return Symbol_GetSymbol(info->_ClassHasCopyConstructor.value()).AsNullable();
+			}
+		}
+	}
+	return false;
+}
+bool SystematicAnalysis::HasCopyContructerHasIRFunc(const TypeSymbol& ExType)
+{
+	return HasCopyContructer(ExType).has_value();
+}
 bool SystematicAnalysis::HasMoveContructerHasIRFunc(const TypeSymbol& ExType)
 {
 	return HasMoveContructer(ExType).has_value();

@@ -1561,7 +1561,8 @@ private:
 	CastOverLoadWith_t  Type_CanBeExplicitlyConverted(const TypeSymbol& TypeToCheck, const TypeSymbol& Type);
 	Optional<FuncInfo*> Symbol_GetAnExplicitlyConvertedFunc(const TypeSymbol& TypeToCheck);
 
-
+	NullablePtr<Symbol> HasCopyContructer(const TypeSymbol& ExType);
+	bool HasCopyContructerHasIRFunc(const TypeSymbol& ExType);
 	NullablePtr<Symbol> HasMoveContructer(const TypeSymbol& ExType);
 	bool HasMoveContructerHasIRFunc(const TypeSymbol& ExType);
 	bool IR_Build_ImplicitConversion(IRInstruction* Ex, const TypeSymbol ExType, const TypeSymbol& ToType);
