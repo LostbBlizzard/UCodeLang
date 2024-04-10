@@ -724,7 +724,7 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 					for (size_t i = ClassInf->Fields.size() - 1; i != (Vector<FieldInfo>::size_type) - 1; i--)
 					{
 						auto& Item = ClassInf->Fields[i];
-						auto v = HasMoveContructer(Item.Type);
+						auto v = HasCopyContructer(Item.Type);
 						if (v && !Item.Type.IsAddress())
 						{
 							auto info = v.value()->Get_Info<FuncInfo>();
@@ -805,7 +805,7 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 					for (size_t i = ClassInf->Fields.size() - 1; i != (Vector<FieldInfo>::size_type) - 1; i--)
 					{
 						auto& Item = ClassInf->Fields[i];
-						auto v = HasCopyContructer(Item.Type);
+						auto v = HasMoveContructer(Item.Type);
 						if (v && !Item.Type.IsAddress())
 						{
 							auto info = v.value()->Get_Info<FuncInfo>();
