@@ -568,6 +568,8 @@ public:
 
 	Optional<SymbolID> _ClassHasCopyConstructor;
 	Optional<SymbolID> _ClassHasMoveConstructor;
+	Optional<SymbolID> _AutoGenerateCopyConstructor;
+	Optional<SymbolID> _AutoGenerateMoveConstructor;
 
 	bool _IsExternalC = false;
 
