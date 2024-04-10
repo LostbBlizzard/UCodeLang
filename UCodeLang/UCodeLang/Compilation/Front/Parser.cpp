@@ -4125,7 +4125,12 @@ GotNodeType Parser::DoTraitType(TraitNode* output, const Token* ClassToken, Gene
 	}
 
 	auto ColonToken = TryGetToken();
-	if (ColonToken->Type == TokenType::Semicolon) { NextToken(); return GotNodeType::Success; }
+	if (ColonToken->Type == TokenType::Semicolon)
+	{
+		output->EndOfClass = ColonToken;
+		NextToken();
+		return GotNodeType::Success;
+	}
 
 	
 

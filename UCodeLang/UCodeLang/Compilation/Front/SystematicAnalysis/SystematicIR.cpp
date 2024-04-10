@@ -204,9 +204,9 @@ bool SystematicAnalysis::IR_Build_ImplicitConversion(IRInstruction* Ex, const Ty
 				{
 					auto info = GetSym->Get_Info<ClassInfo>();
 
-					if (info->_ClassHasCopyConstructor)
+					if (info->_ClassHasCopyConstructor || info->_AutoGenerateCopyConstructor)
 					{
-						auto CopySybID = info->_ClassHasCopyConstructor.value();
+						auto CopySybID =info->_ClassHasCopyConstructor.has_value() ? info->_ClassHasCopyConstructor.value() : info->_AutoGenerateCopyConstructor.value();
 						auto Syb = Symbol_GetSymbol(CopySybID);
 						auto irfuncid = IR_GetIRID(Syb->Get_Info<FuncInfo>());
 
@@ -315,6 +315,12 @@ bool SystematicAnalysis::IR_Build_ImplicitConversion(IRInstruction* Ex, const Ty
 	{
 		if (syb->Type == SymbolType::Type_class)
 		{
+			bool callconstruct = !ToType.IsAddress();
+
+			if (!callconstruct)
+			{
+				return false;
+			}
 			auto info = syb->Get_Info<ClassInfo>();
 
 

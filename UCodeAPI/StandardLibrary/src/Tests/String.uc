@@ -30,24 +30,24 @@ Tests:
   ret Txt == "Hello World";
  
  [Test]
- |StringSpan_8[]:
-  var Txt = "Hello";
+ |StringSpan_7[]:
+  String Txt = "Hello";
   var copy = Txt;
-  ret copy == "Hello World";
+  ret copy == "Hello";
+
+ [Test]
+ |StringSpan_8[]:
+  String Txt = "Hello";
+  var copy = move Txt;
+  ret copy == "Hello" && Txt.Size() == 0;
 
  [Test]
  |StringSpan_9[]:
-  var Txt = "Hello";
-  var copy = move Txt;
-  ret copy == "Hello World" && Txt.Size() == 0;
-
- [Test]
- |StringSpan_10[]:
   //var Txt = "Hello" + " World";
   //ret Txt == "Hello World";
 
  [Test]
- |StringSpan_11[]:
+ |StringSpan_10[]:
   //String v = " World";
   //var Txt = "Hello" + v;
   //ret Txt == "Hello World";
