@@ -978,84 +978,12 @@ public:
 		return *(ClassMethod**)&v;
 	}
 
-	Optional<ClassMethod> Remove_Func(const String_view& FullName) 
-	{
-		for (auto& Item : Classes)
-		{
-			if (Item->Get_Type() == ClassType::Class)
-			{
-				auto& methods = Item->Get_ClassData().Methods;
-				for (size_t i = 0; i < methods.size(); i++)
-				{
-					auto& Item2 = methods[i];
+	Optional<ClassMethod> Remove_Func(const String_view& FullName);
+	void Remove_NullFunc();
 
-					if (Item2.DecorationName == FullName
-						|| Item2.FullName == FullName)
-					{
-						auto t = std::move(Item2);
-						return t;
-					}
-				}
-			}
-		}
-		return {};
-	}
-	void Remove_NullFunc() 
-	{
-		for (auto& Item : Classes)
-		{
-			if (Item->Get_Type() == ClassType::Class)
-			{
-				auto& methods = Item->Get_ClassData().Methods;
-	
-				methods.erase(std::remove_if(methods.begin(), methods.end(), [](ClassMethod& Item)
-					{
-						return Item.DecorationName.empty() && Item.FullName.empty();
-					}), methods.end());
-			}
-		}
-	}
+	const ClassMethod* Find_Func(const String_view& FullName) const;
 
-	const ClassMethod* Find_Func(const String_view& FullName) const
-	{
-		for (auto& Item : Classes)
-		{
-			if (Item->Get_Type() == ClassType::Class)
-			{
-				for (auto& Item2 : Item->Get_ClassData().Methods)
-				{
-					if (Item2.DecorationName == FullName
-						|| Item2.FullName == FullName)
-					{
-						return &Item2;
-					}
-				}
-
-			}
-		}
-		return nullptr;
-	}
-
-	Vector<ClassMethod*>  Find_Funcs(const String_view& FullName)
-	{
-		Vector<ClassMethod*> r;
-		for (auto& Item : Classes)
-		{
-			if (Item->Get_Type() == ClassType::Class)
-			{
-				for (auto& Item2 : Item->Get_ClassData().Methods)
-				{
-					if (Item2.DecorationName == FullName
-						|| Item2.FullName == FullName)
-					{
-						r.push_back(&Item2);
-					}
-				}
-
-			}
-		}
-		return r;
-	}
+	Vector<ClassMethod*>  Find_Funcs(const String_view& FullName);
 
 	Vector<const ClassMethod*> Find_Funcs(const String_view& FullName) const
 	{
@@ -1063,27 +991,7 @@ public:
 		return *(Vector<const ClassMethod*>*)&v;
 	}
 
-	Vector<const ClassMethod*> Find_FuncsUsingName(const String_view& Name) const
-	{
-		Vector<const ClassMethod*> r;
-		for (auto& Item : Classes)
-		{
-			if (Item->Get_Type() == ClassType::Class)
-			{
-				for (auto& Item2 : Item->Get_ClassData().Methods)
-				{
-					if (Item2.DecorationName == Name
-						|| Item2.FullName == Name
-						|| ScopeHelper::GetNameFromFullName(Item2.FullName) == Name)
-					{
-						r.push_back(&Item2);
-					}
-				}
-
-			}
-		}
-		return r;
-	}
+	Vector<const ClassMethod*> Find_FuncsUsingName(const String_view& Name) const;
 
 	const AssemblyNode* Find_Node(ReflectionCustomTypeID TypeID) const;
 	AssemblyNode* Find_Node(ReflectionCustomTypeID TypeID);
