@@ -421,7 +421,7 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node, 
 				{
 					Class._ClassAutoGenerateCopyConstructor = true;
 				}
-				if (HasMoveContructerHasIRFunc(Item->Type))
+				if (HasMoveContructerHasIRFunc(Item->Type) && !Type_IsPrimitive(Item->Type))
 				{
 					Class._ClassAutoGenerateMoveConstructor = true;
 				}
