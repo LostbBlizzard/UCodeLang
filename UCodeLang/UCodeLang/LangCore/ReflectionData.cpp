@@ -36,6 +36,159 @@ Optional<ReflectionCustomTypeID> ClassAssembly::GetReflectionTypeID(const Assemb
 
 	return Value;
 }
+Optional<ClassMethod> ClassAssembly::Remove_Func(const String_view& FullName)
+{
+	for (auto& Item : Classes)
+	{
+		if (Item->Get_Type() == ClassType::Class)
+		{
+			auto& methods = Item->Get_ClassData().Methods;
+			for (size_t i = 0; i < methods.size(); i++)
+			{
+				auto& Item2 = methods[i];
+
+				if (Item2.DecorationName == FullName
+					|| Item2.FullName == FullName)
+				{
+					auto t = std::move(Item2);
+					return t;
+				}
+			}
+		}
+		else if (Item->Get_Type() == ClassType::ForType)
+		{
+			auto& methods = Item->Get_ForType()._AddedMethods;
+			for (size_t i = 0; i < methods.size(); i++)
+			{
+				auto& Item2 = methods[i];
+
+				if (Item2.DecorationName == FullName
+					|| Item2.FullName == FullName)
+				{
+					auto t = std::move(Item2);
+					return t;
+				}
+			}
+		} 
+	}
+	return {};
+}
+void ClassAssembly::Remove_NullFunc()
+{
+	for (auto& Item : Classes)
+	{
+		if (Item->Get_Type() == ClassType::Class)
+		{
+			auto& methods = Item->Get_ClassData().Methods;
+
+			methods.erase(std::remove_if(methods.begin(), methods.end(), [](ClassMethod& Item)
+				{
+					return Item.DecorationName.empty() && Item.FullName.empty();
+				}), methods.end());
+		}
+		else if (Item->Get_Type() == ClassType::ForType)
+		{
+			auto& methods = Item->Get_ForType()._AddedMethods;
+
+			methods.erase(std::remove_if(methods.begin(), methods.end(), [](ClassMethod& Item)
+				{
+					return Item.DecorationName.empty() && Item.FullName.empty();
+				}), methods.end());
+		}
+	}
+}
+const ClassMethod* ClassAssembly::Find_Func(const String_view& FullName) const
+{
+	for (auto& Item : Classes)
+	{
+		if (Item->Get_Type() == ClassType::Class)
+		{
+			for (auto& Item2 : Item->Get_ClassData().Methods)
+			{
+				if (Item2.DecorationName == FullName
+					|| Item2.FullName == FullName)
+				{
+					return &Item2;
+				}
+			}
+		}
+		else if (Item->Get_Type() == ClassType::ForType)
+		{
+			for (auto& Item2 : Item->Get_ForType()._AddedMethods)
+			{
+				if (Item2.DecorationName == FullName
+					|| Item2.FullName == FullName)
+				{
+					return &Item2;
+				}
+			}
+		}
+	}
+	return nullptr;
+}
+Vector<ClassMethod*> ClassAssembly::Find_Funcs(const String_view& FullName)
+{
+	Vector<ClassMethod*> r;
+	for (auto& Item : Classes)
+	{
+		if (Item->Get_Type() == ClassType::Class)
+		{
+			for (auto& Item2 : Item->Get_ClassData().Methods)
+			{
+				if (Item2.DecorationName == FullName
+					|| Item2.FullName == FullName)
+				{
+					r.push_back(&Item2);
+				}
+			}
+		}
+		else if (Item->Get_Type() == ClassType::ForType)
+		{
+			for (auto& Item2 : Item->Get_ForType()._AddedMethods)
+			{
+				if (Item2.DecorationName == FullName
+					|| Item2.FullName == FullName)
+				{
+					r.push_back(&Item2);
+				}
+			}
+
+		}
+	}
+	return r;
+}
+Vector<const ClassMethod*> ClassAssembly::Find_FuncsUsingName(const String_view& Name) const
+{
+	Vector<const ClassMethod*> r;
+	for (auto& Item : Classes)
+	{
+		if (Item->Get_Type() == ClassType::Class)
+		{
+			for (auto& Item2 : Item->Get_ClassData().Methods)
+			{
+				if (Item2.DecorationName == Name
+					|| Item2.FullName == Name
+					|| ScopeHelper::GetNameFromFullName(Item2.FullName) == Name)
+				{
+					r.push_back(&Item2);
+				}
+			}
+		}
+		else if (Item->Get_Type() == ClassType::ForType)
+		{
+			for (auto& Item2 : Item->Get_ForType()._AddedMethods)
+			{
+				if (Item2.DecorationName == Name
+					|| Item2.FullName == Name
+					|| ScopeHelper::GetNameFromFullName(Item2.FullName) == Name)
+				{
+					r.push_back(&Item2);
+				}
+			}
+		}
+	}
+	return r;
+}
 const AssemblyNode* ClassAssembly::Find_Node(ReflectionCustomTypeID TypeID) const
 {
 	for (auto& Item : Classes)
