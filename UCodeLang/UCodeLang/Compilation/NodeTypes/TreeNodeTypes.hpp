@@ -1449,6 +1449,7 @@ struct ForTypeNode :Node
 	TypeNode _typetoaddto;
 	GenericValuesNode _generic;
 	const Token* EndOfClass = nullptr;
+	bool _IsExport = false;
 };
 
 UCodeLangFrontEnd

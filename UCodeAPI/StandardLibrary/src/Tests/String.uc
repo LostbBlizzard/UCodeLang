@@ -43,11 +43,11 @@ Tests:
 
  [Test]
  |StringSpan_9[]:
-  //var Txt = "Hello" + " World";
-  //ret Txt == "Hello World";
+  var Txt = "Hello" + " World";
+  ret Txt == "Hello World";
 
  [Test]
  |StringSpan_10[]:
-  //String v = " World";
-  //var Txt = "Hello" + v;
-  //ret Txt == "Hello World";
+  String v = " World";
+  var Txt = "Hello" + v;
+  ret Txt == "Hello World";

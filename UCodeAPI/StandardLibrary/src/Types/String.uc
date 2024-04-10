@@ -127,7 +127,7 @@ $String32 export = String_t<utf32>;
 $String32Span export= StringSpan_t<utf32>;
 
 
-$for<T> StringSpan_t<T>:
+$for<T> StringSpan_t<T> export:
   export |+[imut this&,imut String_t<T>& Other] => this + Other.Str();
   export |+[imut this&,imut this& Other]:
    String_t<T> r = this;

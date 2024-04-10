@@ -5277,6 +5277,12 @@ GotNodeType Parser::GetForTypeNode(ForTypeNode& out)
 
 	GetType(out._typetoaddto);
 
+	if (TryGetToken()->Type == TokenType::KeyWord_export)
+	{
+		out._IsExport = true;
+		NextToken();
+	}
+
 	TokenTypeCheck(TryGetToken(), TokenType::Colon);
 	NextToken();
 
