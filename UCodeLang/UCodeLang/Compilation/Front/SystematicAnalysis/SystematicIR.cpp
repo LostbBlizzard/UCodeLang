@@ -358,7 +358,7 @@ bool SystematicAnalysis::IR_Build_ImplicitConversion(IRInstruction* Ex, const Ty
 
 							_IR_LookingAtIRBlock->NewPushParameter(_IR_LookingAtIRBlock->NewLoadPtr(ret));
 
-							if (!ExType.IsAddress() && Par.Type.IsAddress())
+							if (!ExType.IsAddress() &&  (Par.Type.IsAddress() || Par.Type.IsMovedType()))
 							{
 								Ex = _IR_LookingAtIRBlock->NewLoadPtr(Ex);
 							}

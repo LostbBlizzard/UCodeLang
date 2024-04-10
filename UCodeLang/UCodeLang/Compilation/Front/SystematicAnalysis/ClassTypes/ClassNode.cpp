@@ -725,16 +725,20 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 					{
 						auto& Item = ClassInf->Fields[i];
 						auto v = HasCopyContructer(Item.Type);
+						auto par1 = _IR_LookingAtIRBlock->New_Member_Dereference(&_IR_LookingAtIRFunc->Pars.front(), ThisPar, i);
+						auto par2 = _IR_LookingAtIRBlock->New_Member_Dereference(&_IR_LookingAtIRFunc->Pars[1], ThisPar, i);
+
 						if (v && !Item.Type.IsAddress())
 						{
 							auto info = v.value()->Get_Info<FuncInfo>();
-							auto par1 = _IR_LookingAtIRBlock->New_Member_Dereference(&_IR_LookingAtIRFunc->Pars.front(), ThisPar, i);
-							auto par2 = _IR_LookingAtIRBlock->New_Member_Dereference(&_IR_LookingAtIRFunc->Pars[1], ThisPar, i);
-
 
 							_IR_LookingAtIRBlock->NewPushParameter(_IR_LookingAtIRBlock->NewLoadPtr(par1));
 							_IR_LookingAtIRBlock->NewPushParameter(_IR_LookingAtIRBlock->NewLoadPtr(par2));
 							_IR_LookingAtIRBlock->NewCall(IR_GetIRID(info));
+						}
+						else
+						{
+							_IR_LookingAtIRBlock->NewStore(par1,par2);
 						}
 					}
 					_IR_LookingAtIRBlock->NewRet();
@@ -806,16 +810,20 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 					{
 						auto& Item = ClassInf->Fields[i];
 						auto v = HasMoveContructer(Item.Type);
+						auto par1 = _IR_LookingAtIRBlock->New_Member_Dereference(&_IR_LookingAtIRFunc->Pars.front(), ThisPar, i);
+						auto par2 = _IR_LookingAtIRBlock->New_Member_Dereference(&_IR_LookingAtIRFunc->Pars[1], ThisPar, i);
+
 						if (v && !Item.Type.IsAddress())
 						{
 							auto info = v.value()->Get_Info<FuncInfo>();
-							auto par1 = _IR_LookingAtIRBlock->New_Member_Dereference(&_IR_LookingAtIRFunc->Pars.front(), ThisPar, i);
-							auto par2 = _IR_LookingAtIRBlock->New_Member_Dereference(&_IR_LookingAtIRFunc->Pars[1], ThisPar, i);
-
 
 							_IR_LookingAtIRBlock->NewPushParameter(_IR_LookingAtIRBlock->NewLoadPtr(par1));
 							_IR_LookingAtIRBlock->NewPushParameter(_IR_LookingAtIRBlock->NewLoadPtr(par2));
 							_IR_LookingAtIRBlock->NewCall(IR_GetIRID(info));
+						}
+						else
+						{
+							_IR_LookingAtIRBlock->NewStore(par1, par2);
 						}
 					}
 					_IR_LookingAtIRBlock->NewRet();
