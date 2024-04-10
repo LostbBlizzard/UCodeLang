@@ -1096,7 +1096,7 @@ void SystematicAnalysis::Assembly_LoadSymbol(const ForType_Data& Item, Systemati
 
 	if (Mode == LoadLibMode::GetTypes)
 	{
-		auto& Syb = Symbol_AddSymbol(SymbolType::Func, Item._Scope, Item._Scope, Item.AccessModifier);
+		auto& Syb = Symbol_AddSymbol(SymbolType::ForType,ForTypeScope,ScopeHelper::ApendedStrings(Item._Scope,ForTypeScope), Item.AccessModifier);
 		_Table.AddSymbolID(Syb, Symbol_GetSymbolID(&Item));
 
 		auto Funcinfo = new ForTypeInfo();
