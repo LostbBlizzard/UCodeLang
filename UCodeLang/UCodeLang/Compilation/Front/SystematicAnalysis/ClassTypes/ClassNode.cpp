@@ -198,6 +198,56 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 
 					DropFunc->PassState = PassType::BuidCode;
 				}
+				
+				if (!HasMoveConstructor && ClassInf->_ClassAutoGenerateMoveConstructor)
+				{
+					auto DropFunc = &Symbol_AddSymbol(SymbolType::Func, ClassConstructorfunc, _Table._Scope.GetApendedString((String)ClassConstructorfunc), AccessModifierType::Public);
+					_Table.AddSymbolID(*DropFunc,Symbol_GetSymbolID(DropFunc));
+					FuncInfo* V = new FuncInfo();
+					DropFunc->Info.reset(V);
+
+					V->FullName = DropFunc->FullName;
+					V->_FuncType = FuncInfo::FuncType::New;
+					V->Ret = TypesEnum::Void;
+					V->FrontParIsUnNamed = true;
+
+					auto ThisParType = ThisCallType;
+					ThisParType._IsAddress = true;
+					V->Pars.push_back({ false,ThisParType });
+					
+					auto ThisParType2 = ThisCallType;
+					ThisParType2._Isimmutable = true;
+					ThisParType2._IsAddress = true;
+					V->Pars.push_back({ false,ThisParType2 });
+
+
+					ClassInf->_AutoGenerateCopyConstructor = DropFunc->ID;
+					DropFunc->PassState = PassType::BuidCode;
+				}
+
+				if (!HasMoveConstructor && ClassInf->_ClassAutoGenerateMoveConstructor)
+				{
+					auto DropFunc = &Symbol_AddSymbol(SymbolType::Func, ClassConstructorfunc, _Table._Scope.GetApendedString((String)ClassConstructorfunc), AccessModifierType::Public);
+					_Table.AddSymbolID(*DropFunc, Symbol_GetSymbolID(DropFunc));
+					FuncInfo* V = new FuncInfo();
+					DropFunc->Info.reset(V);
+
+					V->FullName = DropFunc->FullName;
+					V->_FuncType = FuncInfo::FuncType::New;
+					V->Ret = TypesEnum::Void;
+					V->FrontParIsUnNamed = true;
+
+					auto ThisParType = ThisCallType;
+					ThisParType._IsAddress = true;
+					V->Pars.push_back({ false,ThisParType });
+
+					auto ThisParType2 = ThisCallType;
+					ThisParType2._MoveData = MoveData::Moved;
+					V->Pars.push_back({ false,ThisParType2 });
+
+					ClassInf->_AutoGenerateMoveConstructor = DropFunc->ID;
+					DropFunc->PassState = PassType::BuidCode;
+				}
 			}
 
 			//Inherited Values
@@ -646,22 +696,9 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 			if (!ClassInf->_ClassHasCopyConstructor && ClassInf->_ClassAutoGenerateCopyConstructor)
 			{
 				auto ThisCallType = TypeSymbol(Syb.ID);
-
-				FuncInfo V = FuncInfo();
-				{
-					V.FullName = RemoveSymboolFuncOverloadMangling(_Table._Scope.GetApendedString((String)ClassConstructorfunc));
-					V._FuncType = FuncInfo::FuncType::New;
-					V.Ret = TypesEnum::Void;
-					V.FrontParIsUnNamed = true;
-
-					auto ThisParType = ThisCallType;
-					ThisParType._IsAddress = true;
-					V.Pars.push_back({ false,ThisParType });
-
-					auto ThisParType2 = ThisCallType;
-					ThisParType2._MoveData = MoveData::Moved;
-					V.Pars.push_back({ false,ThisParType2 });
-				}
+				auto sym = Symbol_GetSymbol(ClassInf->_AutoGenerateCopyConstructor.value());
+				const FuncInfo& V = *sym->Get_Info<FuncInfo>();
+				
 
 
 				auto OldFunc = _IR_LookingAtIRFunc;
@@ -742,23 +779,8 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 			{
 				auto ThisCallType = TypeSymbol(Syb.ID);
 
-				FuncInfo V = FuncInfo();
-				{
-					V.FullName = RemoveSymboolFuncOverloadMangling(_Table._Scope.GetApendedString((String)ClassConstructorfunc));
-					V._FuncType = FuncInfo::FuncType::New;
-					V.Ret = TypesEnum::Void;
-					V.FrontParIsUnNamed = true;
-
-					auto ThisParType = ThisCallType;
-					ThisParType._IsAddress = true;
-					V.Pars.push_back({ false,ThisParType });
-
-					auto ThisParType2 = ThisCallType;
-					ThisParType2._IsAddress = true;
-					ThisParType2._Isimmutable = true;
-					V.Pars.push_back({ false,ThisParType2 });
-				}
-
+				auto sym = Symbol_GetSymbol(ClassInf->_AutoGenerateMoveConstructor.value());
+				FuncInfo& V = *sym->Get_Info<FuncInfo>(); 
 
 				auto OldFunc = _IR_LookingAtIRFunc;
 				auto OldBlock = _IR_LookingAtIRBlock;

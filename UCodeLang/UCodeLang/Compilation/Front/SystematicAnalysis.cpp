@@ -2500,10 +2500,15 @@ NullablePtr<Symbol> SystematicAnalysis::HasMoveContructer(const TypeSymbol& ExTy
 		if (GetSym->Type == SymbolType::Type_class)
 		{
 			auto info = GetSym->Get_Info<ClassInfo>();
+			Symbol_Update_ClassSym_ToFixedTypes(GetSym);
 
 			if (info->_ClassHasMoveConstructor)
 			{
 				return Symbol_GetSymbol(info->_ClassHasMoveConstructor.value()).AsNullable();
+			}
+			else if (info->_ClassAutoGenerateMoveConstructor)
+			{
+				return Symbol_GetSymbol(info->_AutoGenerateMoveConstructor.value()).AsNullable();
 			}
 		}
 	}
@@ -2518,10 +2523,15 @@ NullablePtr<Symbol> SystematicAnalysis::HasCopyContructer(const TypeSymbol& ExTy
 		if (GetSym->Type == SymbolType::Type_class)
 		{
 			auto info = GetSym->Get_Info<ClassInfo>();
+			Symbol_Update_ClassSym_ToFixedTypes(GetSym);
 
 			if (info->_ClassHasCopyConstructor)
 			{
 				return Symbol_GetSymbol(info->_ClassHasCopyConstructor.value()).AsNullable();
+			}
+			else if (info->_ClassAutoGenerateMoveConstructor)
+			{
+				return Symbol_GetSymbol(info->_AutoGenerateCopyConstructor.value()).AsNullable();
 			}
 		}
 	}
