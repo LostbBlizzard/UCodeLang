@@ -886,36 +886,37 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 		}
 	}
 	bool ReservedforReturn = false;
-	{
-		bool canbeReserved = false;
-
+	{			
 		if (lookingatfunc->ReturnType._Type != IRTypes::Void)
-		{
-			canbeReserved = GetSize(lookingatfunc->ReturnType) <= sizeof(AnyInt64);
-		}
-		if (canbeReserved)
-		{
-
-			ReservedforReturn = false;
-			for (size_t i = 0; i < IR->Instructions.size(); i++)
+		{	
+			if (GetSize(lookingatfunc->ReturnType) > sizeof(AnyInt64))
 			{
-				auto& Item_ = IR->Instructions[i];
-				if (Item_->Type == IRInstructionType::LoadReturn)
-				{
-					for (size_t i2 = i + 1; i2 < IR->Instructions.size(); i2++)
-					{
+				ReservedforReturn = true;
+			}
 
-						auto& Item2_ = IR->Instructions[i2];
-						if (Item2_->Type != IRInstructionType::Return && Item2_->Type != IRInstructionType::None)
+			if (ReservedforReturn == false)
+			{
+				for (size_t i = 0; i < IR->Instructions.size(); i++)
+				{
+					auto& Item_ = IR->Instructions[i];
+					if (Item_->Type == IRInstructionType::LoadReturn)
+					{
+						for (size_t i2 = i + 1; i2 < IR->Instructions.size(); i2++)
 						{
-							ReservedforReturn = true;
-							goto Done;
+
+							auto& Item2_ = IR->Instructions[i2];
+							if (Item2_->Type != IRInstructionType::Return && Item2_->Type != IRInstructionType::None)
+							{
+								ReservedforReturn = true;
+								goto Done;
+							}
 						}
 					}
 				}
+			Done:
+				int a = 0;
 			}
-		Done:
-			int a = 0;
+			
 		}
 	}
 	size_t PosReservedforReturn = 0;
