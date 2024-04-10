@@ -86,6 +86,25 @@ void SystematicAnalysis::OnForTypeNode(const ForTypeNode& node)
 
 			}
 
+			if (!node._IsExport)
+			{
+				bool hasanyexport = false;
+				for (auto& Item : forinfo->Funcs)
+				{
+					if (Item->Get_NodeInfo<FuncNode>()->_Signature._IsExport)
+					{
+						hasanyexport = true;
+						break;
+					}
+				}
+
+				if (hasanyexport)
+				{
+					LogError(ErrorCodes::InValidName, "cant export funcions because 'for type' is not exported"
+						,NeverNullptr(node._typetoaddto._name._ScopedName.front()._token));
+				}
+			}
+
 			_PassType = PassType::FixedTypes;
 			for (auto& Item : node._Nodes)
 			{
@@ -157,7 +176,7 @@ void SystematicAnalysis::OnForTypeNode(const ForTypeNode& node)
 			auto& OutInfo = _Lib.Get_Assembly().AddForType(ScopeName, ScopeName);
 			OutInfo._TargetType = Assembly_ConvertToType(sym->VarType);
 			OutInfo._AddedMethods = std::move(methods);
-
+			OutInfo.IsExported = node._IsExport;
 			_Table.RemoveScope();
 			
 			OutInfo._Scope = _Table._Scope.ThisScope;
