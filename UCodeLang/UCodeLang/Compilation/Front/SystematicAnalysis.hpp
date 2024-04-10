@@ -1425,6 +1425,7 @@ private:
 	UrinaryOverLoadWith_t Type_HasUrinaryOverLoadWith(const TypeSymbol& TypeA, TokenType Op);
 
 	bool Type_IsCopyable(const TypeSymbol& Type);
+	bool Type_HasCopyFunc(const TypeSymbol& Type);
 
 	TypeSymbol Type_BinaryExpressionShouldRurn(TokenType Op, const TypeSymbol& Ex0Type);
 

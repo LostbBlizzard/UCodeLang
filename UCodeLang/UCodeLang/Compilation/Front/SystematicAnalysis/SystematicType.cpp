@@ -1376,6 +1376,30 @@ bool SystematicAnalysis::Type_IsCopyable(const TypeSymbol& Type)
 	}
 	return true;
 }
+bool SystematicAnalysis::Type_HasCopyFunc(const TypeSymbol& Type)
+{
+	if (auto val = Symbol_GetSymbol(Type))
+	{
+		auto& Syb = *val.value().value();
+
+		switch (Syb.Type)
+		{
+		case SymbolType::Type_class:
+		{
+			auto v = Syb.Get_Info<ClassInfo>();
+			bool r = v->_ClassAutoGenerateCopyConstructor
+				|| v->_ClassHasCopyConstructor.has_value();
+
+		
+			return r;
+		}
+		break;
+		default:
+			break;
+		}
+	}
+	return false;
+}
 TypeSymbolID SystematicAnalysis::Type_GetTypeID(TypesEnum Type, SymbolID SymbolId)
 {
 	TypeSymbolID R = 0;
