@@ -199,7 +199,7 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 					DropFunc->PassState = PassType::BuidCode;
 				}
 				
-				if (!HasMoveConstructor && ClassInf->_ClassAutoGenerateMoveConstructor)
+				if (!HasCopyConstructor && ClassInf->_ClassAutoGenerateCopyConstructor)
 				{
 					auto DropFunc = &Symbol_AddSymbol(SymbolType::Func, ClassConstructorfunc, _Table._Scope.GetApendedString((String)ClassConstructorfunc), AccessModifierType::Public);
 					_Table.AddSymbolID(*DropFunc,Symbol_GetSymbolID(DropFunc));
