@@ -112,7 +112,7 @@ inline String ModeType(OptimizationFlags Flags)
 	return r;
 }
 
-static const Array<TestInfo, 136> Tests{
+static const Array<TestInfo, 137> Tests{
 
 	TestInfo("main_0", "BasicTests/main.uc", "Main", SuccessCondition::Compilation),
 
@@ -301,6 +301,8 @@ static const Array<TestInfo, 136> Tests{
 	
 	TestInfo("CustomForLoop", "Array/CustomForLoop.uc", "main", SuccessCondition::RunTimeValue, (int)6),
 	TestInfo("CustomForLoop_2", "Array/CustomForLoop2.uc", "main", SuccessCondition::RunTimeValue, (int)9),
+	
+	TestInfo("AutoMadeContruct", "Objects/AutoMadeContruct.uc", "main", SuccessCondition::RunTimeValue, (bool)true),
 };
 struct SkipTestRange
 {

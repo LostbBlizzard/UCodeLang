@@ -2506,7 +2506,7 @@ NullablePtr<Symbol> SystematicAnalysis::HasMoveContructer(const TypeSymbol& ExTy
 			{
 				return Symbol_GetSymbol(info->_ClassHasMoveConstructor.value()).AsNullable();
 			}
-			else if (info->_ClassAutoGenerateMoveConstructor)
+			else if (info->_AutoGenerateMoveConstructor)
 			{
 				return Symbol_GetSymbol(info->_AutoGenerateMoveConstructor.value()).AsNullable();
 			}
@@ -2529,7 +2529,7 @@ NullablePtr<Symbol> SystematicAnalysis::HasCopyContructer(const TypeSymbol& ExTy
 			{
 				return Symbol_GetSymbol(info->_ClassHasCopyConstructor.value()).AsNullable();
 			}
-			else if (info->_ClassAutoGenerateMoveConstructor)
+			else if (info->_AutoGenerateCopyConstructor)
 			{
 				return Symbol_GetSymbol(info->_AutoGenerateCopyConstructor.value()).AsNullable();
 			}
