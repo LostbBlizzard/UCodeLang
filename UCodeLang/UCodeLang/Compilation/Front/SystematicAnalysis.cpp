@@ -2424,6 +2424,37 @@ SystematicAnalysis::CastOverLoadWith_t  SystematicAnalysis::Type_CanBeExplicitly
 	if (TypeToCheck._Type == TypesEnum::uInt32 && Type._Type == TypesEnum::float32) { return { true }; }
 	if (TypeToCheck._Type == TypesEnum::uInt64 && Type._Type == TypesEnum::float64) { return { true }; }
 
+
+	if (Type_IsCharType(Type._Type) && Type_IsUIntType(TypeToCheck))
+	{
+		auto charsize = Type_GetSize(Type._Type);
+
+		auto intsize = Type_GetSize(TypeToCheck);
+
+		if (charsize == intsize)
+		{
+			if (TypeToCheck._Type != TypesEnum::uIntPtr)//to stop different errors happening between 32 and 64.
+			{
+				return { true };
+			}
+		}
+	}
+	
+	if (Type_IsUIntType(Type._Type) && Type_IsCharType(TypeToCheck))
+	{
+		auto charsize = Type_GetSize(TypeToCheck);
+
+		auto intsize = Type_GetSize(Type._Type);
+
+		if (charsize == intsize)
+		{
+			if (TypeToCheck._Type != TypesEnum::uIntPtr)//to stop different errors happening between 32 and 64.
+			{
+				return { true };
+			}
+		}
+	}
+
 	auto Syb = Symbol_GetSymbol(TypeToCheck);
 	if (Syb)
 	{

@@ -532,6 +532,11 @@ void SystematicAnalysis::IR_Build_ExplicitConversion(IRInstruction* Ex, const Ty
 				{
 					_IR_LastExpressionField = _IR_LookingAtIRBlock->New_f64Toi64(Ex);
 				}
+				else if (Type_IsCharType(ExType._Type)
+					&& Type_GetSize(ExType) == Type_GetSize(ToType))
+				{
+						_IR_LastExpressionField = Ex;
+				}
 				else
 				{
 					UCodeLangUnreachable();
@@ -560,6 +565,11 @@ void SystematicAnalysis::IR_Build_ExplicitConversion(IRInstruction* Ex, const Ty
 			else if (ToType._Type == TypesEnum::float64 && ExType._Type == TypesEnum::float32)
 			{
 				_IR_LastExpressionField = _IR_LookingAtIRBlock->New_f32Tof64(Ex);
+			}
+			else if (Type_IsCharType(ToType) && Type_IsUIntType(ExType._Type) 
+				&& ExType._Type != TypesEnum::uIntPtr && Type_GetSize(ToType) == Type_GetSize(ExType._Type))
+			{
+				_IR_LastExpressionField = Ex;
 			}
 			else
 			{
