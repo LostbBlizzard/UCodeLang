@@ -567,7 +567,7 @@ void SystematicAnalysis::Assembly_LoadClassSymbol(const Class_Data& Item, const 
 			auto finfo = sym->Get_Info<FuncInfo>();
 			
 			if (finfo->FrontParIsUnNamed)
-			{	
+			{
 				if (finfo->Pars.size() == 1)
 				{
 					if (finfo->Get_Name() == ClassDestructorFunc)
@@ -575,8 +575,23 @@ void SystematicAnalysis::Assembly_LoadClassSymbol(const Class_Data& Item, const 
 						Info->_WillHaveFielddeInit = true;
 					}
 				}
+				else if (Item.ParsType.size() == 2)
+				{
+					auto& par = Item.ParsType[1];
+					
+					if (par.Type._CustomTypeID == Item.ParsType[0].Type._CustomTypeID) 
+					{
+						if (par.Type.Isimmutable() && par.Type.IsAddress())
+						{
+							Info->_ClassHasCopyConstructor = sym->ID;
+						}
+						else if (par.Type.IsMovedType())
+						{
+							Info->_ClassHasMoveConstructor = sym->ID;
+						}
+					}
+				}
 			}
-
 		}
 	}
 
