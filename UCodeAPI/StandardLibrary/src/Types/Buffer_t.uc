@@ -99,4 +99,9 @@ $Buffer_t<T> trait export:
 
   export |AsSpan[this&] -> T[:]:ret unsafe [Data(),Size()];
   export |AsSpan[imut this&] -> imut T[:]:ret unsafe [Data(),Size()];
+  
+  export |Reverse[this&]:
+   for [uintptr i = 0;i < (Size() / 2);i++]:
+    Swap(this[i],this[Size() - 1 - i]);
+
 

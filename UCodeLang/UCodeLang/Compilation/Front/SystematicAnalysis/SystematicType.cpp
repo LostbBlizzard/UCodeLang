@@ -1652,7 +1652,8 @@ void SystematicAnalysis::Type_Convert(const TypeNode& V, TypeSymbol& Out)
 			SymbolID id = Symbol_GetSymbolID(node);
 			auto& Syb = Symbol_AddSymbol(SymbolType::ConstantExpression, "?", "?", AccessModifierType::Private);
 			_Table.AddSymbolID(Syb, id);
-
+	
+			_ConstantExpressionMap.AddValue(node, id);
 			ConstantExpressionInfo* info = new ConstantExpressionInfo();
 			info->Exnode = ExpressionNodeType::As(node);
 			info->Context = Save_SymbolContext();
