@@ -125,6 +125,11 @@ void SystematicAnalysis::OnAssignExpressionNode(const AssignExpressionNode& node
 				obj = _IR_LastStoreField.Parameter;
 				AssignExType._IsAddress = false;
 			break;
+			case IROperatorType::IRParameter:
+				obj = _IR_LastStoreField.Parameter;
+				AssignExType._IsAddress = false;
+			break;
+
 			default:
 				UCodeLangUnreachable();
 				break;

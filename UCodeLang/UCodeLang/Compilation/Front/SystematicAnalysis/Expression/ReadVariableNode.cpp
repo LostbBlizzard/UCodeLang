@@ -170,7 +170,9 @@ void SystematicAnalysis::OnReadVariable(const ReadVariableNode& nod)
 					}
 					else
 					{
-						_IR_LastStoreField = IR_Build_Member_Store(V, V.Type);
+						auto tep = V.Type;
+						tep._IsAddress = false;
+						_IR_LastStoreField = IR_Build_Member_Store(V, tep);
 					}
 				}
 			}
