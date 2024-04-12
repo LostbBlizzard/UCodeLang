@@ -2400,6 +2400,15 @@ SystematicAnalysis::CastOverLoadWith_t  SystematicAnalysis::Type_CanBeExplicitly
 				return { true };
 			}
 		}
+		else if (syb.Type == SymbolType::Enum)
+		{
+			auto info = syb.Get_Info<EnumInfo>();
+
+			if (Type_AreTheSame(info->Basetype, Type))
+			{
+				return { true };
+			}
+		}
 
 	}
 	else if (Type._Type == TypesEnum::CustomType)
@@ -2486,6 +2495,22 @@ SystematicAnalysis::CastOverLoadWith_t  SystematicAnalysis::Type_CanBeExplicitly
 		}
 	}
 
+
+
+	auto Syb2 = Symbol_GetSymbol(Type);
+	if (Syb2.has_value())
+	{
+		auto s = Syb2.value();
+		if (s->Type == SymbolType::Enum)
+		{
+			auto info = s->Get_Info<EnumInfo>();
+
+			if (Type_AreTheSame(info->Basetype, TypeToCheck))
+			{
+				return { true };
+			}
+		}
+	}
 	return { false };
 }
 Optional < FuncInfo*> SystematicAnalysis::Symbol_GetAnExplicitlyConvertedFunc(const TypeSymbol& TypeToCheck)

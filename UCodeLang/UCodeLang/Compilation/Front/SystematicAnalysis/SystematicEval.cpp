@@ -713,11 +713,31 @@ bool SystematicAnalysis::Eval_Evaluate(EvaluatedEx& Out, const CastNode& node)
 	{
 		if (HasInfo.Value.has_value())
 		{
+			auto symop = Symbol_GetSymbol(ToTypeAs);
+			if (symop.has_value())
+			{
+				auto& sym = symop.value();
+
+				if (sym->Type == SymbolType::Enum)
+				{
+					auto info = sym->Get_Info<EnumInfo>();
+
+					if (info->VariantData.has_value())
+					{
+						UCodeLangUnreachable();
+					}
+					else if (Type_AreTheSame(info->Basetype,ToTypeAs))
+					{
+						return true;
+					}
+				}
+			}
 			return false;
 		}
 		else
 		{
 			_LastExpressionType = ToTypeAs;
+			Out.Type = _LastExpressionType;
 		}
 
 	}

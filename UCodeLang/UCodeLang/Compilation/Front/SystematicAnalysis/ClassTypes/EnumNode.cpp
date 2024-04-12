@@ -74,6 +74,7 @@ void SystematicAnalysis::OnEnum(const EnumNode& node)
 	bool HasCheckedForincrementOp = false;
 	_LookingForTypes.push(enumInf->Basetype);
 
+	Syb.PassState = _PassType;
 	for (size_t i = 0; i < node._Values.size(); i++)
 	{
 		auto& Item = node._Values[i];
@@ -462,7 +463,6 @@ void SystematicAnalysis::OnEnum(const EnumNode& node)
 	}
 
 	_Table.RemoveScope();
-	Syb.PassState = _PassType;
 }
 
 
