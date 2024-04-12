@@ -537,6 +537,28 @@ void SystematicAnalysis::IR_Build_ExplicitConversion(IRInstruction* Ex, const Ty
 				{
 						_IR_LastExpressionField = Ex;
 				}
+				else if (Symbol_GetSymbol(ExType).has_value())
+				{
+					auto& sym = Symbol_GetSymbol(ExType).value();
+
+					if (sym->Type == SymbolType::Enum)
+					{
+						auto info = sym->Get_Info<EnumInfo>();
+
+						if (!info->VariantData.has_value() && Type_AreTheSame(info->Basetype, ToType))
+						{
+							_IR_LastExpressionField = Ex;
+						}
+						else 
+						{
+							UCodeLangUnreachable();
+						}
+					}
+					else 
+					{
+						UCodeLangUnreachable();
+					}
+				}
 				else
 				{
 					UCodeLangUnreachable();
@@ -570,6 +592,24 @@ void SystematicAnalysis::IR_Build_ExplicitConversion(IRInstruction* Ex, const Ty
 				&& ExType._Type != TypesEnum::uIntPtr && Type_GetSize(ToType) == Type_GetSize(ExType._Type))
 			{
 				_IR_LastExpressionField = Ex;
+			}
+			else if (Symbol_GetSymbol(ToType).has_value())
+			{
+				auto sym = Symbol_GetSymbol(ToType).value();
+
+				if (sym->Type ==SymbolType::Enum)
+				{
+					auto info = sym->Get_Info<EnumInfo>();
+
+					if (!info->VariantData.has_value() && Type_AreTheSame(info->Basetype, ToType))
+					{
+						_IR_LastExpressionField = Ex;
+					}
+				}
+				else
+				{
+					UCodeLangUnreachable();
+				}
 			}
 			else
 			{
