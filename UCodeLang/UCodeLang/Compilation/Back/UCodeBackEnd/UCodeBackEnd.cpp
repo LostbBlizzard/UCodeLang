@@ -1920,21 +1920,21 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 			switch (optype._Type)
 			{
 			case IRTypes::i8:
-				InstructionBuilder::equal_greaterthan8(_Ins, A, B, V);
+				InstructionBuilder::equal_lessthan8(_Ins, A, B, V);
 				PushIns();
 				break;
 			case IRTypes::i16:
-				InstructionBuilder::equal_greaterthan16(_Ins, A, B, V);
+				InstructionBuilder::equal_lessthan16(_Ins, A, B, V);
 				PushIns();
 				break;
 
 			case IRTypes::i32:
-				InstructionBuilder::equal_greaterthan32(_Ins, A, B, V);
+				InstructionBuilder::equal_lessthan32(_Ins, A, B, V);
 				PushIns();
 				break;
 
 			case IRTypes::i64:
-				InstructionBuilder::equal_greaterthan64(_Ins, A, B, V);
+				InstructionBuilder::equal_lessthan64(_Ins, A, B, V);
 				PushIns();
 				break;
 
