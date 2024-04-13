@@ -41,8 +41,16 @@ void SystematicAnalysis::OnBitCast(const BitCastExpression& node)
 
 		auto ExType = _LastExpressionType;
 
-
 		_LastExpressionType = ToType;
+
+		if (lookforIntPtr)
+		{
+			auto lookingfortype = _LookingForTypes.top();
+			if (ToType.IsAddress() && !lookingfortype.IsAddress())
+			{
+				_LastExpressionType._IsAddress = false;
+			}
+		}
 	}
 	else if (_PassType == PassType::BuidCode)
 	{
@@ -68,6 +76,21 @@ void SystematicAnalysis::OnBitCast(const BitCastExpression& node)
 		auto ExType = _LastExpressionType;
 
 		_LastExpressionType = ToType;
+
+		if (lookforIntPtr) 
+		{
+			auto lookingfortype = _LookingForTypes.top();
+			if (ToType.IsAddress() && !lookingfortype.IsAddress())
+			{
+				auto ex = _IR_LastExpressionField;
+
+				auto tep = ToType;
+				tep._IsAddress = false;
+				IRType v = IR_ConvertToIRType(tep);
+				
+				_IR_LastExpressionField = _IR_LookingAtIRBlock->NewLoad_Dereferenc(ex, v);
+			}
+		}
 	}
 }
 

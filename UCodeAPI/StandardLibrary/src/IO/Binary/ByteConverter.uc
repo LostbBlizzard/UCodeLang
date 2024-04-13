@@ -7,12 +7,12 @@ $Endian enum export:
  
 
 
-$ByteConverter:
+$ByteConverter export:
  public:
  
   export |CPUEndian[] -> Endian:
    int v = 1;
-   byte[&] ptr = unsafe bitcast<byte[&]>(v);
+   byte[&] ptr = unsafe bitcast<byte[&]>(bitcast<uintptr>(v));
    if unsafe ptr[0] == 1:
     ret Little;
    else:
@@ -114,8 +114,23 @@ $ByteConverter:
    
    ret V;
 
+  export |ToBytes[float32 Val,Endian endian]:
+   var V = ToBytes_ThisCPU<float32>(Val);
+
+   if CPUEndian() != endian:
+    V.Reverse();
+   
+   ret V;
+
+  export |ToBytes[float64 Val,Endian endian]:
+   var V = ToBytes_ThisCPU<float64>(Val);
+
+   if CPUEndian() != endian:
+    V.Reverse();
+   
+   ret V;
 
  private:
-  export |ToBytes_ThisCPU<T>[T Val] -> byte[sizeof(T)]:
-   ret unsafe bitcast<byte[sizeof(T)]&>(Val);
+  |ToBytes_ThisCPU<T>[T Val] -> byte[sizeof(T)]:
+   ret unsafe bitcast<byte[sizeof(T)]&>(bitcast<uintptr>(Val));
 

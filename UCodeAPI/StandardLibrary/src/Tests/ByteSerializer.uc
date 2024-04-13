@@ -1,10 +1,10 @@
 
 Tests:
- [SkipedTest]
+ [Test]
  |ByteSerializer_1[]:
   int a = 1;
   var bytes = ByteConverter::ToBytes(a,Endian::Default);
-  
+   
   uintptr c = 0;
   
   for [item : bytes]:
