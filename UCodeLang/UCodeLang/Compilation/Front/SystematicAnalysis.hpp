@@ -10,7 +10,7 @@
 #include "UCodeLang/Compilation/Back/BackEndInterface.hpp"
 #include "../Middle/Symbol.hpp"
 #include "UCodeFrontEndNameSpace.hpp"
-
+#include "UCodeLang/LangCore/DataType/Set.hpp"
 UCodeLangFrontStart
 
 #define GenericTestStr CompilerGenerated("___GenericTest")
@@ -892,7 +892,7 @@ private:
 	String _LastIRFileName;
 	size_t _LastLineNumber = -1;
 
-	UnorderedMap<void*, SymbolID> _ConstantExpressionMap;
+	Set<SymbolID> _ConstantExpressionMap;
 	Stack<GetValueMode> _GetExpressionMode;
 	Stack<VarableUseData> _Varable;
 	Vector<Unique_ptr<EvalFuncData>> _Eval_FuncStackFrames;

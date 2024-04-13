@@ -1642,18 +1642,18 @@ void SystematicAnalysis::Type_Convert(const TypeNode& V, TypeSymbol& Out)
 	{
 		//note this can only happen in a generic substitution
 		auto* node = V._node.get();
-		if (_ConstantExpressionMap.HasValue(node))
+		SymbolID id = Symbol_GetSymbolID(node);
+		if (_ConstantExpressionMap.HasValue(id))
 		{
-			auto& item = _ConstantExpressionMap.GetValue(node);
+			auto& item = Symbol_GetSymbol(id)->ID;
 			Out.SetType(item);
 		}
 		else
 		{
-			SymbolID id = Symbol_GetSymbolID(node);
 			auto& Syb = Symbol_AddSymbol(SymbolType::ConstantExpression, "?", "?", AccessModifierType::Private);
 			_Table.AddSymbolID(Syb, id);
 	
-			_ConstantExpressionMap.AddValue(node, id);
+			_ConstantExpressionMap.AddValue(id);
 			ConstantExpressionInfo* info = new ConstantExpressionInfo();
 			info->Exnode = ExpressionNodeType::As(node);
 			info->Context = Save_SymbolContext();

@@ -3,7 +3,7 @@ Tests:
  [SkipedTest]
  |ByteSerializer_1[]:
   int a = 1;
-  var bytes = BitConverter::ToBytes(a,Endian::Default);
+  var bytes = ByteConverter::ToBytes(a,Endian::Default);
   
   uintptr c = 0;
   
