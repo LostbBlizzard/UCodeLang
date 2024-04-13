@@ -1623,7 +1623,6 @@ private:
 	bool Type_GetOffset(const ClassInfo& Type, const FieldInfo* Field, size_t& OutOffset);
 
 
-
 	Vector<Symbol*> Type_FindForTypeFuncions(const TypeSymbol& ThisType);
 	Vector<Symbol*> Type_FindForTypeFuncions(const TypeSymbol& ThisType,const String& FuncionName);
 	Get_FuncInfo Type_GetFunc(const TypeSymbol& Name, const ValueParametersNode& Pars);

@@ -3036,7 +3036,8 @@ StartSymbolsLoop:
 		}
 		else
 		{
-			if (ThisParType == Get_FuncInfo::ThisPar_t::NoThisPar && MayBeAutoThisFuncCall) {
+			if (ThisParType == Get_FuncInfo::ThisPar_t::NoThisPar && MayBeAutoThisFuncCall && AutoThisCall)
+			{
 				ValueTypes.erase(ValueTypes.begin());
 			}
 
@@ -3607,6 +3608,39 @@ Optional< Optional<SystematicAnalysis::Get_FuncInfo>> SystematicAnalysis::Type_F
 						return fullname;
 					}
 				}
+				else
+				{
+					auto lasttokentype = node._name._ScopedName.back()._token->Type;
+					if (TypeNode::IsPrimitive(lasttokentype)) 
+					{
+						String r;
+						switch (lasttokentype)
+						{
+						case TokenType::KeyWord_UInt8:r = Uint8TypeName; break;
+						case TokenType::KeyWord_UInt16:r = Uint16TypeName; break;
+						case TokenType::KeyWord_UInt32:r = Uint32TypeName; break;
+						case TokenType::KeyWord_UInt64:r = Uint64TypeName; break;
+
+						case TokenType::KeyWord_SInt8:r = Sint8TypeName; break;
+						case TokenType::KeyWord_SInt16:r = Sint16TypeName; break;
+						case TokenType::KeyWord_SInt32:r = Sint32TypeName; break;
+						case TokenType::KeyWord_SInt64:r = Sint64TypeName; break;
+
+						case TokenType::KeyWord_Char:r = CharTypeName; break;
+						case TokenType::KeyWord_uft8:r = Uft8typeName; break;
+						case TokenType::KeyWord_uft16:r = Uft16typeName; break;
+						case TokenType::KeyWord_uft32:r = Uft32typeName; break;
+
+						case TokenType::KeyWord_Bool:r = boolTypeName; break;
+						case TokenType::KeyWord_float32:r = float32TypeName; break;
+						case TokenType::KeyWord_float64:r = float64TypeName; break;
+						default:
+							UCodeLangUnreachable();
+							break;
+						}	
+						return r;
+					}
+				}
 				return {};
 			};
 
@@ -3625,9 +3659,20 @@ Optional< Optional<SystematicAnalysis::Get_FuncInfo>> SystematicAnalysis::Type_F
 				if (sym.has_value())
 				{
 					auto symname = sym.value();
-					auto parname = ToString(Par);
+					auto parname = ToString(Par);	
 
-					if (symname != parname)
+					bool isnotgeneric = false;
+					{
+						bool issame = false;
+						if (StringHelper::EndWith(parname,symname))
+						{
+							issame = true;//this would need to updated soon but its ok for now.
+						}
+
+						isnotgeneric = !issame;
+					}
+
+					if (isnotgeneric)
 					{
 						cangenericinputbeused = false;
 						break;
