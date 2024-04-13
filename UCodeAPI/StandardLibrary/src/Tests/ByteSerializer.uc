@@ -22,5 +22,15 @@ Tests:
   var span = v.AsSpan();
   ByteConverter::FromBytes(span,a,Endian::Little);
   
-  ret a;
+  ret a == 1;
 
+ [Test]
+ |ByteSerializer_3[]:
+  int h = 1;
+  byte[4] v = ByteConverter::ToBytes(h,Endian::Default);
+  
+  int a = 0; 
+  var span = v.AsSpan();
+  ByteConverter::FromBytes(span,a,Endian::Default);
+  
+  ret a == 1;
