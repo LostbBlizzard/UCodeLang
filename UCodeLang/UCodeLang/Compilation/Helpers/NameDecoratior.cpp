@@ -85,6 +85,15 @@ String NameDecoratior::DecoratedNameType(const Par& Type)
 	case ReflectionTypes::float64:
 		R += "f64";
 		break;
+	case ReflectionTypes::Uft8:
+		R += "c8";
+		break;
+	case ReflectionTypes::Uft16:
+		R += "c16";
+		break;
+	case ReflectionTypes::Uft32:
+		R += "c32";
+		break;
 	default:
 		R += Type.symbolFullName;
 		break;
