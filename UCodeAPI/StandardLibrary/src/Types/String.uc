@@ -113,6 +113,15 @@ $String_t<T>[Buffer_t<T>] export:
 
   export |Str[this&] -> MyStringSpan:ret unsafe [Data(),Size()];
   export |Str[imut this&] -> imut MyStringSpan:ret unsafe [Data(),Size()];
+
+  export |ToUpper[this&] -> void:
+   for [uintptr i = 0;i < Size();i++]:
+     this[i] = ToUpper(this[i]);
+  
+  export |ToLower[this&] -> void:
+   for [uintptr i = 0;i < Size();i++]:
+     this[i] = ToLower(this[i]);
+
  
 $String export = String_t<char>;
 $StringSpan export = StringSpan_t<char>;

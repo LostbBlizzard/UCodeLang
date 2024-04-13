@@ -2,16 +2,30 @@ Tests:
  
  [Test]
  |ToUpper_1[]:
-  ret ToUpper('a') == 'A';
+  ret ToUpper(char('a')) == 'A';
 
  [Test]
  |ToUpper_2[]:
-  ret ToLower('A') == 'a';
+  ret ToLower(char('A')) == 'a';
  
  [Test]
  |ToUpper_3[]:
-  ret IsUpper('A') == true && IsLower('A') == false;
+  ret IsUpper(char('A')) == true && IsLower(char('A')) == false;
 
  [Test]
  |ToUpper_4[]:
-  ret IsLower('z') == true && IsUpper('Z') == true;
+  ret IsLower(char('z')) == true && IsUpper(char('Z')) == true;
+
+ [Test]
+ |ToUpper_5[]:
+  String val = "hello";
+  val.ToUpper();
+
+  ret val == "HELLO";
+ 
+ [Test]
+ |ToUpper_6[]:
+  String val = "HELLO";
+  val.ToLower();
+
+  ret val == "hello";
