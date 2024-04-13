@@ -3578,7 +3578,9 @@ Optional< Optional<SystematicAnalysis::Get_FuncInfo>> SystematicAnalysis::Type_F
 
 						if (gnode.AsString() == fullname)
 						{
-							return ToString(fin);
+							auto v = fin;
+							v._IsAddress = node._IsAddess;
+							return ToString(v);
 						}
 					}
 
@@ -3659,7 +3661,24 @@ Optional< Optional<SystematicAnalysis::Get_FuncInfo>> SystematicAnalysis::Type_F
 				if (sym.has_value())
 				{
 					auto symname = sym.value();
-					auto parname = ToString(Par);	
+
+					bool symisaddress = false;
+					if (symname.size())
+					{
+						if (symname.back() == '&')
+						{
+							symisaddress = true;
+						}
+					}
+					auto teppar = Par;
+					if (symisaddress)
+					{
+						teppar._IsAddress = true;
+					}
+
+					auto parname = ToString(teppar);	
+					
+					
 
 					bool isnotgeneric = false;
 					{
@@ -3668,7 +3687,7 @@ Optional< Optional<SystematicAnalysis::Get_FuncInfo>> SystematicAnalysis::Type_F
 						{
 							issame = true;//this would need to updated soon but its ok for now.
 						}
-
+						
 						isnotgeneric = !issame;
 					}
 
