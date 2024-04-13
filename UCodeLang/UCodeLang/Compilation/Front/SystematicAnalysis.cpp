@@ -1662,8 +1662,11 @@ void SystematicAnalysis::Type_DeclareVariableTypeCheck(TypeSymbol& VarType, cons
 		}
 	}
 
-
-	if (!Type_CanBeImplicitConverted(Ex, VarType, false, true))
+	if (Ex._Type == TypesEnum::Void)
+	{
+		LogError_CantUseTypeVoidHere(Token);
+	}
+	else if (!Type_CanBeImplicitConverted(Ex, VarType, false, true))
 	{
 		LogError_CantCastImplicitTypes(Token, Ex, VarType, false, true);
 	}
