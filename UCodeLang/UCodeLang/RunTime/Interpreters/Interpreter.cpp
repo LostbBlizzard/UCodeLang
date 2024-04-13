@@ -880,8 +880,8 @@ void Interpreter::Extecute(Instruction& Inst)
 			Free(Get_Register(Inst.Op_TwoReg.A).Value.AsPtr);
 		 InsBreak();
 	InsCase(MemCopy):
-			MemCopy(Get_Register(Inst.Op_ThreeReg.B).Value.AsPtr
-				   ,Get_Register(Inst.Op_ThreeReg.A).Value.AsPtr
+			MemCopy(Get_Register(Inst.Op_ThreeReg.A).Value.AsPtr
+				   ,Get_Register(Inst.Op_ThreeReg.B).Value.AsPtr
 			       ,Get_Register(Inst.Op_ThreeReg.C).Value.AsUIntNative);
 		 InsBreak();
 	InsCase(Calloc):

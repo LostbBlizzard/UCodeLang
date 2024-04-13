@@ -6088,6 +6088,16 @@ void UCodeBackEndObject::BuildLink(const IRidentifier& FuncName, IRFuncLink Link
 		InstructionBuilder::Memcmp(_Ins, RegisterID::Parameter1_Register, RegisterID::Parameter2_Register, RegisterID::Parameter3_Register);
 		PushIns();
 	}
+	else if (VFuncName == "__Memcopy")
+	{
+		InstructionBuilder::MemCopy(_Ins, RegisterID::Parameter1_Register, RegisterID::Parameter2_Register, RegisterID::Parameter3_Register);
+		PushIns();
+	}
+	else if (VFuncName == "__Memmove")
+	{
+		InstructionBuilder::MemCopy(_Ins, RegisterID::Parameter1_Register, RegisterID::Parameter2_Register, RegisterID::Parameter3_Register);
+		PushIns();
+	}
 	else if (VFuncName == "__Free")
 	{
 		InstructionBuilder::Free(_Ins, RegisterID::StartParameterRegister);

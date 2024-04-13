@@ -18,11 +18,9 @@ Tests:
  |ByteSerializer_2[]:
   byte[4] v = [1,0,0,0];
   
-  int a = 0;
-  /*
+  int a = 0; 
   var span = v.AsSpan();
-  var bytes = ByteConverter::FromBytes(span,a,Endian::Little);
-  */
+  ByteConverter::FromBytes(span,a,Endian::Little);
   
-  ret a == 1;
+  ret a;
 
