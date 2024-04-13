@@ -6,7 +6,7 @@
 
 |ToBytes<T>[T v] -> byte[/sizeof(T)]:
   $V = byte[/sizeof(T)];
-  ret unsafe bitcast<V&>(v);
+  ret unsafe bitcast<V&>(bitcast<uintptr>(v));
 
 |main[]:
  int val = 4;
