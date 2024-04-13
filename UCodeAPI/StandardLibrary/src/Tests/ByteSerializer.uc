@@ -13,3 +13,14 @@ Tests:
 
   
   ret bytes.Size() == 4 && c == 1;
+
+ [Test]
+ |ByteSerializer_2[]:
+  byte[4] v = [1,0,0,0];
+  
+  int a = 0;
+  var span = v.AsSpan();
+  var bytes = ByteConverter::FromBytes(span,a,Endian::Little);
+  
+  ret a == 1;
+
