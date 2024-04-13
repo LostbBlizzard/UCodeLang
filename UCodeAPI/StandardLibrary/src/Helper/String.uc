@@ -16,3 +16,20 @@ export |ToLower[char val] -> char:
  ret val;
 
  
+export |IsUpper[utf8 val] -> bool:panic("not implemented");
+export |ToUpper[utf8 val] -> utf8:panic("not implemented");
+
+export |IsLower[utf8 val] -> bool:panic("not implemented");
+export |ToLower[utf8 val] -> utf8:panic("not implemented");
+
+export |IsUpper[utf16 val] -> bool:panic("not implemented");
+export |ToUpper[utf16 val] -> utf16:panic("not implemented");
+
+export |IsLower[utf16 val] -> bool:panic("not implemented");
+export |ToLower[utf16 val] -> utf16:panic("not implemented");
+
+export |IsUpper[utf32 val] -> bool:panic("not implemented");
+export |ToUpper[utf32 val] -> utf32:panic("not implemented");
+
+export |IsLower[utf32 val] -> bool:panic("not implemented");
+export |ToLower[utf32 val] -> utf32:panic("not implemented");
