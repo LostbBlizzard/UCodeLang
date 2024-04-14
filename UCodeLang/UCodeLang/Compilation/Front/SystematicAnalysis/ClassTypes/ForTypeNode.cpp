@@ -49,7 +49,7 @@ void SystematicAnalysis::OnForTypeNode(const ForTypeNode& node)
 		{
 
 			_Table.AddScope(ScopeName);
-
+			
 			auto type = Type_ConvertAndValidateType(node._typetoaddto, NodeSyb_t::Any);
 
 			if (Type_IsPrimitive(type))

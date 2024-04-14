@@ -36,8 +36,14 @@ void SystematicAnalysis::OnFuncCallNode(const FuncCallNode& node)
 		auto symid = Symbol_GetSymbolID(node);
 		if (!_FuncToSyboID.HasValue(symid))
 		{
+				
+			TypeSymbol v = Type_Get_LookingForType();
+			if (Type_IsUnMapType(v))
+			{
+				v = TypesEnum::Any;
+			}
 
-			auto Info = Type_GetFunc(node._FuncName, node.Parameters, Type_Get_LookingForType());
+			auto Info = Type_GetFunc(node._FuncName, node.Parameters, v);
 
 			if (Info.SymFunc)
 			{

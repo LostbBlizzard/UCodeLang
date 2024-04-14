@@ -51,3 +51,18 @@ Tests:
   String v = " World";
   var Txt = "Hello" + v;
   ret Txt == "Hello World";
+
+ [Test]
+ |StringSpan_11[]:
+  String v = "Hello World";
+  ret v.StartWith("Hello") == true; 
+
+ [Test]
+ |StringSpan_12[]:
+  String v = "Hello World";
+  ret v.EndWith("World") == true; 
+ 
+ [Test]
+ |StringSpan_13[]:
+  String v = "Hello World";
+  ret v.Contains("llo") == true; 
