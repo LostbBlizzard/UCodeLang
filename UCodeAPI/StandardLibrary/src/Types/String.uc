@@ -142,4 +142,33 @@ $for<T> StringSpan_t<T> export:
    String_t<T> r = this;
    r += Other;
    ret r;
+  
+  export |StartWith[imut this&,imut StringSpan_t<T> Match] -> bool:
+   ret Str_StartWith<T>(this,Match);
+  export |EndWith[imut this&,imut StringSpan_t<T> Match] -> bool:
+   ret Str_EndWith<T>(this,Match);
+  export |Contains[imut this&,imut StringSpan_t<T> Match] -> bool:
+   ret Str_Contains(this,Match);
+
+  export |StartWith[imut this&,imut String_t<T>& Match] -> bool:
+    ret StartWith(this,Match.Str());
+  export |EndWith[imut this&,imut String_t<T>& Match] -> bool:
+    ret this.EndWith(Match.Str());
+  export |Contains[imut this&,imut String_t<T>& Match] -> bool:
+    ret this.Contains(Match.Str());
+
+$for<T> String_t<T> export:
+  export |StartWith[imut this&,imut StringSpan_t<T> Match] -> bool:
+   ret Str_StartWith<T>(this.Str(),Match);
+  export |EndWith[imut this&,imut StringSpan_t<T> Match] -> bool:
+   ret Str_EndWith<T>(this.Str(),Match);
+  export |Contains[imut this&,imut StringSpan_t<T> Match] -> bool:
+   ret Str_Contains(this.Str(),Match);
+
+  export |StartWith[imut this&,imut String_t<T>& Match] -> bool:
+    ret StartWith(this,Match.Str());
+  export |EndWith[imut this&,imut String_t<T>& Match] -> bool:
+    ret this.EndWith(Match.Str());
+  export |Contains[imut this&,imut String_t<T>& Match] -> bool:
+    ret this.Contains(Match.Str());
 
