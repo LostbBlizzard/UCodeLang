@@ -14,7 +14,6 @@
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.22.3"
   },
-  "proxy": "http://localhost:4000",
   "devDependencies": {
     "@types/react": "^18.2.66",
     "@types/react-dom": "^18.2.22",
