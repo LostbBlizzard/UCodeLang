@@ -1,7 +1,16 @@
+.MainLabel {
+  color: white;
+}
 
-
-
-.MainLabel
-{
-    color: white;
+.NoColorLink:link {
+  text-decoration: none;
+}
+.NoColorLink:visited {
+  text-decoration: none;
+}
+.NoColorLink:hover {
+  text-decoration: none;
+}
+.NoColorLink:active {
+  text-decoration: none;
 }
