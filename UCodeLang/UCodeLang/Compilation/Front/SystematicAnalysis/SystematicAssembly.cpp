@@ -468,6 +468,66 @@ void SystematicAnalysis::Assembly_LoadLibSymbols(const UClib& lib, ImportLibInfo
 		_PassType = pass;
 	}
 }
+void SystematicAnalysis::Assembly_LoadTraitAliases(const String& FullName, const Vector<TraitAlias>& GenericAlias)
+{
+	for (auto& Item : GenericAlias)
+	{
+		if (Item.TypePack.has_value()) 
+		{
+			auto& varsyb = Symbol_AddSymbol(SymbolType::Type_Pack, Item.AliasName, ScopeHelper::ApendedStrings(FullName, Item.AliasName), AccessModifierType::Private);
+			TypePackInfo* info = new TypePackInfo();
+			varsyb.Info.reset(info);
+
+			info->List.reserve(Item.TypePack.value().size());
+			
+			_Table.AddSymbolID(varsyb, Symbol_GetSymbolID(&Item));
+		}
+		else if (Item.Expression.has_value())
+		{
+			auto& Ex = Item.Expression.value();
+			
+			auto& varsyb = Symbol_AddSymbol(SymbolType::ConstantExpression, Item.AliasName, ScopeHelper::ApendedStrings(FullName, Item.AliasName), AccessModifierType::Private);
+			ConstantExpressionInfo* info = new ConstantExpressionInfo();
+			varsyb.Info.reset(info);
+			
+			info->Ex.Object_AsPointer = Unique_Array<Byte>(new Byte[Ex.Size]);
+			memcpy(info->Ex.Object_AsPointer.get(), Ex.Get_Data(), Ex.Size);
+				
+
+			_Table.AddSymbolID(varsyb, Symbol_GetSymbolID(&Item));
+		}
+		else
+		{
+			auto& varsyb = Symbol_AddSymbol(SymbolType::Type_alias, Item.AliasName, ScopeHelper::ApendedStrings(FullName, Item.AliasName), AccessModifierType::Private);
+			_Table.AddSymbolID(varsyb, Symbol_GetSymbolID(&Item));	
+		}
+	}
+}
+
+void SystematicAnalysis::Assembly_LoadTraitAliases_FixTypes(const Vector<TraitAlias>& GenericAlias)
+{
+	for (auto& Item : GenericAlias)
+	{
+		auto& Sym = _Table.GetSymbol(Symbol_GetSymbolID(&Item));
+
+		if (Item.TypePack.has_value())
+		{
+			auto& pack = Item.TypePack.value();
+
+			TypePackInfo* info = Sym.Get_Info<TypePackInfo>();
+			
+			for (auto& Item : pack)
+			{
+
+				info->List.push_back(Assembly_LoadType(Item));
+			}
+		}
+		else 
+		{
+			Sym.VarType = Assembly_LoadType(Item.Type);
+		}
+	}
+}
 void SystematicAnalysis::Assembly_LoadClassSymbol(const Class_Data& Item, const String& FullName, const String& Scope, SystematicAnalysis::LoadLibMode Mode)
 {
 	bool isexpot = Item.IsExported;
@@ -491,13 +551,9 @@ void SystematicAnalysis::Assembly_LoadClassSymbol(const Class_Data& Item, const 
 		auto& Syb = Symbol_AddSymbol(SymbolType::Type_class, Name, FullName, Item.AccessModifier);
 		_Table.AddSymbolID(Syb, Symbol_GetSymbolID(&Item));
 
-		{
-			for (auto& Item : Item.GenericAlias)
-			{
-				auto& varsyb = Symbol_AddSymbol(SymbolType::Type_alias, Item.AliasName, ScopeHelper::ApendedStrings(FullName, Item.AliasName), AccessModifierType::Private);
-				_Table.AddSymbolID(varsyb, Symbol_GetSymbolID(&Item));
-			}
-		}
+		
+		Assembly_LoadTraitAliases(FullName, Item.GenericAlias);
+	
 		ClassInfo* Info = new ClassInfo();
 		Syb.Info.reset(Info);
 
@@ -532,13 +588,8 @@ void SystematicAnalysis::Assembly_LoadClassSymbol(const Class_Data& Item, const 
 		auto& Syb = _Table.GetSymbol(Symbol_GetSymbolID(&Item));
 		ClassInfo* Info = Syb.Get_Info<ClassInfo>();
 
-		{
-			for (auto& Item : Item.GenericAlias)
-			{
-				auto& item = _Table.GetSymbol(Symbol_GetSymbolID(&Item));
-				item.VarType = Assembly_LoadType(Item.Type);
-			}
-		}
+		Assembly_LoadTraitAliases_FixTypes(Item.GenericAlias);
+
 		for (size_t i = 0; i < Item.Fields.size(); i++)
 		{
 			const auto& FieldItem = Item.Fields[i];
@@ -845,14 +896,9 @@ void SystematicAnalysis::Assembly_LoadTraitSymbol(const Trait_Data& Item, const 
 		auto oldscope = _Table._Scope.ThisScope;
 		_Table._Scope.ThisScope = Syb.FullName;
 
-
-		{
-			for (auto& Item : Item.GenericAlias)
-			{
-				auto& varsyb = Symbol_AddSymbol(SymbolType::Type_alias, Item.AliasName, ScopeHelper::ApendedStrings(FullName, Item.AliasName), AccessModifierType::Private);
-				_Table.AddSymbolID(varsyb, Symbol_GetSymbolID(&Item));
-			}
-		}
+	
+		Assembly_LoadTraitAliases(FullName, Item.GenericAlias);
+		
 		ClassStackInfo stackinfo;
 		stackinfo.Syb = &SybClass;
 

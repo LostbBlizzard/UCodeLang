@@ -411,6 +411,17 @@ struct TraitAlias
 {
 	String AliasName;
 	ReflectionTypeInfo Type;
+	Optional<ReflectionRawData> Expression;
+	Optional<Vector<ReflectionTypeInfo>> TypePack;
+
+	bool IsTypePack()
+	{
+		return TypePack.has_value();
+	}
+	bool IsExpression()
+	{
+		return Expression.has_value();
+	}
 };
 struct Trait_Data
 {
