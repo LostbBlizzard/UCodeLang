@@ -89,6 +89,46 @@ void SystematicAnalysis::Pop_AddToGeneratedGenricSymbol(Symbol& addedSymbol, con
 
 }
 
+void SystematicAnalysis::Set_TraitGenericAlias(Vector<TraitGenericAlias>& Out,const Vector<TypeSymbol>& GenericInput,const GenericValuesNode& GenericValueNode)
+{
+	Out.reserve(GenericInput.size());
+	for (size_t i = 0; i < GenericInput.size(); i++)
+	{
+		TraitGenericAlias alias;
+		alias.Type = GenericInput[i];
+		alias.Name = GenericValueNode._Values[i].token->Value._String;
+
+		auto& symop = Symbol_GetSymbol(alias.Type);
+		if (symop.has_value())
+		{
+			auto& sym = symop.value();
+
+			if (sym->Type == SymbolType::ConstantExpression)
+			{
+				ReflectionRawData Ex;
+				ConstantExpressionInfo* info = sym->Get_Info<ConstantExpressionInfo>();
+
+				Ex.Resize(info->Ex.ObjectSize);
+				memcpy(Ex.Get_Data(), info->Ex.Object_AsPointer.get(), info->Ex.ObjectSize);
+
+				alias.Expression = std::move(Ex);
+
+				alias.Type = sym->VarType;
+			}
+			else if (sym->Type == SymbolType::Type_Pack)
+			{
+				TypePackInfo* info = sym->Get_Info<TypePackInfo>();
+				
+				alias.Type = TypeSymbol(TypesEnum::Null);
+
+				Vector<TypeSymbol>& list = info->List;
+				alias.TypePack = list;
+			}
+		}
+
+		Out.push_back(std::move(alias));
+	}
+}
 void SystematicAnalysis::Generic_TypeInstantiate(const NeverNullPtr<Symbol> Class, const Vector<TypeSymbol>& GenericInput)
 {
 	UCodeLangAssert(Class->Type == SymbolType::Generic_class);
@@ -134,18 +174,9 @@ void SystematicAnalysis::Generic_TypeInstantiate(const NeverNullPtr<Symbol> Clas
 		Pop_AddToGeneratedGenricSymbol(addedSymbol, GenericInput);
 
 		{
-			ClassInfo* info = addedSymbol.Get_Info<ClassInfo>();
-			info->_GenericAlias.reserve(GenericInput.size());
-			for (size_t i = 0; i < GenericInput.size(); i++)
-			{
-				TraitGenericAlias alias;
-				alias.Type = GenericInput[i];
-				alias.Name = node->_generic._Values[i].token->Value._String;
-
-				info->_GenericAlias.push_back(std::move(alias));
-			}
+			auto info = addedSymbol.Get_Info<ClassInfo>();
+			Set_TraitGenericAlias(info->_GenericAlias, GenericInput, node->_generic);
 		}
-
 
 		//
 		Set_SymbolContext(std::move(OldContext));
@@ -209,15 +240,7 @@ void SystematicAnalysis::Generic_TypeInstantiate_Trait(const NeverNullPtr<Symbol
 
 		{
 			TraitInfo* info = addedSymbol.Get_Info<TraitInfo>();
-			info->_GenericAlias.reserve(GenericInput.size());
-			for (size_t i = 0; i < GenericInput.size(); i++)
-			{
-				TraitGenericAlias alias;
-				alias.Type = GenericInput[i];
-				alias.Name = node->_generic._Values[i].token->Value._String;
-
-				info->_GenericAlias.push_back(std::move(alias));
-			}
+			Set_TraitGenericAlias(info->_GenericAlias, GenericInput, node->_generic);
 		}
 
 		Pop_AddToGeneratedGenricSymbol(addedSymbol, GenericInput);

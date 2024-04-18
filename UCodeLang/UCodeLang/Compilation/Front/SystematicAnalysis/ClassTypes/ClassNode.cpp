@@ -868,6 +868,10 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 				Symbol_BuildTrait(&Syb, ClassInf, Item.Syb, NeverNullptr(Node._className.token));
 			}
 		
+
+			bool needstoexportgenricaliases = true;
+
+			if (needstoexportgenricaliases)
 			{
 				this->_ClassStack.push({});//the push and pop is dumb fix
 				Class_Data* Ptr = Assembly_GetAssemblyClass(ScopeHelper::ApendedStrings(Syb.FullName, "n/a"));
@@ -877,9 +881,19 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 				for (auto& Item : ClassInf->_GenericAlias)
 				{
 					TraitAlias val;
+					
 					val.AliasName = Item.Name;
 					val.Type = Assembly_ConvertToType(Item.Type);
+					if (Item.IsExpression())
+					{
+						auto& Ex = Item.Expression.value();
 
+						ReflectionRawData data;
+						data.Resize(Ex.Size);
+						memcpy(data.Get_Data(), Ex.Get_Data(), Ex.Size);
+
+						val.Expression = std::move(data);
+					}
 					Ptr->GenericAlias.push_back(std::move(val));
 				}
 			}

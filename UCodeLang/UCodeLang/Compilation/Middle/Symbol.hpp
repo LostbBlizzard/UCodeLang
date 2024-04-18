@@ -838,6 +838,17 @@ struct TraitGenericAlias
 {
 	String Name;
 	TypeSymbol Type;
+	Optional<ReflectionRawData> Expression;
+	Optional<Vector<TypeSymbol>> TypePack;
+
+	bool IsTypePack()
+	{
+		return TypePack.has_value();
+	}
+	bool IsExpression()
+	{
+		return Expression.has_value();
+	}	
 };
 class TraitInfo :public Symbol_Info
 {

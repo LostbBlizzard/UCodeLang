@@ -1377,6 +1377,9 @@ private:
 	void Assembly_LoadLibSymbols();
 	void Assembly_LoadLibSymbols(const UClib& lib, ImportLibInfo& libinfo, LoadLibMode Mode);
 
+	void Assembly_LoadTraitAliases(const String& FullName,const Vector<TraitAlias>& GenericAlias);
+	void Assembly_LoadTraitAliases_FixTypes(const Vector<TraitAlias>& GenericAlias);
+
 	void Assembly_LoadClassSymbol(const Class_Data& Item, const String& FullName, const String& Scope, SystematicAnalysis::LoadLibMode Mode);
 	void Assembly_LoadEnumSymbol(const Enum_Data& Item, const String& FullName, const String& Scope, SystematicAnalysis::LoadLibMode Mode);
 	void Assembly_LoadAliasSymbol(const Alias_Data& Item, const String& FullName, const String& Scope, SystematicAnalysis::LoadLibMode Mode);
@@ -1685,6 +1688,7 @@ private:
 	String Generic_SymbolGenericFullName(const NeverNullPtr<Symbol> Func, const Vector<TypeSymbol>& Type) const;
 	String Generic_SymbolGenericName(const NeverNullPtr<Symbol> Func, const Vector<TypeSymbol>& Type) const;
 
+	void Set_TraitGenericAlias(Vector<TraitGenericAlias>& Out, const Vector<TypeSymbol>& In, const GenericValuesNode& GenericValueNode);
 	void Generic_TypeInstantiate(const NeverNullPtr<Symbol> Class, const Vector<TypeSymbol>& Type);
 	void Generic_TypeInstantiate_Trait(const NeverNullPtr<Symbol> Trait, const Vector<TypeSymbol>& Type);
 	void Pop_AddToGeneratedGenricSymbol(Symbol& addedSymbol, const Vector<TypeSymbol>& Type);

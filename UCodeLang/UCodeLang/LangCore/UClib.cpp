@@ -295,6 +295,24 @@ void UClib::ToBytes(BitMaker& Output, const TraitAlias& TraitData)
 {
 	Output.WriteType(TraitData.AliasName);
 	ToBytes(Output,TraitData.Type);
+
+	Output.WriteType(TraitData.Expression.has_value());
+	if (TraitData.Expression.has_value())
+	{
+		ToBytes(Output, TraitData.Expression.value());
+	}
+
+	Output.WriteType(TraitData.TypePack.has_value());
+	if (TraitData.TypePack.has_value())
+	{
+		auto& pack = TraitData.TypePack.value();
+		Output.WriteType(pack.size());
+
+		for (auto& Item : pack)
+		{
+			ToBytes(Output,Item);
+		}
+	}
 }
 void UClib::ToBytes(BitMaker& Output, const InheritedTrait_Data& TraitData)
 {
@@ -1402,6 +1420,38 @@ void UClib::FromBytes(BitReader& Input, TraitAlias& Data)
 {
 	Input.ReadType(Data.AliasName);
 	FromBytes(Input,Data.Type);
+
+	bool op1 = false;
+	Input.ReadType(op1);
+	if (op1)
+	{
+		ReflectionRawData Val;
+		FromBytes(Input, Val);
+
+
+		Data.Expression = std::move(Val);
+	}
+
+	bool op2 = false;
+	Input.ReadType(op2);
+	if (op2)
+	{
+		Vector<ReflectionTypeInfo> types;
+		BitReader::SizeAsBits size = 0;
+
+		Input.ReadType(size);
+
+		types.reserve(size);
+		for (size_t i = 0; i < size; i++)
+		{
+			ReflectionTypeInfo val;
+			FromBytes(Input, val);
+
+			types.push_back(std::move(val));
+		}
+
+		Data.TypePack = std::move(types);
+	}
 }
 void UClib::FixRawValue(Endian AssemblyEndian, NTypeSize BitSize, const ClassAssembly& Types, ReflectionRawData& RawValue, const ReflectionTypeInfo& Type)
 {
