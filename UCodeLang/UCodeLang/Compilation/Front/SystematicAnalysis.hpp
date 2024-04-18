@@ -1371,7 +1371,7 @@ private:
 
 	struct ImportLibInfo
 	{
-		UnorderedMap<AssemblyNode*, int> ClassesToAdd;
+		Set<AssemblyNode*> ClassesToAdd;
 	};
 
 	void Assembly_LoadLibSymbols();

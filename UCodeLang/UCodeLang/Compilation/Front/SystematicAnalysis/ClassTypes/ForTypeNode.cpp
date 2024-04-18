@@ -117,7 +117,7 @@ void SystematicAnalysis::OnForTypeNode(const ForTypeNode& node)
 	}
 	else if (_PassType == PassType::BuidCode)
 	{
-		if (node._generic._Values.size() == 0 || IsgenericInstantiation)
+		if (!Isgeneric || IsgenericInstantiation)
 		{
 
 			_Table.AddScope(ScopeName);
@@ -180,7 +180,7 @@ void SystematicAnalysis::OnForTypeNode(const ForTypeNode& node)
 			_Table.RemoveScope();
 			
 			OutInfo._Scope = _Table._Scope.ThisScope;
-		}
+		}	
 	}
 }
 

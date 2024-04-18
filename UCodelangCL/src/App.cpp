@@ -1378,7 +1378,7 @@ void ParseLine(String_view& Line)
 				}
 				else if (passedpipe == true && charV == 'o')
 				{
-					Line = Line.substr(i);
+					Line = Line.substr(i+1);
 					break;
 				}
 			}
@@ -1397,7 +1397,6 @@ void ParseLine(String_view& Line)
 				Optional<UClib> libop;
 				if (!buildfile2(_PathAsPath, _Compiler, libop))
 				{
-					AppErrin(_Compiler.Get_Errors().ToString());
 					_This.ExeRet = EXIT_FAILURE;
 				}
 				else
@@ -1415,7 +1414,6 @@ void ParseLine(String_view& Line)
 					Optional<UClib> libop;
 					if (!buildfile2(_PathAsPath, _Compiler, libop))
 					{
-						AppErrin(_Compiler.Get_Errors().ToString());
 						_This.ExeRet = EXIT_FAILURE;
 					}
 					else 
@@ -1453,7 +1451,6 @@ void ParseLine(String_view& Line)
 					{
 						AppErrin("Cant Open " << _PathAsPath);
 						_This.ExeRet = EXIT_FAILURE;
-
 					}
 				}
 				else
