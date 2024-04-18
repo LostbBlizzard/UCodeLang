@@ -61,7 +61,7 @@ void SystematicAnalysis::Assembly_LoadLibSymbols()
 		V.FileName = (*_LibsNames)[i];
 	}
 
-	UnorderedMap<String, int> AddedSymbols;
+	Set<String> AddedSymbols;
 	UnorderedMap<FileNode*, ImportLibInfo> Importinfo;
 
 	while (Mode != LoadLibMode::Done)
@@ -78,11 +78,12 @@ void SystematicAnalysis::Assembly_LoadLibSymbols()
 				ImportLibInfo V;
 				for (auto& LibNode : Item->_Assembly.Classes)
 				{
-					if (!AddedSymbols.HasValue(LibNode->FullName))
+					if (!AddedSymbols.HasValue(LibNode->FullName) || LibNode->Get_Type() == ClassType::ForType)
 					{
-
-						AddedSymbols.AddValue(LibNode->FullName, 0);
-						V.ClassesToAdd.AddValue(LibNode.get(), 0);
+						if (LibNode->Get_Type() != ClassType::ForType) {
+							AddedSymbols.AddValue(LibNode->FullName);
+						}
+						V.ClassesToAdd.AddValue(LibNode.get());
 
 						_Lib._Assembly.Classes.push_back(Unique_ptr<AssemblyNode>(LibNode.get())); // make ref
 					}
@@ -1570,7 +1571,7 @@ Class_Data* SystematicAnalysis::Assembly_GetAssemblyClass(const String& FullName
 		auto ClassName = ScopeHelper::GetReMoveScope((String_view)FullName);
 		for (auto& Item : Assembly.Classes)
 		{
-			if (Item->FullName == ClassName)
+			if (Item->FullName == ClassName && Item->Get_Type() ==ClassType::Class)
 			{
 				return &Item->Get_ClassData();
 			}

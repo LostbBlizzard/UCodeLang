@@ -25,6 +25,10 @@ public:
 	{
 		_Base.erase(key);
 	}
+	size_t size() const
+	{
+		return _Base.size();
+	}
 private:
 	std::set<Key> _Base;
 	
