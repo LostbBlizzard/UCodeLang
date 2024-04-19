@@ -4760,12 +4760,30 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IRInstructi
 		}
 		else if (Op.Type == IROperatorType::DereferenceOf_IRInstruction)
 		{
-			//
-			auto Ins = Op.Pointer;
-			auto V = GetIRLocData(Ins);
+			auto InsPar = Op.Pointer;
+			auto vpre = _Stack.Has(IRAndOperator(Ins,&Op));
+			auto outputtype = Ins->ObjectType;
+			
+			if (vpre.has_value())
+			{
+				auto pre = vpre.value();
 
-			IRlocData tep = GetFreeStackLoc(Ins->ObjectType);
 
+				IRlocData tep;
+				tep.ObjectType = outputtype;
+				tep.Info = IRlocData_StackPost(pre->Offset);
+				return tep;
+			}
+			auto V = GetIRLocData(InsPar);
+
+			IRlocData tep = GetFreeStackLoc(InsPar->ObjectType);
+
+			auto v = _Stack.Get(tep.Info.Get<IRlocData_StackPost>().offset);
+			v.value()->IR = IRAndOperator(Ins, &Op);
+
+
+
+			V.ObjectType = outputtype;
 			CopyValues(V, tep, true, false);
 
 			return tep;
@@ -4774,20 +4792,21 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IRInstructi
 		{
 			const auto InsPar = Op.Parameter;
 			auto vpre = _Stack.Has(IRAndOperator(Ins,&Op));
+			auto outputtype = Ins->ObjectType;
+
 			if (vpre.has_value())
 			{
 				auto pre = vpre.value();
 
 
 				IRlocData tep;
-				tep.ObjectType = Ins->ObjectType;
+				tep.ObjectType = outputtype;
 				tep.Info = IRlocData_StackPost(pre->Offset);
 				return tep;
 			}
 		
 			
 			auto V = To(*GetParData(InsPar));
-			auto outputtype = Ins->ObjectType;
 
 			IRlocData tep = GetFreeStackLoc(outputtype);
 			auto v = _Stack.Get(tep.Info.Get<IRlocData_StackPost>().offset);
