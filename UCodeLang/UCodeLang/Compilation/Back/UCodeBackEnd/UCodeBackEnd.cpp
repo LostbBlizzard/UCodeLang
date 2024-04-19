@@ -4772,11 +4772,29 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IRInstructi
 		}
 		else if (Op.Type == IROperatorType::DereferenceOf_IRParameter)
 		{
-			const auto Ins = Op.Parameter;
-			auto V = To(*GetParData(Ins));
+			const auto InsPar = Op.Parameter;
+			auto vpre = _Stack.Has(IRAndOperator(Ins,&Op));
+			if (vpre.has_value())
+			{
+				auto pre = vpre.value();
 
-			IRlocData tep = GetFreeStackLoc(Ins->type);
 
+				IRlocData tep;
+				tep.ObjectType = Ins->ObjectType;
+				tep.Info = IRlocData_StackPost(pre->Offset);
+				return tep;
+			}
+		
+			
+			auto V = To(*GetParData(InsPar));
+			auto outputtype = Ins->ObjectType;
+
+			IRlocData tep = GetFreeStackLoc(outputtype);
+			auto v = _Stack.Get(tep.Info.Get<IRlocData_StackPost>().offset);
+
+			v.value()->IR = IRAndOperator(Ins, &Op);
+
+			V.ObjectType = outputtype;
 			CopyValues(V, tep, true, false);
 			return tep;
 		}
