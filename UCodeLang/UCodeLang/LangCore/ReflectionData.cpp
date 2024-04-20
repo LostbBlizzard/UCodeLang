@@ -430,6 +430,32 @@ Optional<Optional<Vector<ClassAssembly::OnDoDefaultConstructorCall>>> ClassAssem
 
 		return  { InerRet() };
 	}
+	case ReflectionTypes::uIntPtr:
+	{
+		if (Is32Bit)
+		{
+			*(UInt32*)(Object) = UInt32();
+		}
+		else
+		{
+			*(UInt64*)(Object) = UInt64();
+		}
+
+		return  { InerRet() };
+	}
+	case ReflectionTypes::sIntPtr:
+	{
+		if (Is32Bit)
+		{
+			*(Int32*)(Object) = Int32();
+		}
+		else
+		{
+			*(Int64*)(Object) = Int64();
+		}
+
+		return  { InerRet() };
+	}
 	case ReflectionTypes::CustomType:
 	{
 		auto Node = this->Find_Node(Type._CustomTypeID);
@@ -464,8 +490,18 @@ Optional<Optional<Vector<ClassAssembly::OnDoDefaultConstructorCall>>> ClassAssem
 			{
 				auto& ClassData = Node->Get_ClassData();
 
-				
-				if (auto FuncToCall = ClassData.Get_ClassConstructor())
+				auto list = ClassData.Get_ClassConstructors();
+				const ClassMethod* FuncToCall = nullptr;
+				for (auto& Item : list)
+				{
+					if (Item->ParsType.size() == 1)
+					{
+						FuncToCall = Item;
+						break;
+					}
+				}
+
+				if (FuncToCall)
 				{
 					OnDoDefaultConstructorCall r;
 					r.MethodToCall = FuncToCall;
@@ -772,6 +808,32 @@ Optional<Optional<Vector<ClassAssembly::OnMoveConstructorCall>>>  ClassAssembly:
 	case ReflectionTypes::float64:
 	{
 		*(float64*)(Output) = std::move(*(float64*)Source);
+
+		return   { InerRetType() };
+	}
+	case ReflectionTypes::uIntPtr:
+	{
+		if (Is32Bit)
+		{
+			*(UInt32*)(Output) = std::move(*(UInt32*)Source);
+		}
+		else
+		{
+			*(UInt64*)(Output) = std::move(*(UInt64*)Source);
+		}
+		
+		return   { InerRetType() };
+	}
+	case ReflectionTypes::sIntPtr:
+	{
+		if (Is32Bit)
+		{
+			*(Int32*)(Output) = std::move(*(Int32*)Source);
+		}
+		else
+		{
+			*(Int64*)(Output) = std::move(*(Int64*)Source);
+		}
 
 		return   { InerRetType() };
 	}
