@@ -1202,12 +1202,54 @@ Vector<Symbol*> SystematicAnalysis::Type_FindForTypeFuncions(const TypeSymbol& m
 
 
 					auto newsymname = Generic_SymbolGenericFullName(Item, generics);
-					auto hasthisformade = Symbol_GetSymbol(newsymname, SymbolType::ForType);
+					NullablePtr<Symbol> hasthisformade;
+					{
+						auto list = GetSymbolsWithName(newsymname, SymbolType::ForType);
+						for (auto& Item : list)
+						{
+							if (Item->Type == SymbolType::ForType)
+							{
+								auto info = Item->Get_Info<ForTypeInfo>();
+															
+								auto fortype = Item->VarType;
+								auto mtype = maintype;
+								Type_RemoveTypeattributes(fortype);
+								Type_RemoveTypeattributes(mtype);
+								bool isreferringtomytype = Type_AreTheSame(mtype, fortype);
 
+								if (isreferringtomytype)
+								{
+									hasthisformade = Item;
+									break;
+								}
+							}
+						}
+					}
 					if (!hasthisformade.has_value())
 					{
 						Generic_TypeInstantiate_ForType(NeverNullptr(Item), generics);
-						hasthisformade = Symbol_GetSymbol(newsymname, SymbolType::ForType);
+
+						auto list = GetSymbolsWithName(newsymname, SymbolType::ForType);
+						for (auto& Item : list)
+						{
+							if (Item->Type == SymbolType::ForType)
+							{
+								auto info = Item->Get_Info<ForTypeInfo>();
+
+								auto fortype = Item->VarType;
+								auto mtype = maintype;
+								Type_RemoveTypeattributes(fortype);
+								Type_RemoveTypeattributes(mtype);
+								bool isreferringtomytype = Type_AreTheSame(mtype, fortype);
+
+								if (isreferringtomytype)
+								{
+									hasthisformade = Item;
+									break;
+								}
+							}
+						}
+						
 					}
 
 					{
