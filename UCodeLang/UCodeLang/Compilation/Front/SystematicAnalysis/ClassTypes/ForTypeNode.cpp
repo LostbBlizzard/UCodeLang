@@ -138,6 +138,7 @@ void SystematicAnalysis::OnForTypeNode(const ForTypeNode& node)
 		if (!Isgeneric || IsgenericInstantiation)
 		{
 
+			auto basescope = _Table._Scope.ThisScope;
 			_Table.AddScope(ScopeName);
 
 			size_t addedcount = node._typetoaddto._name._ScopedName.size();
@@ -210,7 +211,7 @@ void SystematicAnalysis::OnForTypeNode(const ForTypeNode& node)
 			OutInfo._AddedMethods = std::move(methods);
 			OutInfo.IsExported = node._IsExport;
 			
-			OutInfo._Scope = _Table._Scope.ThisScope;
+			OutInfo._Scope = basescope;
 		}	
 	}
 }
