@@ -15,7 +15,7 @@ void SystematicAnalysis::OnForTypeNode(const ForTypeNode& node)
 	{
 		ScopeName = _Generic_GenericSymbolStack.top()._IR_GenericFuncName;
 	}
-
+	
 	_Table.AddScope(ScopeName);
 
 
@@ -49,6 +49,26 @@ void SystematicAnalysis::OnForTypeNode(const ForTypeNode& node)
 		{
 
 			_Table.AddScope(ScopeName);
+	
+			size_t addedcount = node._typetoaddto._name._ScopedName.size();
+			for (auto& Item : node._typetoaddto._name._ScopedName)
+			{
+				_Table.AddScope(Item._token->Value._String);
+			}
+			
+			UCodeLangDefer({ _Table.RemoveScope(); })
+
+			UCodeLangDefer({
+					for (size_t i = 0; i < addedcount; i++)
+					{
+						_Table.RemoveScope();
+					}
+			})
+			{
+				String c;
+				node._typetoaddto._name.GetScopedName(ScopeName);
+				ScopeName += c;
+			}
 			
 			auto type = Type_ConvertAndValidateType(node._typetoaddto, NodeSyb_t::Any);
 
@@ -60,7 +80,6 @@ void SystematicAnalysis::OnForTypeNode(const ForTypeNode& node)
 			auto sym = Symbol_GetSymbol(SymID);
 			if (sym->PassState != PassType::GetTypes)
 			{
-				_Table.RemoveScope();
 				return;
 			}
 			sym->PassState = PassType::FixedTypes;
@@ -111,7 +130,6 @@ void SystematicAnalysis::OnForTypeNode(const ForTypeNode& node)
 				OnFuncNode(*Item);
 			}
 
-			_Table.RemoveScope();
 			_ClassStack.pop();
 		}
 	}
@@ -122,6 +140,20 @@ void SystematicAnalysis::OnForTypeNode(const ForTypeNode& node)
 
 			_Table.AddScope(ScopeName);
 
+			size_t addedcount = node._typetoaddto._name._ScopedName.size();
+			for (auto& Item : node._typetoaddto._name._ScopedName)
+			{
+				_Table.AddScope(Item._token->Value._String);
+			}
+			
+			UCodeLangDefer({ _Table.RemoveScope(); })
+
+			UCodeLangDefer({
+					for (size_t i = 0; i < addedcount; i++)
+					{
+						_Table.RemoveScope();
+					}
+			})
 
 			auto sym = Symbol_GetSymbol(SymID);
 			sym->PassState = PassType::BuidCode;
@@ -177,7 +209,6 @@ void SystematicAnalysis::OnForTypeNode(const ForTypeNode& node)
 			OutInfo._TargetType = Assembly_ConvertToType(sym->VarType);
 			OutInfo._AddedMethods = std::move(methods);
 			OutInfo.IsExported = node._IsExport;
-			_Table.RemoveScope();
 			
 			OutInfo._Scope = _Table._Scope.ThisScope;
 		}	
