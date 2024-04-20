@@ -4993,7 +4993,7 @@ void UCodeBackEndObject::MoveRegInValue(RegisterID Value, const IRlocData& To, s
 			break;
 		}
 
-		_Stack.AddReUpdatePreFunc(PushIns(),GetPreCallStackOffset2(Val->offset));
+		_Stack.AddReUpdatePreFunc(PushIns(),GetPreCallStackOffset2(Val->offset) - Offset);
 	}
 	else if (auto Val = To.Info.Get_If<IRlocData_StaticPos>())
 	{
@@ -5105,7 +5105,7 @@ void UCodeBackEndObject::MoveValueInReg(const IRlocData& Value, size_t Offset, R
 		else
 		{
 			auto Val2 = Value.Info.Get_If<IRlocData_StackPre>();
-			_Stack.AddReUpdatePreFunc(PushIns(),GetPreCallStackOffset2(Val2->offset));
+			_Stack.AddReUpdatePreFunc(PushIns(),GetPreCallStackOffset2(Val2->offset) - Offset);
 		}
 	}
 	else if (auto Val = Value.Info.Get_If<IRlocData_StaticPos>())
