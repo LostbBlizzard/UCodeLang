@@ -345,7 +345,7 @@ String UAssembly::ToString(const UClib* Lib, Optional<Path> SourceFiles, bool Sh
 
 							if (Item3.Type.Isimmutable())
 							{
-								r += "umut ";
+								r += "imut ";
 							}
 
 							r += "this&";
@@ -2061,6 +2061,29 @@ UAssembly::StripFuncs UAssembly::StripFunc(UClib& lib, const StripFuncSettings& 
 	return r;
 }
 
+bool NodeDependsOn(const ClassMethod& Item,ReflectionCustomTypeID id)
+{
+	for (auto& Item2 : Item.Attributes.Attributes)
+	{
+		if (Item2.TypeID == id)
+		{
+			return true;
+		}
+	}
+	if (Item.RetType._CustomTypeID == id)
+	{
+		return true;
+	}
+
+	for (auto& Par : Item.ParsType)
+	{
+		if (Par.Type._CustomTypeID == id)
+		{
+			return true;
+		}
+	}
+	return false;
+}
 bool UAssembly::NodeDependsonType(const AssemblyNode* node, ReflectionCustomTypeID id)
 {
 	bool isused = false;
@@ -2103,19 +2126,9 @@ bool UAssembly::NodeDependsonType(const AssemblyNode* node, ReflectionCustomType
 
 		for (auto& Item : data.Methods)
 		{
-			if (Item.RetType._CustomTypeID == id)
+			if (NodeDependsOn(Item, id))
 			{
 				isused = true;
-				break;
-			}
-			if (isused) { break; }
-			for (auto& Par : Item.ParsType)
-			{
-				if (Par.Type._CustomTypeID == id)
-				{
-					isused = true;
-				}
-				break;
 			}
 			if (isused) { break; }
 		}
@@ -2169,27 +2182,9 @@ bool UAssembly::NodeDependsonType(const AssemblyNode* node, ReflectionCustomType
 
 		for (auto& Item : data.Methods)
 		{
-			for (auto& Item2 : Item.Attributes.Attributes)
-			{
-				if (Item2.TypeID == id)
-				{
-					isused = true;
-					break;
-				}
-			}
-			if (Item.RetType._CustomTypeID == id)
+			if (NodeDependsOn(Item, id))
 			{
 				isused = true;
-				break;
-			}
-			if (isused) { break; }
-			for (auto& Par : Item.ParsType)
-			{
-				if (Par.Type._CustomTypeID == id)
-				{
-					isused = true;
-				}
-				break;
 			}
 			if (isused) { break; }
 		}
@@ -2299,28 +2294,9 @@ bool UAssembly::NodeDependsonType(const AssemblyNode* node, ReflectionCustomType
 		{
 			for (auto& Item : data._AddedMethods)
 			{
-				for (auto& Item2 : Item.Attributes.Attributes)
-				{
-					if (Item2.TypeID == id)
-					{
-						isused = true;
-						break;
-					}
-				}
-				if (isused) { break; }
-				if (Item.RetType._CustomTypeID == id)
+				if (NodeDependsOn(Item, id))
 				{
 					isused = true;
-					break;
-				}
-				if (isused) { break; }
-				for (auto& Par : Item.ParsType)
-				{
-					if (Par.Type._CustomTypeID == id)
-					{
-						isused = true;
-					}
-					break;
 				}
 				if (isused) { break; }
 			}
