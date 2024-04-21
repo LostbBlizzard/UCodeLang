@@ -166,6 +166,8 @@ void SystematicAnalysis::OnPanicStatement(const PanicNode& node)
 
 			
 			_IR_LookingAtIRBlock->ThrowException(pointer, size);
+			auto v = _IR_LookingAtIRBlock->NewLoad((bool)0);//padding for if statements
+			v->SetAsNone();
 		}
 		else
 		{
