@@ -2374,6 +2374,26 @@ StartSymbolsLoop:
 	if (Symbols.size() == 0 && Name._ScopedName.size() == 1)
 	{
 		auto look = Ret;
+
+		bool islook = false;
+		if (auto Val = Symbol_GetSymbol(look).value_unchecked())
+		{
+			if (Val->Type == SymbolType::Enum)
+			{
+				islook = true;
+			}
+		}
+
+		if (islook == false)
+		{
+			if (ValueTypes.size())
+			{
+				if (!ValueTypes[0].IsOutPar) {
+					look = ValueTypes[0].Type;
+				}
+			}
+		}
+		
 		if (auto Val = Symbol_GetSymbol(look).value_unchecked())
 		{
 			if (Val->Type == SymbolType::Enum)
