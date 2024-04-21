@@ -1428,7 +1428,7 @@ private:
 	UrinaryOverLoadWith_t Type_HasUrinaryOverLoadWith(const TypeSymbol& TypeA, TokenType Op);
 
 	bool Type_IsCopyable(const TypeSymbol& Type);
-	bool Type_HasCopyFunc(const TypeSymbol& Type);
+	bool Type_HasCopyFunc(const TypeSymbol& Type) const;
 
 	TypeSymbol Type_BinaryExpressionShouldRurn(TokenType Op, const TypeSymbol& Ex0Type);
 
@@ -1584,6 +1584,8 @@ private:
 	bool Type_IsPrimitiveNotIncludingPointers(const TypeSymbol& TypeToCheck) const;
 	bool Type_IsStaticArray(const TypeSymbol& TypeToCheck) const;
 
+	//Span or StringSpan
+	bool Type_IsReference(const TypeSymbol& TypeToCheck) const;
 	bool Type_IsimmutableRulesfollowed(const TypeSymbol& TypeToCheck, const TypeSymbol& Type)const;
 
 	bool Type_IsAddessAndLValuesRulesfollowed(const TypeSymbol& TypeToCheck, const TypeSymbol& Type, bool ReassignMode,bool isdeclare = false) const;

@@ -73,6 +73,39 @@ bool SystematicAnalysis::Type_IsStaticArray(const TypeSymbol& TypeToCheck) const
 }
 
 
+bool SystematicAnalysis::Type_IsReference(const TypeSymbol& TypeToCheck) const
+{
+	if (Type_IsPrimitiveNotIncludingPointers(TypeToCheck))
+	{
+		return false;
+	}
+	auto symop = Symbol_GetSymbol(TypeToCheck);
+	if (symop.has_value())
+	{
+		auto sym = symop.value();
+		if (sym->Type == SymbolType::Type_class)
+		{
+			 const auto info = sym->Get_Info<ClassInfo>();
+
+			for (auto& Item : info->Fields)
+			{
+				if (Item.Type.IsAddressArray())
+				{
+					bool nonpoddatatype = Type_HasCopyFunc(TypeToCheck) || info->_ClassHasMoveConstructor.has_value() || info->_AutoGenerateMoveConstructor;
+					if (!nonpoddatatype)
+					{
+						return true;
+					}
+				}
+			}
+		}
+	}
+
+		
+
+
+	return false;
+}
 bool SystematicAnalysis::Type_IsimmutableRulesfollowed(const TypeSymbol& TypeToCheck, const TypeSymbol& Type) const
 {
 
@@ -84,13 +117,11 @@ bool SystematicAnalysis::Type_IsimmutableRulesfollowed(const TypeSymbol& TypeToC
 	{
 		return true;
 	}
-	else if (CmpTypeimm == false && Chechimm == true)
+	else if (CmpTypeimm == false && Chechimm == true && !Type_IsReference(TypeToCheck))
 	{
 		return true;
-		//return TypeToCheck.IsAddress() && Type.IsAddress();
-
 	}
-
+	
 	return false;
 }
 bool SystematicAnalysis::Type_IsAddessAndLValuesRulesfollowed(const TypeSymbol& TypeToCheck, const TypeSymbol& Type, bool ReassignMode, bool isdeclare) const
@@ -1376,7 +1407,7 @@ bool SystematicAnalysis::Type_IsCopyable(const TypeSymbol& Type)
 	}
 	return true;
 }
-bool SystematicAnalysis::Type_HasCopyFunc(const TypeSymbol& Type)
+bool SystematicAnalysis::Type_HasCopyFunc(const TypeSymbol& Type) const
 {
 	if (auto val = Symbol_GetSymbol(Type))
 	{
