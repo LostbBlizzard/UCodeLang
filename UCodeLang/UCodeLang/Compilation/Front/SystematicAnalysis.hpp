@@ -1546,6 +1546,19 @@ private:
 				return true;
 			}
 
+			if (objecttypesyb == nullptr)
+			{
+				auto sym = _ClassStack.top().Syb;
+				//this would only happen in Adding funcions in ForType as Type_alias are resolved immediately
+				if (sym->Type == SymbolType::Type_alias)
+				{
+					if (sym->VarType._Type == ObjectType->_Type)
+					{
+						return true;
+					}
+				}
+			}
+
 
 			return _ClassStack.top().Syb == objecttypesyb.value().value();
 		}

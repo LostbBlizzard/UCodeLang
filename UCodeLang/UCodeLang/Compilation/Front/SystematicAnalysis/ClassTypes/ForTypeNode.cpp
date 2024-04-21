@@ -72,9 +72,13 @@ void SystematicAnalysis::OnForTypeNode(const ForTypeNode& node)
 			
 			auto type = Type_ConvertAndValidateType(node._typetoaddto, NodeSyb_t::Any);
 
-			if (Type_IsPrimitive(type))
+			bool hasattributes = type.IsAddress() || type.IsAddressArray() || type.IsDynamicTrait() || type.Isimmutable() || type.IsMovedType();
+			if (hasattributes)
 			{
-				LogError(ErrorCodes::InValidType, "Cant add funcions to the primitive type '" + ToString(type) + "' ", NeverNullptr(node._typetoaddto._name._ScopedName.front()._token));
+				auto typenoattributes = type;
+				Type_RemoveTypeattributes(typenoattributes);
+			
+				LogError(ErrorCodes::InValidType, "Cant add funcions to the type '" + ToString(type) + "' because of attributes. Did you mean '" +  ToString(typenoattributes) + "' ", NeverNullptr(node._typetoaddto._name._ScopedName.front()._token));
 				return;
 			}
 
@@ -89,7 +93,29 @@ void SystematicAnalysis::OnForTypeNode(const ForTypeNode& node)
 			auto forinfo = sym->Get_Info<ForTypeInfo>();
 
 			ClassStackInfo info;
-			info.Syb = Symbol_GetSymbol(type).value_unchecked();
+
+			if (Type_IsPrimitive(type)) 
+			{
+				String primitiveforscope = ToString(type) + ForTypeScope;
+
+				auto primitvesym = Symbol_GetSymbol(primitiveforscope,SymbolType::Type_alias);
+
+				if (!primitvesym.has_value())
+				{
+					auto& sym = Symbol_AddSymbol(SymbolType::Type_alias, primitiveforscope, primitiveforscope, AccessModifierType::Public);
+					_Table.AddSymbolID(sym, Symbol_GetSymbolID(&sym));
+					sym.OutputIR = false;
+					sym.VarType = type;
+
+					primitvesym = &sym;
+				}
+				
+				info.Syb = primitvesym.value().value();
+			}
+			else
+			{
+				info.Syb = Symbol_GetSymbol(type).value().value();
+			}
 
 			_ClassStack.push(info);
 
@@ -164,7 +190,18 @@ void SystematicAnalysis::OnForTypeNode(const ForTypeNode& node)
 			methods.reserve(node._Nodes.size());
 
 			ClassStackInfo info;
-			info.Syb = Symbol_GetSymbol(sym->VarType).value_unchecked();
+			if (Type_IsPrimitive(sym->VarType)) 
+			{
+				String primitiveforscope = ToString(sym->VarType) + ForTypeScope;
+
+				auto primitvesym = Symbol_GetSymbol(primitiveforscope,SymbolType::Type_alias);
+				
+				info.Syb = primitvesym.value().value();
+			}
+			else
+			{
+				info.Syb = Symbol_GetSymbol(sym->VarType).value().value();
+			}
 
 
 
