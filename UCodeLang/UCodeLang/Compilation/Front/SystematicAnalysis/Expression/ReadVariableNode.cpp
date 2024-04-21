@@ -548,38 +548,48 @@ bool SystematicAnalysis::Symbol_MemberTypeSymbolFromVar(size_t Start, size_t End
 				return true;
 			}
 
-
-			auto ThisParSym = Symbol_GetSymbol(Func->Pars.front().Type).value();
-			if (IsSymbolLambdaObjectClass(ThisParSym))
+			auto thisparsymop = Symbol_GetSymbol(Func->Pars.front().Type);
+			if (thisparsymop.has_value())
 			{
-				//If The ThisPar an Lambda Object
-				auto parsym = Symbol_GetSymbol(ScopeHelper::ApendedStrings(ThisParSym->FullName, ThisSymbolName), SymbolType::ParameterVarable).value();
+				auto ThisParSym = thisparsymop.value();
+				if (IsSymbolLambdaObjectClass(ThisParSym))
+				{
+					//If The ThisPar an Lambda Object
+					auto parsym = Symbol_GetSymbol(ScopeHelper::ApendedStrings(ThisParSym->FullName, ThisSymbolName), SymbolType::ParameterVarable).value();
 
-				Out.Type = parsym->VarType;
-				Out._Symbol = parsym.value();
+					Out.Type = parsym->VarType;
+					Out._Symbol = parsym.value();
+				}
+				else
+				{
+					auto objecttypesyb = Symbol_GetSymbol(*ObjectType).value();
+					ClassInfo* V = objecttypesyb->Get_Info<ClassInfo>();
+
+					Out.Type = *Func->GetObjectForCall();
+					Out._Symbol =
+						Symbol_GetSymbol(ScopeHelper::ApendedStrings(Func->FullName, ThisSymbolName), SymbolType::ParameterVarable)
+						.value().value();
+
+
+					if (readcopythisptr)
+					{
+						auto old = Out.Type;
+
+
+						Out.Type = TypeSymbol();
+
+						Out.Type._Type = old._Type;
+						Out.Type._CustomTypeSymbol = old._CustomTypeSymbol;
+					}
+				}
 			}
 			else
 			{
-				auto objecttypesyb = Symbol_GetSymbol(*ObjectType).value();
-				ClassInfo* V = objecttypesyb->Get_Info<ClassInfo>();
-
-				Out.Type = *Func->GetObjectForCall();
 				Out._Symbol =
 					Symbol_GetSymbol(ScopeHelper::ApendedStrings(Func->FullName, ThisSymbolName), SymbolType::ParameterVarable)
 					.value().value();
-
-
-				if (readcopythisptr)
-				{
-					auto old = Out.Type;
-
-
-					Out.Type = TypeSymbol();
-
-					Out.Type._Type = old._Type;
-					Out.Type._CustomTypeSymbol = old._CustomTypeSymbol;
-				}
-			}//
+				Out.Type = *Func->GetObjectForCall();
+			}
 			Start++;
 			End--;
 			ScopedCount++;
@@ -1526,6 +1536,7 @@ void  SystematicAnalysis::BuildMember_Access(const GetMemberTypeSymbolFromVar_t&
 		auto& Func = _FuncStack.back();
 		Last_Type = *Func.Pointer->GetObjectForCall();
 
+		/*
 		auto& lookingfortype = _LookingForTypes.top();
 		if (1 == In.End && !lookingfortype.IsAddress())
 		{
@@ -1535,6 +1546,7 @@ void  SystematicAnalysis::BuildMember_Access(const GetMemberTypeSymbolFromVar_t&
 			Output = _IR_LookingAtIRBlock->NewLoad_Dereferenc(Output, IR_ConvertToIRType(newtype));
 			Last_Type = newtype;
 		}
+		*/
 		LastVarSym = Symbol_GetSymbol(ScopeHelper::ApendedStrings(_FuncStack.front().Pointer->FullName, ThisSymbolName), SymbolType::ParameterVarable).value().value();
 	}
 	else if (In._Symbol->Type == SymbolType::Class_Field)
