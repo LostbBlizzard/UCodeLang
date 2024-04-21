@@ -714,7 +714,7 @@ void Lexer::NameAndKeyWords(ReadingNameState& ReadingState, Token& _Token)
 					}
 					else
 					{
-						NameBuffer = String_view(NameBuffer.data(), TextIndex - NexIndex);
+						NameBuffer = String_view(NameBuffer.data(), TextIndex - NexIndex + 1);
 						Type = TokenType::Number_literal;
 						TextIndex = NexIndex;
 					}
