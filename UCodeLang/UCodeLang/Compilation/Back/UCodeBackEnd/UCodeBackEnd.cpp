@@ -5070,10 +5070,68 @@ void UCodeBackEndObject::MoveValueInReg(const IRlocData& Value, size_t Offset, R
 		else
 		{
 			auto type = Value.ObjectType;
+			
+
+			auto typesize = GetSize(type);
+			size_t bestinssize = 0;
+			{
+				auto v = Offset + typesize;
+				
+				if (v <= 1)
+				{
+					bestinssize = 1;
+				}
+				else if (v <= 2)
+				{
+					bestinssize = 2;
+				}
+				else if (v <= 4)
+				{
+					bestinssize = 4;
+				}
+				else if (v <= 8)
+				{
+					bestinssize = 8;
+				}
+				else
+				{
+					UCodeLangUnreachable();
+				}
+			}
+			
+			auto tepstackpos = _Stack.AddWithSize(nullptr, bestinssize)->Offset;
+			
+			size_t stackpos = tepstackpos;
+			switch (bestinssize)
+			{
+			case 1:
+			{
+				InstructionBuilder::StoreRegOnStackSub8(_Ins, *Val, stackpos);
+			}
+			break;
+			case 2:
+			{
+				InstructionBuilder::StoreRegOnStackSub16(_Ins, *Val, stackpos);
+			}
+			break;
+			case 4:
+			{
+				InstructionBuilder::StoreRegOnStackSub32(_Ins, *Val, stackpos);
+			}
+			break;
+			case 8:
+			{
+				InstructionBuilder::StoreRegOnStackSub64(_Ins, *Val, stackpos);
+			}
+			break;
+			default:
+				UCodeLangUnreachable()
+					break;
+			}
+			
 			IRlocData loc;
 			loc.ObjectType = type;
-			loc.Info = GetFreeStackPos(type);
-
+			loc.Info = IRlocData_StackPost(stackpos);
 			MoveValueInReg(loc, Offset, To);
 		}
 	}
