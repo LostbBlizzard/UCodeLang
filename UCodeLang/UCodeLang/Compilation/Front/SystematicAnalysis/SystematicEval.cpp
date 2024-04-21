@@ -435,7 +435,7 @@ bool SystematicAnalysis::Eval_Evaluate(EvaluatedEx& Out, const ValueExpressionNo
 			{
 				Type.SetType(TypesEnum::uIntPtr);
 
-				UAddress PtrSize =0;
+				UAddress PtrSize = 0;
 				Type_GetSize(Type, PtrSize);
 
 				switch (PtrSize)
@@ -481,7 +481,7 @@ bool SystematicAnalysis::Eval_Evaluate(EvaluatedEx& Out, const ValueExpressionNo
 
 		OnTypeToValueNode(*TypeToValueNode::As(node._Value.get()));
 		Eval_Set_ObjectAs(Out, _LastExpressionType);
-	
+
 		_PassType = oldpasstype;
 
 		return true;
@@ -495,9 +495,9 @@ bool SystematicAnalysis::Eval_Evaluate(EvaluatedEx& Out, const ValueExpressionNo
 
 		OnExpressionToTypeValueNode(*ExpressionToTypeValueNode::As(node._Value.get()));
 		Eval_Set_ObjectAs(Out, _LastExpressionType);
-	
+
 		_PassType = oldpasstype;
-		
+
 		return true;
 	}
 	break;
@@ -531,7 +531,7 @@ static void DoBinaryIntOp(DoBinaryOpContext context)
 	T& op1 = *(T*)context.Op1->Object_AsPointer.get();
 	T& op2 = *(T*)context.Op2->Object_AsPointer.get();
 	T& out = *(T*)context.OpOut->Object_AsPointer.get();
-	bool& outequal =*(bool*)context.OpOut->Object_AsPointer.get();
+	bool& outequal = *(bool*)context.OpOut->Object_AsPointer.get();
 
 	switch (context.type)
 	{
@@ -550,7 +550,7 @@ static void DoBinaryIntOp(DoBinaryOpContext context)
 	case TokenType::modulo:
 		out = op1 % op2;
 		break;
-	
+
 	case TokenType::equal:
 		outequal = op1 == op2;
 		break;
@@ -578,10 +578,10 @@ static void DoBinaryIntOp(DoBinaryOpContext context)
 
 	case TokenType::bitwise_LeftShift:
 		out = op1 << op2;
-		break;	
+		break;
 	case TokenType::bitwise_RightShift:
 		out = op1 >> op2;
-		break;	
+		break;
 	case TokenType::bitwise_and:
 		out = op1 && op2;
 		break;
@@ -604,7 +604,7 @@ bool SystematicAnalysis::Eval_Evaluate(EvaluatedEx& Out, const BinaryExpressionN
 	TypeSymbol Ex1Type = _LastExpressionType;
 
 	auto overload = Type_HasBinaryOverLoadWith(Ex0Type, node._BinaryOp->Type, Ex1Type);
-	
+
 	if (!overload.HasValue) {
 		return false;
 	}
@@ -616,21 +616,21 @@ bool SystematicAnalysis::Eval_Evaluate(EvaluatedEx& Out, const BinaryExpressionN
 	{
 		return false;
 	}
-	
+
 	auto extype0 = ex0.value().Type;
 	auto extype1 = ex1.value().Type;
 
 	auto& exval0 = ex0.value().EvaluatedObject;
 	auto& exval1 = ex1.value().EvaluatedObject;
 	bool sametype = Type_AreTheSame(extype0, extype1);
-		
+
 	if (sametype)
 	{
 		if (extype0._Type == TypesEnum::Bool)
 		{
 			bool& val0 = *(bool*)exval0.Object_AsPointer.get();
 			bool& val1 = *(bool*)exval1.Object_AsPointer.get();
-		
+
 			auto outex = Eval_MakeExr(TypesEnum::Bool);
 
 			bool& outval = *(bool*)outex.Object_AsPointer.get();
@@ -667,18 +667,18 @@ bool SystematicAnalysis::Eval_Evaluate(EvaluatedEx& Out, const BinaryExpressionN
 			switch (maintype._Type)
 			{
 			case TypesEnum::sInt8:DoBinaryIntOp<Int8>(context); break;
-			case TypesEnum::sInt16:DoBinaryIntOp<Int16>(context);break;
-			case TypesEnum::sInt32:DoBinaryIntOp<Int32>(context);break;
-			case TypesEnum::sInt64:DoBinaryIntOp<Int64>(context);break;
+			case TypesEnum::sInt16:DoBinaryIntOp<Int16>(context); break;
+			case TypesEnum::sInt32:DoBinaryIntOp<Int32>(context); break;
+			case TypesEnum::sInt64:DoBinaryIntOp<Int64>(context); break;
 
-			case TypesEnum::uInt8:DoBinaryIntOp<UInt8>(context);break;
-			case TypesEnum::uInt16:DoBinaryIntOp<UInt16>(context);break;
-			case TypesEnum::uInt32:DoBinaryIntOp<UInt32>(context);break;
-			case TypesEnum::uInt64:DoBinaryIntOp<UInt64>(context);break;
+			case TypesEnum::uInt8:DoBinaryIntOp<UInt8>(context); break;
+			case TypesEnum::uInt16:DoBinaryIntOp<UInt16>(context); break;
+			case TypesEnum::uInt32:DoBinaryIntOp<UInt32>(context); break;
+			case TypesEnum::uInt64:DoBinaryIntOp<UInt64>(context); break;
 
 
 			default:
-					UCodeLangUnreachable();
+				UCodeLangUnreachable();
 				break;
 			}
 			return true;
@@ -716,7 +716,7 @@ bool SystematicAnalysis::Eval_Evaluate(EvaluatedEx& Out, const CastNode& node)
 			auto symop = Symbol_GetSymbol(ToTypeAs);
 			if (symop.has_value())
 			{
-				auto& sym = symop.value();
+				auto sym = symop.value();
 
 				if (sym->Type == SymbolType::Enum)
 				{
@@ -726,7 +726,7 @@ bool SystematicAnalysis::Eval_Evaluate(EvaluatedEx& Out, const CastNode& node)
 					{
 						UCodeLangUnreachable();
 					}
-					else if (Type_AreTheSame(info->Basetype,ToTypeAs))
+					else if (Type_AreTheSame(info->Basetype, ToTypeAs))
 					{
 						return true;
 					}
@@ -1023,7 +1023,7 @@ bool SystematicAnalysis::Eval_EvalutateValidNode(EvaluatedEx& Out, const ValidNo
 bool SystematicAnalysis::Eval_EvalutateFunc(EvaluatedEx& Out, const FuncCallNode& node)
 {
 	Get_FuncInfo FuncInfo;
-	
+
 	auto symid = Symbol_GetSymbolID(node);
 	if (_FuncToSyboID.HasValue(symid))
 	{
@@ -1304,7 +1304,7 @@ bool SystematicAnalysis::Eval_EvalutateFunc(EvalFuncData& State, const NeverNull
 	Set_SymbolContext(funcInfo->Context.value());
 	{
 		_Table._Scope.ThisScope = funcInfo->FullName;
-		
+
 		const FuncNode& Body = *Func->Get_NodeInfo<FuncNode>();
 
 		State.Pars.reserve(Pars.size());
@@ -1370,7 +1370,7 @@ bool SystematicAnalysis::EvalStore(EvalFuncData& State, const ExpressionNodeType
 			for (size_t i = 0; i < nod->_VariableName._ScopedName.size(); i++)
 			{
 				auto& item = nod->_VariableName._ScopedName[i];
-				
+
 				bool isstart = i == 0;
 				bool islast = i == nod->_VariableName._ScopedName.size() - 1;
 
@@ -1389,7 +1389,7 @@ bool SystematicAnalysis::EvalStore(EvalFuncData& State, const ExpressionNodeType
 						if (islast)
 						{
 							auto Sym = syb.value();
-							
+
 							if (Sym->Type == SymbolType::Class_Field)
 							{
 								auto& frame = _Eval_FuncStackFrames.back();
@@ -1405,7 +1405,7 @@ bool SystematicAnalysis::EvalStore(EvalFuncData& State, const ExpressionNodeType
 									P._IsAddress = false;
 
 									auto v = Symbol_GetSymbol(P._CustomTypeSymbol);
-								
+
 									String_view FieldName = item._token->Value._String;
 									if (v->Type == SymbolType::Tag_class)
 									{
@@ -1428,12 +1428,12 @@ bool SystematicAnalysis::EvalStore(EvalFuncData& State, const ExpressionNodeType
 								}
 
 								auto& Par = frame->Pars.GetValue(ThisSym->ID);
-								
+
 								auto p = *Eval_Get_ObjectAs<EvalPointer>(ThisSym->VarType, Par);
 
 
 								GetSharedEval().value()->PointerWrite(p, offset, In.EvaluatedObject);
-						
+
 								return true;
 							}
 							else
@@ -1452,7 +1452,7 @@ bool SystematicAnalysis::EvalStore(EvalFuncData& State, const ExpressionNodeType
 					}
 
 				}
-			} 
+			}
 		}
 		break;
 		default:
@@ -1537,7 +1537,7 @@ bool SystematicAnalysis::Eval_EvalutateScopedName(EvaluatedEx& Out, size_t Start
 				if (StatckFrame->Pars.HasValue(V._Symbol->ID))
 				{
 					auto& par = StatckFrame->Pars.GetValue(V._Symbol->ID);
-					
+
 					Out.EvaluatedObject = par;
 					return true;
 				}
@@ -1550,10 +1550,10 @@ bool SystematicAnalysis::Eval_EvalutateScopedName(EvaluatedEx& Out, size_t Start
 			const String FieldName = ScopeHelper::GetNameFromFullName(V._Symbol->FullName);
 			String enumsybfullname = V._Symbol->FullName;
 			ScopeHelper::ReMoveScope(enumsybfullname);
-			
-			auto v = Symbol_GetSymbol(enumsybfullname,SymbolType::Enum).value();
+
+			auto v = Symbol_GetSymbol(enumsybfullname, SymbolType::Enum).value();
 			EnumInfo* info = v->Get_Info<EnumInfo>();
-			
+
 			auto field = info->GetField(FieldName).value();
 
 			Out.EvaluatedObject = field->Ex;

@@ -166,7 +166,7 @@ IRInstruction* SystematicAnalysis::LoadEvaluatedEx(const RawEvaluatedObject& Val
 
 				auto ItemIR = LoadEvaluatedEx(_DataAsIndex, Base);
 
-				_IR_LookingAtIRBlock->New_Index_Vetor(Ptr,IR_Load_UIntptr(i), BaseAsIR);
+				_IR_LookingAtIRBlock->New_Index_Vetor(Ptr, IR_Load_UIntptr(i), BaseAsIR);
 			}
 
 			return R;
@@ -206,7 +206,7 @@ bool SystematicAnalysis::IR_Build_ImplicitConversion(IRInstruction* Ex, const Ty
 
 					if (info->_ClassHasCopyConstructor || info->_AutoGenerateCopyConstructor)
 					{
-						auto CopySybID =info->_ClassHasCopyConstructor.has_value() ? info->_ClassHasCopyConstructor.value() : info->_AutoGenerateCopyConstructor.value();
+						auto CopySybID = info->_ClassHasCopyConstructor.has_value() ? info->_ClassHasCopyConstructor.value() : info->_AutoGenerateCopyConstructor.value();
 						auto Syb = Symbol_GetSymbol(CopySybID);
 						auto irfuncid = IR_GetIRID(Syb->Get_Info<FuncInfo>());
 
@@ -349,16 +349,16 @@ bool SystematicAnalysis::IR_Build_ImplicitConversion(IRInstruction* Ex, const Ty
 						if (par.Isimmutable())
 						{
 							par._Isimmutable = ExType._Isimmutable;
-						}	
+						}
 						if (Type_AreTheSame(par, ExType))
 						{
 							auto v = ToType;
-							v._IsAddress = false;	
+							v._IsAddress = false;
 							IRInstruction* ret = _IR_LookingAtIRBlock->NewLoad(IR_ConvertToIRType(v));
 
 							_IR_LookingAtIRBlock->NewPushParameter(_IR_LookingAtIRBlock->NewLoadPtr(ret));
 
-							if (!ExType.IsAddress() &&  (Par.Type.IsAddress() || Par.Type.IsMovedType()))
+							if (!ExType.IsAddress() && (Par.Type.IsAddress() || Par.Type.IsMovedType()))
 							{
 								Ex = _IR_LookingAtIRBlock->NewLoadPtr(Ex);
 							}
@@ -369,7 +369,7 @@ bool SystematicAnalysis::IR_Build_ImplicitConversion(IRInstruction* Ex, const Ty
 
 							_IR_LastExpressionField = ret;
 
-							
+
 
 							return true;
 						}
@@ -419,7 +419,7 @@ void SystematicAnalysis::IR_Build_ExplicitConversion(IRInstruction* Ex, const Ty
 			v.Func = f;
 			v.SymFunc = Data.FuncToCall;
 			v.ThisPar = Get_FuncInfo::ThisPar_t::PushFromLast;
-			
+
 			ScopedNameNode tep;
 			ScopedName tep2;
 			tep2._token = _LastLookedAtToken.value().value();
@@ -427,7 +427,7 @@ void SystematicAnalysis::IR_Build_ExplicitConversion(IRInstruction* Ex, const Ty
 
 			_IR_LastExpressionField = Ex;
 
-			IR_Build_FuncCall(v,tep, {});
+			IR_Build_FuncCall(v, tep, {});
 		}
 		else
 		{
@@ -448,7 +448,7 @@ void SystematicAnalysis::IR_Build_ExplicitConversion(IRInstruction* Ex, const Ty
 					case TypesEnum::sInt64:_IR_LastExpressionField = _IR_LookingAtIRBlock->New_UIntToUInt64(Ex); break;
 
 
-					case TypesEnum::uInt8:_IR_LastExpressionField =  _IR_LookingAtIRBlock->New_UIntToUInt8(Ex); break;
+					case TypesEnum::uInt8:_IR_LastExpressionField = _IR_LookingAtIRBlock->New_UIntToUInt8(Ex); break;
 					case TypesEnum::uInt16:_IR_LastExpressionField = _IR_LookingAtIRBlock->New_UIntToUInt16(Ex); break;
 
 					ULableuint32:
@@ -524,7 +524,7 @@ void SystematicAnalysis::IR_Build_ExplicitConversion(IRInstruction* Ex, const Ty
 					default:UCodeLangUnreachable(); break;
 					}
 				}
-				else if (ToType._Type ==TypesEnum::sInt32 && ExType._Type ==TypesEnum::float32)
+				else if (ToType._Type == TypesEnum::sInt32 && ExType._Type == TypesEnum::float32)
 				{
 					_IR_LastExpressionField = _IR_LookingAtIRBlock->New_f32Toi32(Ex);
 				}
@@ -535,11 +535,11 @@ void SystematicAnalysis::IR_Build_ExplicitConversion(IRInstruction* Ex, const Ty
 				else if (Type_IsCharType(ExType._Type)
 					&& Type_GetSize(ExType) == Type_GetSize(ToType))
 				{
-						_IR_LastExpressionField = Ex;
+					_IR_LastExpressionField = Ex;
 				}
 				else if (Symbol_GetSymbol(ExType).has_value())
 				{
-					auto& sym = Symbol_GetSymbol(ExType).value();
+					auto sym = Symbol_GetSymbol(ExType).value();
 
 					if (sym->Type == SymbolType::Enum)
 					{
@@ -549,12 +549,12 @@ void SystematicAnalysis::IR_Build_ExplicitConversion(IRInstruction* Ex, const Ty
 						{
 							_IR_LastExpressionField = Ex;
 						}
-						else 
+						else
 						{
 							UCodeLangUnreachable();
 						}
 					}
-					else 
+					else
 					{
 						UCodeLangUnreachable();
 					}
@@ -588,7 +588,7 @@ void SystematicAnalysis::IR_Build_ExplicitConversion(IRInstruction* Ex, const Ty
 			{
 				_IR_LastExpressionField = _IR_LookingAtIRBlock->New_f32Tof64(Ex);
 			}
-			else if (Type_IsCharType(ToType) && Type_IsUIntType(ExType._Type) 
+			else if (Type_IsCharType(ToType) && Type_IsUIntType(ExType._Type)
 				&& ExType._Type != TypesEnum::uIntPtr && Type_GetSize(ToType) == Type_GetSize(ExType._Type))
 			{
 				_IR_LastExpressionField = Ex;
@@ -597,7 +597,7 @@ void SystematicAnalysis::IR_Build_ExplicitConversion(IRInstruction* Ex, const Ty
 			{
 				auto sym = Symbol_GetSymbol(ToType).value();
 
-				if (sym->Type ==SymbolType::Enum)
+				if (sym->Type == SymbolType::Enum)
 				{
 					auto info = sym->Get_Info<EnumInfo>();
 

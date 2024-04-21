@@ -607,6 +607,7 @@ private:
 				UCodeLangAssert((p.pointer->ObjectSize - offset) >= val.ObjectSize);
 
 				memcpy(ptr, val.Object_AsPointer.get(), val.ObjectSize);
+				return true;
 			}
 			else
 			{
@@ -1327,8 +1328,8 @@ private:
 		Pointer,
 	};
 	Optional<OptionalTypeInfo> IsOptionalType(const TypeSymbol& Type) const;
-	IRInstruction* IR_OptionalIsSomeType(const TypeSymbol& Type,IRInstruction* optional);
-	IRInstruction* IR_OptionalGetSomeType(const TypeSymbol& Type, IRInstruction* optional,OptionalGetValueMode mode);
+	IRInstruction* IR_OptionalIsSomeType(const TypeSymbol& Type, IRInstruction* optional);
+	IRInstruction* IR_OptionalGetSomeType(const TypeSymbol& Type, IRInstruction* optional, OptionalGetValueMode mode);
 	IRInstruction* IR_MakeOptionalWithNone(const TypeSymbol& Type);
 
 	struct ResultTypeInfo
@@ -1337,7 +1338,7 @@ private:
 		TypeSymbol ErrorType;
 	};
 	Optional<ResultTypeInfo> IsResultType(const TypeSymbol& Type) const;
-		
+
 	TypeSymbol Type_MakeFutureFromType(const TypeSymbol& BaseType);
 	bool Type_IsFuture(const TypeSymbol& Future);
 	TypeSymbol Type_GetBaseFromFuture(const TypeSymbol& Future);
@@ -1357,7 +1358,7 @@ private:
 	bool MatchShouldOutPassEnumValue(const ExpressionNodeType& node);
 	void MatchAutoPassEnumValueStart(MatchAutoPassEnum& V, const ExpressionNodeType& matchval, const ValueExpressionNode* Val, const FuncCallNode* Call);
 	void MatchAutoPassEnd(MatchAutoPassEnum& V);
-	void TryError_AllValuesAreMatched(const NeverNullPtr<Token> Token, const TypeSymbol& MatchItem, const MatchArmData& Data,const Vector<NeverNullPtr<ExpressionNodeType>>& _Arms);
+	void TryError_AllValuesAreMatched(const NeverNullPtr<Token> Token, const TypeSymbol& MatchItem, const MatchArmData& Data, const Vector<NeverNullPtr<ExpressionNodeType>>& _Arms);
 
 
 	BuildMatch_ret IR_Build_Match(const TypeSymbol& MatchItem, const ExpressionNodeType& MatchValueNode, IRInstruction* Item, BuildMatch_State& State, MatchArm& Arm, const ExpressionNodeType& ArmEx);
@@ -1377,7 +1378,7 @@ private:
 	void Assembly_LoadLibSymbols();
 	void Assembly_LoadLibSymbols(const UClib& lib, ImportLibInfo& libinfo, LoadLibMode Mode);
 
-	void Assembly_LoadTraitAliases(const String& FullName,const Vector<TraitAlias>& GenericAlias);
+	void Assembly_LoadTraitAliases(const String& FullName, const Vector<TraitAlias>& GenericAlias);
 	void Assembly_LoadTraitAliases_FixTypes(const Vector<TraitAlias>& GenericAlias);
 
 	void Assembly_LoadClassSymbol(const Class_Data& Item, const String& FullName, const String& Scope, SystematicAnalysis::LoadLibMode Mode);
@@ -1387,7 +1388,7 @@ private:
 	void Assembly_LoadTraitSymbol(const Trait_Data& Item, const String& FullName, const String& Scope, SystematicAnalysis::LoadLibMode Mode);
 
 	void Assembly_LoadSymbol(const ForType_Data& Item, SystematicAnalysis::LoadLibMode Mode);
-	void Assembly_LoadSymbol(const NameSpace_Data& Item,const String& FullName, SystematicAnalysis::LoadLibMode Mode);
+	void Assembly_LoadSymbol(const NameSpace_Data& Item, const String& FullName, SystematicAnalysis::LoadLibMode Mode);
 
 	void Assembly_LoadSymbol(const ClassMethod& Item, SystematicAnalysis::LoadLibMode Mode);
 	void LoadFuncInfoGetTypes(FuncInfo* Funcinfo, const ClassMethod& Item);
@@ -1560,7 +1561,7 @@ private:
 	bool Type_CanDoTypeToTrait(const TypeSymbol& TypeToCheck, const TypeSymbol& Type);
 
 	bool Type_IsValid(TypeSymbol& Out);
-	bool Type_CanBeImplicitConverted(const TypeSymbol& TypeToCheck, const TypeSymbol& Type, bool ReassignMode = true,bool isdeclare =false);
+	bool Type_CanBeImplicitConverted(const TypeSymbol& TypeToCheck, const TypeSymbol& Type, bool ReassignMode = true, bool isdeclare = false);
 	NullablePtr<FuncInfo> Symbol_GetAnImplicitConvertedFunc(const TypeSymbol& MainType, const TypeSymbol& ToType);
 	CastOverLoadWith_t  Type_CanBeExplicitlyConverted(const TypeSymbol& TypeToCheck, const TypeSymbol& Type);
 	Optional<FuncInfo*> Symbol_GetAnExplicitlyConvertedFunc(const TypeSymbol& TypeToCheck);
@@ -1588,7 +1589,7 @@ private:
 	bool Type_IsReference(const TypeSymbol& TypeToCheck) const;
 	bool Type_IsimmutableRulesfollowed(const TypeSymbol& TypeToCheck, const TypeSymbol& Type)const;
 
-	bool Type_IsAddessAndLValuesRulesfollowed(const TypeSymbol& TypeToCheck, const TypeSymbol& Type, bool ReassignMode,bool isdeclare = false) const;
+	bool Type_IsAddessAndLValuesRulesfollowed(const TypeSymbol& TypeToCheck, const TypeSymbol& Type, bool ReassignMode, bool isdeclare = false) const;
 
 
 	bool Symbol_HasDestructor(const TypeSymbol& TypeToCheck);
@@ -1629,7 +1630,7 @@ private:
 
 
 	Vector<Symbol*> Type_FindForTypeFuncions(const TypeSymbol& ThisType);
-	Vector<Symbol*> Type_FindForTypeFuncions(const TypeSymbol& ThisType,const String& FuncionName);
+	Vector<Symbol*> Type_FindForTypeFuncions(const TypeSymbol& ThisType, const String& FuncionName);
 	Get_FuncInfo Type_GetFunc(const TypeSymbol& Name, const ValueParametersNode& Pars);
 	Get_FuncInfo Type_GetFunc(const ScopedNameNode& Name, const ValueParametersNode& Pars, TypeSymbol Ret);
 
@@ -1870,7 +1871,7 @@ private:
 				}
 				else
 				{
-					if (InputTypeIsConstantExpression) 
+					if (InputTypeIsConstantExpression)
 					{
 						if (GenericInfo.BaseOrRule.has_value())
 						{
@@ -2011,7 +2012,7 @@ private:
 	void IR_Build_FuncCall(const TypeSymbol& Type, const Get_FuncInfo& Func, const ValueParametersNode& ValuePars);
 	void IR_Build_DestructorCall(const ObjectToDrop& Object);
 	void IR_Build_EnumOut(NeverNullPtr<Symbol> EnumSymbol, size_t EnumIndex, const ValueParametersNode& Pars);
-	void IR_Build_EnumOut(NeverNullPtr<Symbol> EnumSymbol,IRInstruction* ThisEnum, size_t EnumIndex, const ValueParametersNode& Pars,size_t StartIndex =0);
+	void IR_Build_EnumOut(NeverNullPtr<Symbol> EnumSymbol, IRInstruction* ThisEnum, size_t EnumIndex, const ValueParametersNode& Pars, size_t StartIndex = 0);
 
 
 
@@ -2042,7 +2043,7 @@ private:
 	void LogError_YouMustReturnSomethingError(const NeverNullPtr<Token> Token);
 	void LogError_CantguessVarTypeError(const NeverNullPtr<Token> Token);
 	void LogError_CantUseThisKeyWordHereError(const NeverNullPtr<Token> NameToken);
-	void LogError_CantCastImplicitTypes(const NeverNullPtr<Token> Token, const TypeSymbol& Ex1Type, const TypeSymbol& UintptrType, bool ReassignMode,bool isdeclare =false);
+	void LogError_CantCastImplicitTypes(const NeverNullPtr<Token> Token, const TypeSymbol& Ex1Type, const TypeSymbol& UintptrType, bool ReassignMode, bool isdeclare = false);
 	void LogError_ReadingFromInvaidVariable(const NeverNullPtr<Token> Token, String_view Str);
 	void LogError_CantFindVarError(const NeverNullPtr<Token> Token, String_view Str);
 	void LogError_CantFindVarMemberError(const NeverNullPtr<Token> Token, String_view Str, const TypeSymbol& OnType);
@@ -2117,11 +2118,11 @@ private:
 	void LogError_UseScopeResolutionAndNotDot(const NeverNullPtr<Symbol>& Sym, const NeverNullPtr<Token>& ItemToken);
 	void LogError_UseDotAndNotScopeResolution(const NeverNullPtr<Symbol>& Sym, const NeverNullPtr<Token>& ItemToken);
 	void LogError_TypeIsNotCopyable(const NeverNullPtr<Token> Token, const TypeSymbol& Ex0Type);
-	void LogError_TypeIsNotExport(const NeverNullPtr<Token> Token, const TypeSymbol Type,NeverNullPtr<Symbol> Symbol);
+	void LogError_TypeIsNotExport(const NeverNullPtr<Token> Token, const TypeSymbol Type, NeverNullPtr<Symbol> Symbol);
 	void LogError_ExportIsPrivate(const NeverNullPtr<Token> Token, NeverNullPtr<Symbol> Symbol);
 
 	ReadVarErrorCheck_t TryLogError_OnReadVar(String_view VarName, const NeverNullPtr<Token> Token, const NullablePtr<Symbol> Syb);
-	void TryLogError_OnWritingVar(NeverNullPtr<Symbol> Symbol, const NeverNullPtr<Token> Token, const String_view Name,GetValueMode mode);
+	void TryLogError_OnWritingVar(NeverNullPtr<Symbol> Symbol, const NeverNullPtr<Token> Token, const String_view Name, GetValueMode mode);
 
 	String ToString(SymbolType Value) const;
 	Class_Data* Assembly_GetAssemblyClass(const String& FullName);

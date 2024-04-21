@@ -85,7 +85,7 @@ bool SystematicAnalysis::Type_IsReference(const TypeSymbol& TypeToCheck) const
 		auto sym = symop.value();
 		if (sym->Type == SymbolType::Type_class)
 		{
-			 const auto info = sym->Get_Info<ClassInfo>();
+			const auto info = sym->Get_Info<ClassInfo>();
 
 			for (auto& Item : info->Fields)
 			{
@@ -101,7 +101,7 @@ bool SystematicAnalysis::Type_IsReference(const TypeSymbol& TypeToCheck) const
 		}
 	}
 
-		
+
 
 
 	return false;
@@ -121,7 +121,7 @@ bool SystematicAnalysis::Type_IsimmutableRulesfollowed(const TypeSymbol& TypeToC
 	{
 		return true;
 	}
-	
+
 	return false;
 }
 bool SystematicAnalysis::Type_IsAddessAndLValuesRulesfollowed(const TypeSymbol& TypeToCheck, const TypeSymbol& Type, bool ReassignMode, bool isdeclare) const
@@ -1087,14 +1087,14 @@ SystematicAnalysis::CompoundOverLoadWith_t SystematicAnalysis::Type_HasCompoundO
 						{
 							auto funcInfo = Item->Get_Info<FuncInfo>();
 							if (funcInfo->Pars.size() == 2)
-							{				
+							{
 								auto ParA = funcInfo->Pars[0];
 								auto ParB = funcInfo->Pars[1];
-					
+
 								bool r = Type_CanBeImplicitConverted(TypeA, ParA.Type)
 									&& Type_CanBeImplicitConverted(TypeB, ParB.Type);
 								if (r)
-								{	
+								{
 									ParInfo pinfo;
 									pinfo.Type = TypeA;
 									ParInfo pinfo2;
@@ -1202,14 +1202,14 @@ SystematicAnalysis::IndexOverLoadWith_t SystematicAnalysis::Type_HasIndexedOverL
 
 			String funcName = Syb->FullName;
 
-			if (StringHelper::EndWith((String_view)funcName,TraitClassEnd))
+			if (StringHelper::EndWith((String_view)funcName, TraitClassEnd))
 			{
-				funcName = funcName.substr(0,funcName.size() - sizeof(TraitClassEnd) + 1);
+				funcName = funcName.substr(0, funcName.size() - sizeof(TraitClassEnd) + 1);
 
-				auto& SymOp = Symbol_GetSymbol(funcName, SymbolType::Trait_class);
+				auto SymOp = Symbol_GetSymbol(funcName, SymbolType::Trait_class);
 				if (SymOp.has_value())
 				{
-					auto& Sym = SymOp.value();
+					auto Sym = SymOp.value();
 
 					if (Sym->Type == SymbolType::Generic_Trait)
 					{
@@ -1421,7 +1421,7 @@ bool SystematicAnalysis::Type_HasCopyFunc(const TypeSymbol& Type) const
 			bool r = v->_ClassAutoGenerateCopyConstructor
 				|| v->_ClassHasCopyConstructor.has_value();
 
-		
+
 			return r;
 		}
 		break;
@@ -1683,7 +1683,7 @@ void SystematicAnalysis::Type_Convert(const TypeNode& V, TypeSymbol& Out)
 		{
 			auto& Syb = Symbol_AddSymbol(SymbolType::ConstantExpression, "?", "?", AccessModifierType::Private);
 			_Table.AddSymbolID(Syb, id);
-	
+
 			_ConstantExpressionMap.AddValue(id);
 			ConstantExpressionInfo* info = new ConstantExpressionInfo();
 			info->Exnode = ExpressionNodeType::As(node);
@@ -2189,8 +2189,8 @@ bool SystematicAnalysis::Type_CanBeImplicitConverted(const TypeSymbol& TypeToChe
 
 
 	if (Type_CanDoTypeToTrait(TypeToCheck, Type))
-	{	
-		
+	{
+
 		if (TypeToCheck.IsAddress() || TypeToCheck._ValueInfo == TypeValueInfo::IsLocation)
 		{
 			return true;
@@ -2201,7 +2201,7 @@ bool SystematicAnalysis::Type_CanBeImplicitConverted(const TypeSymbol& TypeToChe
 		}
 	}
 
-	auto implicefunc = Symbol_GetAnImplicitConvertedFunc(Type,TypeToCheck);
+	auto implicefunc = Symbol_GetAnImplicitConvertedFunc(Type, TypeToCheck);
 	if (implicefunc.has_value())
 	{
 		return true;

@@ -89,7 +89,7 @@ void SystematicAnalysis::Pop_AddToGeneratedGenricSymbol(Symbol& addedSymbol, con
 
 }
 
-void SystematicAnalysis::Set_TraitGenericAlias(Vector<TraitGenericAlias>& Out,const Vector<TypeSymbol>& GenericInput,const GenericValuesNode& GenericValueNode)
+void SystematicAnalysis::Set_TraitGenericAlias(Vector<TraitGenericAlias>& Out, const Vector<TypeSymbol>& GenericInput, const GenericValuesNode& GenericValueNode)
 {
 	Out.reserve(GenericInput.size());
 	for (size_t i = 0; i < GenericInput.size(); i++)
@@ -98,10 +98,10 @@ void SystematicAnalysis::Set_TraitGenericAlias(Vector<TraitGenericAlias>& Out,co
 		alias.Type = GenericInput[i];
 		alias.Name = GenericValueNode._Values[i].token->Value._String;
 
-		auto& symop = Symbol_GetSymbol(alias.Type);
+		auto symop = Symbol_GetSymbol(alias.Type);
 		if (symop.has_value())
 		{
-			auto& sym = symop.value();
+			auto sym = symop.value();
 
 			if (sym->Type == SymbolType::ConstantExpression)
 			{
@@ -118,7 +118,7 @@ void SystematicAnalysis::Set_TraitGenericAlias(Vector<TraitGenericAlias>& Out,co
 			else if (sym->Type == SymbolType::Type_Pack)
 			{
 				TypePackInfo* info = sym->Get_Info<TypePackInfo>();
-				
+
 				alias.Type = TypeSymbol(TypesEnum::Null);
 
 				Vector<TypeSymbol>& list = info->List;
@@ -546,8 +546,8 @@ String SystematicAnalysis::Generic_SymbolGenericFullName(const NeverNullPtr<Symb
 		const Generic* info = GetGenercInfo(Func);
 		shouldhaveinputpars = info->IsPack() == false;
 	}
-	
-	if (shouldhaveinputpars) 
+
+	if (shouldhaveinputpars)
 	{
 		UCodeLangAssert(Type.size());//you need input types for Generic Instantiate.
 	}
@@ -579,8 +579,8 @@ String SystematicAnalysis::Generic_SymbolGenericName(const NeverNullPtr<Symbol> 
 		const Generic* info = GetGenercInfo(Func);
 		shouldhaveinputpars = info->IsPack() == false;
 	}
-	
-	if (shouldhaveinputpars) 
+
+	if (shouldhaveinputpars)
 	{
 		UCodeLangAssert(Type.size());//you need input types for Generic Instantiate.
 	}
@@ -724,11 +724,11 @@ void SystematicAnalysis::Generic_GenericAliasFixTypes(const GenericValuesNode& G
 		auto& Item = GenericList._Values[i];
 		auto& OutItem = Out._Genericlist[i];
 
-		
+
 		if (Item._BaseOrRuleScopeName.has_value())
 		{
 			auto& rule = Item._BaseOrRuleScopeName.value();
-			Optional<Variant<TypeSymbol,SymbolID>> base;
+			Optional<Variant<TypeSymbol, SymbolID>> base;
 			{
 				bool istype = true;
 				{

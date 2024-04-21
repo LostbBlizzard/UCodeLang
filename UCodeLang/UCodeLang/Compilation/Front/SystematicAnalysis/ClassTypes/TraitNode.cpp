@@ -12,7 +12,7 @@ void SystematicAnalysis::OnTrait(const TraitNode& node)
 
 	_Table.AddScope(ClassName);
 	UCodeLangDefer(_Table.RemoveScope();)
-	SymbolID sybId = Symbol_GetSymbolID(node);//Must be pass AddScope thats how GetSymbolID works for Generics.
+		SymbolID sybId = Symbol_GetSymbolID(node);//Must be pass AddScope thats how GetSymbolID works for Generics.
 
 	auto& Syb = _PassType == PassType::GetTypes ?
 		Symbol_AddSymbol(Isgeneric_t ? SymbolType::Generic_Trait : SymbolType::Trait_class
@@ -189,7 +189,7 @@ void SystematicAnalysis::OnTrait(const TraitNode& node)
 		}
 
 		auto TepClass = info->TraitClassInfo->Get_Info<ClassInfo>();
-	
+
 
 		ClassStackInfo classStackInfo;
 		classStackInfo.Syb = Symbol_GetSymbol(Symbol_GetSymbolID(node._Name)).value();
@@ -284,7 +284,7 @@ void SystematicAnalysis::OnTrait(const TraitNode& node)
 			LogError_ExportIsPrivate(NeverNullptr(node._Name.token), NeverNullptr(&Syb));
 		}
 
-		if (Isgeneric_t) 
+		if (Isgeneric_t)
 		{
 			bool hasanyerrors = ErrorCaptureHasErrors(errorcontext);
 			if (hasanyerrors)
@@ -515,7 +515,7 @@ void SystematicAnalysis::Symbol_InheritTrait(NeverNullPtr<Symbol> Syb, ClassInfo
 	bool HasErr = false;
 
 
-	
+
 	for (auto& Item : Traitinfo->_Vars)
 	{
 		auto VarName = ScopeHelper::GetNameFromFullName((String_view)Item.Syb->FullName);
@@ -534,7 +534,7 @@ void SystematicAnalysis::Symbol_InheritTrait(NeverNullPtr<Symbol> Syb, ClassInfo
 		ClassInfo->AddField(VarName, Item.Syb->VarType);
 
 		auto& Fieldsyb = Symbol_AddSymbol(SymbolType::Class_Field, (String)VarName,
-			ScopeHelper::ApendedStrings(ClassInfo->FullName, VarName) , Item.Syb->Access);
+			ScopeHelper::ApendedStrings(ClassInfo->FullName, VarName), Item.Syb->Access);
 		Fieldsyb.VarType = Item.Syb->VarType;
 
 		if (true)
@@ -545,9 +545,9 @@ void SystematicAnalysis::Symbol_InheritTrait(NeverNullPtr<Symbol> Syb, ClassInfo
 		{
 			ClassInfo->_WillHaveFielddeInit = true;
 		}
-	
+
 	}
-	
+
 	for (auto& Item : Traitinfo->_Funcs)
 	{
 		if (Item.HasBody)
@@ -566,7 +566,7 @@ void SystematicAnalysis::Symbol_InheritTrait(NeverNullPtr<Symbol> Syb, ClassInfo
 		{
 			FuncInfo* Info = Item.Syb->Get_Info<FuncInfo>();
 
-			auto FuncName =RemoveSymboolFuncOverloadMangling(Info->Get_Name());
+			auto FuncName = RemoveSymboolFuncOverloadMangling(Info->Get_Name());
 			auto& List = GetSymbolsWithName(FuncName);
 
 			bool HasFunc = false;
@@ -673,10 +673,10 @@ void SystematicAnalysis::Symbol_InheritTrait(NeverNullPtr<Symbol> Syb, ClassInfo
 				}
 
 			};
-		
-		{	
+
+		{
 			_Table.AddUseing(Trait->FullName);
-			
+
 			for (auto& Item : Traitinfo->_Symbols)
 			{
 				auto SybsIndex = _Table.Symbols.size();
@@ -706,13 +706,13 @@ void SystematicAnalysis::Symbol_InheritTrait(NeverNullPtr<Symbol> Syb, ClassInfo
 
 		_PassType = PassType::FixedTypes;
 
-		{				
+		{
 			_Table.AddUseing(Trait->FullName);
 			for (auto& Item : Trait->Get_NodeInfo<TraitNode>()->_generic._Values)
 			{
 				String scope = Trait->FullName;
-				ScopeHelper::GetApendedString(scope,Item.token->Value._String);
-				auto& s = Symbol_GetSymbol(scope,SymbolType::Generic_Alias).value();
+				ScopeHelper::GetApendedString(scope, Item.token->Value._String);
+				auto s = Symbol_GetSymbol(scope, SymbolType::Generic_Alias).value();
 				s->Access = AccessModifierType::Public;
 			}
 			for (auto& Item : Traitinfo->_Symbols)
@@ -722,8 +722,8 @@ void SystematicAnalysis::Symbol_InheritTrait(NeverNullPtr<Symbol> Syb, ClassInfo
 			for (auto& Item : Trait->Get_NodeInfo<TraitNode>()->_generic._Values)
 			{
 				String scope = Trait->FullName;
-				ScopeHelper::GetApendedString(scope,Item.token->Value._String);
-				auto& s = Symbol_GetSymbol(scope,SymbolType::Generic_Alias).value();
+				ScopeHelper::GetApendedString(scope, Item.token->Value._String);
+				auto s = Symbol_GetSymbol(scope, SymbolType::Generic_Alias).value();
 				s->Access = AccessModifierType::Private;
 			}
 			_Table.Useings.pop_back();
@@ -734,7 +734,7 @@ void SystematicAnalysis::Symbol_InheritTrait(NeverNullPtr<Symbol> Syb, ClassInfo
 			const FuncNode& func = *(FuncNode*)Item.FuncNode;
 			OnFuncNode(func);
 		}
-		
+
 		{
 			_PassType = oldpass;
 			_ClassStack.pop();
@@ -786,7 +786,7 @@ void SystematicAnalysis::Symbol_BuildTrait(const NeverNullPtr<Symbol> Syb, Class
 			}
 		}
 
-		if (GenericFunc.has_value()) 
+		if (GenericFunc.has_value())
 		{
 			_Generic_GenericSymbolStack.push(*GenericFunc.value());
 		}
@@ -886,7 +886,7 @@ bool SystematicAnalysis::Type_CanDoTypeToTrait(const TypeSymbol& TypeToCheck, co
 				auto Indexo = ClassF->Get_InheritedTypesIndex(SymbolB.value());
 
 				if (Indexo.has_value())
-				{	
+				{
 					return true;
 				}
 			}
