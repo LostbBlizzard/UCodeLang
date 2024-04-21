@@ -36,7 +36,7 @@ void SystematicAnalysis::OnFuncCallNode(const FuncCallNode& node)
 		auto symid = Symbol_GetSymbolID(node);
 		if (!_FuncToSyboID.HasValue(symid))
 		{
-				
+
 			TypeSymbol v = Type_Get_LookingForType();
 			if (Type_IsUnMapType(v))
 			{
@@ -763,7 +763,7 @@ else PrimitiveTypeCall(Uint32TypeName, TypesEnum::uInt32, _IR_LastExpressionFiel
 
 
 		TraitInfo* Info = TraitSyb->Get_Info<TraitInfo>();
-		
+
 		size_t FuncIndex = 0;
 		for (auto& Item : Info->_Funcs)
 		{
@@ -939,7 +939,7 @@ void TryaddParPackInferTypes(bool islastparpack, const FuncInfo* Info, size_t pa
 Vector<Symbol*> SystematicAnalysis::Type_FindForTypeFuncions(const TypeSymbol& maintype, const String& FuncionName)
 {
 	auto fortypeSyms = GetSymbolsWithName(ForTypeScope, SymbolType::ForType);
-	
+
 	Vector<Symbol*> Symbols;
 	if (auto maintypesym = Symbol_GetSymbol(maintype).value_unchecked())
 	{
@@ -969,7 +969,7 @@ Vector<Symbol*> SystematicAnalysis::Type_FindForTypeFuncions(const TypeSymbol& m
 
 					for (auto& Item : info->Funcs)
 					{
-						if (FuncionName.size() == 0 || ScopeHelper::GetNameFromFullName(Item->FullName) == FuncionName) 
+						if (FuncionName.size() == 0 || ScopeHelper::GetNameFromFullName(Item->FullName) == FuncionName)
 						{
 							Symbols.push_back(Item);
 						}
@@ -987,10 +987,10 @@ Vector<Symbol*> SystematicAnalysis::Type_FindForTypeFuncions(const TypeSymbol& m
 
 				String GennericName;
 
-				fornod->_typetoaddto._name.GetScopedName(GennericName);	
+				fornod->_typetoaddto._name.GetScopedName(GennericName);
 				if (StringHelper::Contains(mytypestr, GennericName))
 				{
-					
+
 
 					{
 						bool isgood = false;
@@ -1210,7 +1210,7 @@ Vector<Symbol*> SystematicAnalysis::Type_FindForTypeFuncions(const TypeSymbol& m
 							if (Item->Type == SymbolType::ForType)
 							{
 								auto info = Item->Get_Info<ForTypeInfo>();
-															
+
 								auto fortype = Item->VarType;
 								auto mtype = maintype;
 								Type_RemoveTypeattributes(fortype);
@@ -1249,7 +1249,7 @@ Vector<Symbol*> SystematicAnalysis::Type_FindForTypeFuncions(const TypeSymbol& m
 								}
 							}
 						}
-						
+
 					}
 
 					{
@@ -1257,7 +1257,7 @@ Vector<Symbol*> SystematicAnalysis::Type_FindForTypeFuncions(const TypeSymbol& m
 
 						for (auto& Item : info->Funcs)
 						{
-							if (FuncionName.size() == 0 || ScopeHelper::GetNameFromFullName(Item->FullName) == FuncionName) 
+							if (FuncionName.size() == 0 || ScopeHelper::GetNameFromFullName(Item->FullName) == FuncionName)
 							{
 								Symbols.push_back(Item);
 							}
@@ -1539,7 +1539,7 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 
 				if (symop.has_value())
 				{
-					auto& sym = symop.value();
+					auto sym = symop.value();
 					if (sym->Type == SymbolType::Generic_Trait)
 					{
 						ScopeHelper::GetApendedString(NewScopeName, GenericTestStr);
@@ -1578,12 +1578,12 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 			}
 		}
 
-		auto newlist =Type_FindForTypeFuncions(maintype,ScopeHelper::GetNameFromFullName(ScopedName));
+		auto newlist = Type_FindForTypeFuncions(maintype, ScopeHelper::GetNameFromFullName(ScopedName));
 		for (auto& Item : newlist)
 		{
 			Symbols.push_back(Item);
 		}
-			
+
 	}
 
 	{
@@ -3661,7 +3661,7 @@ Optional< Optional<SystematicAnalysis::Get_FuncInfo>> SystematicAnalysis::Type_F
 				else
 				{
 					auto lasttokentype = node._name._ScopedName.back()._token->Type;
-					if (TypeNode::IsPrimitive(lasttokentype)) 
+					if (TypeNode::IsPrimitive(lasttokentype))
 					{
 						String r;
 						switch (lasttokentype)
@@ -3687,7 +3687,7 @@ Optional< Optional<SystematicAnalysis::Get_FuncInfo>> SystematicAnalysis::Type_F
 						default:
 							UCodeLangUnreachable();
 							break;
-						}	
+						}
 						return r;
 					}
 				}
@@ -3724,18 +3724,18 @@ Optional< Optional<SystematicAnalysis::Get_FuncInfo>> SystematicAnalysis::Type_F
 						teppar._IsAddress = true;
 					}
 
-					auto parname = ToString(teppar);	
-					
-					
+					auto parname = ToString(teppar);
+
+
 
 					bool isnotgeneric = false;
 					{
 						bool issame = false;
-						if (StringHelper::EndWith(parname,symname))
+						if (StringHelper::EndWith(parname, symname))
 						{
 							issame = true;//this would need to updated soon but its ok for now.
 						}
-						
+
 						isnotgeneric = !issame;
 					}
 

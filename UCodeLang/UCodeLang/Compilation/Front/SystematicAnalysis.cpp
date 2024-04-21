@@ -96,7 +96,7 @@ bool SystematicAnalysis::Analyze(const Vector<NeverNullPtr<FileNode>>& Files, co
 			Lib_BuildLibs(false);//Because of generics the ClassAssembly may need them.
 			Lib_BuildLibs(true);//Because of Enums  may need them.
 
-			BuildCode();	
+			BuildCode();
 		}
 	};
 
@@ -896,7 +896,7 @@ IRidentifierID SystematicAnalysis::IR_Build_ConvertToIRClassIR(const Symbol& Cla
 	{
 		return _Symbol_SybToIRMap.GetValue(ClassSybID);
 	}
-	
+
 	const ClassInfo* clasinfo = Class.Get_Info < ClassInfo>();
 
 	IRidentifierID V = _IR_Builder.ToID(Class.FullName);
@@ -904,7 +904,7 @@ IRidentifierID SystematicAnalysis::IR_Build_ConvertToIRClassIR(const Symbol& Cla
 	{
 		if (Item->identifier == V)
 		{
-			_Symbol_SybToIRMap.AddValue(ClassSybID,V);
+			_Symbol_SybToIRMap.AddValue(ClassSybID, V);
 			return V;
 		}
 	}
@@ -947,7 +947,7 @@ IRidentifierID SystematicAnalysis::IR_Build_ConvertToStaticArray(const Symbol& C
 	{
 		if (Item->identifier == V)
 		{
-			_Symbol_SybToIRMap.AddValue(ClassSybID,V);
+			_Symbol_SybToIRMap.AddValue(ClassSybID, V);
 			return V;
 		}
 	}
@@ -2451,7 +2451,7 @@ SystematicAnalysis::CastOverLoadWith_t  SystematicAnalysis::Type_CanBeExplicitly
 			}
 		}
 	}
-	
+
 	if (Type_IsUIntType(Type._Type) && Type_IsCharType(TypeToCheck))
 	{
 		auto charsize = Type_GetSize(TypeToCheck);
@@ -2571,7 +2571,7 @@ NullablePtr<Symbol> SystematicAnalysis::HasMoveContructer(const TypeSymbol& ExTy
 			}
 		}
 	}
-	return false;
+	return {};
 }
 NullablePtr<Symbol> SystematicAnalysis::HasCopyContructer(const TypeSymbol& ExType)
 {
@@ -2594,7 +2594,7 @@ NullablePtr<Symbol> SystematicAnalysis::HasCopyContructer(const TypeSymbol& ExTy
 			}
 		}
 	}
-	return false;
+	return {};
 }
 bool SystematicAnalysis::HasCopyContructerHasIRFunc(const TypeSymbol& ExType)
 {
@@ -2871,7 +2871,7 @@ String SystematicAnalysis::ToString(const TypeSymbol& Type, const RawEvaluatedOb
 	return CompilerRet;
 }
 
-void SystematicAnalysis::TryLogError_OnWritingVar(NeverNullPtr<Symbol> Symbol, const NeverNullPtr<Token> Token, const String_view Name,GetValueMode mode)
+void SystematicAnalysis::TryLogError_OnWritingVar(NeverNullPtr<Symbol> Symbol, const NeverNullPtr<Token> Token, const String_view Name, GetValueMode mode)
 {
 	if (mode != GetValueMode::WritePointerReassment) {
 		if (Symbol->VarType.Isimmutable())
