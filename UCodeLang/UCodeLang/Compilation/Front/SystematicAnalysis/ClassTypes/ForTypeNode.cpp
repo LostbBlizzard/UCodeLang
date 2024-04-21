@@ -75,6 +75,7 @@ void SystematicAnalysis::OnForTypeNode(const ForTypeNode& node)
 			if (Type_IsPrimitive(type))
 			{
 				LogError(ErrorCodes::InValidType, "Cant add funcions to the primitive type '" + ToString(type) + "' ", NeverNullptr(node._typetoaddto._name._ScopedName.front()._token));
+				return;
 			}
 
 			auto sym = Symbol_GetSymbol(SymID);
