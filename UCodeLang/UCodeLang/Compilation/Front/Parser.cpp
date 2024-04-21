@@ -2204,6 +2204,7 @@ Parser::GetNameCheck_ret2 Parser::GetNameCheck2(ScopedNameNode& out, bool CanHav
 				NameToken->Type != TokenType::Name &&
 				NameToken->Type != TokenType::KeyWord_compiler &&
 				!(NameToken->Type == TokenType::KeyWord_This && out._ScopedName.size() == 0)
+				&& !TypeNode::IsPrimitive(NameToken->Type)
 				)
 			)
 		{
