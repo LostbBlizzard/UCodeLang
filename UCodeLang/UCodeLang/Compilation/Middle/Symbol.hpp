@@ -420,6 +420,7 @@ public:
 	bool IsExternC = false;
 	bool IsRemoved = false;
 	bool IsTraitDynamicDispatch = false;
+	Vector<Symbol*> Attributes;
 	bool IsObjectCall() const
 	{
 		return Pars.size() && (Pars.front().Type.IsAddress() && Pars.front().IsOutPar == false && FrontParIsUnNamed);

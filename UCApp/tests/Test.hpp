@@ -112,7 +112,7 @@ inline String ModeType(OptimizationFlags Flags)
 	return r;
 }
 
-static const Array<TestInfo, 143> Tests{
+static const Array<TestInfo, 145> Tests{
 
 	TestInfo("main_0", "BasicTests/main.uc", "Main", SuccessCondition::Compilation),
 
@@ -313,6 +313,9 @@ static const Array<TestInfo, 143> Tests{
 	TestInfo("ForTypePrimitive", "Objects/ForTypePrimitive.uc", "main", SuccessCondition::RunTimeValue, (bool)true),
 	
 	TestInfo("StringInterpolation", "Syntax/StringInterpolation.uc", "main", SuccessCondition::RunTimeValue, (bool)true),
+	
+	TestInfo("EnableTrue", "Eval/EnableTrue.uc", "main", SuccessCondition::RunTimeValue, (bool)true),
+	TestInfo("EnableFalse", "Eval/EnableFalse.uc", "main", SuccessCondition::CompilationFail),
 };
 struct SkipTestRange
 {

@@ -2011,6 +2011,7 @@ void SystematicAnalysis::OnCompareTypesNode(const CMPTypesNode& node)
 	}
 	if (_PassType == PassType::FixedTypes)
 	{
+		auto symid = Symbol_GetSymbolID(node);
 		TypeSymbol Type0 = Type_ConvertAndValidateType(node._TypeOp0, NodeSyb_t::Any);
 		TypeSymbol Type1 = Type_ConvertAndValidateType(node._TypeOp1, NodeSyb_t::Any);
 
@@ -2018,7 +2019,10 @@ void SystematicAnalysis::OnCompareTypesNode(const CMPTypesNode& node)
 		bool CMPValue = Type_Compare(Type0, Type1, NeverNullptr(node._Op));
 
 
-		_ValidNodes.AddValue(Symbol_GetSymbolID(node), CMPValue);
+		if (!_ValidNodes.HasValue(symid)) 
+		{
+			_ValidNodes.AddValue(symid, CMPValue);
+		}
 	}
 	if (_PassType == PassType::BuidCode)
 	{

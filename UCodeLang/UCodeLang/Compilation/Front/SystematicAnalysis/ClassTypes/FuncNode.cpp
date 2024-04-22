@@ -477,9 +477,8 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 		return;
 	}
 
-	OnAttributesNode(node._Attributes);
 	FuncInfo* Info = syb->Get_Info<FuncInfo>();
-
+	OnAttributesNode(node._Attributes,Optionalref(Info->Attributes));
 
 	if (_PassType == PassType::FixedTypes && Isgeneric_t)
 	{
@@ -489,6 +488,19 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 	syb->PassState = _PassType;
 	_FuncStack.push_back(Info);
 
+	Optional<bool> IsEnabled;
+	for (auto& Item : Info->Attributes)
+	{
+		if (!Item->VarType.IsBadType()) 
+		{
+			auto& sym = *Symbol_GetSymbol(Item->VarType).value().value();
+			if (IsEnableAttribute(sym))
+			{
+				IsEnabled = GetEnableAttribute(*Item).IsEnable;
+				break;
+			}
+		}
+	}
 
 	if (_PassType == PassType::FixedTypes
 		|| (IsGenericS && _PassType == PassType::GetTypes))
@@ -620,11 +632,22 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 
 	bool buidCode = _PassType == PassType::BuidCode && Info->IsRemoved == false;
 	bool ignoreBody = !IsgenericInstantiation && IsGenericS;
+	bool igorebecausedisable = false;
+	if (ignoreBody == false)
+	{
+		if (IsEnabled.has_value())
+		{
+			if (IsEnabled.value() == false) 
+			{
+				igorebecausedisable = true;
+			}
+		}
+	}
 
 
 	if (buidCode && !ignoreBody)
 	{
-		bool IsBuildingIR = true;
+		bool IsBuildingIR = igorebecausedisable == false;
 		auto DecName = IR_MangleName(Info);
 
 		if (IsBuildingIR)
@@ -867,6 +890,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 				}
 			}
 		}
+		ignoreBody = igorebecausedisable;
 		//
 	}
 
