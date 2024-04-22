@@ -83,7 +83,29 @@ void Lexer::Lex(const String_view& Text)
 		switch (ReadingState)
 		{
 		case ReadingNameState::String:
-			if (Char == '\"')
+			if (Char == '{' && (TextIndex != 0 ? Text[TextIndex - 1] != '\\' : true))
+			{
+				NameBufferEnd = TextIndex;
+				
+				IsInStringConcatenate = true;
+				_Token.Type = TokenType::String_literal;
+				_Token.Value = Get_NameBuffer();
+				if (_Token.Value._String.size()) {
+					_Tokens.push_back(_Token);
+				}
+
+				auto t = _Token;
+
+				ClearNameBuffer();
+
+				_Token = Token();
+				_Token.Type = TokenType::plus;
+				_Token.OnLine = t.OnLine;
+				_Token.OnPos = t.OnPos;
+				_Tokens.push_back(_Token);
+				continue;
+			}
+			else if (Char == '\"')
 			{
 				NameBufferEnd = TextIndex;
 
@@ -94,7 +116,15 @@ void Lexer::Lex(const String_view& Text)
 
 				ClearNameBuffer();
 			}
-			continue;
+
+			if (IsInStringConcatenate)
+			{
+				break;
+			}
+			else 
+			{
+				continue;
+			}
 		case ReadingNameState::Char:
 			if (Char == '\'')
 			{
@@ -134,6 +164,71 @@ void Lexer::Lex(const String_view& Text)
 		auto OldNodesCount = _Tokens.size();
 		NameAndKeyWords(ReadingState, _Token);
 
+		if (IsInStringConcatenate && Char == '}')
+		{
+			NameBufferEnd = TextIndex;
+
+			ClearNameBuffer();
+			ReadingState = ReadingNameState::String;	
+			
+			auto t = _Token;
+
+			_Token = Token();
+			_Token.Type = TokenType::Dot;
+			_Token.OnLine = t.OnLine;
+			_Token.OnPos = t.OnPos;
+			_Tokens.push_back(_Token);
+
+			_Token = Token();
+			_Token.Type = TokenType::Name;
+			_Token.Value._String = "ToString";
+			_Token.OnLine = t.OnLine;
+			_Token.OnPos = t.OnPos;
+			_Tokens.push_back(_Token);
+
+			_Token = Token();
+			_Token.Type = TokenType::Left_Parentheses;
+			_Token.OnLine = t.OnLine;
+			_Token.OnPos = t.OnPos;
+			_Tokens.push_back(_Token);
+
+			_Token = Token();
+			_Token.Type = TokenType::Right_Parentheses;
+			_Token.OnLine = t.OnLine;
+			_Token.OnPos = t.OnPos;
+			_Tokens.push_back(_Token);
+
+			IsInStringConcatenate = false;
+			TextIndex++;
+			NameBufferStart = TextIndex;
+
+			bool hasstringafter = true;
+			if (TextIndex + 1 < Text.size())
+			{
+				char nextchar = Text[TextIndex + 1];
+
+				if (nextchar == '\"')
+				{
+					hasstringafter = false;
+				}
+			}
+
+			if (!hasstringafter)
+			{
+				TextIndex++;
+				ReadingState = ReadingNameState::Name;
+				ClearNameBuffer();
+			}
+			else
+			{
+				_Token = Token();
+				_Token.Type = TokenType::plus;
+				_Token.OnLine = t.OnLine;
+				_Token.OnPos = t.OnPos;
+				_Tokens.push_back(_Token);
+			}
+			continue;
+		}
 		// if added token
 		if (OldNodesCount != _Tokens.size())
 		{
