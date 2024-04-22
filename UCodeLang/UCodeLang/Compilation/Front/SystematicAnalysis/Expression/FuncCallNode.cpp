@@ -3462,6 +3462,28 @@ StartSymbolsLoop:
 			}
 		}
 
+		if (RValue.SymFunc->Type == SymbolType::Func)
+		{
+			auto funcinfo = RValue.SymFunc->Get_Info<FuncInfo>();
+			auto& att = funcinfo->Attributes;
+
+			for (auto& Item : att)
+			{
+				auto attrtype = Symbol_GetSymbol(Item->VarType).value().value();
+				if (IsEnableAttribute(*attrtype))
+				{
+					auto enabledata = GetEnableAttribute(*Item);
+
+					if (enabledata.IsEnable == false)
+					{
+						auto token = NeverNullptr(Name._ScopedName.back()._token);
+					
+						LogError(ErrorCodes::InValidType, "Funcion was Disabled because '" + enabledata.ErrorMsg + "'", token);
+						return { };
+					}
+				}
+			}
+		}
 
 		return RValue;
 

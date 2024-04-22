@@ -1167,9 +1167,17 @@ private:
 	void OnRetStatement(const RetStatementNode& node);
 	void OnEnum(const EnumNode& node);
 	void OnNamespace(const NamespaceNode& node);
-	void OnAttributeNode(const AttributeNode& node);
-	void OnAttributesNode(const Vector<Unique_ptr<AttributeNode>>& nodes);
+	void OnAttributeNode(const AttributeNode& node, OptionalRef<Vector<Symbol*>> Out = {});
+	void OnAttributesNode(const Vector<Unique_ptr<AttributeNode>>& nodes,OptionalRef<Vector<Symbol*>> Out = {});
 	void OnDeclareVariablenode(const DeclareVariableNode& node, DeclareStaticVariableNode_t type);
+
+	bool IsEnableAttribute(const Symbol& symbol);
+	struct EnableAttributeData
+	{
+		bool IsEnable = true;
+		String ErrorMsg;
+	};
+	EnableAttributeData GetEnableAttribute(const Symbol& symbol);
 
 	void IR_Build_OnStoreVarable(bool IsStructObjectPassRef, IRInstruction* OnVarable, Symbol* syb, const SymbolID& sybId);
 	void IR_Build_AddDestructorToStack(const NeverNullPtr<Symbol> syb, const SymbolID& sybId, IRInstruction* OnVarable);
