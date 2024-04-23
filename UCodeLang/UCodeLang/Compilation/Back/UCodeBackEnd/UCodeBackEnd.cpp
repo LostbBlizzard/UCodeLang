@@ -611,6 +611,7 @@ void UCodeBackEndObject::LinkFuncs()
 							}
 
 						}
+						size_t StackFrameSize = FuncStackSizes.GetValue(Item.get());
 
 						RegisterID Out1 = RegisterID::B;
 						RegisterID Out2 = RegisterID::D;
@@ -633,7 +634,6 @@ void UCodeBackEndObject::LinkFuncs()
 								InstructionBuilder::LoadFuncPtr_V4(start, funcptr, _Ins); PushIns();
 								InstructionBuilder::equal_greaterthan64(_Ins, lastinsref, funcptr, Out1); PushIns();
 							}
-							start++;
 						}
 
 						//Set funcptr to end of funcion
@@ -657,19 +657,13 @@ void UCodeBackEndObject::LinkFuncs()
 						}
 						else
 						{							
-							InstructionBuilder::lessthan32(_Ins,lastinsref,funcptr,Out2); PushIns();
+							InstructionBuilder::lessthan64(_Ins,lastinsref,funcptr,Out2); PushIns();
 						}
 
-						if (Get_Settings().PtrSize == IntSizes::Int32)
-						{
-							InstructionBuilder::LogicalAnd8(_Ins, Out1,Out2, inrangecheck); PushIns();
-						}
-						else
-						{
-							InstructionBuilder::LogicalAnd8(_Ins, Out1,Out2,inrangecheck); PushIns();
-						}
-
+						
+						InstructionBuilder::LogicalAnd8(_Ins, Out1,Out2,inrangecheck); PushIns();	
 						InstructionBuilder::LogicalNot8(_Ins, inrangecheck,inrangecheck); PushIns();
+
 						auto jumpins = _OutLayer->_Instructions.size();
 						if (Get_Settings().PtrSize == IntSizes::Int32)
 						{
@@ -695,10 +689,44 @@ void UCodeBackEndObject::LinkFuncs()
 								{
 									auto functocall = _Input->GetFunc(Item.CleanUpFuncion);
 									UCodeLangAssert(functocall->Pars.size() == 1);
-				
 
+
+									//Get Back FuncPtr
 									{
-										size_t fulloffset = end - start;
+										if (Get_Settings().PtrSize == IntSizes::Int32)
+										{
+											InstructionBuilder::LoadFuncPtr_V1(start, funcptr, _Ins); PushIns();
+											InstructionBuilder::LoadFuncPtr_V2(start, funcptr, _Ins); PushIns();
+										}
+										else
+										{
+											InstructionBuilder::LoadFuncPtr_V1(start, funcptr, _Ins); PushIns();
+											InstructionBuilder::LoadFuncPtr_V2(start, funcptr, _Ins); PushIns();
+											InstructionBuilder::LoadFuncPtr_V3(start, funcptr, _Ins); PushIns();
+											InstructionBuilder::LoadFuncPtr_V4(start, funcptr, _Ins); PushIns();
+										}
+	
+									}
+
+
+									size_t VarableOffsetShift = 0;
+									if (StackFrameSize)
+									{
+										//Because haveing a StackSize will add The Store[32/64] And  IncrementStackPointer InstructionBuilder
+
+										if (Get_Settings().PtrSize == IntSizes::Int32)
+										{
+											VarableOffsetShift += 3;
+										}
+										else
+										{
+											VarableOffsetShift += 5;
+										}
+									}
+
+									//Shift FuncPtr to Start Of Varable
+									{
+										size_t fulloffset = (Item.VarableStart +VarableOffsetShift ) - start;
 										while (fulloffset != 0)
 										{
 											size_t offset = std::min<UInt8>(UInt8_MaxSize, fulloffset);
@@ -709,41 +737,114 @@ void UCodeBackEndObject::LinkFuncs()
 										}
 									}
 
-									auto par1 = RegisterID::Parameter1_Register;
-									InstructionBuilder::GetPointerOfStackSub(_Ins, par1, Item.PostStackOffset); PushIns();
 
-									UAddress functocalladdres = 0;
-									{
-										Optional<UAddress> funcpos;
-										for (auto& Item2 : _Funcpos)
-										{
-											if (Item2._FuncID == Item.CleanUpFuncion)
-											{
-												funcpos = Item2.Index;
-												break;
-											}
-										}
-										functocalladdres = funcpos.value();
-									}
+									//Check if GreaterRange and Put in Out1
 									if (Get_Settings().PtrSize == IntSizes::Int32)
 									{
-										InstructionBuilder::Callv1(functocalladdres ,_Ins); PushIns();
-										InstructionBuilder::Callv2(functocalladdres ,_Ins); PushIns();
+										InstructionBuilder::equal_greaterthan32(_Ins, lastinsref, funcptr, Out1); PushIns();
 									}
 									else
 									{
-										InstructionBuilder::Callv1(functocalladdres ,_Ins); PushIns();
-										InstructionBuilder::Callv2(functocalladdres ,_Ins); PushIns();							
-										InstructionBuilder::Callv3(functocalladdres ,_Ins); PushIns();							
-										InstructionBuilder::Callv4(functocalladdres ,_Ins); PushIns();							
+										InstructionBuilder::equal_greaterthan64(_Ins, lastinsref, funcptr, Out1); PushIns();
 									}
 
+
+									//Shift FuncPtr to End Of Varable
+									{
+										size_t fulloffset = (Item.VarableEnd +VarableOffsetShift) - (Item.VarableStart +VarableOffsetShift);
+										while (fulloffset != 0)
+										{
+											size_t offset = std::min<UInt8>(UInt8_MaxSize, fulloffset);
+
+											InstructionBuilder::LoadEffectiveAddressA(_Ins, funcptr, offset, funcptr); PushIns();
+
+											fulloffset -= offset;
+										}
+									}
+
+									//check if funcptr is < lastinref and set it Out2
+									if (Get_Settings().PtrSize == IntSizes::Int32)
+									{
+										InstructionBuilder::lessthan32(_Ins, lastinsref, funcptr, Out2); PushIns();
+									}
+									else
+									{
+										InstructionBuilder::lessthan64(_Ins, lastinsref, funcptr, Out2); PushIns();
+									}
+
+									InstructionBuilder::LogicalAnd8(_Ins, Out1, Out2, inrangecheck); PushIns();
+									InstructionBuilder::LogicalNot8(_Ins, inrangecheck, inrangecheck); PushIns();
+
+									auto jumpins = _OutLayer->_Instructions.size();
+									if (Get_Settings().PtrSize == IntSizes::Int32)
+									{
+										InstructionBuilder::Jumpv1(0, _Ins); PushIns();
+										InstructionBuilder::Jumpifv2(0, inrangecheck, _Ins); PushIns();
+									}
+									else
+									{
+										InstructionBuilder::Jumpv1(0, _Ins); PushIns();
+										InstructionBuilder::Jumpv2(0, _Ins); PushIns();
+										InstructionBuilder::Jumpv3(0, _Ins); PushIns();
+										InstructionBuilder::Jumpifv4(0, inrangecheck, _Ins); PushIns();
+									}
+									{//Call Destructer For Varable
+										auto par1 = RegisterID::Parameter1_Register;
+										auto offsetp = StackFrameSize - Item.PostStackOffset;
+										InstructionBuilder::GetPointerOfStackSub(_Ins, par1,offsetp); PushIns();
+
+										UAddress functocalladdres = 0;
+										{
+											Optional<UAddress> funcpos;
+											for (auto& Item2 : _Funcpos)
+											{
+												if (Item2._FuncID == Item.CleanUpFuncion)
+												{
+													funcpos = Item2.Index;
+													break;
+												}
+											}
+											functocalladdres =  funcpos.value();
+										}
+										if (Get_Settings().PtrSize == IntSizes::Int32)
+										{
+											InstructionBuilder::Push32(_Ins,lastinsref); PushIns();
+
+											InstructionBuilder::Callv1(functocalladdres, _Ins); PushIns();
+											InstructionBuilder::Callv2(functocalladdres, _Ins); PushIns();
+
+											InstructionBuilder::Pop32(_Ins,lastinsref); PushIns();
+										}
+										else
+										{
+											InstructionBuilder::Push64(_Ins,lastinsref); PushIns();
+											
+											InstructionBuilder::Callv1(functocalladdres, _Ins); PushIns();
+											InstructionBuilder::Callv2(functocalladdres, _Ins); PushIns();
+											InstructionBuilder::Callv3(functocalladdres, _Ins); PushIns();
+											InstructionBuilder::Callv4(functocalladdres, _Ins); PushIns();
+
+											InstructionBuilder::Pop64(_Ins,lastinsref); PushIns();
+										}
+									}
+									auto tojumptolabel = _OutLayer->_Instructions.size() - 1;
+									if (Get_Settings().PtrSize == IntSizes::Int32)
+									{
+										InstructionBuilder::Jumpv1(0, _OutLayer->_Instructions[jumpins]);
+										InstructionBuilder::Jumpifv2(0, inrangecheck, _OutLayer->_Instructions[jumpins + 1]);
+									}
+									else
+									{
+										InstructionBuilder::Jumpv1(tojumptolabel, _OutLayer->_Instructions[jumpins]);
+										InstructionBuilder::Jumpv2(tojumptolabel, _OutLayer->_Instructions[jumpins + 1]);
+										InstructionBuilder::Jumpv3(tojumptolabel, _OutLayer->_Instructions[jumpins + 2]);
+										InstructionBuilder::Jumpifv4(tojumptolabel, inrangecheck, _OutLayer->_Instructions[jumpins + 3]);
+									}
 								}
 							}
 
 							//shift StackFrame
 
-							size_t StackFrameSize = FuncStackSizes.GetValue(Item.get());
 
 							if (StackFrameSize)
 							{
@@ -1768,7 +1869,7 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 				auto& list = FuncCleanUpFuncions.GetOrAdd(lookingatfunc, {});
 
 				CleanUpVar var;
-				var.VarableStart = InsStart;
+				var.VarableStart = InsStart+1;
 				var.VarableEnd = _OutLayer->Get_Instructions().size() - 1;
 				var.PostStackOffset = PostStackOffset;
 				var.CleanUpFuncion = Item->Target().identifier;
