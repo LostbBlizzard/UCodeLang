@@ -4,15 +4,47 @@ UCodeLangStart
 
 void GetDetils(UAddress Input,StackFrameDetails& Out,const RunTimeLangState* State)
 {
+	auto& DebugInfo = State->Get_Libs().Get_DebugInfo();
+
 	UAddress funccall = 0;
+	
 	{
 		for (int i = Input; i >= 0; i--)
 		{
 			auto Ins = State->GetInst(i);
 
+			auto infos = DebugInfo.GetForIns(i);
+
+			for (auto& Item : infos)
+			{
+				if (auto val = Item->Debug.Get_If<UDebugSetFile>())
+				{
+					if (!Out.FilePath.has_value()) 
+					{
+						auto& str = val->FileName;
+
+						if (str.size() && str.front() == '[')
+						{
+							UCodeLangToDo();
+						}
+						else 
+						{
+							Out.FilePath = val->FileName;
+						}
+					}
+				}
+				else if (auto val = Item->Debug.Get_If<UDebugSetLineNumber>())
+				{
+					if (!Out.CallerLineNumber.has_value()) 
+					{
+						Out.CallerLineNumber = val->LineNumber;
+					}
+				}
+			}
 			if (Ins.OpCode == InstructionSet::Return)
 			{
 				funccall = i + 1;
+				break;
 			}
 		}
 	}

@@ -347,6 +347,10 @@ public:
 	{
 		return _Data;
 	}
+	UCodeLangForceinline const UCLibManger& Get_Libs() const
+	{
+		return _Data;
+	}
 	UCodeLangForceinline const UserMadeContext& Get_UserMadeContext()
 	{
 		return _UserMadeContext;

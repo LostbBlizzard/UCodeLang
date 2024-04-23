@@ -163,6 +163,16 @@ void Interpreter::ThrowInterpreterError(String_view ErrorMsg)
 }
 Optional<InterpretorError> Interpreter::CheckForIntperpreterError()
 {
+	if (m.has_value()) 
+	{
+		auto& List = m.value().StatckFrames.StackOfCallers;
+		for (size_t i = 0; i < List.size() / 2; i++)
+		{
+			std::swap(List[i], List[List.size() - i - 1]);
+		}
+		auto t = std::move(m);
+		return t;
+	}
 	return m;
 }
 	
