@@ -235,8 +235,8 @@ private:
 		bool AutoCompile = true;
 		bool AutoReload = true;
 		bool AutoHotReload = false;
-		bool StripFuncions = true;
-		bool StripTypes = true;
+		bool StripFuncions = false;
+		bool StripTypes = false;
 
 		UCodeLang::OptimizationFlags Flags = UCodeLang::OptimizationFlags::O_2;
 		bool InDebug = false;
@@ -294,6 +294,7 @@ private:
 
 		UCodeLang::ReflectionTypeInfo _LastRetType;
 		BytesPtr _LastRet;
+		Optional<UCodeLang::InterpretorError> _LastError;
 
 		bool CallStaticAndThreadInit = true;
 		bool CallStaticAndThreadDeInit = true;

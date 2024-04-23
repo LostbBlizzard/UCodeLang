@@ -112,7 +112,7 @@ public:
 		return Call(Function->DecorationName);
 	}
 
-	void Extecute(Instruction& Inst);
+	void Extecute(const Instruction& Inst);
 
 	
 
