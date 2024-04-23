@@ -3475,6 +3475,27 @@ void AppObject::ShowDebugerMenu(UCodeVMWindow& windowdata)
                         } 
 
                         ImGui::Text(r.c_str());
+
+                        if (error.ErrorType.Get_If<UCodeLang::PanicCalled>())
+                        {
+                            String& PanicMsg = error.ErrorType.Get<UCodeLang::PanicCalled>().PanicMsg;
+
+                            String tep = "Panic Msg:" + PanicMsg;
+                            ImGui::Text(tep.c_str());
+
+                            auto d = UCodeLang::GetDetils(error.StatckFrames, &_RunTimeState);
+
+                            for (size_t i = 0; i < d.size(); i++)
+                            {
+                                auto& Item = d[i];
+
+
+                                String str = std::to_string(i) + ":" + Item.ToString();
+                                ImGui::Text(str.c_str());
+
+
+                            }
+                        }
                     }
                     else
                     {
