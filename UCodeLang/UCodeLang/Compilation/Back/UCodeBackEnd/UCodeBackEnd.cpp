@@ -638,10 +638,17 @@ void UCodeBackEndObject::LinkFuncs()
 
 						//Set funcptr to end of funcion
 						{
+							
 							size_t fulloffset = end - start;
+
+							bool IsUnderflow = start > end;
+							if (IsUnderflow)
+							{
+								fulloffset = (end - 1) - (start + 1);
+							}
 							while (fulloffset != 0)
 							{
-								size_t offset = std::min<UInt8>(UInt8_MaxSize,fulloffset);
+								size_t offset = std::min<size_t>(UInt8_MaxSize,fulloffset);
 
 								InstructionBuilder::LoadEffectiveAddressA(_Ins,funcptr,offset,funcptr);PushIns();
 
@@ -729,7 +736,7 @@ void UCodeBackEndObject::LinkFuncs()
 										size_t fulloffset = (Item.VarableStart +VarableOffsetShift ) - start;
 										while (fulloffset != 0)
 										{
-											size_t offset = std::min<UInt8>(UInt8_MaxSize, fulloffset);
+											size_t offset = std::min<size_t>(UInt8_MaxSize, fulloffset);
 
 											InstructionBuilder::LoadEffectiveAddressA(_Ins, funcptr, offset, funcptr); PushIns();
 
@@ -754,7 +761,7 @@ void UCodeBackEndObject::LinkFuncs()
 										size_t fulloffset = (Item.VarableEnd +VarableOffsetShift) - (Item.VarableStart +VarableOffsetShift);
 										while (fulloffset != 0)
 										{
-											size_t offset = std::min<UInt8>(UInt8_MaxSize, fulloffset);
+											size_t offset = std::min<size_t>(UInt8_MaxSize, fulloffset);
 
 											InstructionBuilder::LoadEffectiveAddressA(_Ins, funcptr, offset, funcptr); PushIns();
 
@@ -1798,6 +1805,7 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 		case IRInstructionType::CleanupFuncCall:
 		{	
 
+			bool SkipCleanFuncCall = false;
 			size_t StackOffsetPar1 = 0;
 			if (Item->Type == IRInstructionType::CleanupFuncCall)
 			{
@@ -1822,15 +1830,12 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 
 						}
 					}
-
-					UCodeLangAssert(set);
+					SkipCleanFuncCall = !set;
 				}
 				else 
 				{
-					UCodeLangUnreachable();
+					SkipCleanFuncCall = true;
 				}
-
-				int a = 0;
 			}
 			auto FuncInfo = _Input->GetFunc(Item->Target().identifier);
 			auto FData = FuncCallStart(FuncInfo->Pars, FuncInfo->ReturnType);
@@ -1858,7 +1863,7 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 			FuncCallEnd(FData);
 			GiveFuncReturnName(FuncInfo->ReturnType, Item);
 
-			if (Item->Type == IRInstructionType::CleanupFuncCall)
+			if (Item->Type == IRInstructionType::CleanupFuncCall && !SkipCleanFuncCall)
 			{
 				UAddress PostStackOffset = StackOffsetPar1;
 
