@@ -439,6 +439,7 @@ void AppObject::DrawTestMenu()
             case SuccessCondition::CompilationFail:return "CompilationFail";
             case SuccessCondition::RunTimeValue:return "RunTimeValue";
             case SuccessCondition::Panic:return "Panic";
+            case SuccessCondition::PanicUnitCheck:return "PanicUnitCheck";
             default:
                 UCodeLangUnreachable();
                 break;

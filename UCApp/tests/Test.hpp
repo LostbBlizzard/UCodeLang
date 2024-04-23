@@ -54,6 +54,7 @@ enum class SuccessCondition {
 
 	RunTimeValue,
 	Panic,
+	PanicUnitCheck,
 };
 struct TestInfo
 {
@@ -148,7 +149,7 @@ inline String ModeType(OptimizationFlags Flags)
 	return r;
 }
 
-static const Array<TestInfo, 146> Tests{
+static const Array<TestInfo, 148> Tests{
 
 	TestInfo("main_0", "BasicTests/main.uc", "Main", SuccessCondition::Compilation),
 
@@ -354,6 +355,9 @@ static const Array<TestInfo, 146> Tests{
 	TestInfo("EnableFalse", "Eval/EnableFalse.uc", "main", SuccessCondition::CompilationFail),
 	
 	TestInfo("Panic 1", "Panic/Panic.uc", "main", SuccessCondition::Panic,String_view("TestPanic")),
+	
+	TestInfo("Panic 2", "Panic/Panic2.uc", "main", SuccessCondition::PanicUnitCheck,String_view("TestPanic")),
+	TestInfo("Panic 3", "Panic/Panic3.uc", "main", SuccessCondition::PanicUnitCheck,String_view("TestPanic")),
 };
 struct SkipTestRange
 {
@@ -570,7 +574,7 @@ bool RunTestForFlag(const TestInfo& Test, OptimizationFlags flag, std::ostream& 
 		}
 	}
 
-	if (Test.Condition == SuccessCondition::Panic && mode !=TestMode::UCodeLangBackEnd)
+	if ( (Test.Condition == SuccessCondition::Panic||Test.Condition == SuccessCondition::PanicUnitCheck) && mode !=TestMode::UCodeLangBackEnd)
 	{
 		LogStream << "Test Skiped because it trys to panic";
 		return true;
@@ -648,7 +652,7 @@ bool RunTestForFlag(const TestInfo& Test, OptimizationFlags flag, std::ostream& 
 					return false;
 				}
 			}
-			else if (Test.Condition == SuccessCondition::Panic)
+			else if (Test.Condition == SuccessCondition::Panic || Test.Condition == SuccessCondition::PanicUnitCheck)
 			{
 				String_view PanicStr = *(String_view*)Test.RunTimeSuccess.get();
 
@@ -656,7 +660,16 @@ bool RunTestForFlag(const TestInfo& Test, OptimizationFlags flag, std::ostream& 
 
 				if (PanicStr == error.ErrorType.Get<UCodeLang::PanicCalled>().PanicMsg)
 				{
-					return true;
+					bool ok = true;
+					if (Test.Condition == SuccessCondition::PanicUnitCheck)
+					{
+						ok = RunTime.RCall<bool>("UnitCheck");
+						if (!ok)
+						{
+							ErrStream << "fail from UnitCheck '" << std::endl;
+						}
+					}
+					return ok;
 				}
 
 
@@ -707,7 +720,7 @@ bool RunTestForFlag(const TestInfo& Test, OptimizationFlags flag, std::ostream& 
 					return false;
 				}
 			}
-			else if (Test.Condition == SuccessCondition::Panic)
+			else if (Test.Condition == SuccessCondition::Panic || Test.Condition == SuccessCondition::PanicUnitCheck)
 			{
 				String_view PanicStr = *(String_view*)Test.RunTimeSuccess.get();
 
@@ -715,7 +728,16 @@ bool RunTestForFlag(const TestInfo& Test, OptimizationFlags flag, std::ostream& 
 
 				if (PanicStr == error.ErrorType.Get<UCodeLang::PanicCalled>().PanicMsg)
 				{
-					return true;
+					bool ok = true;
+					if (Test.Condition == SuccessCondition::PanicUnitCheck)
+					{
+						ok = RunTime.RCall<bool>("UnitCheck");
+						if (!ok)
+						{
+							ErrStream << "fail from UnitCheck '" << std::endl;
+						}
+					}
+					return ok;
 				}
 
 
@@ -762,7 +784,7 @@ bool RunTestForFlag(const TestInfo& Test, OptimizationFlags flag, std::ostream& 
 					return false;
 				}
 			}
-			else if (Test.Condition == SuccessCondition::Panic)
+			else if (Test.Condition == SuccessCondition::Panic || Test.Condition == SuccessCondition::PanicUnitCheck)
 			{
 				String_view PanicStr = *(String_view*)Test.RunTimeSuccess.get();
 
@@ -770,7 +792,16 @@ bool RunTestForFlag(const TestInfo& Test, OptimizationFlags flag, std::ostream& 
 
 				if (PanicStr == error.ErrorType.Get<UCodeLang::PanicCalled>().PanicMsg)
 				{
-					return true;
+					bool ok = true;
+					if (Test.Condition == SuccessCondition::PanicUnitCheck)
+					{
+						ok = RunTime.RCall<bool>("UnitCheck");
+						if (!ok)
+						{
+							ErrStream << "fail from UnitCheck '" << std::endl;
+						}
+					}
+					return ok;
 				}
 
 
