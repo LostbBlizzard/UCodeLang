@@ -620,10 +620,17 @@ void UCodeBackEndObject::LinkFuncs()
 						//check if lastinref <= funcptr/start of funcion and set it Out1
 						{
 							start--;
+
+							bool IsUnderflow = start > end;
+							
 							if (Get_Settings().PtrSize == IntSizes::Int32)
 							{
 								InstructionBuilder::LoadFuncPtr_V1(start, funcptr, _Ins); PushIns();
 								InstructionBuilder::LoadFuncPtr_V2(start, funcptr, _Ins); PushIns();
+								if (IsUnderflow)
+								{
+									InstructionBuilder::LoadEffectiveAddressA(_Ins, funcptr, 1, funcptr); PushIns();
+								}
 								InstructionBuilder::equal_greaterthan32(_Ins, lastinsref, funcptr, Out1); PushIns();
 							}
 							else
@@ -632,8 +639,13 @@ void UCodeBackEndObject::LinkFuncs()
 								InstructionBuilder::LoadFuncPtr_V2(start, funcptr, _Ins); PushIns();
 								InstructionBuilder::LoadFuncPtr_V3(start, funcptr, _Ins); PushIns();
 								InstructionBuilder::LoadFuncPtr_V4(start, funcptr, _Ins); PushIns();
+								if (IsUnderflow)
+								{
+									InstructionBuilder::LoadEffectiveAddressA(_Ins, funcptr, 1, funcptr); PushIns();
+								}
 								InstructionBuilder::equal_greaterthan64(_Ins, lastinsref, funcptr, Out1); PushIns();
 							}
+							
 						}
 
 						//Set funcptr to end of funcion
@@ -660,11 +672,11 @@ void UCodeBackEndObject::LinkFuncs()
 						//check if funcptr is < lastinref and set it Out2
 						if (Get_Settings().PtrSize == IntSizes::Int32)		
 						{	
-							InstructionBuilder::lessthan32(_Ins,lastinsref,funcptr,Out2); PushIns();
+							InstructionBuilder::equal_lessthan32(_Ins,lastinsref,funcptr,Out2); PushIns();
 						}
 						else
 						{							
-							InstructionBuilder::lessthan64(_Ins,lastinsref,funcptr,Out2); PushIns();
+							InstructionBuilder::equal_lessthan64(_Ins,lastinsref,funcptr,Out2); PushIns();
 						}
 
 						

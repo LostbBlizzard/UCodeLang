@@ -41,28 +41,34 @@ struct StackFrameDetails
 
 		r += "at " + FuncionName;
 
-		if (ModuleName.has_value())
+		if (ModuleName.has_value() || FilePath.has_value())
 		{
-			auto& v = ModuleName.value();
-		
-			r += "{";
+			r += " (";
+			if (ModuleName.has_value())
+			{
+				auto& v = ModuleName.value();
 
-			r += v.AuthorName;
-			r += ":" + v.ModuleName;
-			
-			r += "[" + std::to_string(v.MajorVersion) + "." + std::to_string(v.MinorVersion) + ":" + std::to_string(v.RevisionVersion) + "]";
+				r += "{";
 
-			r += "}";
-		}
+				r += v.AuthorName;
+				r += ":" + v.ModuleName;
 
-		if (FilePath.has_value())
-		{
-			r += FilePath.value();
-		}
-		if (CallerLineNumber.has_value()) 
-		{
-			r += ":";
-			r += std::to_string(CallerLineNumber.value());
+				r += "[" + std::to_string(v.MajorVersion) + "." + std::to_string(v.MinorVersion) + ":" + std::to_string(v.RevisionVersion) + "]";
+
+				r += "}";
+			}
+
+			if (FilePath.has_value())
+			{
+				r += FilePath.value();
+			}
+			if (CallerLineNumber.has_value())
+			{
+				r += ":";
+				r += std::to_string(CallerLineNumber.value());
+			}
+
+			r += ")";
 		}
 
 		return r;
