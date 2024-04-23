@@ -6,21 +6,20 @@ void GetDetils(UAddress Input,StackFrameDetails& Out,const RunTimeLangState* Sta
 {
 	UAddress funccall = 0;
 	{
-		for (int i = funccall - 1; i >= 0; i--)
+		for (int i = Input; i >= 0; i--)
 		{
 			auto Ins = State->GetInst(i);
 
-			if (Ins.OpCode == InstructionSet::Callv1)
+			if (Ins.OpCode == InstructionSet::Return)
 			{
-				funccall = i;
+				funccall = i + 1;
 			}
 		}
 	}
 
 	auto Ins = State->GetName(funccall);
 
-
-	int a = 0;
+	Out.FuncionName = Ins;
 
 }
 void GetDetils(const StackFrames& Input,const RunTimeLangState* State, Vector<StackFrameDetails>& Out)
