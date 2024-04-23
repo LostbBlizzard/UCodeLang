@@ -322,7 +322,7 @@ public:
 	{
 		return _Data.FindCPPCall(FunctionName);
 	}
-	UCodeLangForceinline Instruction& GetInst(UAddress address)
+	UCodeLangForceinline const Instruction& GetInst(UAddress address) const
 	{
 		return _Data.GetInst(address);
 	}

@@ -125,7 +125,7 @@ Interpreter::Return_t Interpreter::Call(UAddress address)
 	
 	while (_CPU.Stack.StackOffSet != OldStackoffset)
 	{
-		Instruction& Inst = _State->GetInst(_CPU.ProgramCounter);
+		const Instruction& Inst = _State->GetInst(_CPU.ProgramCounter);
 		Extecute(Inst);	
 		_CPU.ProgramCounter++;
 	}
@@ -156,9 +156,6 @@ void Interpreter::ThrowInterpreterError(String_view ErrorMsg)
 	InterpretorError r;
 	PanicCalled v;
 	v.PanicMsg = ErrorMsg;
-
-	auto pc = _CPU.ProgramCounter;
-
 
 	r.ErrorType = std::move(v);
 
@@ -352,7 +349,7 @@ InsCase(notequaltof##Bits):\
 		Get_Register(Inst.Op_ThreeReg.B).Value. AnyValue;\
 	 InsBreak();\
 
-void Interpreter::Extecute(Instruction& Inst)
+void Interpreter::Extecute(const Instruction& Inst)
 {
 	#if UseJumpTable
 	#define JumpTableInt(bitsize) \
@@ -1170,7 +1167,14 @@ void Interpreter::Extecute(Instruction& Inst)
 		ThrowInterpreterError(v);
 	}
 	InsBreak();
+	InsCase(PushPanicStackFrame):
+	{
+		RegisterID Ex = Inst.Op_OneReg.A;
+		UAddress v = Get_Register(Ex).Value.AsAddress;
 
+		m.value().StatckFrames.StackOfCallers.push_back(v);
+	}
+	InsBreak();
 #if !UseJumpTable
 	default:
 		UCodeLangUnreachable();

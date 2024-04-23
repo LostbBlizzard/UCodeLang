@@ -3417,9 +3417,18 @@ void AppObject::ShowDebugerMenu(UCodeVMWindow& windowdata)
                     }
                     _AnyInterpreter.Call(callFuncContext.current_method);
 
-                    if (callFuncContext._LastRet.Size())
+                    auto opterror = _AnyInterpreter.GetAs_Interpreter().CheckForIntperpreterError();
+                   
+                    if (opterror.has_value())
                     {
-                        _AnyInterpreter.Get_Return(callFuncContext._LastRet.Data(), callFuncContext._LastRet.Size());
+                        callFuncContext._LastError = std::move(opterror.value());
+                    }
+                    else 
+                    {
+                        if (callFuncContext._LastRet.Size())
+                        {
+                            _AnyInterpreter.Get_Return(callFuncContext._LastRet.Data(), callFuncContext._LastRet.Size());
+                        }
                     }
 
                     if (windowdata.CallStaticVarOnReload || callFuncContext.CallStaticAndThreadDeInit)
@@ -3455,7 +3464,22 @@ void AppObject::ShowDebugerMenu(UCodeVMWindow& windowdata)
                // ImGui::BeginDisabled();
                 if (callFuncContext._LastRetType == callFuncContext.current_method->RetType)
                 {
-                    ImguiHelper::UCodeObjectField("Returned", callFuncContext._LastRet.Data(),callFuncContext._LastRetType, Assembly);
+                    if (callFuncContext._LastError)
+                    {
+                        auto& error = callFuncContext._LastError.value();
+
+                        String r = "InterpretorError :";
+                        if (error.ErrorType.Get_If<UCodeLang::PanicCalled>())
+                        {
+                            r += "Panic";
+                        } 
+
+                        ImGui::Text(r.c_str());
+                    }
+                    else
+                    {
+                        ImguiHelper::UCodeObjectField("Returned", callFuncContext._LastRet.Data(), callFuncContext._LastRetType, Assembly);
+                    }
                 }
                // ImGui::EndDisabled();
             }
@@ -3468,11 +3492,21 @@ void AppObject::ShowDebugerMenu(UCodeVMWindow& windowdata)
     {
         Debuger.StepOutof();
 
-        if (callFuncContext._LastRet.Size())
+
+        auto r = _AnyInterpreter.GetAs_Interpreter().CheckForIntperpreterError();
+        if (r.has_value())
         {
-            _AnyInterpreter.Get_Return(callFuncContext._LastRet.Data(), callFuncContext._LastRet.Size());
+            callFuncContext._LastError = std::move(r.value());
+        }
+        else
+        {
+            if (callFuncContext._LastRet.Size())
+            {
+                _AnyInterpreter.Get_Return(callFuncContext._LastRet.Data(), callFuncContext._LastRet.Size());
+            }
         }
     }
+
 
     {
         if (ImGui::Begin("Stack-Memory"))

@@ -509,10 +509,7 @@ void UCodeBackEndObject::LinkFuncs()
 			};
 			UnorderedMap<const IRFunc*, FuncThatMayThrowInfo> FuncThrowinfo;
 
-			for (auto& Item : _Input->Funcs)
-			{
-
-			}
+			
 
 			UAddress FuncUnwindingStart = _OutLayer->GetLastInstruction() + 1;
 
@@ -534,18 +531,17 @@ void UCodeBackEndObject::LinkFuncs()
 				InstructionBuilder::SetPanicMsg(_Ins, RegisterID::Parameter1_Register, RegisterID::Parameter2_Register); PushIns();
 				{
 					auto f = FuncUnwindingStart + 1;
-					f += 1;
 
 					auto trashregister = RegisterID::A;
 
 					if (Get_Settings().PtrSize == IntSizes::Int64)
 					{
-						InstructionBuilder::Pop64(_Ins, trashregister); PushIns();
+						//InstructionBuilder::Pop64(_Ins, trashregister); PushIns();
 						f += 4;
 					}
 					else
 					{
-						InstructionBuilder::Pop32(_Ins, trashregister); PushIns();
+						//InstructionBuilder::Pop32(_Ins, trashregister); PushIns();
 						f += 2;
 					}
 
@@ -563,9 +559,10 @@ void UCodeBackEndObject::LinkFuncs()
 				InstructionBuilder::Return(ExitState::Success, _Ins); PushIns();
 
 
+				auto stackunwindfunc = _OutLayer->GetLastInstruction();
 				_OutLayer->Add_NameToInstruction(_OutLayer->GetLastInstruction() + 1, "StackUnwinding");
 				{
-					auto lastinsref = RegisterID::A;
+					auto lastinsref = RegisterID::E;
 					if (Get_Settings().PtrSize == IntSizes::Int64)
 					{
 						InstructionBuilder::Pop64(_Ins, lastinsref); PushIns();
@@ -575,7 +572,167 @@ void UCodeBackEndObject::LinkFuncs()
 						InstructionBuilder::Pop32(_Ins, lastinsref); PushIns();
 					}
 
-					//to-do do the stackunwinding
+					for (auto& Item : _Input->Funcs)
+					{
+						UAddress start = 0;
+						{
+							bool set = false;
+							for (auto& Item2 : _Funcpos)
+							{
+								if (Item2._FuncID == Item->identifier)
+								{
+									start = Item2.Index + 1;
+									set = true;
+									break;
+								}
+							}
+							UCodeLangAssert(set);
+						}
+						UAddress end = 0;
+						{
+							bool ismaxed = start == UInt64_MaxSize;
+							if (ismaxed)
+							{
+								start = 0;
+							}
+							for (size_t i = start; i < _OutLayer->_Instructions.size(); i++)
+							{
+								auto Ins = _OutLayer->_Instructions[i];
+
+								if (Ins.OpCode == InstructionSet::Return)
+								{
+									end = i;
+									if (ismaxed)
+									{
+										end++;
+									}
+									break;
+								}
+							}
+
+						}
+
+						RegisterID Out1 = RegisterID::B;
+						RegisterID Out2 = RegisterID::D;
+						RegisterID funcptr = RegisterID::C;
+						RegisterID inrangecheck = RegisterID::OutPutRegister;
+						//check if lastinref <= funcptr/start of funcion and set it Out1
+						{
+							start--;
+							if (Get_Settings().PtrSize == IntSizes::Int32)
+							{
+								InstructionBuilder::LoadFuncPtr_V1(start, funcptr, _Ins); PushIns();
+								InstructionBuilder::LoadFuncPtr_V2(start, funcptr, _Ins); PushIns();
+								InstructionBuilder::equal_greaterthan32(_Ins, lastinsref, funcptr, Out1); PushIns();
+							}
+							else
+							{
+								InstructionBuilder::LoadFuncPtr_V1(start, funcptr, _Ins); PushIns();
+								InstructionBuilder::LoadFuncPtr_V2(start, funcptr, _Ins); PushIns();
+								InstructionBuilder::LoadFuncPtr_V3(start, funcptr, _Ins); PushIns();
+								InstructionBuilder::LoadFuncPtr_V4(start, funcptr, _Ins); PushIns();
+								InstructionBuilder::equal_greaterthan64(_Ins, lastinsref, funcptr, Out1); PushIns();
+							}
+							start++;
+						}
+
+						//Set funcptr to end of funcion
+						{
+							size_t fulloffset = end - start;
+							while (fulloffset != 0)
+							{
+								size_t offset = std::min<UInt8>(UInt8_MaxSize,fulloffset);
+
+								InstructionBuilder::LoadEffectiveAddressA(_Ins,funcptr,offset,funcptr);PushIns();
+
+								fulloffset -= offset;
+							}
+						}
+
+
+						//check if funcptr is < lastinref and set it Out2
+						if (Get_Settings().PtrSize == IntSizes::Int32)		
+						{	
+							InstructionBuilder::lessthan32(_Ins,lastinsref,funcptr,Out2); PushIns();
+						}
+						else
+						{							
+							InstructionBuilder::lessthan32(_Ins,lastinsref,funcptr,Out2); PushIns();
+						}
+
+						if (Get_Settings().PtrSize == IntSizes::Int32)
+						{
+							InstructionBuilder::LogicalAnd8(_Ins, Out1,Out2, inrangecheck); PushIns();
+						}
+						else
+						{
+							InstructionBuilder::LogicalAnd8(_Ins, Out1,Out2,inrangecheck); PushIns();
+						}
+
+						InstructionBuilder::LogicalNot8(_Ins, inrangecheck,inrangecheck); PushIns();
+						auto jumpins = _OutLayer->_Instructions.size();
+						if (Get_Settings().PtrSize == IntSizes::Int32)
+						{
+							InstructionBuilder::Jumpv1(0, _Ins); PushIns();
+							InstructionBuilder::Jumpifv2(0,inrangecheck, _Ins); PushIns();
+						}
+						else
+						{
+							InstructionBuilder::Jumpv1(0, _Ins); PushIns();
+							InstructionBuilder::Jumpv2(0, _Ins); PushIns();
+							InstructionBuilder::Jumpv3(0, _Ins); PushIns();
+							InstructionBuilder::Jumpifv4(0,inrangecheck, _Ins); PushIns();
+						}
+
+						{
+							InstructionBuilder::PushPanicStackFrame(_Ins,lastinsref); PushIns();
+							//call destructors
+
+
+							//shift StackFrame
+
+							size_t StackFrameSize = FuncStackSizes.GetValue(Item.get());
+
+							if (StackFrameSize)
+							{
+								RegisterID tepstackframesize = RegisterID::A;
+								if (Get_Settings().PtrSize == IntSizes::Int32)
+								{
+									InstructionBuilder::Store32_V1(_Ins,tepstackframesize,(UInt32)StackFrameSize);PushIns();
+									InstructionBuilder::Store32_V2(_Ins,tepstackframesize,(UInt32)StackFrameSize);PushIns();
+								}
+								else
+								{
+									InstructionBuilder::Store64_V1(_Ins,tepstackframesize,(UInt64)StackFrameSize);PushIns();
+									InstructionBuilder::Store64_V2(_Ins,tepstackframesize,(UInt64)StackFrameSize);PushIns();
+									InstructionBuilder::Store64_V3(_Ins,tepstackframesize,(UInt64)StackFrameSize);PushIns();
+									InstructionBuilder::Store64_V4(_Ins,tepstackframesize,(UInt64)StackFrameSize);PushIns();
+								}
+								InstructionBuilder::DecrementStackPointer(_Ins, tepstackframesize);PushIns();
+
+							}
+
+							InstructionBuilder::Jumpv1(stackunwindfunc, _Ins);  PushIns();
+							InstructionBuilder::Jumpv2(stackunwindfunc, _Ins); PushIns();
+							InstructionBuilder::Jumpv3(stackunwindfunc, _Ins); PushIns();
+							InstructionBuilder::Jumpv4(stackunwindfunc, _Ins); PushIns();
+
+						}
+
+						auto tojumptolabel = _OutLayer->_Instructions.size() - 1;
+						if (Get_Settings().PtrSize == IntSizes::Int32)
+						{
+							InstructionBuilder::Jumpv1(0, _OutLayer->_Instructions[jumpins]); 
+							InstructionBuilder::Jumpifv2(0,inrangecheck, _OutLayer->_Instructions[jumpins + 1]); 
+						}
+						else
+						{
+							InstructionBuilder::Jumpv1(tojumptolabel, _OutLayer->_Instructions[jumpins]); 
+							InstructionBuilder::Jumpv2(tojumptolabel, _OutLayer->_Instructions[jumpins + 1]); 
+							InstructionBuilder::Jumpv3(tojumptolabel, _OutLayer->_Instructions[jumpins + 2]); 
+							InstructionBuilder::Jumpifv4(tojumptolabel, inrangecheck, _OutLayer->_Instructions[jumpins + 3]); 
+						}
+					}
 
 				}
 				InstructionBuilder::Return(ExitState::Success, _Ins); PushIns();
