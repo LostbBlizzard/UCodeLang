@@ -207,6 +207,15 @@ private:
 	const IRFunc* lookingatfunc = nullptr;
 	Vector<size_t> ThrowJumps;
 	UnorderedMap< const IRFunc*,size_t> FuncStackSizes;
+
+	struct CleanUpVar
+	{
+		UAddress VarableStart;
+		UAddress VarableEnd;
+		size_t PostStackOffset;
+		IRidentifierID CleanUpFuncion;
+	};
+	UnorderedMap< const IRFunc*, Vector<CleanUpVar>> FuncCleanUpFuncions;
 	//Compile Flags
 	bool Flag_NoExceptions = false;
 

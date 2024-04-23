@@ -687,7 +687,59 @@ void UCodeBackEndObject::LinkFuncs()
 						{
 							InstructionBuilder::PushPanicStackFrame(_Ins,lastinsref); PushIns();
 							//call destructors
+							if (FuncCleanUpFuncions.HasValue(Item.get()))
+							{
+								auto& CleanUp = FuncCleanUpFuncions.GetValue(Item.get());
 
+								for (auto& Item : CleanUp)
+								{
+									auto functocall = _Input->GetFunc(Item.CleanUpFuncion);
+									UCodeLangAssert(functocall->Pars.size() == 1);
+				
+
+									{
+										size_t fulloffset = end - start;
+										while (fulloffset != 0)
+										{
+											size_t offset = std::min<UInt8>(UInt8_MaxSize, fulloffset);
+
+											InstructionBuilder::LoadEffectiveAddressA(_Ins, funcptr, offset, funcptr); PushIns();
+
+											fulloffset -= offset;
+										}
+									}
+
+									auto par1 = RegisterID::Parameter1_Register;
+									InstructionBuilder::GetPointerOfStackSub(_Ins, par1, Item.PostStackOffset); PushIns();
+
+									UAddress functocalladdres = 0;
+									{
+										Optional<UAddress> funcpos;
+										for (auto& Item2 : _Funcpos)
+										{
+											if (Item2._FuncID == Item.CleanUpFuncion)
+											{
+												funcpos = Item2.Index;
+												break;
+											}
+										}
+										functocalladdres = funcpos.value();
+									}
+									if (Get_Settings().PtrSize == IntSizes::Int32)
+									{
+										InstructionBuilder::Callv1(functocalladdres ,_Ins); PushIns();
+										InstructionBuilder::Callv2(functocalladdres ,_Ins); PushIns();
+									}
+									else
+									{
+										InstructionBuilder::Callv1(functocalladdres ,_Ins); PushIns();
+										InstructionBuilder::Callv2(functocalladdres ,_Ins); PushIns();							
+										InstructionBuilder::Callv3(functocalladdres ,_Ins); PushIns();							
+										InstructionBuilder::Callv4(functocalladdres ,_Ins); PushIns();							
+									}
+
+								}
+							}
 
 							//shift StackFrame
 
@@ -1643,7 +1695,42 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 		break;
 		case IRInstructionType::Call:
 		case IRInstructionType::CleanupFuncCall:
-		{
+		{	
+
+			size_t StackOffsetPar1 = 0;
+			if (Item->Type == IRInstructionType::CleanupFuncCall)
+			{
+				auto tep = _Registers.GetInfo(RegisterID::Parameter1_Register);
+				auto val = tep.Types.value().Get<IROperator>().Pointer;
+			
+				if (val->A.Type == IROperatorType::Get_PointerOf_IRInstruction)
+				{
+					auto MyInstruction = val->A.Pointer;
+
+					bool set = false;
+					for (auto& Item : _Stack.Items)
+					{
+						if (auto g = Item->IR.Get_If<const IRInstruction*>())
+						{
+							if (*g == MyInstruction)
+							{
+								StackOffsetPar1 = Item->Offset;
+								set = true;
+								break;
+							}
+
+						}
+					}
+
+					UCodeLangAssert(set);
+				}
+				else 
+				{
+					UCodeLangUnreachable();
+				}
+
+				int a = 0;
+			}
 			auto FuncInfo = _Input->GetFunc(Item->Target().identifier);
 			auto FData = FuncCallStart(FuncInfo->Pars, FuncInfo->ReturnType);
 
@@ -1669,6 +1756,24 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 
 			FuncCallEnd(FData);
 			GiveFuncReturnName(FuncInfo->ReturnType, Item);
+
+			if (Item->Type == IRInstructionType::CleanupFuncCall)
+			{
+				UAddress PostStackOffset = StackOffsetPar1;
+
+				size_t VarStart = Item->B.Value.AsAddress;
+
+				UAddress InsStart = IRToUCodeInsPost.GetValue(VarStart);
+
+				auto& list = FuncCleanUpFuncions.GetOrAdd(lookingatfunc, {});
+
+				CleanUpVar var;
+				var.VarableStart = InsStart;
+				var.VarableEnd = _OutLayer->Get_Instructions().size() - 1;
+				var.PostStackOffset = PostStackOffset;
+				var.CleanUpFuncion = Item->Target().identifier;
+				list.push_back(var);
+			}
 		}
 		break;
 		case IRInstructionType::MallocCall:
