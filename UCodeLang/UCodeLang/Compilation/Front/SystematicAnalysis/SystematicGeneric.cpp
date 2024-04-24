@@ -129,6 +129,12 @@ void SystematicAnalysis::Set_TraitGenericAlias(Vector<TraitGenericAlias>& Out, c
 		Out.push_back(std::move(alias));
 	}
 }
+
+bool IsNewGeneric(const String& val,Symbol* NewSymbol)
+{
+	return val == ScopeHelper::GetNameFromFullName(NewSymbol->FullName);
+}
+
 void SystematicAnalysis::Generic_TypeInstantiate(const NeverNullPtr<Symbol> Class, const Vector<TypeSymbol>& GenericInput)
 {
 	UCodeLangAssert(Class->Type == SymbolType::Generic_class);
@@ -162,6 +168,14 @@ void SystematicAnalysis::Generic_TypeInstantiate(const NeverNullPtr<Symbol> Clas
 		UCodeLangAssert(addedSymbol.FullName == FullName);
 		UCodeLangAssert(addedSymbol.Type == SymbolType::Type_class);
 		UCodeLangAssert(addedSymbol.PassState == PassType::GetTypes);
+
+		for (auto& Item : GenericOutputs)
+		{
+			if (IsNewGeneric(Item.second,&addedSymbol))
+			{
+				(*Item.first).SetType(addedSymbol.ID);
+			}
+		}
 
 		if (_ErrorsOutput->Get_ErrorCount() <= Olderrcount)
 		{
@@ -295,7 +309,13 @@ void SystematicAnalysis::Generic_TypeInstantiate_Alias(const NeverNullPtr<Symbol
 			|| addedSymbol.Type == SymbolType::Func_ptr
 			|| addedSymbol.Type == SymbolType::Hard_Func_ptr);
 		UCodeLangAssert(addedSymbol.PassState == PassType::GetTypes);
-
+		for (auto& Item : GenericOutputs)
+		{
+			if (IsNewGeneric(Item.second, &addedSymbol))
+			{
+				(*Item.first).SetType(addedSymbol.ID);
+			}
+		}
 
 
 		if (_ErrorsOutput->Get_ErrorCount() <= Olderrcount)

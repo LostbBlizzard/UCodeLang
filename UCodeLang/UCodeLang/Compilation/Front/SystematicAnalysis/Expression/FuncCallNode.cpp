@@ -953,6 +953,42 @@ Vector<Symbol*> SystematicAnalysis::Type_FindForTypeFuncions(const TypeSymbol& m
 		{
 			if (Item->Type == SymbolType::ForType)
 			{
+				{
+					if (Item->PassState == PassType::GetTypes && FuncionName.size() != 0)
+					{
+						if (Item->Get_NodeInfo<ForTypeNode>())
+						{
+							auto forn = Item->Get_NodeInfo<ForTypeNode>();
+
+							bool hasfunc = false;
+							for (auto& Item : forn->_Nodes)
+							{
+								auto nametoken = Item->_Signature._Name.token;
+								String_view funcname;
+								if (nametoken->Type == TokenType::Name)
+								{
+									funcname = nametoken->Value._String;
+								}
+								else
+								{
+									UCodeLangUnreachable();
+								}
+
+								if (FuncionName == funcname) 
+								{
+									hasfunc = true;
+									break;
+								}
+							}
+
+							if (!hasfunc)
+							{
+								continue;
+							}
+						}
+					}
+				}
+
 				Symbol_Update_ForType_ToFixedTypes(Item);
 
 				bool isreferringtomytype = false;

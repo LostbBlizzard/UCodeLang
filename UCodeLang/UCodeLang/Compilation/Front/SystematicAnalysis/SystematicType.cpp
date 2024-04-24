@@ -1605,10 +1605,19 @@ void SystematicAnalysis::Type_Convert(const TypeNode& V, TypeSymbol& Out)
 		if (_generic.has_value() && _generic.value()->_Values.size())
 		{
 			const UseGenericsNode* _genericval = _generic.value().value();
+	
+			bool remove = !GenericOutputs.HasValue(&Out);
+			if (remove) {
+				GenericOutputs.AddValue(&Out, Name);
+			}
 
 			auto Val = Generic_InstantiateOrFindGenericSymbol(NeverNullptr(V._name._ScopedName.back()._token), *_genericval, Name);
 			if (!Val.has_value()) { Out = Type_GetUnMapType(); return; }
 			SybV = Val.value().value();
+
+			if (remove) {
+				GenericOutputs.erase(&Out);
+			}
 		}
 		else
 		{

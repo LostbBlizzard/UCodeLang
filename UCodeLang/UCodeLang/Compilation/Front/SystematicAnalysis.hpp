@@ -850,8 +850,8 @@ private:
 
 	UnorderedMap<SymbolID, VarableMemberData> _VarableMemberDatas;//Var.$Item
 	UnorderedMap<AssemblyNode*, Symbol*> LibGenericSymbolLoad;
-	UnorderedMap<SymbolID, TypeSymbol> DelareVarableImplicit;
-
+	UnorderedMap<SymbolID, TypeSymbol> DelareVarableImplicit;	
+	UnorderedMap<TypeSymbol*, String> GenericOutputs;
 	struct Test
 	{
 		const CompileTimeIfNode* node = nullptr;

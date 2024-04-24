@@ -47,7 +47,7 @@ void SystematicAnalysis::OnPanicStatement(const PanicNode& node)
 						if (func1->Type == SymbolType::Func)
 						{
 							auto funcinfo = func1->Get_Info<FuncInfo>();
-
+							Symbol_Update_FuncSym_ToFixedTypes(func1);
 							if (funcinfo->Pars.size() == 1
 								&& funcinfo->Pars[0].Type._CustomTypeSymbol == ptrtype._CustomTypeSymbol)
 							{
@@ -70,6 +70,7 @@ void SystematicAnalysis::OnPanicStatement(const PanicNode& node)
 					{
 						if (func2->Type == SymbolType::Func)
 						{
+							Symbol_Update_FuncSym_ToFixedTypes(func2);
 							auto funcinfo = func2->Get_Info<FuncInfo>();
 
 							if (funcinfo->Pars.size() == 1
