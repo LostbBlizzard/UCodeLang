@@ -545,8 +545,12 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 		else
 		{
 			if (!node._Signature._IsRemoved) {
-				Type_ConvertAndValidateType(node._Signature._ReturnType, syb->VarType, NodeSyb_t::Ret);
-				Info->Ret = syb->VarType;
+				if (Info->FullName == "ULang:(&ForType&):uint8:{<!&imut!>}ToString")
+				{
+					int a = 0;
+				}
+				Type_ConvertAndValidateType(node._Signature._ReturnType,Info->Ret, NodeSyb_t::Ret);
+				syb->VarType = Info->Ret;
 			}
 		}
 

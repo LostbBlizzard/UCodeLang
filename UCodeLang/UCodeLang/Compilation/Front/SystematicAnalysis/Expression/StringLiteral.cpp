@@ -274,6 +274,7 @@ void SystematicAnalysis::OnStringLiteral(const StringliteralNode* nod, bool& ret
 						if (Item->Type == SymbolType::Func)
 						{
 							FuncInfo* finfo = Item->Get_Info<FuncInfo>();
+							Symbol_Update_FuncSym_ToFixedTypes(Item);
 							if (finfo->Pars.size() == 3)
 							{
 								auto& pointerpar = finfo->Pars[1];
