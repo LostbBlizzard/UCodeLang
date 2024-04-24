@@ -21,3 +21,19 @@ $for bool:
  
  |Parse[imut String& str]:
   ret Parse(str.Str());
+
+$for uint8:
+ |ToString[imut this&] -> String:
+  String r = [];
+  ToString(this,r);
+  ret r;
+  
+ |ToString[imut this&,String& Out]:
+  if this == 0:
+   Out += "0";
+   ret;
+
+  Out += "10";
+
+
+ 

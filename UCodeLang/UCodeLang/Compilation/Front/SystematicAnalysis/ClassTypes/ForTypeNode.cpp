@@ -53,7 +53,9 @@ void SystematicAnalysis::OnForTypeNode(const ForTypeNode& node)
 			size_t addedcount = node._typetoaddto._name._ScopedName.size();
 			for (auto& Item : node._typetoaddto._name._ScopedName)
 			{
-				_Table.AddScope(Item._token->Value._String);
+				String itemstr;
+				Token::PushString(itemstr,*Item._token);
+				_Table.AddScope(itemstr);
 			}
 			
 			UCodeLangDefer({ _Table.RemoveScope(); })
@@ -171,7 +173,9 @@ void SystematicAnalysis::OnForTypeNode(const ForTypeNode& node)
 			size_t addedcount = node._typetoaddto._name._ScopedName.size();
 			for (auto& Item : node._typetoaddto._name._ScopedName)
 			{
-				_Table.AddScope(Item._token->Value._String);
+				String itemstr;
+				Token::PushString(itemstr,*Item._token);
+				_Table.AddScope(itemstr);
 			}
 			
 			UCodeLangDefer({ _Table.RemoveScope(); })
