@@ -656,7 +656,14 @@ void UCodeBackEndObject::LinkFuncs()
 							bool IsUnderflow = start > end;
 							if (IsUnderflow)
 							{
-								fulloffset = (end - 1) - (start + 1);
+								if (end == 0)
+								{
+									fulloffset = 0;
+								}
+								else 
+								{
+									fulloffset = (end - 1) - (start + 1);
+								}
 							}
 							while (fulloffset != 0)
 							{
