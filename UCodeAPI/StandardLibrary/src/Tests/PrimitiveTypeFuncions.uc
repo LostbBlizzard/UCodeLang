@@ -11,9 +11,18 @@ Tests:
 
  [Test]
  |Byte_Check[] -> bool:
-  byte v = 10;
-  String str = v.ToString();
-  
-  Fmt::Print(str);
-  ret true;
 
+  String str = byte(10).ToString(); 
+  String str2 = byte(50).ToString();
+  String str3 = byte(72).ToString();
+
+  ret str == "10" && str2 == "50" && str3 == "72";
+
+ [Test]
+ |Byte_Check2[] -> bool:
+
+  byte val = byte::Parse("10").Unwrap(); 
+  byte val2 = byte::Parse("72").Unwrap(); 
+  byte val3 = byte::Parse("50").Unwrap();  
+
+  ret val == 10 && val2 == 72 && val3 == 50;
