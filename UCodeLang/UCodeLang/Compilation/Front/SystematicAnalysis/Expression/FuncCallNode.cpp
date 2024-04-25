@@ -3175,7 +3175,7 @@ StartSymbolsLoop:
 		}
 		else
 		{
-			if (ThisParType == Get_FuncInfo::ThisPar_t::NoThisPar && MayBeAutoThisFuncCall && AutoThisCall)
+			if (ThisParType == Get_FuncInfo::ThisPar_t::AutoPushThis && MayBeAutoThisFuncCall && AutoThisCall)
 			{
 				ValueTypes.erase(ValueTypes.begin());
 			}
@@ -3768,6 +3768,10 @@ Optional< Optional<SystematicAnalysis::Get_FuncInfo>> SystematicAnalysis::Type_F
 
 							fullname += ">";
 						}
+						else if (sym.value()->Type == SymbolType::Type_alias)
+						{
+							return ToString(sym.value()->VarType);
+						}
 						return fullname;
 					}
 				}
@@ -3831,11 +3835,8 @@ Optional< Optional<SystematicAnalysis::Get_FuncInfo>> SystematicAnalysis::Type_F
 							symisaddress = true;
 						}
 					}
-					auto teppar = Par;
-					if (symisaddress)
-					{
-						teppar._IsAddress = true;
-					}
+					auto teppar = Par;	
+					teppar._IsAddress = symisaddress;	
 
 					auto parname = ToString(teppar);
 
