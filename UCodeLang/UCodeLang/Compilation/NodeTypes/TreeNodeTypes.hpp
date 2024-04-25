@@ -676,6 +676,7 @@ struct RetStatementNode :Node
 	}
 	AddforNode(RetStatementNode);
 	ExpressionNodeType _Expression;
+	const Token* _RetToken =nullptr;
 };
 
 struct DeclareVariableNode :Node

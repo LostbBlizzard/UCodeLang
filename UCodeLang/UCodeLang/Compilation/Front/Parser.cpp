@@ -2953,6 +2953,8 @@ GotNodeType Parser::GetRetStatement(RetStatementNode& out)
 	TokenTypeCheck(RetToken, TokenType::KeyWorld_Ret);
 	NextToken();
 
+	out._RetToken = RetToken;
+
 	auto Token = TryGetToken();
 	if (Token->Type == TokenType::Semicolon)
 	{
@@ -5290,7 +5292,7 @@ GotNodeType Parser::GetForTypeNode(ForTypeNode& out)
 	auto StartToken = TryGetToken(); TokenTypeCheck(StartToken, TokenType::StartTab);
 	NextToken();
 
-	while (TryGetToken()->Type != TokenType::EndTab)
+	while (TryGetToken()->Type != TokenType::EndTab && TryGetToken()->Type != TokenType::EndofFile)
 	{
 		auto f =new FuncNode();
 		

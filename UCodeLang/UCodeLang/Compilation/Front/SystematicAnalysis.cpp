@@ -1446,7 +1446,7 @@ void SystematicAnalysis::OnRetStatement(const RetStatementNode& node)
 
 			if (!Type_CanBeImplicitConverted(_LastExpressionType, T, false))
 			{
-				LogError_CantCastImplicitTypes(_LastLookedAtToken.value(), _LastExpressionType, T, false);
+				LogError_CantCastImplicitTypes(NeverNullptr(node._RetToken), _LastExpressionType, T, false);
 			}
 		}
 	}
