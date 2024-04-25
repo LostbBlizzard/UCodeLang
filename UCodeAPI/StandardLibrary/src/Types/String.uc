@@ -97,6 +97,7 @@ $String_t<T>[Buffer_t<T>] export:
   export |+=[this&,imut this& Other] -> void:
    this += Other.Str();
 
+  export |+=[this&,T Other] -> void: _base.Push(Other);
 
   export |==[imut this&, IPar<MyStringSpan> Other] -> bool:
    ret this.Str() == Other;
@@ -142,7 +143,11 @@ $for<T> StringSpan_t<T> export:
    String_t<T> r = this;
    r += Other;
    ret r;
-  
+  export |+[imut this&,T Other]:
+   String_t<T> r = this;
+   r += Other;
+   ret r;
+
   export |StartWith[imut this&,imut StringSpan_t<T> Match] -> bool:
    ret Str_StartWith<T>(this,Match);
   export |EndWith[imut this&,imut StringSpan_t<T> Match] -> bool:

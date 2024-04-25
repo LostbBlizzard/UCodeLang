@@ -15,7 +15,7 @@ Tests:
   String str = byte(10).ToString(); 
   String str2 = byte(50).ToString();
   String str3 = byte(72).ToString();
-
+ 
   ret str == "10" && str2 == "50" && str3 == "72";
 
  [Test]
@@ -26,3 +26,9 @@ Tests:
   byte val3 = byte::Parse("50").Unwrap();  
 
   ret val == 10 && val2 == 72 && val3 == 50;
+ 
+ [Test]
+ |Byte_Check3[] -> bool://number too big 
+  ret byte::Parse("5000").IsOpt() == false; 
+
+
