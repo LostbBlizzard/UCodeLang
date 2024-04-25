@@ -29,3 +29,9 @@ Tests:
   val.ToLower();
 
   ret val == "hello";
+
+ [Test]
+ |IsDigit_1[]:
+  ret IsDigit('0') == true && IsDigit('H') == false && IsDigit('6') == true;
+
+

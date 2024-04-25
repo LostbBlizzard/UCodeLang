@@ -1595,66 +1595,78 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 	bool Inferautopushtis = false;
 
 	{//for type
-		TypeSymbol maintype;
+		bool isokfortype = false;
 		if (ThisParType == Get_FuncInfo::ThisPar_t::PushFromScopedName)
 		{
-			auto v = _ThisType;
-			v._IsAddress = false;
-			maintype = v;
+			isokfortype = true;
 		}
 		else
 		{
-			auto scope = ScopedName;
-			ScopeHelper::ReMoveScope(scope);
-			auto v = Symbol_GetSymbol(scope, SymbolType::Type);
+			isokfortype = StringHelper::Contains(ScopedName, ":");
+		}
 
-			if (auto val = v.value_unchecked())
+		if (isokfortype) 
+		{
+			TypeSymbol maintype;
+			if (ThisParType == Get_FuncInfo::ThisPar_t::PushFromScopedName)
 			{
-				maintype = val->VarType;
+				auto v = _ThisType;
+				v._IsAddress = false;
+				maintype = v;
 			}
-			else {
-				const static Array<std::pair<String_view, TypesEnum>, 17> PrimitiveList
+			else
+			{
+				auto scope = ScopedName;
+				ScopeHelper::ReMoveScope(scope);
+				auto v = Symbol_GetSymbol(scope, SymbolType::Type);
+
+				if (auto val = v.value_unchecked())
 				{
-					std::make_pair(String_view(CharTypeName),TypesEnum::Char),
-					std::make_pair(String_view(boolTypeName),TypesEnum::Bool),
-
-					std::make_pair(String_view(Uint8TypeName),TypesEnum::uInt8),
-					std::make_pair(String_view(Sint8TypeName),TypesEnum::sInt8),
-					std::make_pair(String_view(Uint16TypeName),TypesEnum::uInt16),
-					std::make_pair(String_view(Sint16TypeName),TypesEnum::sInt16),
-					std::make_pair(String_view(Uint32TypeName),TypesEnum::uInt32),
-					std::make_pair(String_view(Sint32TypeName),TypesEnum::sInt32),
-					std::make_pair(String_view(Uint64TypeName),TypesEnum::uInt64),
-					std::make_pair(String_view(Sint64TypeName),TypesEnum::sInt64),
-
-					std::make_pair(String_view(float32TypeName),TypesEnum::float32),
-					std::make_pair(String_view(float64TypeName),TypesEnum::float64),
-
-					std::make_pair(String_view(UintPtrTypeName),TypesEnum::uIntPtr),
-					std::make_pair(String_view(SintPtrTypeName),TypesEnum::sIntPtr),
-
-					std::make_pair(String_view(Uft8typeName),TypesEnum::Uft8),
-					std::make_pair(String_view(Uft16typeName),TypesEnum::Uft16),
-					std::make_pair(String_view(Uft32typeName),TypesEnum::Uft32),
-				};
-
-				for (auto& Item : PrimitiveList)
-				{
-					if (Item.first == scope)
+					maintype = val->VarType;
+				}
+				else {
+					const static Array<std::pair<String_view, TypesEnum>, 17> PrimitiveList
 					{
-						maintype = TypeSymbol(Item.second);
-						break;
+						std::make_pair(String_view(CharTypeName),TypesEnum::Char),
+						std::make_pair(String_view(boolTypeName),TypesEnum::Bool),
+
+						std::make_pair(String_view(Uint8TypeName),TypesEnum::uInt8),
+						std::make_pair(String_view(Sint8TypeName),TypesEnum::sInt8),
+						std::make_pair(String_view(Uint16TypeName),TypesEnum::uInt16),
+						std::make_pair(String_view(Sint16TypeName),TypesEnum::sInt16),
+						std::make_pair(String_view(Uint32TypeName),TypesEnum::uInt32),
+						std::make_pair(String_view(Sint32TypeName),TypesEnum::sInt32),
+						std::make_pair(String_view(Uint64TypeName),TypesEnum::uInt64),
+						std::make_pair(String_view(Sint64TypeName),TypesEnum::sInt64),
+
+						std::make_pair(String_view(float32TypeName),TypesEnum::float32),
+						std::make_pair(String_view(float64TypeName),TypesEnum::float64),
+
+						std::make_pair(String_view(UintPtrTypeName),TypesEnum::uIntPtr),
+						std::make_pair(String_view(SintPtrTypeName),TypesEnum::sIntPtr),
+
+						std::make_pair(String_view(Uft8typeName),TypesEnum::Uft8),
+						std::make_pair(String_view(Uft16typeName),TypesEnum::Uft16),
+						std::make_pair(String_view(Uft32typeName),TypesEnum::Uft32),
+					};
+
+					for (auto& Item : PrimitiveList)
+					{
+						if (Item.first == scope)
+						{
+							maintype = TypeSymbol(Item.second);
+							break;
+						}
 					}
 				}
 			}
-		}
 
-		auto newlist = Type_FindForTypeFuncions(maintype, ScopeHelper::GetNameFromFullName(ScopedName));
-		for (auto& Item : newlist)
-		{
-			Symbols.push_back(Item);
+			auto newlist = Type_FindForTypeFuncions(maintype, ScopeHelper::GetNameFromFullName(ScopedName));
+			for (auto& Item : newlist)
+			{
+				Symbols.push_back(Item);
+			}
 		}
-
 	}
 
 	{
