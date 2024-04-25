@@ -40,13 +40,12 @@ void SystematicAnalysis::OnAssignExpressionNode(const AssignExpressionNode& node
 
 		if (!Type_CanBeImplicitConverted(ExpressionType, AssignType, false))
 		{
-			auto  Token = _LastLookedAtToken;
-			LogError_CantCastImplicitTypes(Token.value(), ExpressionType, AssignType , false);
-
+			auto  Token = NeverNullptr(node._Token);
+			LogError_CantCastImplicitTypes(Token, ExpressionType, AssignType , false);
 		}
 		else if (AssignType.IsMovedType())
 		{
-			auto Token = _LastLookedAtToken;
+			auto  Token = NeverNullptr(node._Token);
 			LogError(ErrorCodes::InValidType,"Cant Reassign because the assignment an moved type", Token.value());
 		}
 		auto ID = Symbol_GetSymbolID(node);

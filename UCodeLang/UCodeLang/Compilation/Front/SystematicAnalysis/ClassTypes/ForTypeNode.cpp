@@ -83,13 +83,17 @@ void SystematicAnalysis::OnForTypeNode(const ForTypeNode& node)
 				LogError(ErrorCodes::InValidType, "Cant add funcions to the type '" + ToString(type) + "' because of attributes. Did you mean '" +  ToString(typenoattributes) + "' ", NeverNullptr(node._typetoaddto._name._ScopedName.front()._token));
 				return;
 			}
-
+			
 			auto sym = Symbol_GetSymbol(SymID);
 			if (sym->PassState != PassType::GetTypes)
 			{
 				return;
 			}
 			sym->PassState = PassType::FixedTypes;
+			if (type.IsNull())
+			{
+				return;
+			}
 			sym->VarType = type;
 
 			auto forinfo = sym->Get_Info<ForTypeInfo>();

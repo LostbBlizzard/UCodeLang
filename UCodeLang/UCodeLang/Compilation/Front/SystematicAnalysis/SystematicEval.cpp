@@ -551,7 +551,7 @@ static void DoBinaryIntOp(DoBinaryOpContext context)
 		out = op1 % op2;
 		break;
 
-	case TokenType::equal:
+	case TokenType::equal_Comparison:
 		outequal = op1 == op2;
 		break;
 	case TokenType::Notequal_Comparison:
