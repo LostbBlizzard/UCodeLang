@@ -1159,6 +1159,16 @@ void C11Backend::ToString(UCodeLang::String& r, const IRFunc* Item, UCodeLang::C
 					tep = _Input->GetType(I.get(), I.get()->Target());
 					r += ToStringBinary(State, I.get(), "^");
 					break;
+				case IRInstructionType::UMod:
+					OutType = &tep;
+					tep = _Input->GetType(I.get(), I.get()->Target());
+					r += ToStringBinary(State, I.get(), "%");
+					break;
+				case IRInstructionType::SMod:
+					OutType = &tep;
+					tep = _Input->GetType(I.get(), I.get()->Target());
+					r += ToStringBinary(State, I.get(), "%");
+					break;
 				case IRInstructionType::BitWise_Not:
 					r += ToString(I->ObjectType);
 					r += " " + State.GetName(I.get());
