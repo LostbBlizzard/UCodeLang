@@ -2155,13 +2155,16 @@ NullablePtr<FuncInfo> SystematicAnalysis::Symbol_GetAnImplicitConvertedFunc(cons
 
 						auto& Par = funcinfo->Pars[1];
 						auto par = Par.Type;
-						par._IsAddress = false;
+						if (!ToType.IsAddress())
+						{
+							par._IsAddress = false;
+						}
 
 						if (!ToType.Isimmutable())
 						{
 							par._Isimmutable = false;
 						}
-
+							
 						if (Type_AreTheSame(par, ToType))
 						{
 							return Nullableptr(funcinfo);
