@@ -573,6 +573,8 @@ bool SystematicAnalysis::Symbol_MemberTypeSymbolFromVar(size_t Start, size_t End
 
 					if (readcopythisptr)
 					{
+						Out.Type._Isimmutable = false;
+						/*
 						auto old = Out.Type;
 
 
@@ -580,6 +582,7 @@ bool SystematicAnalysis::Symbol_MemberTypeSymbolFromVar(size_t Start, size_t End
 
 						Out.Type._Type = old._Type;
 						Out.Type._CustomTypeSymbol = old._CustomTypeSymbol;
+						*/
 					}
 				}
 			}

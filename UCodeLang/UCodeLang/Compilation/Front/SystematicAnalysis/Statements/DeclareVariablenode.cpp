@@ -441,7 +441,7 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node, 
 
 			IR_Build_ImplicitConversion(_IR_LastExpressionField, _LastExpressionType, syb->VarType);
 
-
+			
 			IR_Build_OnStoreVarable(IsStructObjectPassRef, OnVarable, syb, sybId);
 
 			FileDependency_AddDependencyToCurrentFile(syb->VarType);

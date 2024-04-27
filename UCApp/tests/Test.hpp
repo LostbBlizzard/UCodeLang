@@ -149,7 +149,7 @@ inline String ModeType(OptimizationFlags Flags)
 	return r;
 }
 
-static const Array<TestInfo, 148> Tests{
+static const Array<TestInfo, 150> Tests{
 
 	TestInfo("main_0", "BasicTests/main.uc", "Main", SuccessCondition::Compilation),
 
@@ -358,6 +358,9 @@ static const Array<TestInfo, 148> Tests{
 	
 	TestInfo("Panic 2", "Panic/Panic2.uc", "main", SuccessCondition::PanicUnitCheck,String_view("TestPanic")),
 	TestInfo("Panic 3", "Panic/Panic3.uc", "main", SuccessCondition::PanicUnitCheck,String_view("TestPanic")),
+	
+	TestInfo("DoubleConstructer", "Objects/DoubleConstructer.uc", "main", SuccessCondition::RunTimeValue,bool(true)),
+	TestInfo("DoubleConstructer 2", "Objects/DoubleConstructer.uc", "main2", SuccessCondition::RunTimeValue,bool(true)),
 };
 struct SkipTestRange
 {
