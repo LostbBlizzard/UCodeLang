@@ -78,7 +78,8 @@ void SystematicAnalysis::OnAttributeNode(const AttributeNode& node,OptionalRef<V
 			else
 			{
 				_LookingForTypes.push(TypesEnum::Void);
-				auto f = Type_GetFunc(Tag->VarType, node._Parameters);
+				auto token = NeverNullptr(node._ScopedName._ScopedName.back()._token);
+				auto f = Type_GetFunc(Tag->VarType, node._Parameters,token);
 				_LookingForTypes.pop();
 
 

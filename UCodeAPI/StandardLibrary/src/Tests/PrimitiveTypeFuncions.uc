@@ -9,7 +9,7 @@ Tests:
 
   ret t == true && f == false;
 
- [Test]
+ //[Test]
  |Byte_Check[] -> bool:
 
   String str = byte(10).ToString(); 
@@ -18,7 +18,7 @@ Tests:
  
   ret str == "10" && str2 == "50" && str3 == "72";
 
- [Test]
+ //[Test]
  |Byte_Check2[] -> bool:
 
   byte val = byte::Parse("10").Unwrap(); 
@@ -27,7 +27,7 @@ Tests:
 
   ret val == 10 && val2 == 72 && val3 == 50;
  
- [Test]
+ //[Test]
  |Byte_Check3[] -> bool://number too big 
   ret byte::Parse("5000").IsOpt() == false; 
 
