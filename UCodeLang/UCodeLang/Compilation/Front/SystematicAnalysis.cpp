@@ -2068,6 +2068,7 @@ bool SystematicAnalysis::Type_IsStaticCharArr(const TypeSymbol& Type)
 
 void SystematicAnalysis::Type_SetFuncRetAsLastEx(const Get_FuncInfo& Info)
 {
+	//This Funcion may be redundant
 	if (Info.Func)
 	{
 		if (Symbol_IsVarableType(Info.SymFunc->Type))
@@ -2081,6 +2082,11 @@ void SystematicAnalysis::Type_SetFuncRetAsLastEx(const Get_FuncInfo& Info)
 				_LastExpressionType = (*Info.Func->GetObjectForCall());
 				_LastExpressionType._IsAddress = false;
 				_LastExpressionType._ValueInfo = TypeValueInfo::IsValue;
+
+				if (_LookingForTypes.top().IsAddress())
+				{
+					_LastExpressionType._IsAddress = true;
+				}
 			}
 			else
 			{
