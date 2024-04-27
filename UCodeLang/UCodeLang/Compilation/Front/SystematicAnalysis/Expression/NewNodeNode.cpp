@@ -36,7 +36,7 @@ void SystematicAnalysis::OnNewNode(const NewExpresionNode* nod)
 
 		}
 
-		auto Func = Type_GetFunc(Type, nod->_Parameters);
+		auto Func = Type_GetFunc(Type, nod->_Parameters,NeverNullptr(nod->_Type._name._ScopedName.back()._token));
 		_FuncToSyboID.AddValue(Symbol_GetSymbolID(nod),Func);
 
 

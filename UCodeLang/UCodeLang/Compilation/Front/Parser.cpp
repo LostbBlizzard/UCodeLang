@@ -3521,6 +3521,8 @@ GotNodeType Parser::GetAnonymousObjectConstructorNode(AnonymousObjectConstructor
 
 	auto SemicolonToken2 = TryGetToken(); TokenTypeCheck(SemicolonToken2, AnonymousObjectEnd);
 	NextToken();
+
+	out.token = SemicolonToken;
 	return GotNodeType::Success;
 }
 

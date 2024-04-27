@@ -4166,7 +4166,7 @@ void SystematicAnalysis::IR_Build_DestructorCall(const ObjectToDrop& Object)
 
 	}
 }
-SystematicAnalysis::Get_FuncInfo SystematicAnalysis::Type_GetFunc(const TypeSymbol& Name, const ValueParametersNode& Pars)
+SystematicAnalysis::Get_FuncInfo SystematicAnalysis::Type_GetFunc(const TypeSymbol& Name, const ValueParametersNode& Pars,const NeverNullPtr<Token> ErrorToken)
 {
 	if (Name.IsBadType())
 	{
@@ -4202,7 +4202,8 @@ SystematicAnalysis::Get_FuncInfo SystematicAnalysis::Type_GetFunc(const TypeSymb
 	Token T;
 	T.Type = TokenType::Name;
 	T.Value._String = B;
-
+	T.OnLine = ErrorToken->OnLine;
+	T.OnPos = ErrorToken->OnPos;
 
 	ScopedNameNode Tep;
 	ScopedName V;

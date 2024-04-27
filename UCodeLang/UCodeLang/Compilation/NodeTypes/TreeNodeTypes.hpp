@@ -916,6 +916,7 @@ struct AnonymousObjectConstructorNode :Node
 	}
 	AddforNode(AnonymousObjectConstructorNode);
 	ValueParametersNode _Fields;
+	const Token* token;
 };
 struct CastNode :Node
 {

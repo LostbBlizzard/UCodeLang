@@ -328,7 +328,7 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node, 
 						IRStruct* V = _IR_Builder.GetSymbol(IR_Build_ConvertToIRClassIR(*classSb))->Get_ExAs<IRStruct>();
 						auto output = _IR_LookingAtIRBlock->New_Member_Dereference(&_IR_LookingAtIRFunc->Pars[0], IR_ConvertToIRType(classSb->ID), IndexField);
 
-						auto Func = Type_GetFunc(syb->VarType, {});
+						auto Func = Type_GetFunc(syb->VarType, {},NeverNullptr(node._Name.token));
 						Func.ThisPar = Get_FuncInfo::ThisPar_t::PushFromLast;
 						_IR_LastExpressionField = _IR_LookingAtIRBlock->NewLoadPtr(output);
 
