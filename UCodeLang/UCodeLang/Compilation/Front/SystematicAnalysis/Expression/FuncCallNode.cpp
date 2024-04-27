@@ -943,12 +943,10 @@ Vector<Symbol*> SystematicAnalysis::Type_FindForTypeFuncions(const TypeSymbol& m
 	Vector<Symbol*> Symbols;
 	if (true)
 	{
-		String mytypestr = ToString(maintype);
-		if (StringHelper::StartWith(mytypestr, "imut"))
-		{
-			mytypestr = mytypestr.substr(sizeof("imut"));
-		}
-
+		TypeSymbol maintypenoatt = maintype;
+		Type_RemoveTypeattributes(maintypenoatt);
+		String mytypestr = ToString(maintypenoatt);
+		
 		for (auto& Item : fortypeSyms)
 		{
 			if (Item->Type == SymbolType::ForType)
