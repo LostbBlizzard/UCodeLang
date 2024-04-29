@@ -15,7 +15,7 @@
 
 #include <UCodeLang/Compilation/Back/WebAssembly/WasmBackEnd.hpp>
 #include "../src/UCodeLangProjectPaths.hpp"
-
+#include <fstream>
 #include <sstream>
 #if UCodeLang_Platform_Windows
 #include <Windows.h>
@@ -30,7 +30,7 @@ UCodeTestStart
 
 bool LogErrors(std::ostream& out, Compiler& _Compiler);
 
-String OutputBytesToString(Byte *Bytes, size_t Size)
+inline String OutputBytesToString(Byte *Bytes, size_t Size)
 {
 	std::stringstream stream;
 	for (size_t i = 0; i < Size; i++)
@@ -363,6 +363,7 @@ static const Array<TestInfo, 151> Tests{
 	TestInfo("DoubleConstructer 2", "Objects/DoubleConstructer.uc", "main2", SuccessCondition::RunTimeValue,bool(true)),
 	
 	TestInfo("SpanKeepImut", "Std/SpanKeepImut.uc", "main", SuccessCondition::CompilationFail),
+	//TestInfo("ForTypeReadThis", "Objects/ForTypeReadThis.uc", "main", SuccessCondition::RunTimeValue,int(20)),
 };
 struct SkipTestRange
 {
@@ -462,7 +463,7 @@ inline bool ShouldSkipTests(size_t Index, TestMode mode)
 	}
 }
 
-bool RunTimeOutput(
+inline bool RunTimeOutput(
 	std::ostream &LogStream,
 	std::ostream &ErrStream,
 	const TestInfo &Test,
@@ -507,7 +508,7 @@ const UCodeLang::Array<OptimizationFlags, 2> OptimizationFlagsToCheck{
 	// OptimizationFlags::ForSpeed,
 	// OptimizationFlags::ForMaxSpeed,
 };
-bool RunTestForFlag(const TestInfo& Test, OptimizationFlags flag, std::ostream& LogStream, std::ostream& ErrStream, TestMode mode)
+inline bool RunTestForFlag(const TestInfo& Test, OptimizationFlags flag, std::ostream& LogStream, std::ostream& ErrStream, TestMode mode)
 {
 #define NoTry 0
 
@@ -1083,9 +1084,9 @@ bool RunTestForFlag(const TestInfo& Test, OptimizationFlags flag, std::ostream& 
 #endif
 }
 
-std::mutex Coutlock;
+inline std::mutex Coutlock;
 
-bool RunTest(const TestInfo &Test, TestMode mode)
+inline bool RunTest(const TestInfo &Test, TestMode mode)
 {
 	bool V = true;
 
@@ -1127,7 +1128,7 @@ bool RunTest(const ModuleTest& Test, TestMode mode);
 
 int RunTests(bool MultThread = true);
 
-bool LogErrors(std::ostream& out, UCodeLang::Compiler& _Compiler)
+inline bool LogErrors(std::ostream& out, UCodeLang::Compiler& _Compiler)
 {
 	out << "[\n";
 	auto &Errors = _Compiler.Get_Errors().Get_Errors();
