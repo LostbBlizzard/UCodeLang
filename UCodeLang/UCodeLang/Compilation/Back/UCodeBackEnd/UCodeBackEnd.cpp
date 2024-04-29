@@ -978,7 +978,7 @@ void UCodeBackEndObject::RegWillBeUsed(RegisterID Value, Vector<RegisterID> BanR
 				if (V.has_value() && V != Value)
 				{
 					SetRegister(V.value(), *Item);
-					RegToReg(type._Type, Value, V.value(), false);
+					RegToReg(type, Value, V.value(), false);
 				}
 				else
 				{
