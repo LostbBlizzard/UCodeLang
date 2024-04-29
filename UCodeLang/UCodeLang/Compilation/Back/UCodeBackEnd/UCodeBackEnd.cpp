@@ -590,7 +590,7 @@ void UCodeBackEndObject::LinkFuncs()
 						}
 						UAddress end = 0;
 						{
-							bool ismaxed = start == UInt64_MaxSize;
+							bool ismaxed = start == UINTPTR_MAX;
 							if (ismaxed)
 							{
 								start = 0;
@@ -856,8 +856,8 @@ void UCodeBackEndObject::LinkFuncs()
 									auto tojumptolabel = _OutLayer->_Instructions.size() - 1;
 									if (Get_Settings().PtrSize == IntSizes::Int32)
 									{
-										InstructionBuilder::Jumpv1(0, _OutLayer->_Instructions[jumpins]);
-										InstructionBuilder::Jumpifv2(0, inrangecheck, _OutLayer->_Instructions[jumpins + 1]);
+										InstructionBuilder::Jumpv1(tojumptolabel, _OutLayer->_Instructions[jumpins]);
+										InstructionBuilder::Jumpifv2(tojumptolabel, inrangecheck, _OutLayer->_Instructions[jumpins + 1]);
 									}
 									else
 									{
@@ -893,16 +893,19 @@ void UCodeBackEndObject::LinkFuncs()
 
 							InstructionBuilder::Jumpv1(stackunwindfunc, _Ins);  PushIns();
 							InstructionBuilder::Jumpv2(stackunwindfunc, _Ins); PushIns();
-							InstructionBuilder::Jumpv3(stackunwindfunc, _Ins); PushIns();
-							InstructionBuilder::Jumpv4(stackunwindfunc, _Ins); PushIns();
+							if (Get_Settings().PtrSize == IntSizes::Int64)
+							{
+								InstructionBuilder::Jumpv3(stackunwindfunc, _Ins); PushIns();
+								InstructionBuilder::Jumpv4(stackunwindfunc, _Ins); PushIns();
+							}
 
 						}
 
 						auto tojumptolabel = _OutLayer->_Instructions.size() - 1;
 						if (Get_Settings().PtrSize == IntSizes::Int32)
 						{
-							InstructionBuilder::Jumpv1(0, _OutLayer->_Instructions[jumpins]); 
-							InstructionBuilder::Jumpifv2(0,inrangecheck, _OutLayer->_Instructions[jumpins + 1]); 
+							InstructionBuilder::Jumpv1(tojumptolabel, _OutLayer->_Instructions[jumpins]); 
+							InstructionBuilder::Jumpifv2(tojumptolabel,inrangecheck, _OutLayer->_Instructions[jumpins + 1]); 
 						}
 						else
 						{
