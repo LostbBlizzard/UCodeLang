@@ -2552,7 +2552,7 @@ void AppObject::ShowUCodeVMWindow()
                     {
                         if (ImGui::BeginTable("split2", 2, ImGuiTableFlags_NoSavedSettings | ImGuiTableFlags_Borders))
                         {
-                            for (size_t i = 0; i < min(windowdata.InsInfo.size(),1000); i++)
+                            for (size_t i = 0; i < std::min<size_t>(windowdata.InsInfo.size(),1000); i++)
                             {
                                 auto& Item = windowdata.InsInfo[i];
                                 bool IsOnIns = false;
