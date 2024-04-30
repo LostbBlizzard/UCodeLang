@@ -342,7 +342,7 @@ static const Array<TestInfo, 151> Tests{
 	TestInfo("AutoMadeContruct", "Objects/AutoMadeContruct.uc", "main", SuccessCondition::RunTimeValue, (bool)true),
 	
 	TestInfo("EnumCasts", "BasicTests/EnumCasts.uc", "main", SuccessCondition::RunTimeValue, (UCodeLang::Byte)2),
-	TestInfo("EnumCasts 2", "BasicTests/EnumCasts.uc", "main2", SuccessCondition::RunTimeValue, (bool)true),
+	TestInfo("EnumCasts_2", "BasicTests/EnumCasts.uc", "main2", SuccessCondition::RunTimeValue, (bool)true),
 	
 	TestInfo("Swap", "Std/Swap.uc", "main", SuccessCondition::RunTimeValue, (bool)true),
 	
@@ -354,13 +354,13 @@ static const Array<TestInfo, 151> Tests{
 	TestInfo("EnableTrue", "Eval/EnableTrue.uc", "main", SuccessCondition::RunTimeValue, (bool)true),
 	TestInfo("EnableFalse", "Eval/EnableFalse.uc", "main", SuccessCondition::CompilationFail),
 	
-	TestInfo("Panic 1", "Panic/Panic.uc", "main", SuccessCondition::Panic,String_view("TestPanic")),
+	TestInfo("Panic_1", "Panic/Panic.uc", "main", SuccessCondition::Panic,String_view("TestPanic")),
 	
-	TestInfo("Panic 2", "Panic/Panic2.uc", "main", SuccessCondition::PanicUnitCheck,String_view("TestPanic")),
-	TestInfo("Panic 3", "Panic/Panic3.uc", "main", SuccessCondition::PanicUnitCheck,String_view("TestPanic")),
+	TestInfo("Panic_2", "Panic/Panic2.uc", "main", SuccessCondition::PanicUnitCheck,String_view("TestPanic")),
+	TestInfo("Panic_3", "Panic/Panic3.uc", "main", SuccessCondition::PanicUnitCheck,String_view("TestPanic")),
 	
 	TestInfo("DoubleConstructer", "Objects/DoubleConstructer.uc", "main", SuccessCondition::RunTimeValue,bool(true)),
-	TestInfo("DoubleConstructer 2", "Objects/DoubleConstructer.uc", "main2", SuccessCondition::RunTimeValue,bool(true)),
+	TestInfo("DoubleConstructer_2", "Objects/DoubleConstructer.uc", "main2", SuccessCondition::RunTimeValue,bool(true)),
 	
 	TestInfo("SpanKeepImut", "Std/SpanKeepImut.uc", "main", SuccessCondition::CompilationFail),
 	//TestInfo("ForTypeReadThis", "Objects/ForTypeReadThis.uc", "main", SuccessCondition::RunTimeValue,int(20)),
