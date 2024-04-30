@@ -231,8 +231,10 @@ void C11Backend::AddBaseTypes()
 
 	OutBuffer += "#include <inttypes.h>\n";
 	OutBuffer += "#include <stdlib.h>\n";
+	OutBuffer += "#include <stdio.h>\n";
+	OutBuffer += "#include <string.h>\n";
 
-	if (Flag_CPPCodeAllowed) 
+	if (Flag_CPPCodeAllowed)
 	{
 		if (Flag_NoExceptions == false)
 		{
@@ -653,14 +655,25 @@ void C11Backend::UpdateCppLinks(UCodeLang::String& r, UCodeLang::IRBufferData* V
 	}
 }
 
+const char* includedfuncions[] = {
+ "malloc",
+ "free",
+ "memcpy",
+ "memmove",
+ "putchar",
+};
+constexpr size_t includefuncions_size = sizeof(includedfuncions) / sizeof(includedfuncions[0]);
 void C11Backend::ToString(UCodeLang::String& r, const IRFunc* Item, UCodeLang::C11Backend::ToStringState& State, bool OutputBody)
 {
 	{
 		auto str = FromIDToCindentifier(Item->identifier);
-		if (str == "malloc"
-			|| str == "free")
+		for (size_t i = 0; i < includefuncions_size; i++)
 		{
-			return;
+			auto item = includedfuncions[i];
+			if (str == item)
+			{
+				return;
+			}
 		}
 	}
 
@@ -990,7 +1003,7 @@ void C11Backend::ToString(UCodeLang::String& r, const IRFunc* Item, UCodeLang::C
 
 					}
 					State.TepPushedParameters.clear();
-						r += ")";
+					r += ")";
 				}break;
 				case IRInstructionType::CallFuncPtr:
 				{
@@ -1195,7 +1208,7 @@ void C11Backend::ToString(UCodeLang::String& r, const IRFunc* Item, UCodeLang::C
 
 					}
 				}
-					break;
+				break;
 				default:
 					UCodeLangUnreachable();
 					break;
