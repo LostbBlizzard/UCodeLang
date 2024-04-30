@@ -3860,6 +3860,7 @@ RegisterID UCodeBackEndObject::MakeIntoRegister(const IRlocData& Value, Optional
 			auto Val2 = Value.Info.Get_If<IRlocData_StackPre>();
 			_Stack.AddReUpdatePreFunc(PushIns(),GetPreCallStackOffset2(Val2->offset) + _Stack.PushedOffset);
 		}
+		_Registers.FreeRegister(Tep);
 		return Tep;
 	}
 	else if (Value.Info.Is<IRlocData_StaticPos>() || Value.Info.Is<IRlocData_ThreadPos>())
