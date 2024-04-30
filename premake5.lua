@@ -610,7 +610,7 @@ newaction {
           
            print("----downloading glfw Packages")
 
-           executeorexit("brew install glfw")
+           executeorexit("brew -arm64 install glfw")
           
            print("----installing tools completed");
         end
