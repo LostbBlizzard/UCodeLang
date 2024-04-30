@@ -550,6 +550,7 @@ void Interpreter::Extecute(const Instruction& Inst)
 			
 		//Other
 		&&Ins_SetPanicMsg,
+		&&Ins_PushPanicStackFrame,
 	};
 
 	constexpr size_t JumpTableSize = sizeof(InsJumpTable) / sizeof(InsJumpTable[0]);

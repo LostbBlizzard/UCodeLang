@@ -341,7 +341,7 @@ static const Array<TestInfo, 151> Tests{
 	
 	TestInfo("AutoMadeContruct", "Objects/AutoMadeContruct.uc", "main", SuccessCondition::RunTimeValue, (bool)true),
 	
-	TestInfo("EnumCasts", "BasicTests/EnumCasts.uc", "main", SuccessCondition::RunTimeValue, (byte)2),
+	TestInfo("EnumCasts", "BasicTests/EnumCasts.uc", "main", SuccessCondition::RunTimeValue, (UCodeLang::Byte)2),
 	TestInfo("EnumCasts 2", "BasicTests/EnumCasts.uc", "main2", SuccessCondition::RunTimeValue, (bool)true),
 	
 	TestInfo("Swap", "Std/Swap.uc", "main", SuccessCondition::RunTimeValue, (bool)true),
