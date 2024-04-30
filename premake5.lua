@@ -140,7 +140,11 @@ project "UCApp"
    }
    
    
-   
+   filter { "platforms:Web" }
+     links {"stdc++"}
+  
+   filter {}
+  
    links {
       "UCodeLang",
    }
@@ -610,7 +614,7 @@ newaction {
           
            print("----downloading glfw Packages")
 
-           executeorexit("brew -arm64 install glfw")
+           executeorexit("arch -arm64 brew install glfw")
           
            print("----installing tools completed");
         end
@@ -695,7 +699,7 @@ newaction {
     description = "builds the UCApp",
     execute = function ()
         if os.istarget("linux") then
-         executeorexit("make UCApp -j4")
+         executeorexit("make UCApp -j(nproc)")
         end
 
         if os.istarget("windows") then
@@ -703,7 +707,7 @@ newaction {
         end
         
         if os.istarget("macosx") then
-         executeorexit("make UCApp -j4")
+         executeorexit("make UCApp -j(nproc)")
         end
     end
 }
@@ -888,7 +892,7 @@ newaction {
         end
 
         if os.istarget("windows") then
-         executeorexit("emmake make config=debug_web -j4")
+         executeorexit("emmake make config=debug_web -j(nproc)")
         end
         
         if os.istarget("macosx") then
@@ -969,7 +973,7 @@ newaction {
         end
         
         if os.istarget("macosx") then
-         executeorexit("make config=debug_ios -j4")
+         executeorexit("make config=debug_ios -j(nproc)")
         end
     end
 }

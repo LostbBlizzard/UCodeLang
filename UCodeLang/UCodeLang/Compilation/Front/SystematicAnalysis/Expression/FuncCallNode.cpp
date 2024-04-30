@@ -525,21 +525,25 @@ else PrimitiveTypeCall(Uint32TypeName, TypesEnum::uInt32, _IR_LastExpressionFiel
 
 				bool UseedTopIR = _IR_IRlocations.size() != 0 && _IR_IRlocations.top().UsedlocationIR == true;
 				bool makenew = false;
-				if (UseedTopIR)
-				{
-					auto Type = Func.Func->Pars[0];
-
-					auto v = IR_ConvertToIRType(Type);
-
-
-
-					if (v._symbol.ID != _IR_IRlocations.top().Value->ObjectType._symbol.ID)
+				if (!UseedTopIR)
+				{	
+					if (_IR_IRlocations.size())
 					{
-						makenew = true;
+						auto Type = Func.Func->Pars[0];
+						auto v = IR_ConvertToIRType(Type);
+
+						const auto& top = _IR_IRlocations.top();
+						IRType val = _IR_Builder.GetType(top.Value);	
+
+						if (v._symbol.ID != val._symbol.ID)
+						{
+							makenew = true;
+						}
 					}
 				}
 
-				if (UseedTopIR || makenew || _IR_IRlocations.size() == 0)
+				bool shouldpushnew = UseedTopIR || makenew || _IR_IRlocations.size() == 0;
+				if (shouldpushnew)
 				{
 					IRLocation_Cotr tep;
 					tep.UsedlocationIR = false;
@@ -567,7 +571,7 @@ else PrimitiveTypeCall(Uint32TypeName, TypesEnum::uInt32, _IR_LastExpressionFiel
 					IRParsList.push_back(Defe);
 				}
 
-				if (UseedTopIR)
+				if (shouldpushnew)
 				{
 					_IR_IRlocations.pop();
 				}
@@ -576,7 +580,25 @@ else PrimitiveTypeCall(Uint32TypeName, TypesEnum::uInt32, _IR_LastExpressionFiel
 			else if (Func.ThisPar == Get_FuncInfo::ThisPar_t::OnIRlocationStackNonedef)
 			{
 				bool UseedTopIR = _IR_IRlocations.size() != 0 && _IR_IRlocations.top().UsedlocationIR == true;
-				if (UseedTopIR || _IR_IRlocations.size() == 0)
+				bool makenew = false;
+				if (!UseedTopIR)
+				{	
+					if (_IR_IRlocations.size())
+					{
+						auto Type = Func.Func->Pars[0];
+						auto v = IR_ConvertToIRType(Type);
+
+						const auto& top = _IR_IRlocations.top();
+						IRType val = _IR_Builder.GetType(top.Value);	
+						if (v._symbol.ID != val._symbol.ID)
+						{
+							makenew = true;
+						}
+					}
+				}
+
+				bool shouldpushnew = UseedTopIR || makenew || _IR_IRlocations.size() == 0;
+				if (shouldpushnew)
 				{
 					IRLocation_Cotr tep;
 					tep.UsedlocationIR = false;
@@ -598,7 +620,7 @@ else PrimitiveTypeCall(Uint32TypeName, TypesEnum::uInt32, _IR_LastExpressionFiel
 					_IR_IRlocations.top().UsedlocationIR = true;
 				}
 
-				if (UseedTopIR)
+				if (shouldpushnew)
 				{
 					_IR_IRlocations.pop();
 				}
