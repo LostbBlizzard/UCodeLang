@@ -306,7 +306,7 @@ void UClib::ToBytes(BitMaker& Output, const TraitAlias& TraitData)
 	if (TraitData.TypePack.has_value())
 	{
 		auto& pack = TraitData.TypePack.value();
-		Output.WriteType(pack.size());
+		Output.WriteType((BitMaker::SizeAsBits)pack.size());
 
 		for (auto& Item : pack)
 		{
