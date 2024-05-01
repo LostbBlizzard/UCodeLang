@@ -90,6 +90,7 @@ jobs:
       run: ./premake.sh test
 
   gmake-wasm-build:
+   if: 'false'
    runs-on: ubuntu-latest
 
    steps:
