@@ -2,10 +2,8 @@
 #include "UCodeLang/Compilation/Front/SystematicAnalysis.hpp"
 UCodeLangFrontStart
 
-void SystematicAnalysis::OnAttributeNode(const AttributeNode& node)
+void SystematicAnalysis::OnAttributeNode(const AttributeNode& node,OptionalRef<Vector<Symbol*>> Out)
 {
-
-
 	if (_PassType == PassType::GetTypes)
 	{
 
@@ -80,7 +78,8 @@ void SystematicAnalysis::OnAttributeNode(const AttributeNode& node)
 			else
 			{
 				_LookingForTypes.push(TypesEnum::Void);
-				auto f = Type_GetFunc(Tag->VarType, node._Parameters);
+				auto token = NeverNullptr(node._ScopedName._ScopedName.back()._token);
+				auto f = Type_GetFunc(Tag->VarType, node._Parameters,token);
 				_LookingForTypes.pop();
 
 
@@ -171,6 +170,11 @@ void SystematicAnalysis::OnAttributeNode(const AttributeNode& node)
 					_SharedEvalStates.pop_back();
 
 					info->RawObj = std::move(ThisVal.EvaluatedObject);
+
+					if (Out.has_value())
+					{
+						Out.value().push_back(&Syb);
+					}
 				}
 			}
 
@@ -181,15 +185,96 @@ void SystematicAnalysis::OnAttributeNode(const AttributeNode& node)
 
 	}
 }
-void SystematicAnalysis::OnAttributesNode(const Vector<Unique_ptr<AttributeNode>>& nodes)
+void SystematicAnalysis::OnAttributesNode(const Vector<Unique_ptr<AttributeNode>>& nodes,OptionalRef<Vector<Symbol*>> Out)
 {
 	for (auto& Item : nodes)
 	{
-		OnAttributeNode(*Item);
+		OnAttributeNode(*Item,Out);
 	}
 }
+bool SystematicAnalysis::IsEnableAttribute(const Symbol& symbol)
+{
+	if (symbol.Type == SymbolType::Tag_class)
+	{
+		auto name = ScopeHelper::GetNameFromFullName(symbol.FullName);
 
+		if (StringHelper::StartWith(name,"Enable"))
+		{
+			auto info = symbol.Get_Info<TagInfo>();
+			bool hascheckfield = false;
+			bool haserrorfield = false;
 
+			for (auto& Item : info->Fields)
+			{
+
+				if (Item.Name == "Enable")
+				{
+					if (Item.Type._Type == TypesEnum::Bool) 
+					{
+						hascheckfield = true;
+					}
+				}
+				else if (Item.Name == "Error")
+				{
+					if (Type_IsStaticCharArr(Item.Type))
+					{
+						haserrorfield = true;
+					}
+				}
+			}
+
+			if (hascheckfield && haserrorfield)
+			{
+				return true;
+			}
+		}
+	}
+
+	return false;
+}
+SystematicAnalysis::EnableAttributeData SystematicAnalysis::GetEnableAttribute(const Symbol& symbol)
+{
+	UCodeLangAssert(symbol.Type == SymbolType::UsedTag);
+
+	auto tagsymbol =  Symbol_GetSymbol(symbol.VarType).value().value();
+	UCodeLangAssert(IsEnableAttribute(*tagsymbol));
+	EnableAttributeData r;
+
+	auto info = tagsymbol->Get_Info<TagInfo>();
+
+	size_t EnableOffset = 0;
+	size_t ErrorOffset = 0;
+	size_t ErrorStringSize = 0;
+
+	for (auto& Item : info->Fields)
+	{
+
+		if (Item.Name == "Enable")
+		{
+			if (Item.Type._Type == TypesEnum::Bool)
+			{
+				EnableOffset = Type_GetOffset(*info,&Item).value();
+			}
+		}
+		else if (Item.Name == "Error")
+		{
+			ErrorOffset = Type_GetOffset(*info, &Item).value();
+
+			auto info = Symbol_GetSymbol(Item.Type).value()->Get_Info<StaticArrayInfo>();
+
+			ErrorStringSize = info->Count;
+		}
+	}
+
+	void* dataptr = symbol.Get_Info<UsedTagInfo>()->RawObj.Object_AsPointer.get();
+
+	bool* enableptr = (bool*)(((uintptr_t)dataptr) + ((uintptr_t)EnableOffset));
+	char* startstring = (char*)(((uintptr_t)dataptr) + ((uintptr_t)ErrorOffset));
+
+	r.IsEnable = *enableptr;
+	r.ErrorMsg = String_view(startstring, ErrorStringSize);
+	return r;
+}
 UCodeLangFrontEnd
 
 #endif

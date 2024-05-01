@@ -35,6 +35,10 @@ void NativeInterpreter::Get_Return(void* Output, size_t OutputSize)
 {
 
 }
+Optional<InterpretorError> NativeInterpreter::CheckForIntperpreterError()
+{
+	return Optional<InterpretorError>();
+}
 Optional<InterpretorError> CheckForIntperpreterError()
 {
 	return {};

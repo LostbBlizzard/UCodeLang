@@ -17,6 +17,11 @@ void SystematicAnalysis::Symbol_SetOutExpression(const OutExpression* Ex, const 
 
 	Type_DeclareVariableTypeCheck(Syb->VarType, TypeToSet, NeverNullptr(Ex->_Name.token));
 	_Table.AddSymbolID(*Syb, Symbol_GetSymbolID(*Ex));
+
+	if (TypeToSet.IsAddress() && Ex->_Type._name._ScopedName.front()._token->Type == TokenType::KeyWorld_var)
+	{
+		Syb->VarType._IsAddress = true;
+	}
 }
 NeverNullPtr<Symbol> SystematicAnalysis::Symbol_GetSymbolFromExpression(const NeverNullPtr<OutExpression> Ex)
 {

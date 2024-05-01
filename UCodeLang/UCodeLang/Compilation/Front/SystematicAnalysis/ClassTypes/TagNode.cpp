@@ -87,10 +87,54 @@ void SystematicAnalysis::OnTag(const TagTypeNode& node)
 		}
 		if (_PassType == PassType::FixedTypes)
 		{
+			bool ispublic = node._Access == AccessModifierType::Public;
+			if (node._IsExport && ispublic)
+			{
+				for (size_t i = 0; i < info->Fields.size(); i++)
+				{
+					auto& cfield = info->Fields[i];
 
+					bool ispublic = false;
+					const Token* t = nullptr;
+					{
+						size_t fieldcount = 0;
+						for (auto& Item : node._Nodes)
+						{
+							if (Item->Get_Type() == NodeType::DeclareVariableNode)
+							{
+								auto* declar = DeclareVariableNode::As(Item.get());
+								if (fieldcount == i)
+								{
+									t = declar->_Name.token;
+									ispublic = declar->_Access == AccessModifierType::Public;
+									break;
+								}
+								fieldcount++;
+							}
+						}
+					}
+
+					if (ispublic)
+					{
+						if (!Type_IsTypeExported(cfield.Type))
+						{
+							LogError_TypeIsNotExport(NeverNullptr(t), cfield.Type, NeverNullptr(&Syb));
+						}
+					}
+				}
+			}
+			if (!ispublic && node._IsExport)
+			{
+				LogError_ExportIsPrivate(NeverNullptr(node._AttributeName.token), NeverNullptr(&Syb));
+			}
 		}
 	}
 
+	if (_PassType == PassType::FixedTypes && Isgeneric_t)
+	{
+		auto& GenericList = node._generic;
+		Generic_GenericAliasFixTypes(GenericList, IsgenericInstantiation, info->_GenericData);
+	}
 
 	_ClassStack.pop();
 
@@ -103,6 +147,8 @@ void SystematicAnalysis::OnTag(const TagTypeNode& node)
 			TagData.TypeID = Type_GetTypeID(TypesEnum::CustomType, Syb.ID);
 
 			TagData.Fields.resize(info->Fields.size());
+			TagData.AccessModifier = Syb.Access;
+			TagData.IsExported = node._IsExport;
 		
 			size_t offset = 0;
 			for (size_t i = 0; i < info->Fields.size(); i++)
@@ -121,7 +167,21 @@ void SystematicAnalysis::OnTag(const TagTypeNode& node)
 		}
 		else
 		{
+			String_view Text = _LookingAtFile->FileText;
 
+			String ClassStr = "$";
+			ClassStr += node._AttributeName.token->Value._String;
+
+			String_view ClassBody =
+				String_view(&Text[node._AttributeName.token->OnPos],
+					node.EndOfClass->OnPos - node._AttributeName.token->OnPos);
+
+			GenericClass_Data& VClass = _Lib.Get_Assembly().AddGenericClass((String)ScopeHelper::GetNameFromFullName(Syb.FullName), Syb.FullName);
+
+			VClass.Base.Implementation = ClassStr + String(ClassBody);
+			VClass.Base.Implementation += "\n\n";
+			VClass.AccessModifier = Syb.Access;
+			VClass.IsExported = node._IsExport;
 		}
 	}
 

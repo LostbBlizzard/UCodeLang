@@ -207,6 +207,19 @@ private:
 	const IRFunc* lookingatfunc = nullptr;
 	Vector<size_t> ThrowJumps;
 	UnorderedMap< const IRFunc*,size_t> FuncStackSizes;
+
+	struct CleanUpVar
+	{
+		UAddress VarableStart;
+		UAddress VarableEnd;
+		size_t PostStackOffset;
+		IRidentifierID CleanUpFuncion;
+	};
+	UnorderedMap< const IRFunc*, Vector<CleanUpVar>> FuncCleanUpFuncions;
+	//Compile Flags
+	bool Flag_NoExceptions = false;
+
+	
 	//code
 	bool IsPrimitive(const IRType& type)
 	{
@@ -326,7 +339,7 @@ private:
 
 
 
-	void RegWillBeUsed(RegisterID Value);
+	void RegWillBeUsed(RegisterID Value, Vector<RegisterID> BanRegisters = {});
 
 	void SetRegister(RegisterID Value, const AnyInt64 Name)
 	{

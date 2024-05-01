@@ -177,7 +177,8 @@ class ClassField
 public:
 	String Name;
 	ReflectionTypeInfo Type;
-	size_t offset=NullAddress;
+	size_t offset = NullAddress;
+	AccessModifierType Protection = AccessModifierType::Default;
 };
 class UsedTagValueData
 {
@@ -223,6 +224,9 @@ public:
 	bool IsUnsafe = false;
 	bool IsExternC = false;
 	bool IsRemoved = false;
+	bool IsExport = false;
+	bool IsTraitDynamicDispatch = false;
+	AccessModifierType Protection = AccessModifierType::Default;
 
 	UsedTags Attributes;
 };
@@ -266,16 +270,21 @@ enum class ClassType :ClassType_t
 	FuncPtr,
 	GenericClass,
 	GenericFunction,
+	ForType,
+	NameSpace,
 };
+struct TraitAlias;
 struct Class_Data
 {
 	ReflectionCustomTypeID TypeID = {};
 	size_t Size = 0;
+	AccessModifierType AccessModifier = AccessModifierType::Default;
+	bool IsExported = false;
 	UsedTags Attributes;
 	Vector<ClassField> Fields;
 	Vector<ClassMethod> Methods;
-	Vector<InheritedTrait_Data> InheritedTypes;
-	
+	Vector<InheritedTrait_Data> InheritedTypes;	
+	Vector<TraitAlias> GenericAlias;
 	const ClassMethod* Get_ClassInit() const
 	{
 		return Get_ClassMethod(ClassInitializefuncName);
@@ -356,20 +365,30 @@ struct Enum_Data
 	Optional<String> DestructorFuncFullName;
 	Optional<String> MoveFuncFullName;
 	Optional<String> CopyFuncFullName;
+	
+	AccessModifierType AccessModifier = AccessModifierType::Default;
+	bool IsExported = false;
 };
 struct Alias_Data
 {
 	ReflectionTypeInfo Type;
 	Optional<ReflectionCustomTypeID> HardAliasTypeID;
+
+	AccessModifierType AccessModifier = AccessModifierType::Default;
+	bool IsExported = false;
 };
 struct Eval_Data
 {
 	TypedRawReflectionData Value;
 
+	AccessModifierType AccessModifier = AccessModifierType::Default;
+	bool IsExported = false;
 };
 struct Tag_Data
 {
 	ReflectionCustomTypeID TypeID = {};
+	AccessModifierType AccessModifier = AccessModifierType::Default;
+	bool IsExported = false;
 	Vector<ClassField> Fields;
 	Vector<ClassMethod> Methods;
 	~Tag_Data()
@@ -382,11 +401,37 @@ struct TraitMethod
 	ClassMethod method;
 	Optional<String> FuncBody;
 };
+struct TraitSymbol
+{
+	String Implementation;
+	AccessModifierType AccessModifier = AccessModifierType::Default;
+	bool IsExported = false;
+};
+struct TraitAlias
+{
+	String AliasName;
+	ReflectionTypeInfo Type;
+	Optional<ReflectionRawData> Expression;
+	Optional<Vector<ReflectionTypeInfo>> TypePack;
+
+	bool IsTypePack()
+	{
+		return TypePack.has_value();
+	}
+	bool IsExpression()
+	{
+		return Expression.has_value();
+	}
+};
 struct Trait_Data
 {
 	ReflectionCustomTypeID TypeID = {};
+	AccessModifierType AccessModifier = AccessModifierType::Default;
+	bool IsExported = false;
 	Vector<ClassField> Fields;
 	Vector<TraitMethod> Methods;
+	Vector<TraitSymbol> Symbols;
+	Vector<TraitAlias> GenericAlias;
 	~Trait_Data()
 	{
 
@@ -418,8 +463,11 @@ struct StaticArray_Data
 };
 struct FuncPtr_Data
 {
+	ReflectionCustomTypeID TypeID = {};
 	ReflectionTypeInfo RetType;
 	Vector<ClassMethod::Par> ParsType;
+	AccessModifierType AccessModifier = AccessModifierType::Default;
+	bool IsExported = false;
 	~FuncPtr_Data()
 	{
 
@@ -436,6 +484,8 @@ struct GenericClass_Data
 	{
 
 	}
+	AccessModifierType AccessModifier = AccessModifierType::Default;
+	bool IsExported = false;
 };
 
 
@@ -446,6 +496,8 @@ struct GenericFunction_Data
 	{
 
 	}
+	AccessModifierType AccessModifier = AccessModifierType::Default;
+	bool IsExported = false;
 };
 struct GenericEnum_Data
 {
@@ -454,6 +506,8 @@ struct GenericEnum_Data
 	{
 
 	}
+	AccessModifierType AccessModifier = AccessModifierType::Default;
+	bool IsExported = false;
 };
 struct GenericAlias_Data
 {
@@ -462,6 +516,8 @@ struct GenericAlias_Data
 	{
 
 	}
+	AccessModifierType AccessModifier = AccessModifierType::Default;
+	bool IsExported = false;
 };
 struct GenericTrait_Data
 {
@@ -470,6 +526,8 @@ struct GenericTrait_Data
 	{
 
 	}
+	AccessModifierType AccessModifier = AccessModifierType::Default;
+	bool IsExported = false;
 };
 struct GenericTag_Data
 {
@@ -478,6 +536,38 @@ struct GenericTag_Data
 	{
 
 	}
+	AccessModifierType AccessModifier = AccessModifierType::Default;
+	bool IsExported = false;
+};
+struct GenericForType_Data
+{
+	GenericBase_Data Base;
+	~GenericForType_Data()
+	{
+
+	}
+	AccessModifierType AccessModifier = AccessModifierType::Default;
+	bool IsExported = false;
+};
+struct NameSpace_Data
+{
+	~NameSpace_Data()
+	{
+
+	}
+};
+struct ForType_Data
+{
+	ReflectionTypeInfo _TargetType;
+	String _Scope;
+	AccessModifierType AccessModifier = AccessModifierType::Default;
+	bool IsExported = false;
+	Vector<ClassMethod> _AddedMethods;
+	~ForType_Data()
+	{
+
+	}
+	
 };
 class AssemblyNode
 {
@@ -559,6 +649,15 @@ public:
 		UCodeLangAssert(Type == ClassType::GenericFunction);
 		return _GenericFunc;
 	}
+	ForType_Data& Get_ForType() 
+	{
+		UCodeLangAssert(Type == ClassType::ForType);
+		return _ForType;
+	}
+	NameSpace_Data& Get_NameSpace() {
+		UCodeLangAssert(Type == ClassType::NameSpace);
+		return _NameSapce;
+	}
 	
 	const Class_Data& Get_ClassData() const
 	{
@@ -620,6 +719,16 @@ public:
 		UCodeLangAssert(Type == ClassType::GenericFunction);
 		return _GenericFunc;
 	}
+	const ForType_Data& Get_ForType() const
+	{
+		UCodeLangAssert(Type == ClassType::ForType);
+		return _ForType;
+	}
+	const NameSpace_Data& Get_NameSpace() const
+	{
+		UCodeLangAssert(Type == ClassType::NameSpace);
+		return _NameSapce;
+	}
 	inline ClassType Get_Type() const
 	{
 		return Type;
@@ -640,6 +749,8 @@ private:
 		FuncPtr_Data _FuncPtr;
 		GenericClass_Data _GenericClass;
 		GenericFunction_Data _GenericFunc;
+		ForType_Data _ForType;
+		NameSpace_Data _NameSapce;
 	};
 };
 class ClassAssembly
@@ -733,8 +844,38 @@ public:
 		r.FullName = FullName;
 		return r.Get_StaticArray();
 	}
+	inline NameSpace_Data& AddNameSpace(const String& Name, const String& FullName = "")
+	{
+		auto V = std::make_unique<AssemblyNode>(ClassType::NameSpace);
+		Classes.push_back(std::move(V));
+		auto& r = *Classes.back();
+		r.Name = Name;
+		r.FullName = FullName;
+		return r.Get_NameSpace();
+	}
+	inline ForType_Data& AddForType(const String& Name, const String& FullName = "")
+	{
+		auto V = std::make_unique<AssemblyNode>(ClassType::ForType);
+		Classes.push_back(std::move(V));
+		auto& r = *Classes.back();
+		r.Name = Name;
+		r.FullName = FullName;
+		return r.Get_ForType();
+	}
+	inline Eval_Data& AddEvalVarable(const String& Name, const String& FullName = "")
+	{
+		auto V = std::make_unique<AssemblyNode>(ClassType::Eval);
+		Classes.push_back(std::move(V));
+		auto& r = *Classes.back();
+		r.Name = Name;
+		r.FullName = FullName;
+		return r.Get_EvalData();
+	}	
 	
 	static void PushCopyClasses(const ClassAssembly& source, ClassAssembly& Out);
+
+	static Optional<ReflectionCustomTypeID> GetReflectionTypeID(const AssemblyNode* Item);
+
 	AssemblyNode* Find_Node(const String& Name, const String& Scope ="")
 	{
 		return Find_Node((String_view)Name, (String_view)Scope);
@@ -757,15 +898,8 @@ public:
 	}
 	AssemblyNode* Find_Node(ClassType Type,const String_view& Name = "", const String_view& Scope = "")
 	{
-		for (auto& Item : Classes)
-		{
-			if (ScopeHelper::GetNameFromFullName(Item->Name) == Name
-				|| Item->FullName == Name)
-			{
-				return Item.get();
-			}
-		}
-		return nullptr;
+		auto v = ((const ClassAssembly*)this)->Find_Node(Type,Name,Scope);
+		return *(AssemblyNode**)&v;
 	}
 	
 	const AssemblyNode* Find_Node(const String& Name, const String& Scope = "") const
@@ -790,6 +924,7 @@ public:
 	}
 	const AssemblyNode* Find_Node(ClassType Type, const String_view& Name = "", const String_view& Scope = "") const
 	{
+
 		for (auto& Item : Classes)
 		{
 			if (Item->Get_Type() == Type) 
@@ -821,21 +956,8 @@ public:
 	}
 	const Class_Data* Find_Class(const String_view& Name, const String_view& Scope = "") const
 	{
-		String Tep = String(Name);
-		Tep += Scope;
-		for (auto& Item : Classes)
-		{
-			if (Item->Get_Type() == ClassType::Class) 
-			{
-				if (ScopeHelper::GetNameFromFullName(Item->Name) == Name
-					|| Item->FullName == Name
-					|| Item->Name == Tep)
-				{
-					return &Item->Get_ClassData();
-				}
-			}
-		}
-		return nullptr;
+		auto v = ((ClassAssembly*)this)->Find_Class(Name,Scope);
+		return *(const Class_Data**)&v;	
 	}
 
 	Class_Data* Find_Class(const String& Name, const String& Scope = "")
@@ -863,64 +985,16 @@ public:
 
 	ClassMethod* Find_Func(const String_view& FullName)
 	{
-		for (auto& Item : Classes)
-		{
-			if (Item->Get_Type() == ClassType::Class)
-			{
-				for (auto& Item2 : Item->Get_ClassData().Methods)
-				{
-					if (Item2.DecorationName == FullName
-						|| Item2.FullName == FullName)
-					{
-						return &Item2;
-					}
-				}
-
-			}
-		}
-		return nullptr;
+		auto v = ((const ClassAssembly*)this)->Find_Func(FullName);
+		return *(ClassMethod**)&v;
 	}
 
-	const ClassMethod* Find_Func(const String_view& FullName) const
-	{
-		for (auto& Item : Classes)
-		{
-			if (Item->Get_Type() == ClassType::Class)
-			{
-				for (auto& Item2 : Item->Get_ClassData().Methods)
-				{
-					if (Item2.DecorationName == FullName
-						|| Item2.FullName == FullName)
-					{
-						return &Item2;
-					}
-				}
+	Optional<ClassMethod> Remove_Func(const String_view& FullName);
+	void Remove_NullFunc();
 
-			}
-		}
-		return nullptr;
-	}
+	const ClassMethod* Find_Func(const String_view& FullName) const;
 
-	Vector<ClassMethod*>  Find_Funcs(const String_view& FullName)
-	{
-		Vector<ClassMethod*> r;
-		for (auto& Item : Classes)
-		{
-			if (Item->Get_Type() == ClassType::Class)
-			{
-				for (auto& Item2 : Item->Get_ClassData().Methods)
-				{
-					if (Item2.DecorationName == FullName
-						|| Item2.FullName == FullName)
-					{
-						r.push_back(&Item2);
-					}
-				}
-
-			}
-		}
-		return r;
-	}
+	Vector<ClassMethod*>  Find_Funcs(const String_view& FullName);
 
 	Vector<const ClassMethod*> Find_Funcs(const String_view& FullName) const
 	{
@@ -928,27 +1002,7 @@ public:
 		return *(Vector<const ClassMethod*>*)&v;
 	}
 
-	Vector<const ClassMethod*> Find_FuncsUsingName(const String_view& Name) const
-	{
-		Vector<const ClassMethod*> r;
-		for (auto& Item : Classes)
-		{
-			if (Item->Get_Type() == ClassType::Class)
-			{
-				for (auto& Item2 : Item->Get_ClassData().Methods)
-				{
-					if (Item2.DecorationName == Name
-						|| Item2.FullName == Name
-						|| ScopeHelper::GetNameFromFullName(Item2.FullName) == Name)
-					{
-						r.push_back(&Item2);
-					}
-				}
-
-			}
-		}
-		return r;
-	}
+	Vector<const ClassMethod*> Find_FuncsUsingName(const String_view& Name) const;
 
 	const AssemblyNode* Find_Node(ReflectionCustomTypeID TypeID) const;
 	AssemblyNode* Find_Node(ReflectionCustomTypeID TypeID);

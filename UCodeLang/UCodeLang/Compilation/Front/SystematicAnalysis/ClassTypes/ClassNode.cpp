@@ -95,8 +95,28 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 			Assembly_AddClass(Node._Attributes, &Syb);
 		}
 
+		CaptureErrorContext errorcontext = GetErrorCaptureContext();
 
-
+		for (const auto& node : Node._Nodes)
+		{
+			Push_ToNodeScope(*node.get());
+			switch (node->Get_Type())
+			{
+			case NodeType::ClassNode: OnClassNode(*ClassNode::As(node.get())); break;
+			case NodeType::AliasNode:OnAliasNode(*AliasNode::As(node.get())); break;
+			case NodeType::EnumNode:OnEnum(*EnumNode::As(node.get())); break;
+			case NodeType::UsingNode: OnUseingNode(*UsingNode::As(node.get())); break;
+			case NodeType::FuncNode:OnFuncNode(*FuncNode::As(node.get())); break;
+			case NodeType::DeclareVariableNode:OnDeclareVariablenode(*DeclareVariableNode::As(node.get()), DeclareStaticVariableNode_t::ClassField); break;
+			case NodeType::DeclareStaticVariableNode:OnDeclareStaticVariableNode(*DeclareStaticVariableNode::As(node.get())); break;
+			case NodeType::DeclareThreadVariableNode:OnDeclareThreadVariableNode(*DeclareThreadVariableNode::As(node.get())); break;
+			case NodeType::DeclareEvalVariableNode:OnDeclareEvalVariableNode(*DeclareEvalVariableNode::As(node.get())); break;
+			case NodeType::TraitNode:OnTrait(*TraitNode::As(node.get())); break;
+			case NodeType::TagTypeNode:OnTag(*TagTypeNode::As(node.get())); break;
+			default:break;
+			}
+			Pop_NodeScope();
+		}
 
 
 		if (_PassType == PassType::FixedTypes) 
@@ -123,23 +143,33 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 						FuncInfo* V = Item->Get_Info<FuncInfo>();
 						if (V->Pars.size() == 1)
 						{
-							HasDefaultConstructor = true;
+							auto& ThisPar = V->Pars[0];
+							bool isthisfunc = ThisPar.Type.IsAddress() && ThisPar.IsOutPar == false && ThisPar.Type._CustomTypeSymbol == SybID;
+							if (isthisfunc)
+							{
+								HasDefaultConstructor = true;
+							}
 						}
 						if (V->Pars.size() == 2)
 						{
-							auto& OtherPar = V->Pars[1];
-							if (OtherPar.Type.IsAddress() && OtherPar.IsOutPar == false && OtherPar.Type._CustomTypeSymbol == SybID)
+							auto& ThisPar = V->Pars[0];
+							bool isthisfunc = ThisPar.Type.IsAddress() && ThisPar.IsOutPar == false && ThisPar.Type._CustomTypeSymbol == SybID;
+							if (isthisfunc) 
 							{
-
-								if (OtherPar.Type._MoveData == MoveData::None)
+								auto& OtherPar = V->Pars[1];
+								if (OtherPar.Type.IsAddress() && OtherPar.IsOutPar == false && OtherPar.Type._CustomTypeSymbol == SybID)
 								{
-									HasCopyConstructor = true;
-								}
-								else
-								{
-									HasMoveConstructor = true;
-								}
 
+									if (OtherPar.Type._MoveData == MoveData::None)
+									{
+										HasCopyConstructor = true;
+									}
+									else
+									{
+										HasMoveConstructor = true;
+									}
+
+								}
 							}
 						}
 					}
@@ -168,6 +198,56 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 
 					DropFunc->PassState = PassType::BuidCode;
 				}
+				
+				if (!HasCopyConstructor && ClassInf->_ClassAutoGenerateCopyConstructor)
+				{
+					auto DropFunc = &Symbol_AddSymbol(SymbolType::Func, ClassConstructorfunc, _Table._Scope.GetApendedString((String)ClassConstructorfunc), AccessModifierType::Public);
+					_Table.AddSymbolID(*DropFunc,Symbol_GetSymbolID(DropFunc));
+					FuncInfo* V = new FuncInfo();
+					DropFunc->Info.reset(V);
+
+					V->FullName = DropFunc->FullName;
+					V->_FuncType = FuncInfo::FuncType::New;
+					V->Ret = TypesEnum::Void;
+					V->FrontParIsUnNamed = true;
+
+					auto ThisParType = ThisCallType;
+					ThisParType._IsAddress = true;
+					V->Pars.push_back({ false,ThisParType });
+					
+					auto ThisParType2 = ThisCallType;
+					ThisParType2._Isimmutable = true;
+					ThisParType2._IsAddress = true;
+					V->Pars.push_back({ false,ThisParType2 });
+
+
+					ClassInf->_AutoGenerateCopyConstructor = DropFunc->ID;
+					DropFunc->PassState = PassType::BuidCode;
+				}
+
+				if (!HasMoveConstructor && ClassInf->_ClassAutoGenerateMoveConstructor)
+				{
+					auto DropFunc = &Symbol_AddSymbol(SymbolType::Func, ClassConstructorfunc, _Table._Scope.GetApendedString((String)ClassConstructorfunc), AccessModifierType::Public);
+					_Table.AddSymbolID(*DropFunc, Symbol_GetSymbolID(DropFunc));
+					FuncInfo* V = new FuncInfo();
+					DropFunc->Info.reset(V);
+
+					V->FullName = DropFunc->FullName;
+					V->_FuncType = FuncInfo::FuncType::New;
+					V->Ret = TypesEnum::Void;
+					V->FrontParIsUnNamed = true;
+
+					auto ThisParType = ThisCallType;
+					ThisParType._IsAddress = true;
+					V->Pars.push_back({ false,ThisParType });
+
+					auto ThisParType2 = ThisCallType;
+					ThisParType2._MoveData = MoveData::Moved;
+					V->Pars.push_back({ false,ThisParType2 });
+
+					ClassInf->_AutoGenerateMoveConstructor = DropFunc->ID;
+					DropFunc->PassState = PassType::BuidCode;
+				}
 			}
 
 			//Inherited Values
@@ -182,32 +262,45 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 					LogError_CantFindTypeError(NeverNullptr(Item._Name.token), Str);
 					continue;
 				}
-				auto Syb = SybOp.value();
+				auto InheritSyb = SybOp.value();
 				if (Item._generic._Values.size() == 0)
 				{
-					if (Syb->Type != SymbolType::Trait_class)
+					if (InheritSyb->Type != SymbolType::Trait_class)
 					{
-						LogError_ExpectedSymbolToBea(NeverNullptr(Item._Name.token), *Syb, SymbolType::Trait_class);
+						LogError_ExpectedSymbolToBea(NeverNullptr(Item._Name.token), *InheritSyb, SymbolType::Trait_class);
 						continue;
 					}
 				}
 				else
 				{
-					if (Syb->Type != SymbolType::Generic_Trait)
+					if (InheritSyb->Type != SymbolType::Generic_Trait)
 					{
-						LogError_ExpectedSymbolToBea(NeverNullptr(Item._Name.token), *Syb, SymbolType::Generic_Trait);
+						LogError_ExpectedSymbolToBea(NeverNullptr(Item._Name.token), *InheritSyb, SymbolType::Generic_Trait);
 						continue;
 					}
 
-					auto CInfo = Syb->Get_Info<TraitInfo>();
-					auto classnode = TraitNode::As(Syb->Get_NodeInfo<UCodeLang::Node>());
-					Syb = Generic_InstantiateOrFindGeneric_Trait(NeverNullptr(Item._Name.token), Syb, classnode->_generic, CInfo->_GenericData, Item._generic).value();
+					//if (CheckgenericForErr) { continue; }
+
+					Symbol_Update_TraitSym_ToFixedTypes(InheritSyb);
+
+					if (InheritSyb->ValidState == SymbolValidState::Invalid)
+					{
+						Syb.ValidState = SymbolValidState::Invalid;
+						continue;
+					}
+
+					auto CInfo = InheritSyb->Get_Info<TraitInfo>();
+					auto classnode = TraitNode::As(InheritSyb->Get_NodeInfo<UCodeLang::Node>());
+					auto trait = Generic_InstantiateOrFindGeneric_Trait(NeverNullptr(Item._Name.token), InheritSyb, classnode->_generic, CInfo->_GenericData, Item._generic);
+					if (!trait.has_value()) { continue; }
+					
+					InheritSyb = trait.value();
 				}
 
 				/*
 				for (auto& Item2 : ClassInf->_InheritedTypes)
 				{
-					if (Syb == Item2)
+					if (InheritSyb == Item2)
 					{
 						LogError(ErrorCodes::InValidType, Item.Token->OnLine, Item.Token->OnPos,
 							"duplicate Inherit Trait");
@@ -217,7 +310,7 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 
 
 				ClassInfo_InheritTypeInfo _Data;
-				_Data.Syb = Syb.value();
+				_Data.Syb = InheritSyb.value();
 				ClassInf->_InheritedTypes.push_back(_Data);
 
 
@@ -229,26 +322,7 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 			}
 		}
 
-		for (const auto& node : Node._Nodes)
-		{
-			Push_ToNodeScope(*node.get());
-			switch (node->Get_Type())
-			{
-			case NodeType::ClassNode: OnClassNode(*ClassNode::As(node.get())); break;
-			case NodeType::AliasNode:OnAliasNode(*AliasNode::As(node.get())); break;
-			case NodeType::EnumNode:OnEnum(*EnumNode::As(node.get())); break;
-			case NodeType::UsingNode: OnUseingNode(*UsingNode::As(node.get())); break;
-			case NodeType::FuncNode:OnFuncNode(*FuncNode::As(node.get())); break;
-			case NodeType::DeclareVariableNode:OnDeclareVariablenode(*DeclareVariableNode::As(node.get()), DeclareStaticVariableNode_t::ClassField); break;
-			case NodeType::DeclareStaticVariableNode:OnDeclareStaticVariableNode(*DeclareStaticVariableNode::As(node.get())); break;
-			case NodeType::DeclareThreadVariableNode:OnDeclareThreadVariableNode(*DeclareThreadVariableNode::As(node.get())); break;
-			case NodeType::DeclareEvalVariableNode:OnDeclareEvalVariableNode(*DeclareEvalVariableNode::As(node.get())); break;
-			case NodeType::TraitNode:OnTrait(*TraitNode::As(node.get())); break;
-			case NodeType::TagTypeNode:OnTag(*TagTypeNode::As(node.get())); break;
-			default:break;
-			}
-			Pop_NodeScope();
-		}
+		
 
 
 
@@ -268,6 +342,15 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 			_Table.RemoveScope();
 			Syb.FullName = _Table._Scope.ThisScope;
 		}
+		if (Isgeneric_t) 
+		{
+			bool hasanyerrors = ErrorCaptureHasErrors(errorcontext);
+			
+			if (hasanyerrors)
+			{
+				Syb.ValidState = SymbolValidState::Invalid;
+			}
+		}
 	}
 	else
 	{
@@ -280,9 +363,14 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 
 	if (_PassType == PassType::FixedTypes)//auto make funcs
 	{
-		
+		CaptureErrorContext errorcontext = GetErrorCaptureContext();
+		if (Isgeneric_t)
+		{
+			auto& GenericList = Node._generic;
+			Generic_GenericAliasFixTypes(GenericList, IsgenericInstantiation, ClassInf->_GenericData);
+		}
 
-		
+
 
 		{
 			const FieldInfo* bigestoffsetfield = nullptr;
@@ -306,6 +394,59 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 				ClassInf->Size = 0;
 			}
 		}
+
+		bool ispublic = Node._Access == AccessModifierType::Public;
+		if (Node._IsExport && ispublic)
+		{
+			for (size_t i = 0; i < ClassInf->Fields.size(); i++)
+			{
+				auto& cfield = ClassInf->Fields[i];
+
+				bool ispublic = false;
+				const Token* t = nullptr;
+				{
+					size_t fieldcount = 0;
+					for (auto& Item : Node._Nodes)
+					{
+						if (Item->Get_Type() == NodeType::DeclareVariableNode)
+						{
+							auto* declar = DeclareVariableNode::As(Item.get());
+							if (fieldcount == i)
+							{
+								t = declar->_Name.token;
+								ispublic = declar->_Access == AccessModifierType::Public;
+								break;
+							}
+							fieldcount++;
+						}
+					}
+				}
+
+				if (ispublic)
+				{
+					if (!Type_IsTypeExported(cfield.Type))
+					{
+
+
+						LogError_TypeIsNotExport(NeverNullptr(t), cfield.Type, NeverNullptr(&Syb));
+					}
+				}
+			}
+		}
+		if (!ispublic && Node._IsExport)
+		{
+			LogError_ExportIsPrivate(NeverNullptr(Node._className.token), NeverNullptr(&Syb));
+		}
+
+		if (Isgeneric_t)
+		{
+			bool hasanyerrors = ErrorCaptureHasErrors(errorcontext);
+
+			if (hasanyerrors)
+			{
+				Syb.ValidState = SymbolValidState::Invalid;
+			}
+		}
 	}
 	if (_PassType == PassType::BuidCode)
 	{
@@ -313,7 +454,6 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 		bool IsOkMakeIR = (Isgeneric_t && IsgenericInstantiation == true) || Isgeneric_t == false;
 		if (IsOkMakeIR)
 		{
-			
 			if (ClassInf->_ClassAutoGenerateDrop)
 			{
 				auto OldFunc = _IR_LookingAtIRFunc;
@@ -349,11 +489,11 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 				_IR_LookingAtIRFunc = OldFunc;
 				_IR_LookingAtIRBlock = OldBlock;
 
-				/*
+				
 				{
 					ClassMethod V2;
 					V2.FullName = Funcinfo->FullName;
-					V2.DecorationName = IR_GetIRID(Funcinfo);
+					V2.DecorationName = IR_MangleName(Funcinfo);
 					V2.RetType = Assembly_ConvertToType(Funcinfo->Ret);
 
 
@@ -361,6 +501,7 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 					V2.IsExternC = Funcinfo->IsExternC;
 					V2.IsUnsafe = Funcinfo->IsUnsafe;
 					V2.IsRemoved = Funcinfo->IsRemoved;
+					V2.IsExport = Node._IsExport;
 
 					for (size_t i = 0; i < Funcinfo->Pars.size(); i++)
 					{
@@ -371,10 +512,13 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 						F.Type = Assembly_ConvertToType(Item.Type);
 					}
 
-					Class_Data* Ptr = Assembly_GetAssemblyClass(Syb.FullName);
+					this->_ClassStack.push({});//the push and pop is dumb fix
+					Class_Data* Ptr = Assembly_GetAssemblyClass(ScopeHelper::ApendedStrings(Syb.FullName, "n/a"));
+					this->_ClassStack.pop();
+
 					Ptr->Methods.push_back(std::move(V2));
 				}
-				*/
+				
 			}
 			
 
@@ -387,6 +531,7 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 					V.FullName = RemoveSymboolFuncOverloadMangling(_Table._Scope.GetApendedString((String)ClassDeInitializefuncName));
 					V._FuncType = FuncInfo::FuncType::Drop;
 					V.Ret = TypesEnum::Void;
+					V.FrontParIsUnNamed = true;
 
 					auto ThisParType = ThisCallType;
 					ThisParType._IsAddress = true;
@@ -411,7 +556,36 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 					IR_Build_FuncDropUsingFields(ClassInf, ThisPar);
 					_IR_LookingAtIRBlock->NewRet();
 				}
+				
+				{
+					auto Funcinfo = &V;
+					ClassMethod V2;
+					V2.FullName = Funcinfo->FullName;
+					V2.DecorationName = Funcinfo->FullName;
+					V2.RetType = Assembly_ConvertToType(Funcinfo->Ret);
 
+
+					V2.IsThisFunction = Funcinfo->FrontParIsUnNamed;
+					V2.IsExternC = Funcinfo->IsExternC;
+					V2.IsUnsafe = Funcinfo->IsUnsafe;
+					V2.IsRemoved = Funcinfo->IsRemoved;
+					V2.IsExport = Node._IsExport;
+
+					for (size_t i = 0; i < Funcinfo->Pars.size(); i++)
+					{
+						auto& Item = Funcinfo->Pars[i];
+
+						auto& F = V2.ParsType.emplace_back();
+						F.IsOutPar = Item.IsOutPar;
+						F.Type = Assembly_ConvertToType(Item.Type);
+					}
+
+					this->_ClassStack.push({});//the push and pop is dumb fix
+					Class_Data* Ptr = Assembly_GetAssemblyClass(ScopeHelper::ApendedStrings(Syb.FullName, "n/a"));
+					this->_ClassStack.pop();
+
+					Ptr->Methods.push_back(std::move(V2));
+				}
 				//
 				_IR_LookingAtIRFunc = OldFunc;
 				_IR_LookingAtIRBlock = OldBlock;
@@ -426,6 +600,7 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 					V.FullName = RemoveSymboolFuncOverloadMangling(_Table._Scope.GetApendedString((String)ClassConstructorfunc));
 					V._FuncType = FuncInfo::FuncType::New;
 					V.Ret = TypesEnum::Void;
+					V.FrontParIsUnNamed = true;
 
 					auto ThisParType = ThisCallType;
 					ThisParType._IsAddress = true;
@@ -471,6 +646,7 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 					V2.IsExternC = V.IsExternC;
 					V2.IsUnsafe = V.IsUnsafe;
 					V2.IsRemoved = V.IsRemoved;
+					V2.IsExport = Node._IsExport;
 
 					for (size_t i = 0; i < V.Pars.size(); i++)
 					{
@@ -495,11 +671,231 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 			if (ClassInf->_ClassFieldInit)
 			{
 				ClassInf->_ClassFieldInit->Blocks[0]->NewRet();
+
+				String funcName = _Table._Scope.GetApendedString((String)ClassInitializefuncName);
+
+				ClassMethod V2;
+				V2.FullName = funcName;
+				V2.DecorationName = funcName;
+				V2.RetType = ReflectionTypes::Void;
+				V2.IsThisFunction = true;
+				V2.IsExport = Node._IsExport;
+
+				ClassMethod::Par p;
+				p.Type = Assembly_ConvertToType(TypeSymbol(Syb.ID));
+				p.Type._IsAddress = true;
+				V2.ParsType.push_back(std::move(p));
+
+				this->_ClassStack.push({});//the push and pop is dumb fix
+				Class_Data* Ptr = Assembly_GetAssemblyClass(ScopeHelper::ApendedStrings(Syb.FullName,"n/a"));
+				this->_ClassStack.pop();
+				
+				Ptr->Methods.push_back(std::move(V2));
+			}
+	
+			if (!ClassInf->_ClassHasCopyConstructor && ClassInf->_ClassAutoGenerateCopyConstructor)
+			{
+				auto ThisCallType = TypeSymbol(Syb.ID);
+				auto sym = Symbol_GetSymbol(ClassInf->_AutoGenerateCopyConstructor.value());
+				const FuncInfo& V = *sym->Get_Info<FuncInfo>();
+				
+
+
+				auto OldFunc = _IR_LookingAtIRFunc;
+				auto OldBlock = _IR_LookingAtIRBlock;
+				//
+				auto funcirid = IR_MangleName(&V);
+				_IR_LookingAtIRFunc = _IR_Builder.NewFunc(_IR_Builder.ToID(funcirid), IR_ConvertToIRType(V.Ret));
+				IRType ThisPar = IR_ConvertToIRType(V.Pars.front());
+				{
+					IRPar par = IRPar();
+					par.identifier = _IR_Builder.ToID(ThisSymbolName);
+					par.type = ThisPar;
+					_IR_LookingAtIRFunc->Pars.push_back(par);
+
+					IRPar par2 = IRPar();
+					par2.identifier = _IR_Builder.ToID("CopyFrom");
+					par2.type = ThisPar;
+					_IR_LookingAtIRFunc->Pars.push_back(par2);
+				}
+
+				_IR_LookingAtIRBlock = _IR_LookingAtIRFunc->NewBlock(".");
+				{
+					for (size_t i = ClassInf->Fields.size() - 1; i != (Vector<FieldInfo>::size_type) - 1; i--)
+					{
+						auto& Item = ClassInf->Fields[i];
+						auto v = HasCopyContructer(Item.Type);
+						auto par1 = _IR_LookingAtIRBlock->New_Member_Dereference(&_IR_LookingAtIRFunc->Pars.front(), ThisPar, i);
+						auto par2 = _IR_LookingAtIRBlock->New_Member_Dereference(&_IR_LookingAtIRFunc->Pars[1], ThisPar, i);
+
+						if (v && !Item.Type.IsAddress())
+						{
+							auto info = v.value()->Get_Info<FuncInfo>();
+
+							_IR_LookingAtIRBlock->NewPushParameter(_IR_LookingAtIRBlock->NewLoadPtr(par1));
+							_IR_LookingAtIRBlock->NewPushParameter(_IR_LookingAtIRBlock->NewLoadPtr(par2));
+							_IR_LookingAtIRBlock->NewCall(IR_GetIRID(info));
+						}
+						else
+						{
+							_IR_LookingAtIRBlock->NewStore(par1,par2);
+						}
+					}
+					_IR_LookingAtIRBlock->NewRet();
+				}
+
+				{
+					auto Funcinfo = &V;
+					ClassMethod V2;
+					V2.FullName = Funcinfo->FullName;
+					V2.DecorationName = funcirid;
+					V2.RetType = Assembly_ConvertToType(Funcinfo->Ret);
+
+
+					V2.IsThisFunction = Funcinfo->FrontParIsUnNamed;
+					V2.IsExternC = Funcinfo->IsExternC;
+					V2.IsUnsafe = Funcinfo->IsUnsafe;
+					V2.IsRemoved = Funcinfo->IsRemoved;
+					V2.IsExport = Node._IsExport;
+
+					for (size_t i = 0; i < Funcinfo->Pars.size(); i++)
+					{
+						auto& Item = Funcinfo->Pars[i];
+
+						auto& F = V2.ParsType.emplace_back();
+						F.IsOutPar = Item.IsOutPar;
+						F.Type = Assembly_ConvertToType(Item.Type);
+					}
+
+					this->_ClassStack.push({});//the push and pop is dumb fix
+					Class_Data* Ptr = Assembly_GetAssemblyClass(ScopeHelper::ApendedStrings(Syb.FullName, "n/a"));
+					this->_ClassStack.pop();
+
+					Ptr->Methods.push_back(std::move(V2));
+				}
+				//
+				_IR_LookingAtIRFunc = OldFunc;
+				_IR_LookingAtIRBlock = OldBlock;
+
+			}
+			
+			if (!ClassInf->_ClassHasMoveConstructor && ClassInf->_ClassAutoGenerateMoveConstructor)
+			{
+				auto ThisCallType = TypeSymbol(Syb.ID);
+
+				auto sym = Symbol_GetSymbol(ClassInf->_AutoGenerateMoveConstructor.value());
+				FuncInfo& V = *sym->Get_Info<FuncInfo>(); 
+
+				auto OldFunc = _IR_LookingAtIRFunc;
+				auto OldBlock = _IR_LookingAtIRBlock;
+				//
+				auto funcirid = IR_MangleName(&V);
+				_IR_LookingAtIRFunc = _IR_Builder.NewFunc(_IR_Builder.ToID(funcirid), IR_ConvertToIRType(V.Ret));
+				IRType ThisPar = IR_ConvertToIRType(V.Pars.front());
+				{
+					IRPar par = IRPar();
+					par.identifier = _IR_Builder.ToID(ThisSymbolName);
+					par.type = ThisPar;
+					_IR_LookingAtIRFunc->Pars.push_back(par);
+
+					IRPar par2 = IRPar();
+					par2.identifier = _IR_Builder.ToID("CopyFrom");
+					par2.type = ThisPar;
+					_IR_LookingAtIRFunc->Pars.push_back(par2);
+				}
+
+				_IR_LookingAtIRBlock = _IR_LookingAtIRFunc->NewBlock(".");
+				{
+					for (size_t i = ClassInf->Fields.size() - 1; i != (Vector<FieldInfo>::size_type) - 1; i--)
+					{
+						auto& Item = ClassInf->Fields[i];
+						auto v = HasMoveContructer(Item.Type);
+						auto par1 = _IR_LookingAtIRBlock->New_Member_Dereference(&_IR_LookingAtIRFunc->Pars.front(), ThisPar, i);
+						auto par2 = _IR_LookingAtIRBlock->New_Member_Dereference(&_IR_LookingAtIRFunc->Pars[1], ThisPar, i);
+
+						if (v && !Item.Type.IsAddress())
+						{
+							auto info = v.value()->Get_Info<FuncInfo>();
+
+							_IR_LookingAtIRBlock->NewPushParameter(_IR_LookingAtIRBlock->NewLoadPtr(par1));
+							_IR_LookingAtIRBlock->NewPushParameter(_IR_LookingAtIRBlock->NewLoadPtr(par2));
+							_IR_LookingAtIRBlock->NewCall(IR_GetIRID(info));
+						}
+						else
+						{
+							_IR_LookingAtIRBlock->NewStore(par1, par2);
+						}
+					}
+					_IR_LookingAtIRBlock->NewRet();
+				}
+
+				{
+					auto Funcinfo = &V;
+					ClassMethod V2;
+					V2.FullName = Funcinfo->FullName;
+					V2.DecorationName = funcirid;
+					V2.RetType = Assembly_ConvertToType(Funcinfo->Ret);
+
+
+					V2.IsThisFunction = Funcinfo->FrontParIsUnNamed;
+					V2.IsExternC = Funcinfo->IsExternC;
+					V2.IsUnsafe = Funcinfo->IsUnsafe;
+					V2.IsRemoved = Funcinfo->IsRemoved;
+					V2.IsExport = Node._IsExport;
+
+					for (size_t i = 0; i < Funcinfo->Pars.size(); i++)
+					{
+						auto& Item = Funcinfo->Pars[i];
+
+						auto& F = V2.ParsType.emplace_back();
+						F.IsOutPar = Item.IsOutPar;
+						F.Type = Assembly_ConvertToType(Item.Type);
+					}
+
+					this->_ClassStack.push({});//the push and pop is dumb fix
+					Class_Data* Ptr = Assembly_GetAssemblyClass(ScopeHelper::ApendedStrings(Syb.FullName, "n/a"));
+					this->_ClassStack.pop();
+
+					Ptr->Methods.push_back(std::move(V2));
+				}
+				//
+				_IR_LookingAtIRFunc = OldFunc;
+				_IR_LookingAtIRBlock = OldBlock;
 			}
 
 			for (auto& Item : ClassInf->_InheritedTypes)
 			{
 				Symbol_BuildTrait(&Syb, ClassInf, Item.Syb, NeverNullptr(Node._className.token));
+			}
+		
+
+			bool needstoexportgenricaliases = true;
+
+			if (needstoexportgenricaliases)
+			{
+				this->_ClassStack.push({});//the push and pop is dumb fix
+				Class_Data* Ptr = Assembly_GetAssemblyClass(ScopeHelper::ApendedStrings(Syb.FullName, "n/a"));
+				this->_ClassStack.pop();
+
+				Ptr->GenericAlias.reserve(ClassInf->_GenericAlias.size());
+				for (auto& Item : ClassInf->_GenericAlias)
+				{
+					TraitAlias val;
+					
+					val.AliasName = Item.Name;
+					val.Type = Assembly_ConvertToType(Item.Type);
+					if (Item.IsExpression())
+					{
+						auto& Ex = Item.Expression.value();
+
+						ReflectionRawData data;
+						data.Resize(Ex.Size);
+						memcpy(data.Get_Data(), Ex.Get_Data(), Ex.Size);
+
+						val.Expression = std::move(data);
+					}
+					Ptr->GenericAlias.push_back(std::move(val));
+				}
 			}
 		}
 
@@ -526,6 +922,8 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 
 			VClass.Base.Implementation = ClassStr + String(ClassBody);
 			VClass.Base.Implementation += "\n\n";
+			VClass.AccessModifier = Syb.Access;
+			VClass.IsExported = Node._IsExport;
 		}
 	}
 

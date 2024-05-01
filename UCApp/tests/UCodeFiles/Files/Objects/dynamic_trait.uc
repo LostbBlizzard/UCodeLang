@@ -1,5 +1,5 @@
 $Object trait:
- |GetValue[this&] -> int;
+ dynamic |GetValue[this&] -> int;
 
 $Object_1[Object]:
  |GetValue[this&] -> int:

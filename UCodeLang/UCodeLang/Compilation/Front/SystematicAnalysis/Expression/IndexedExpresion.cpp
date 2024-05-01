@@ -134,6 +134,13 @@ void SystematicAnalysis::OnExpressionNode(const IndexedExpresionNode& node)
 				V.FuncToCall = HasInfo.Value.value();
 
 				_LastExpressionType = f->Ret;
+
+				TypeSymbol lookingfor = _LookingForTypes.top();
+				if (!lookingfor.IsAddress() && !IsWrite(_GetExpressionMode.top()))
+				{
+					_LastExpressionType._IsAddress = false;
+					_LastExpressionType._Isimmutable = false;
+				}
 			}
 			else
 			{
@@ -160,7 +167,10 @@ void SystematicAnalysis::OnExpressionNode(const IndexedExpresionNode& node)
 					}
 					else
 					{
-						lookingfor.SetAsAddress();
+						if (lookingfortype.IsAddress() || IsWrite(_GetExpressionMode.top()))
+						{
+							lookingfor.SetAsAddress();
+						}
 					}
 
 					_LastExpressionType = lookingfor;
@@ -291,7 +301,10 @@ void SystematicAnalysis::OnExpressionNode(const IndexedExpresionNode& node)
 
 
 			}
-
+			if (Type_IsStaticArray(SourcType) && !SourcType.IsAddress())
+			{
+				Pointer = _IR_LookingAtIRBlock->NewLoadPtr(Pointer);
+			}
 
 
 			_IR_LastExpressionField = _IR_LookingAtIRBlock->New_Index_Vetor(Pointer, IndexField,IR_Load_UIntptr(V));
@@ -306,8 +319,14 @@ void SystematicAnalysis::OnExpressionNode(const IndexedExpresionNode& node)
 				else if (Type_IsStaticArray(SourcType))
 				{
 					auto Syb = Symbol_GetSymbol(SourcType).value();
+
+					bool isaddress = lookingfor.IsAddress();
+
 					lookingfor = Syb->Get_Info<StaticArrayInfo>()->Type;
-					lookingfor.SetAsAddress();
+
+					if (isaddress) {
+						lookingfor.SetAsAddress();
+					}
 
 					_LastExpressionType = lookingfor;
 				}
@@ -334,6 +353,13 @@ void SystematicAnalysis::OnExpressionNode(const IndexedExpresionNode& node)
 			{
 				bool LookCopyByValue = _LookingForTypes.top().IsAddress()
 					|| _LookingForTypes.top().IsAddressArray();
+				if (LookCopyByValue == false)
+				{
+					if (_LookingForTypes.top().IsMovedType() && HasMoveContructerHasIRFunc(_LastExpressionType))
+					{
+						LookCopyByValue = true;
+					}
+				}
 
 				if (LookCopyByValue == false)
 				{
@@ -342,10 +368,14 @@ void SystematicAnalysis::OnExpressionNode(const IndexedExpresionNode& node)
 
 					if (CopyByValue || !IsWrite(_GetExpressionMode.top()))
 					{
+						auto v = _LookingForTypes.top();
+						v._MoveData = MoveData::None;
+
 						_IR_LastExpressionField = _IR_LookingAtIRBlock->NewLoad_Dereferenc(_IR_LastExpressionField
-							, IR_ConvertToIRType(_LookingForTypes.top()));
+							, IR_ConvertToIRType(v));
 
 						_LastExpressionType._IsAddress = false;
+						_LastExpressionType._MoveData = MoveData::None;
 					}
 				}
 				

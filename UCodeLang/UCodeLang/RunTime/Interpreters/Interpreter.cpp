@@ -125,7 +125,7 @@ Interpreter::Return_t Interpreter::Call(UAddress address)
 	
 	while (_CPU.Stack.StackOffSet != OldStackoffset)
 	{
-		Instruction& Inst = _State->GetInst(_CPU.ProgramCounter);
+		const Instruction& Inst = _State->GetInst(_CPU.ProgramCounter);
 		Extecute(Inst);	
 		_CPU.ProgramCounter++;
 	}
@@ -157,15 +157,22 @@ void Interpreter::ThrowInterpreterError(String_view ErrorMsg)
 	PanicCalled v;
 	v.PanicMsg = ErrorMsg;
 
-	auto pc = _CPU.ProgramCounter;
-
-
 	r.ErrorType = std::move(v);
 
 	m = std::move(r);
 }
 Optional<InterpretorError> Interpreter::CheckForIntperpreterError()
 {
+	if (m.has_value()) 
+	{
+		auto& List = m.value().StatckFrames.StackOfCallers;
+		for (size_t i = 0; i < List.size() / 2; i++)
+		{
+			std::swap(List[i], List[List.size() - i - 1]);
+		}
+		auto t = std::move(m);
+		return t;
+	}
 	return m;
 }
 	
@@ -352,7 +359,7 @@ InsCase(notequaltof##Bits):\
 		Get_Register(Inst.Op_ThreeReg.B).Value. AnyValue;\
 	 InsBreak();\
 
-void Interpreter::Extecute(Instruction& Inst)
+void Interpreter::Extecute(const Instruction& Inst)
 {
 	#if UseJumpTable
 	#define JumpTableInt(bitsize) \
@@ -543,6 +550,7 @@ void Interpreter::Extecute(Instruction& Inst)
 			
 		//Other
 		&&Ins_SetPanicMsg,
+		&&Ins_PushPanicStackFrame,
 	};
 
 	constexpr size_t JumpTableSize = sizeof(InsJumpTable) / sizeof(InsJumpTable[0]);
@@ -880,8 +888,8 @@ void Interpreter::Extecute(Instruction& Inst)
 			Free(Get_Register(Inst.Op_TwoReg.A).Value.AsPtr);
 		 InsBreak();
 	InsCase(MemCopy):
-			MemCopy(Get_Register(Inst.Op_ThreeReg.B).Value.AsPtr
-				   ,Get_Register(Inst.Op_ThreeReg.A).Value.AsPtr
+			MemCopy(Get_Register(Inst.Op_ThreeReg.A).Value.AsPtr
+				   ,Get_Register(Inst.Op_ThreeReg.B).Value.AsPtr
 			       ,Get_Register(Inst.Op_ThreeReg.C).Value.AsUIntNative);
 		 InsBreak();
 	InsCase(Calloc):
@@ -1170,7 +1178,14 @@ void Interpreter::Extecute(Instruction& Inst)
 		ThrowInterpreterError(v);
 	}
 	InsBreak();
+	InsCase(PushPanicStackFrame):
+	{
+		RegisterID Ex = Inst.Op_OneReg.A;
+		UAddress v = Get_Register(Ex).Value.AsAddress;
 
+		m.value().StatckFrames.StackOfCallers.push_back(v);
+	}
+	InsBreak();
 #if !UseJumpTable
 	default:
 		UCodeLangUnreachable();

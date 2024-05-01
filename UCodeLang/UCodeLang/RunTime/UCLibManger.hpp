@@ -22,7 +22,7 @@ public:
 
 	Optional < UAddress> FindAddress(const String& FunctionName) const;
 	Optional<const RunTimeLib::CPPCall*> FindCPPCall(const String& FunctionName) const;
-	inline Instruction& GetInst(UAddress address)
+	inline const Instruction& GetInst(UAddress address) const
 	{
 		return _Instructions[(NSize_t)address];
 	}

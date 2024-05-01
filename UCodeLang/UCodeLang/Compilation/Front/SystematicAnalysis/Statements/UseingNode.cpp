@@ -12,8 +12,7 @@ void SystematicAnalysis::OnUseingNode(const UsingNode& node)
 	{
 		if (!Symbol_GetSymbol(UseingString, SymbolType::Namespace))
 		{
-			//LogError_CantFindNamespace(T, UseingString);
-			//TODO Readd this
+			LogError_CantFindNamespace(T, UseingString);
 		}
 	}
 }

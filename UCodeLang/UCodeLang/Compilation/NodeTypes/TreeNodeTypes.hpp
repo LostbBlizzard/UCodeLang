@@ -227,6 +227,8 @@ struct GenericValueNode :Node
 	}
 	const Token* token = nullptr;
 	GenericType _Generictype = GenericType::Name;
+	Optional<ScopedNameNode> _BaseOrRuleScopeName;
+	bool IsRule = false;
 
 
 	String_view AsStringView() const
@@ -530,6 +532,7 @@ struct FuncSignatureNode :Node
 
 	bool _IsRemoved = false;
 	bool _IsExport = false;
+	bool _HasDynamicKeyWordForTrait = false;
 };
 struct FuncBodyNode :Node
 {
@@ -673,6 +676,7 @@ struct RetStatementNode :Node
 	}
 	AddforNode(RetStatementNode);
 	ExpressionNodeType _Expression;
+	const Token* _RetToken =nullptr;
 };
 
 struct DeclareVariableNode :Node
@@ -744,7 +748,7 @@ struct AliasNode :Node
 
 	
 	bool _IsHardAlias = false;
-	
+	bool IsExport = false;
 	AliasType _AliasType = AliasType::Type;
 	Unique_ptr<Node> _Node;
 
@@ -796,6 +800,7 @@ struct TagTypeNode :Node
 	GenericValuesNode _generic;
 	AccessModifierType _Access = AccessModifierType::Default;
 	bool _IsExport = false;
+	const Token* EndOfClass = nullptr;
 
 	TagTypeNode(TagTypeNode&& source) = default;
 	TagTypeNode& operator=(TagTypeNode&& source) = default;
@@ -911,6 +916,7 @@ struct AnonymousObjectConstructorNode :Node
 	}
 	AddforNode(AnonymousObjectConstructorNode);
 	ValueParametersNode _Fields;
+	const Token* token;
 };
 struct CastNode :Node
 {
@@ -1005,6 +1011,11 @@ struct ForNode :Node
 	{
 
 	}
+	ForNode(NodeType type) : Node(type)
+	{
+		UCodeLangAssert(type ==NodeType::CompileTimeForNode)
+
+	}
 	AddforNode(ForNode);
 
 
@@ -1016,6 +1027,12 @@ struct ForNode :Node
 	PostfixVariableNode _OnNextStatement;
 	//Modern
 	ExpressionNodeType _Modern_List;
+	struct ForVarable
+	{
+		TypeNode _typeNode;
+		const Token* _Name = nullptr;
+	};
+	Vector<ForVarable> _OtherVarables;
 	//Both
 	TypeNode _typeNode;
 	const Token* _Name = nullptr;
@@ -1093,6 +1110,7 @@ struct TraitNode :Node
 	AccessModifierType _Access = AccessModifierType::Default;
 	GenericValuesNode _generic;
 	bool _IsExport = false;
+	const Token* EndOfClass = nullptr;
 	AddforNodeAndWithList(TraitNode);
 
 };
@@ -1232,33 +1250,13 @@ struct CompileTimeIfNode :Node
 	Unique_ptr<Node> _Else;
 };
 
-struct CompileTimeForNode :Node
+struct CompileTimeForNode : ForNode
 {
-	enum class ForType
-	{
-		Traditional,//for [int a = 0;a < 10;a++];
-		modern,//for [var& Item : List];
-	};
-
-	CompileTimeForNode() : Node(NodeType::CompileTimeForNode)
+	CompileTimeForNode() : ForNode(NodeType::CompileTimeForNode)
 	{
 
 	}
 	AddforNode(CompileTimeForNode);
-
-
-	ForType _Type = ForType::Traditional;
-
-	//Traditional
-	ExpressionNodeType _Traditional_Assignment_Expression;
-	ExpressionNodeType _BoolExpression;
-	PostfixVariableNode _OnNextStatement;
-	//Modern
-	ExpressionNodeType _Modern_List;
-	//Both
-	TypeNode _TypeNode;
-	const Token* _Name = nullptr;
-	StatementsNode _body;
 };
 
 struct ExtendedScopeExpression : Node
@@ -1453,6 +1451,7 @@ struct ForTypeNode :Node
 	TypeNode _typetoaddto;
 	GenericValuesNode _generic;
 	const Token* EndOfClass = nullptr;
+	bool _IsExport = false;
 };
 
 UCodeLangFrontEnd

@@ -107,21 +107,50 @@ void SystematicAnalysis::OnAliasNode(const AliasNode& node)
 			{
 				Syb.PassState = PassType::FixedTypes;
 				Type_ConvertAndValidateType(node._Type, Syb.VarType, NodeSyb_t::Any);
+
+				bool ispublic = node._Access == AccessModifierType::Public;
+				if (node.IsExport && ispublic)
+				{
+					if (!Type_IsTypeExported(Syb.VarType))
+					{
+						LogError_TypeIsNotExport(NeverNullptr(node._AliasName.token), Syb.VarType, NeverNullptr(&Syb));
+					}
+				}
 			}
 			else
 			{
 				AliasNode_Func* node_ = (AliasNode_Func*)node._Node.get();
 				FuncPtrInfo* nodeinfo_ = (FuncPtrInfo*)Syb.Info.get();
 
+				auto& GenericList = node.Generic;
+				Generic_GenericAliasFixTypes(GenericList, IsgenericInstantiation, nodeinfo_->_GenericData);
+
+				bool ispublic = node._Access == AccessModifierType::Public;
 				for (size_t i = 0; i < nodeinfo_->Pars.size(); i++)
 				{
 					auto& NodePar = node_->_Parameters._Parameters[i];
 					auto& Par = nodeinfo_->Pars[i];
 					Par.IsOutPar = NodePar._IsOutVarable;
 					Type_ConvertAndValidateType(NodePar._Type, Par.Type, NodeSyb_t::Parameter);
+
+					if (node.IsExport && ispublic)
+					{
+						if (!Type_IsTypeExported(Par.Type))
+						{
+							LogError_TypeIsNotExport(NeverNullptr(node._AliasName.token), Par.Type, NeverNullptr(&Syb));
+						}
+					}
 				}
 
 				Type_ConvertAndValidateType(node_->_ReturnType, nodeinfo_->Ret, NodeSyb_t::Ret);
+				
+				if (node.IsExport && ispublic)
+				{
+					if (!Type_IsTypeExported(nodeinfo_->Ret))
+					{
+						LogError_TypeIsNotExport(NeverNullptr(node._AliasName.token), nodeinfo_->Ret, NeverNullptr(&Syb));
+					}
+				}
 			}
 		}
 	}
@@ -138,6 +167,9 @@ void SystematicAnalysis::OnAliasNode(const AliasNode& node)
 				{
 					V.HardAliasTypeID = Type_GetTypeID(TypesEnum::CustomType, Syb.ID);
 				}
+				V.AccessModifier = Syb.Access;
+				V.IsExported = node.IsExport;
+
 				FileDependency_AddDependencyToCurrentFile(Syb.VarType);
 			}
 			else
@@ -147,11 +179,13 @@ void SystematicAnalysis::OnAliasNode(const AliasNode& node)
 				V.ParsType.resize(nodeinfo_->Pars.size());
 				for (size_t i = 0; i < nodeinfo_->Pars.size(); i++)
 				{
-					//TODO should use a function like Assembly_ConvertToParType.
 					V.ParsType[i].IsOutPar = nodeinfo_->Pars[i].IsOutPar;
 					V.ParsType[i].Type = Assembly_ConvertToType(nodeinfo_->Pars[i].Type);
 				}
 				V.RetType = Assembly_ConvertToType(nodeinfo_->Ret);
+				V.AccessModifier = Syb.Access;
+				V.IsExported = node.IsExport;
+				V.TypeID = Type_GetTypeID(TypesEnum::CustomType, Syb.ID);
 			}
 		}
 
@@ -164,7 +198,7 @@ void SystematicAnalysis::OnAliasNode(const AliasNode& node)
 
 			String_view ClassBody =
 				String_view(&Text[node._AliasName.token->OnPos],
-					node.EndOfClass->OnPos - node._AliasName.token->OnPos);
+					node.EndOfClass->OnPos - node._AliasName.token->OnPos + 1);
 
 			auto newfullname = RemoveSymboolFuncOverloadMangling(Syb.FullName);
 			GenericClass_Data& VClass = _Lib.Get_Assembly().AddGenericClass(
@@ -172,6 +206,8 @@ void SystematicAnalysis::OnAliasNode(const AliasNode& node)
 
 			VClass.Base.Implementation = ClassStr + String(ClassBody);
 			VClass.Base.Implementation += "\n\n";
+			VClass.AccessModifier = Syb.Access;
+			VClass.IsExported = node.IsExport;
 
 		}
 	}

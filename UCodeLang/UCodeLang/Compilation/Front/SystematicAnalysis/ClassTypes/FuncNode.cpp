@@ -388,6 +388,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 		newInfo->IsExternC = node._Signature.Externtype == ExternType::ExternC
 			|| node._Signature.Externtype == ExternType::ExternSystem;
 		newInfo->IsRemoved = node._Signature._IsRemoved;
+		newInfo->IsTraitDynamicDispatch = node._Signature._HasDynamicKeyWordForTrait;
 
 		syb->Info.reset(newInfo);
 
@@ -476,12 +477,30 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 		return;
 	}
 
-	OnAttributesNode(node._Attributes);
 	FuncInfo* Info = syb->Get_Info<FuncInfo>();
+	OnAttributesNode(node._Attributes,Optionalref(Info->Attributes));
 
+	if (_PassType == PassType::FixedTypes && Isgeneric_t)
+	{
+		auto& GenericList = node._Signature._generic;
+		Generic_GenericAliasFixTypes(GenericList, IsgenericInstantiation, Info->_GenericData);
+	}
 	syb->PassState = _PassType;
 	_FuncStack.push_back(Info);
 
+	Optional<bool> IsEnabled;
+	for (auto& Item : Info->Attributes)
+	{
+		if (!Item->VarType.IsBadType()) 
+		{
+			auto& sym = *Symbol_GetSymbol(Item->VarType).value().value();
+			if (IsEnableAttribute(sym))
+			{
+				IsEnabled = GetEnableAttribute(*Item).IsEnable;
+				break;
+			}
+		}
+	}
 
 	if (_PassType == PassType::FixedTypes
 		|| (IsGenericS && _PassType == PassType::GetTypes))
@@ -526,8 +545,12 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 		else
 		{
 			if (!node._Signature._IsRemoved) {
-				Type_ConvertAndValidateType(node._Signature._ReturnType, syb->VarType, NodeSyb_t::Ret);
-				Info->Ret = syb->VarType;
+				if (Info->FullName == "ULang:(&ForType&):uint8:{<!&imut!>}ToString")
+				{
+					int a = 0;
+				}
+				Type_ConvertAndValidateType(node._Signature._ReturnType,Info->Ret, NodeSyb_t::Ret);
+				syb->VarType = Info->Ret;
 			}
 		}
 
@@ -584,8 +607,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 				auto& Classinfo = _ClassStack.top().Info;
 				auto classsybid = _ClassStack.top().Syb->ID;
 				auto& OtherPar = Info->Pars[1];
-				if (OtherPar.Type.IsAddress() && OtherPar.IsOutPar == false
-					&& OtherPar.Type._CustomTypeSymbol == classsybid)
+				if (OtherPar.IsOutPar == false && OtherPar.Type._CustomTypeSymbol == classsybid)
 				{
 					if (OtherPar.Type.IsMovedType())
 					{
@@ -594,7 +616,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 					}
 					else
 					{
-						if (!OtherPar.Type.Isimmutable())
+						if (!OtherPar.Type.Isimmutable() && OtherPar.Type.IsAddress())
 						{
 							auto ParToken = node._Signature._Parameters._Parameters[1]._Name.token;
 							LogError(ErrorCodes::InValidType,
@@ -614,11 +636,22 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 
 	bool buidCode = _PassType == PassType::BuidCode && Info->IsRemoved == false;
 	bool ignoreBody = !IsgenericInstantiation && IsGenericS;
+	bool igorebecausedisable = false;
+	if (ignoreBody == false)
+	{
+		if (IsEnabled.has_value())
+		{
+			if (IsEnabled.value() == false) 
+			{
+				igorebecausedisable = true;
+			}
+		}
+	}
 
 
 	if (buidCode && !ignoreBody)
 	{
-		bool IsBuildingIR = true;
+		bool IsBuildingIR = igorebecausedisable == false;
 		auto DecName = IR_MangleName(Info);
 
 		if (IsBuildingIR)
@@ -789,20 +822,42 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 		V.FullName = RemoveSymboolFuncOverloadMangling(FullName);
 		V.DecorationName = RemoveSymboolFuncOverloadMangling(DecName);
 		V.RetType = Assembly_ConvertToType(Info->Ret);
-		;
+	
 
 		V.IsThisFunction = Info->FrontParIsUnNamed;
 		V.IsExternC = Info->IsExternC;
 		V.IsUnsafe = Info->IsUnsafe;
 		V.IsRemoved = Info->IsRemoved;
-		
+		V.Protection = syb->Access;
+		V.IsExport = node._Signature._IsExport;
+
 		for (size_t i = 0; i < Info->Pars.size(); i++)
 		{
 			auto& Item = Info->Pars[i];
 
+					
+			auto symop = Symbol_GetSymbol(Item.Type);
+			if (symop)
+			{
+				auto sym = symop.value();
+				if (sym->Type == SymbolType::Type_Pack)
+				{
+					auto info = sym->Get_Info<TypePackInfo>();
+
+					for (auto& Item : info->List)
+					{
+						auto& F = V.ParsType.emplace_back();
+						F.IsOutPar = false;
+						F.Type = Assembly_ConvertToType(Item);
+					}
+					continue;
+				}
+			}
 			auto& F = V.ParsType.emplace_back();
 			F.IsOutPar = node._Signature._Parameters._Parameters[i]._IsOutVarable;
 			F.Type = Assembly_ConvertToType(Item.Type);
+
+
 		}
 
 		Assembly_ConvertAttributes(node._Attributes, V.Attributes.Attributes);
@@ -839,6 +894,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 				}
 			}
 		}
+		ignoreBody = igorebecausedisable;
 		//
 	}
 
@@ -926,6 +982,8 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 		auto& assemblyfunc = _Lib.Get_Assembly().AddGenericFunc(ScopeHelper::GetNameFromFullName(syb->FullName), syb->FullName);
 
 		assemblyfunc.Base.Implementation = GetImplementationFromFunc(filetext, nametoken, endtoken);
+		assemblyfunc.AccessModifier = syb->Access;
+		assemblyfunc.IsExported = node._Signature._IsExport;
 	}
 
 	if (_PassType == PassType::FixedTypes)
@@ -935,13 +993,35 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 			auto Token = NeverNullptr(node._Signature._Name.token);
 			LogError_BeMoreSpecifiicForRetType(FuncName, Token);
 		}
-		else {
+		else
+		{
 			FuncRetCheck(*node._Signature._Name.token, syb, Info);
 			auto Token = NeverNullptr(node._Signature._Name.token);
 			Symbol_RedefinitionCheck(syb, Info, Token);
 		}
 
-		
+
+		bool ispublic = node._Signature._Access == AccessModifierType::Public;
+		if (node._Signature._IsExport && ispublic)
+		{
+			if (!Type_IsTypeExported(Info->Ret))
+			{
+				LogError_TypeIsNotExport(NeverNullptr(node._Signature._ReturnType._name._ScopedName.back()._token), Info->Ret, syb);
+			}
+
+			for (auto& Item : Info->Pars)
+			{
+				if (!Type_IsTypeExported(Item.Type))
+				{
+					LogError_TypeIsNotExport(NeverNullptr(node._Signature._Name.token), Item.Type, syb);
+				}
+			}
+		}
+
+		if (!ispublic && node._Signature._IsExport)
+		{
+			LogError_ExportIsPrivate(NeverNullptr(node._Signature._Name.token), syb);
+		}
 	}
 
 	_FuncStack.pop_back();
@@ -957,8 +1037,28 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 String SystematicAnalysis::GetImplementationFromFunc(String_view filetext, const Token* nametoken, const Token* endtoken)
 {
 
-	String funcstr = (String)"|" + (String)nametoken->Value._String;
+	String funcstr = (String)"|";
 
+	if (nametoken->Type == TokenType::Name)
+	{
+		funcstr += nametoken->Value._String;
+	}
+	else if (nametoken->Type == TokenType::KeyWord_for)
+	{
+		funcstr += "for";
+	}
+	else if (nametoken->Type == TokenType::KeyWord_new)
+	{
+		funcstr += "new";
+	}
+	else if (nametoken->Type == TokenType::Left_Bracket)
+	{
+		funcstr += "";
+	}
+	else
+	{
+		UCodeLangUnreachable();
+	}
 
 
 	size_t offset = 0;
@@ -994,7 +1094,23 @@ String SystematicAnalysis::IR_MangleName(const FuncInfo* Func)
 
 			if (auto Val = Symbol_GetSymbol(Item.Type).value_unchecked())
 			{
-				V.symbolFullName = Val->FullName;
+				if (Val->Type == SymbolType::Type_Pack)
+				{
+					auto info = Val->Get_Info<TypePackInfo>();
+
+					for (auto& ItemList : info->List) 
+					{
+						NameDecoratior::Par V;
+						V.par.Type = Assembly_ConvertToType(ItemList);
+						V.par.IsOutPar = Item.IsOutPar;
+						Vect.push_back(std::move(V));
+					}
+					continue;
+				}
+				else 
+				{
+					V.symbolFullName = Val->FullName;
+				}
 			}
 			Vect.push_back(std::move(V));
 		}

@@ -89,6 +89,52 @@ void SystematicAnalysis::Pop_AddToGeneratedGenricSymbol(Symbol& addedSymbol, con
 
 }
 
+void SystematicAnalysis::Set_TraitGenericAlias(Vector<TraitGenericAlias>& Out, const Vector<TypeSymbol>& GenericInput, const GenericValuesNode& GenericValueNode)
+{
+	Out.reserve(GenericInput.size());
+	for (size_t i = 0; i < GenericInput.size(); i++)
+	{
+		TraitGenericAlias alias;
+		alias.Type = GenericInput[i];
+		alias.Name = GenericValueNode._Values[i].token->Value._String;
+
+		auto symop = Symbol_GetSymbol(alias.Type);
+		if (symop.has_value())
+		{
+			auto sym = symop.value();
+
+			if (sym->Type == SymbolType::ConstantExpression)
+			{
+				ReflectionRawData Ex;
+				ConstantExpressionInfo* info = sym->Get_Info<ConstantExpressionInfo>();
+
+				Ex.Resize(info->Ex.ObjectSize);
+				memcpy(Ex.Get_Data(), info->Ex.Object_AsPointer.get(), info->Ex.ObjectSize);
+
+				alias.Expression = std::move(Ex);
+
+				alias.Type = sym->VarType;
+			}
+			else if (sym->Type == SymbolType::Type_Pack)
+			{
+				TypePackInfo* info = sym->Get_Info<TypePackInfo>();
+
+				alias.Type = TypeSymbol(TypesEnum::Null);
+
+				Vector<TypeSymbol>& list = info->List;
+				alias.TypePack = list;
+			}
+		}
+
+		Out.push_back(std::move(alias));
+	}
+}
+
+bool IsNewGeneric(const String& val,Symbol* NewSymbol)
+{
+	return val == ScopeHelper::GetNameFromFullName(NewSymbol->FullName);
+}
+
 void SystematicAnalysis::Generic_TypeInstantiate(const NeverNullPtr<Symbol> Class, const Vector<TypeSymbol>& GenericInput)
 {
 	UCodeLangAssert(Class->Type == SymbolType::Generic_class);
@@ -123,6 +169,14 @@ void SystematicAnalysis::Generic_TypeInstantiate(const NeverNullPtr<Symbol> Clas
 		UCodeLangAssert(addedSymbol.Type == SymbolType::Type_class);
 		UCodeLangAssert(addedSymbol.PassState == PassType::GetTypes);
 
+		for (auto& Item : GenericOutputs)
+		{
+			if (IsNewGeneric(Item.second,&addedSymbol))
+			{
+				(*Item.first).SetType(addedSymbol.ID);
+			}
+		}
+
 		if (_ErrorsOutput->Get_ErrorCount() <= Olderrcount)
 		{
 			_PassType = PassType::FixedTypes;
@@ -133,8 +187,10 @@ void SystematicAnalysis::Generic_TypeInstantiate(const NeverNullPtr<Symbol> Clas
 
 		Pop_AddToGeneratedGenricSymbol(addedSymbol, GenericInput);
 
-
-
+		{
+			auto info = addedSymbol.Get_Info<ClassInfo>();
+			Set_TraitGenericAlias(info->_GenericAlias, GenericInput, node->_generic);
+		}
 
 		//
 		Set_SymbolContext(std::move(OldContext));
@@ -150,7 +206,7 @@ void SystematicAnalysis::Generic_TypeInstantiate(const NeverNullPtr<Symbol> Clas
 
 void SystematicAnalysis::Generic_TypeInstantiate_Trait(const NeverNullPtr<Symbol> Trait, const Vector<TypeSymbol>& GenericInput)
 {
-	UCodeLangAssert(Trait->Type == SymbolType::Trait_class);
+	UCodeLangAssert(Trait->Type == SymbolType::Generic_Trait);
 
 	const String NewName = Generic_SymbolGenericName(Trait, GenericInput);
 	const String FullName = Generic_SymbolGenericFullName(Trait, GenericInput);
@@ -183,7 +239,7 @@ void SystematicAnalysis::Generic_TypeInstantiate_Trait(const NeverNullPtr<Symbol
 
 
 		auto& addedSymbol = *_Table.Symbols[NewSymbolIndex].get();
-		UCodeLangAssert(addedSymbol.FullName == NewName);
+		UCodeLangAssert(addedSymbol.FullName == FullName);
 		UCodeLangAssert(addedSymbol.Type == SymbolType::Trait_class);
 		UCodeLangAssert(addedSymbol.PassState == PassType::GetTypes);
 
@@ -194,6 +250,11 @@ void SystematicAnalysis::Generic_TypeInstantiate_Trait(const NeverNullPtr<Symbol
 			OnTrait(*node);
 
 			UCodeLangAssert(addedSymbol.PassState == PassType::FixedTypes);
+		}
+
+		{
+			TraitInfo* info = addedSymbol.Get_Info<TraitInfo>();
+			Set_TraitGenericAlias(info->_GenericAlias, GenericInput, node->_generic);
 		}
 
 		Pop_AddToGeneratedGenricSymbol(addedSymbol, GenericInput);
@@ -248,7 +309,13 @@ void SystematicAnalysis::Generic_TypeInstantiate_Alias(const NeverNullPtr<Symbol
 			|| addedSymbol.Type == SymbolType::Func_ptr
 			|| addedSymbol.Type == SymbolType::Hard_Func_ptr);
 		UCodeLangAssert(addedSymbol.PassState == PassType::GetTypes);
-
+		for (auto& Item : GenericOutputs)
+		{
+			if (IsNewGeneric(Item.second, &addedSymbol))
+			{
+				(*Item.first).SetType(addedSymbol.ID);
+			}
+		}
 
 
 		if (_ErrorsOutput->Get_ErrorCount() <= Olderrcount)
@@ -426,7 +493,7 @@ void SystematicAnalysis::Generic_TypeInstantiate_ForType(const NeverNullPtr<Symb
 
 		auto& addedSymbol = *_Table.Symbols[NewSymbolIndex].get();
 
-		UCodeLangAssert(addedSymbol.FullName == NewName);
+		UCodeLangAssert(addedSymbol.FullName == FullName);
 		UCodeLangAssert(addedSymbol.Type == SymbolType::ForType);
 		UCodeLangAssert(addedSymbol.PassState == PassType::GetTypes);
 
@@ -471,6 +538,20 @@ GenericData::Type SystematicAnalysis::Generic_TypeToGenericDataType(GenericValue
 		break;
 	}
 }
+const Generic* GetGenercInfo(const NeverNullPtr<Symbol> Func)
+{
+	const Generic* info = nullptr;
+	switch (Func->Type)
+	{
+	case SymbolType::GenericFunc:
+		info = &Func->Get_Info<FuncInfo>()->_GenericData;
+		break;
+	default:
+		UCodeLangUnreachable();
+		break;
+	}
+	return info;
+}
 String SystematicAnalysis::Generic_SymbolGenericFullName(const NeverNullPtr<Symbol> Func, const Vector<TypeSymbol>& Type) const
 {
 #if UCodeLangDebug
@@ -478,8 +559,20 @@ String SystematicAnalysis::Generic_SymbolGenericFullName(const NeverNullPtr<Symb
 	{
 		UCodeLangAssert(!Type_IsUnMapType(Item));//trying use UnMaped Type when Generic Instantiate.
 	}
+
+	bool shouldhaveinputpars = true;
+	if (Type.size() == 0)
+	{
+		const Generic* info = GetGenercInfo(Func);
+		shouldhaveinputpars = info->IsPack() == false;
+	}
+
+	if (shouldhaveinputpars)
+	{
+		UCodeLangAssert(Type.size());//you need input types for Generic Instantiate.
+	}
 #endif // DEBUG
-	UCodeLangAssert(Type.size());//you need input types for Generic Instantiate.
+
 
 	String NewName = Func->FullName + "<";
 	for (auto& Item : Type)
@@ -500,8 +593,18 @@ String SystematicAnalysis::Generic_SymbolGenericName(const NeverNullPtr<Symbol> 
 	{
 		UCodeLangAssert(!Type_IsUnMapType(Item));//trying use UnMaped Type when Generic Instantiate.
 	}
+	bool shouldhaveinputpars = true;
+	if (Type.size() == 0)
+	{
+		const Generic* info = GetGenercInfo(Func);
+		shouldhaveinputpars = info->IsPack() == false;
+	}
+
+	if (shouldhaveinputpars)
+	{
+		UCodeLangAssert(Type.size());//you need input types for Generic Instantiate.
+	}
 #endif // DEBUG
-	UCodeLangAssert(Type.size());//you need input types for Generic Instantiate.
 
 	String NewName = ScopeHelper::GetNameFromFullName(Func->FullName) + "<";
 	for (auto& Item : Type)
@@ -536,6 +639,11 @@ NullablePtr<Symbol> SystematicAnalysis::Generic_InstantiateOrFindGenericSymbol(c
 	NullablePtr<Symbol> R = nullptr;
 
 	Symbol_Update_Sym_ToFixedTypes(SybV);
+
+	if (SybV->ValidState == SymbolValidState::Invalid)
+	{
+		return {};
+	}
 
 	if (SybV->Type == SymbolType::Generic_class)
 	{
@@ -614,6 +722,7 @@ void SystematicAnalysis::Generic_InitGenericalias(const GenericValuesNode& Gener
 			GenericData Info;
 			Info.SybID = ID;
 			Info.type = Generic_TypeToGenericDataType(Item._Generictype);
+
 			Out._Genericlist.push_back(Info);
 
 			if (Info.type == GenericData::Type::Pack)
@@ -624,6 +733,47 @@ void SystematicAnalysis::Generic_InitGenericalias(const GenericValuesNode& Gener
 					LogError_ParPackTypeIsNotLast(NeverNullptr(Item.token));
 				}
 			}
+		}
+	}
+}
+
+void SystematicAnalysis::Generic_GenericAliasFixTypes(const GenericValuesNode& GenericList, bool IsgenericInstantiation, Generic& Out)
+{
+	for (size_t i = 0; i < GenericList._Values.size(); i++)
+	{
+		auto& Item = GenericList._Values[i];
+		auto& OutItem = Out._Genericlist[i];
+
+
+		if (Item._BaseOrRuleScopeName.has_value())
+		{
+			auto& rule = Item._BaseOrRuleScopeName.value();
+			Optional<Variant<TypeSymbol, SymbolID>> base;
+			{
+				bool istype = true;
+				{
+					String scope;
+					rule.GetScopedName(scope);
+					auto sym = GetSymbolsWithName(scope);
+				}
+
+				if (istype)
+				{
+					TypeSymbol type;
+					TypeNode typenode;
+					typenode._name._ScopedName = rule._ScopedName;
+					Type_Convert(typenode, type);
+
+					base = type;
+				}
+				else
+				{
+					UCodeLangUnreachable();
+				}
+			}
+
+			OutItem.BaseOrRule = std::move(base);
+
 		}
 	}
 }

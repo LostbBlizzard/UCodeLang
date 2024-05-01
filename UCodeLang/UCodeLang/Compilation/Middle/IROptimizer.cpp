@@ -627,6 +627,41 @@ void IROptimizer::UpdateOptimizationList()
 	}
 	ResetOptimizations();
 
+	Flag_NoExceptions = Stettings.HasArg("NoExceptions");
+	{
+		auto p = Stettings.GetArgValueFlag("FuncionsToKeep");
+
+		if (p.has_value())
+		{
+			Vector<String> FuncsToKeep;
+			auto& str = p.value();
+			
+			String tepstr;
+			for (size_t i = 0; i < str.size(); i++)
+			{
+				auto c = tepstr[i];
+
+				if (c == ',')
+				{
+					if (tepstr.size())
+					{
+						FuncsToKeep.push_back(std::move(tepstr));
+					}
+				}
+				else 
+				{
+					tepstr += c;
+				}
+			}
+			if (tepstr.size())
+			{
+				FuncsToKeep.push_back(std::move(tepstr));
+			}
+
+			Flag_FuncsToKeep = std::move(FuncsToKeep);
+		}
+	}
+
 #if !IsOptimizerStable
 	return;
 #endif
@@ -650,7 +685,7 @@ void IROptimizer::UpdateOptimizationList()
 			Optimization_RemoveUnreachable = true;
 			Optimization_RemoveUnneedMeallocAndFree = true;
 
-			Optimization_FloatFastMath = Stettings.HasFlagArg("ffast-math");
+			Optimization_FloatFastMath = Stettings.HasFlagArg("FFastMath");
 		}
 		Optimization_StrengthReduction = true;
 		Optimization_RemoveIdenticalTypes = true;

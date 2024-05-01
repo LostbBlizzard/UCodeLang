@@ -9,21 +9,21 @@ Tests:
 
  [Test]
  |Unique_ptr_2[]:
-  //int^ v = unq int(5);
-  //ret v.Get() == 5;
+  int^ v = unq int(5);
+  ret v.Get() == 5;
 
  [Test]
  |Unique_ptr_3[]:
-  //int r = 5;
-  //int^ Vptr = unq int(r);
+  int r = 5;
+  int^ Vptr = unq int(r);
   
-  //Vptr.Write(10);
+  Vptr.Get() = 10;
 
-  //ret Vptr.ReadPtr() == 10;
+  ret Vptr.Get() == 10;
 
  [Test]
  |Unique_ptr_4[]:
-  //var Vptr = unq Vec2(8,6);
+  //var Vptr = unq Vec2(8.0,6.0);
 
   //Vptr~>X = 5;
   //Vptr~>Y = 8;

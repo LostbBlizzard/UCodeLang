@@ -917,23 +917,30 @@ void SystematicAnalysis::Assembly_LoadType(const ReflectionTypeInfo& Item, TypeS
 		auto Node = LibsAssembby.Find_Node(Item._CustomTypeID);
 		if (Node)
 		{
+			auto list = GetSymbolsWithName(Node->FullName);
+			if (!list.size())
+			{
+				Out = TypeSymbol(TypesEnum::Null);
+				return;
+			}
+
 			switch (Node->Get_Type())
 			{
 			case ClassType::Class:
 			{
-				auto& Syb = GetSymbolsWithName(Node->FullName).front();
+				auto& Syb = list.front();
 				Out.SetType(Syb->ID);
 			}
 			break;
 			case ClassType::Alias:
 			{
-				auto& Syb = GetSymbolsWithName(Node->FullName).front();
+				auto& Syb = list.front();
 				Out.SetType(Syb->ID);
 			}
 			break;
 			case ClassType::Enum:
 			{
-				auto& Syb = GetSymbolsWithName(Node->FullName).front();
+				auto& Syb = list.front();
 				Out.SetType(Syb->ID);
 			}
 			break;

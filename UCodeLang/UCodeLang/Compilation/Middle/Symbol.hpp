@@ -304,6 +304,7 @@ struct GenericData
 	};
 	SymbolID SybID;
 	Type type = Type::Name;
+	Optional<Variant<TypeSymbol,SymbolID>> BaseOrRule;
 	bool IsConstantExpression() const
 	{
 		return type == Type::ConstantExpression;
@@ -418,6 +419,8 @@ public:
 	bool IsUnsafe = false;
 	bool IsExternC = false;
 	bool IsRemoved = false;
+	bool IsTraitDynamicDispatch = false;
+	Vector<Symbol*> Attributes;
 	bool IsObjectCall() const
 	{
 		return Pars.size() && (Pars.front().Type.IsAddress() && Pars.front().IsOutPar == false && FrontParIsUnNamed);
@@ -486,7 +489,7 @@ struct ClassInfo_InheritTypeInfo
 	Vector<FuncIndex> Funcs;
 	Vector<AddedVarInfo> AddedVar;
 };
-
+struct TraitGenericAlias;
 class ClassInfo :public Symbol_Info
 {
 public:
@@ -502,6 +505,7 @@ public:
 	bool SizeInitialized = false;
 
 	Generic _GenericData;
+	Vector<TraitGenericAlias> _GenericAlias;
 
 	ClassInfo()
 	{
@@ -565,6 +569,8 @@ public:
 
 	Optional<SymbolID> _ClassHasCopyConstructor;
 	Optional<SymbolID> _ClassHasMoveConstructor;
+	Optional<SymbolID> _AutoGenerateCopyConstructor;
+	Optional<SymbolID> _AutoGenerateMoveConstructor;
 
 	bool _IsExternalC = false;
 
@@ -829,7 +835,22 @@ struct TraitVar
 {
 	Symbol* Syb = nullptr;
 };
+struct TraitGenericAlias
+{
+	String Name;
+	TypeSymbol Type;
+	Optional<ReflectionRawData> Expression;
+	Optional<Vector<TypeSymbol>> TypePack;
 
+	bool IsTypePack()
+	{
+		return TypePack.has_value();
+	}
+	bool IsExpression()
+	{
+		return Expression.has_value();
+	}	
+};
 class TraitInfo :public Symbol_Info
 {
 public:
@@ -853,6 +874,8 @@ public:
 
 	Vector<TraitFunc> _Funcs;
 	Vector<TraitVar> _Vars;
+	Vector<Symbol*> _Symbols;
+	Vector<TraitGenericAlias> _GenericAlias;
 	Symbol* TraitClassInfo = nullptr;
 	Generic _GenericData;
 	Optional<SymbolContext> Context;

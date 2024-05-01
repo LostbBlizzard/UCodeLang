@@ -675,6 +675,10 @@ public:
 	{
 		Out = Instruction(InstructionSet::SetPanicMsg, Instruction::TwoReg(ptr, size));
 	}
+	UCodeLangForceinline static void PushPanicStackFrame(Instruction& Out,RegisterID ptr)
+	{
+		Out = Instruction(InstructionSet::PushPanicStackFrame, Instruction::OneReg(ptr));
+	}
 	
 	/*
 	UCodeLangForceinline static void GenInst(Intermediate_Set Inst, const UInt64 Value0, const UInt64 Value1, Instruction& Out)

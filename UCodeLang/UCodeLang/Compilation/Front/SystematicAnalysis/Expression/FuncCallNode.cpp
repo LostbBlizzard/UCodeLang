@@ -25,7 +25,7 @@ void SystematicAnalysis::OnFuncCallNode(const FuncCallNode& node)
 	{
 		for (auto& Item : node.Parameters._Nodes)
 		{
-			if (Item->Get_Type() != NodeType::OutExpression) 
+			if (Item->Get_Type() != NodeType::OutExpression)
 			{
 				OnExpressionTypeNode(Item.get(), GetValueMode::Read);
 			}
@@ -37,7 +37,13 @@ void SystematicAnalysis::OnFuncCallNode(const FuncCallNode& node)
 		if (!_FuncToSyboID.HasValue(symid))
 		{
 
-			auto Info = Type_GetFunc(node._FuncName, node.Parameters, Type_Get_LookingForType());
+			TypeSymbol v = Type_Get_LookingForType();
+			if (Type_IsUnMapType(v))
+			{
+				v = TypesEnum::Any;
+			}
+
+			auto Info = Type_GetFunc(node._FuncName, node.Parameters, v);
 
 			if (Info.SymFunc)
 			{
@@ -51,9 +57,9 @@ void SystematicAnalysis::OnFuncCallNode(const FuncCallNode& node)
 				auto& Data = _Varable.top();
 
 
-				String ThisP = ScopeHelper::ApendedStrings(_FuncStack.front().Pointer->FullName,ThisSymbolName);
+				String ThisP = ScopeHelper::ApendedStrings(_FuncStack.front().Pointer->FullName, ThisSymbolName);
 
-				Data._UsedSymbols.push_back(Symbol_GetSymbol(ThisP,SymbolType::ParameterVarable).value().value());
+				Data._UsedSymbols.push_back(Symbol_GetSymbol(ThisP, SymbolType::ParameterVarable).value().value());
 			}
 
 			_FuncToSyboID.AddValue(symid, std::move(Info));
@@ -97,7 +103,7 @@ void SystematicAnalysis::IR_Build_EnumOut(NeverNullPtr<Symbol> EnumSymbol, IRIns
 	{
 		IRInstruction* ThisObj = ThisEnum;
 		IRInstruction* BoolObj = nullptr;
-		
+
 
 
 		IRInstruction* ThisobjV = nullptr;
@@ -238,14 +244,16 @@ void SystematicAnalysis::IR_Build_EnumOut(NeverNullPtr<Symbol> EnumSymbol, size_
 
 		_LookingForTypes.pop();
 	}
-	IR_Build_EnumOut(EnumSymbol,ThisObj, EnumIndex, Pars, 1);
+	IR_Build_EnumOut(EnumSymbol, ThisObj, EnumIndex, Pars, 1);
 
 }
 void SystematicAnalysis::IR_Build_FuncCall(Get_FuncInfo Func, const ScopedNameNode& Name, const ValueParametersNode& Pars)
 {
 	if (_PassType != PassType::BuidCode) { return; }
 
-	Debug_Add_SetLineNumber(NeverNullptr(Name._ScopedName.begin()->_token), _IR_LookingAtIRBlock->Instructions.size());
+	if (Name._ScopedName.size()) {
+		Debug_Add_SetLineNumber(NeverNullptr(Name._ScopedName.begin()->_token), _IR_LookingAtIRBlock->Instructions.size());
+	}
 	{
 
 #define PrimitiveTypeCall(FullName,TypeEnum,DefaultValue) if (ScopedName == FullName) \
@@ -257,6 +265,30 @@ void SystematicAnalysis::IR_Build_FuncCall(Get_FuncInfo Func, const ScopedNameNo
 				_LookingForTypes.push(iNfo);\
 				auto& Item = Pars._Nodes[0];\
 				OnExpressionTypeNode(Item.get(),GetValueMode::Read);\
+				auto extype = _LastExpressionType; \
+				{ \
+					auto symop = Symbol_GetSymbol(extype); \
+					if (symop.has_value())\
+					{\
+						auto sym = symop.value();\
+						if (sym->Type == SymbolType::Type_Pack)\
+						{\
+							TypePackInfo* info = sym->Get_Info<TypePackInfo>();\
+							if (info->List.size() == 0)\
+							{\
+								_LastExpressionType = iNfo;\
+								DefaultValue;\
+							}\
+							else \
+							{\
+								_LastExpressionType = info->List[0]; \
+								size_t irindex = _IR_LookingAtIRFunc->Pars.size() - info->List.size(); \
+								auto irpar = &_IR_LookingAtIRFunc->Pars[irindex]; \
+								_IR_LastExpressionField = _IR_LookingAtIRBlock->NewLoad(irpar); \
+							}\
+						}\
+					}\
+				}\
 				IR_Build_ImplicitConversion(_IR_LastExpressionField, _LastExpressionType, iNfo);\
 				_LookingForTypes.pop();\
 			}\
@@ -277,10 +309,10 @@ void SystematicAnalysis::IR_Build_FuncCall(Get_FuncInfo Func, const ScopedNameNo
 
 		PrimitiveTypeCall(Uint8TypeName, TypesEnum::uInt8, _IR_LastExpressionField = _IR_LookingAtIRBlock->NewLoad((UInt8)0);)
 		else PrimitiveTypeCall(Uint16TypeName, TypesEnum::uInt16, _IR_LastExpressionField = _IR_LookingAtIRBlock->NewLoad((UInt16)0))
-		else PrimitiveTypeCall(Uint32TypeName, TypesEnum::uInt32, _IR_LastExpressionField = _IR_LookingAtIRBlock->NewLoad((UInt32)0))
-		else PrimitiveTypeCall(Uint64TypeName, TypesEnum::uInt64, _IR_LastExpressionField = _IR_LookingAtIRBlock->NewLoad(((UInt64)0)))
+else PrimitiveTypeCall(Uint32TypeName, TypesEnum::uInt32, _IR_LastExpressionField = _IR_LookingAtIRBlock->NewLoad((UInt32)0))
+	else PrimitiveTypeCall(Uint64TypeName, TypesEnum::uInt64, _IR_LastExpressionField = _IR_LookingAtIRBlock->NewLoad(((UInt64)0)))
 
-		else PrimitiveTypeCall(Sint8TypeName, TypesEnum::sInt8, _IR_LastExpressionField = _IR_LookingAtIRBlock->NewLoad((Int8)0);)
+	else PrimitiveTypeCall(Sint8TypeName, TypesEnum::sInt8, _IR_LastExpressionField = _IR_LookingAtIRBlock->NewLoad((Int8)0);)
 		else PrimitiveTypeCall(Sint16TypeName, TypesEnum::sInt16, _IR_LastExpressionField = _IR_LookingAtIRBlock->NewLoad((Int16)0))
 		else PrimitiveTypeCall(Sint32TypeName, TypesEnum::sInt32, _IR_LastExpressionField = _IR_LookingAtIRBlock->NewLoad((Int32)0))
 		else PrimitiveTypeCall(Sint64TypeName, TypesEnum::sInt64, _IR_LastExpressionField = _IR_LookingAtIRBlock->NewLoad((Int64)0))
@@ -473,7 +505,7 @@ void SystematicAnalysis::IR_Build_FuncCall(Get_FuncInfo Func, const ScopedNameNo
 			if (Func.ThisPar == Get_FuncInfo::ThisPar_t::PushFromScopedName)
 			{
 				_LookingForTypes.push(Func.Func->Pars[0].Type);
-				
+
 				_GetExpressionMode.push(GetValueMode::Read);
 				GetMemberTypeSymbolFromVar_t V;
 				Symbol_MemberTypeSymbolFromVar(0, Name._ScopedName.size() - 1, Name, V);
@@ -491,22 +523,27 @@ void SystematicAnalysis::IR_Build_FuncCall(Get_FuncInfo Func, const ScopedNameNo
 			else if (Func.ThisPar == Get_FuncInfo::ThisPar_t::OnIRlocationStack)
 			{
 
-				bool UseedTopIR = _IR_IRlocations.size() != 0 && _IR_IRlocations.top().UsedlocationIR == false;
-				if (UseedTopIR)
-				{
-					auto Type = Func.Func->Pars[0];
-
-					auto v = IR_ConvertToIRType(Type);
-
-
-
-					if (v._symbol.ID != _IR_IRlocations.top().Value->ObjectType._symbol.ID)
+				bool UseedTopIR = _IR_IRlocations.size() != 0 && _IR_IRlocations.top().UsedlocationIR == true;
+				bool makenew = false;
+				if (!UseedTopIR)
+				{	
+					if (_IR_IRlocations.size())
 					{
-						UseedTopIR = false;
+						auto Type = Func.Func->Pars[0];
+						auto v = IR_ConvertToIRType(Type);
+
+						const auto& top = _IR_IRlocations.top();
+						IRType val = _IR_Builder.GetType(top.Value);	
+
+						if (v._symbol.ID != val._symbol.ID)
+						{
+							makenew = true;
+						}
 					}
 				}
-			
-				if (!UseedTopIR)
+
+				bool shouldpushnew = UseedTopIR || makenew || _IR_IRlocations.size() == 0;
+				if (shouldpushnew)
 				{
 					IRLocation_Cotr tep;
 					tep.UsedlocationIR = false;
@@ -524,8 +561,8 @@ void SystematicAnalysis::IR_Build_FuncCall(Get_FuncInfo Func, const ScopedNameNo
 				{
 					PushIRStackRet = _IR_IRlocations.top().Value;
 
+					UCodeLangAssert(_IR_IRlocations.top().UsedlocationIR == false);
 				}
-
 
 
 				{
@@ -534,7 +571,7 @@ void SystematicAnalysis::IR_Build_FuncCall(Get_FuncInfo Func, const ScopedNameNo
 					IRParsList.push_back(Defe);
 				}
 
-				if (!UseedTopIR)
+				if (shouldpushnew)
 				{
 					_IR_IRlocations.pop();
 				}
@@ -542,8 +579,26 @@ void SystematicAnalysis::IR_Build_FuncCall(Get_FuncInfo Func, const ScopedNameNo
 			}
 			else if (Func.ThisPar == Get_FuncInfo::ThisPar_t::OnIRlocationStackNonedef)
 			{
-				bool UseedTopIR = _IR_IRlocations.size() != 0 && _IR_IRlocations.top().UsedlocationIR == false;
+				bool UseedTopIR = _IR_IRlocations.size() != 0 && _IR_IRlocations.top().UsedlocationIR == true;
+				bool makenew = false;
 				if (!UseedTopIR)
+				{	
+					if (_IR_IRlocations.size())
+					{
+						auto Type = Func.Func->Pars[0];
+						auto v = IR_ConvertToIRType(Type);
+
+						const auto& top = _IR_IRlocations.top();
+						IRType val = _IR_Builder.GetType(top.Value);	
+						if (v._symbol.ID != val._symbol.ID)
+						{
+							makenew = true;
+						}
+					}
+				}
+
+				bool shouldpushnew = UseedTopIR || makenew || _IR_IRlocations.size() == 0;
+				if (shouldpushnew)
 				{
 					IRLocation_Cotr tep;
 					tep.UsedlocationIR = false;
@@ -560,11 +615,12 @@ void SystematicAnalysis::IR_Build_FuncCall(Get_FuncInfo Func, const ScopedNameNo
 				}
 
 				{
+					UCodeLangAssert(_IR_IRlocations.top().UsedlocationIR == false);
 					IRParsList.push_back(_IR_IRlocations.top().Value);
 					_IR_IRlocations.top().UsedlocationIR = true;
 				}
 
-				if (!UseedTopIR)
+				if (shouldpushnew)
 				{
 					_IR_IRlocations.pop();
 				}
@@ -642,6 +698,8 @@ void SystematicAnalysis::IR_Build_FuncCall(Get_FuncInfo Func, const ScopedNameNo
 		}
 		auto& FuncParInfo = FuncParInfoPtr;
 
+
+		FuncParInfo.Type._ValueInfo = TypeValueInfo::IsValue;
 		_LookingForTypes.push(FuncParInfo.Type);
 
 		if (Item->Get_Type() == NodeType::OutExpression)
@@ -658,11 +716,47 @@ void SystematicAnalysis::IR_Build_FuncCall(Get_FuncInfo Func, const ScopedNameNo
 		{
 			OnExpressionTypeNode(Item.get(), GetValueMode::Read);
 			IR_Build_ImplicitConversion(_IR_LastExpressionField, _LastExpressionType, FuncParInfo.Type);
+
+			if (!FuncParInfo.Type.IsAddress() && _LastExpressionType.IsMovedType())
+			{
+				_IR_LastExpressionField = _IR_LookingAtIRBlock->NewLoadPtr(_IR_LastExpressionField);
+			}
 		}
+
+		bool unpackparpack = true;
+		if (unpackparpack)
+		{
+			auto extype = _LastExpressionType;
+
+			auto symop = Symbol_GetSymbol(extype);
+			if (symop.has_value())
+			{
+				auto sym = symop.value();
+
+				if (sym->Type == SymbolType::Type_Pack)
+				{
+					const TypePackInfo* info = sym->Get_Info<TypePackInfo>();
+
+					_LookingForTypes.pop();
+
+					size_t parindex = Index;
+					for (size_t i = 0; i < info->List.size(); i++)
+					{
+						auto& packtype = info->List[i];
+						auto& irpar = _IR_LookingAtIRFunc->Pars[parindex + i];
+
+						IRParsList.push_back(_IR_LookingAtIRBlock->NewLoad(&irpar));
+					}
+
+					break;
+				}
+
+			}
+		}
+
 		IRParsList.push_back(_IR_LastExpressionField);
-
-
 		_LookingForTypes.pop();
+
 	}
 	auto Syb = Func.SymFunc;
 
@@ -687,17 +781,28 @@ void SystematicAnalysis::IR_Build_FuncCall(Get_FuncInfo Func, const ScopedNameNo
 		auto TraitSyb = Symbol_GetSymbol(TraitType).value();
 		auto TraitAsIR = IR_ConvertToIRType(TraitType);
 
-		auto VPtrMember = _IR_LookingAtIRBlock->New_Member_Dereference(IRParsList.front(), TraitAsIR, 1);
+		auto VPtrMember = _IR_LookingAtIRBlock->New_Member_Dereference(IRParsList.front(), TraitAsIR, DymTraitIRVTableIndex);
 
 
 		TraitInfo* Info = TraitSyb->Get_Info<TraitInfo>();
-		size_t FuncIndex = Info->GetIndex_Func(Func.SymFunc).value();
 
+		size_t FuncIndex = 0;
+		for (auto& Item : Info->_Funcs)
+		{
+			if (Func.SymFunc == Item.Syb)
+			{
+				break;
+			}
+			if (Item.Syb->Get_Info<FuncInfo>()->IsTraitDynamicDispatch)
+			{
+				FuncIndex++;
+			}
+		}
 		auto PtrCall = _IR_LookingAtIRBlock->New_Member_Dereference(VPtrMember, IRType(_IR_Builder.ToID(Str_GetTraitVStructTableName(TraitSyb->FullName))), FuncIndex);
 
 
 
-		IRParsList.front() = _IR_LookingAtIRBlock->New_Member_Dereference(IRParsList.front(), TraitAsIR, 0);
+		IRParsList.front() = _IR_LookingAtIRBlock->New_Member_Dereference(IRParsList.front(), TraitAsIR, DymTraitIRPointerIndex);
 
 		//
 		for (auto& Item : IRParsList)
@@ -709,7 +814,7 @@ void SystematicAnalysis::IR_Build_FuncCall(Get_FuncInfo Func, const ScopedNameNo
 	}
 	else if (Syb->Type == SymbolType::Func)
 	{
-			_IR_LastExpressionField = _IR_LookingAtIRBlock->NewCall(IR_GetIRID(Func.Func));
+		_IR_LastExpressionField = _IR_LookingAtIRBlock->NewCall(IR_GetIRID(Func.Func));
 	}
 	else if (Syb->Type == SymbolType::StackVarable)
 	{
@@ -785,6 +890,448 @@ void SystematicAnalysis::IR_Build_FuncCall(Get_FuncInfo Func, const ScopedNameNo
 		}
 
 	}
+}
+
+
+bool FuncInferFuncCountOk(SymbolType symtype, const FuncInfo* Info, size_t parcount, bool& islastparispack)
+{
+	bool r = Info->Pars.size() == parcount;
+	{
+		if (symtype == SymbolType::GenericFunc && Info->_GenericData.IsPack())
+		{
+			bool lastparispack = false;
+			if (Info->Pars.size())
+			{
+				auto& last = Info->Pars.back();
+				lastparispack = last.Type._CustomTypeSymbol == Info->_GenericData._Genericlist.back().SybID;
+			}
+
+			if (lastparispack)
+			{
+				size_t minfuncparcount = Info->Pars.size() - 1;
+				if (parcount >= minfuncparcount)
+				{
+					r = true;
+					islastparispack = true;
+				}
+			}
+		}
+	}
+
+	return r;
+}
+void TryaddParPackInferTypes(bool islastparpack, const FuncInfo* Info, size_t parcount, bool PushThisPar, bool& Inferautopushtis, Vector<ParInfo>& Infer, bool useinferpars)
+{
+	if (islastparpack)
+	{
+		size_t minfuncparcount = Info->Pars.size() - 1;
+
+		auto& pack = Info->_GenericData._Genericlist.back();
+		if (pack.BaseOrRule.has_value())
+		{
+
+			auto& rule = pack.BaseOrRule.value();
+			if (auto basetype = rule.Get_If<TypeSymbol>())
+			{
+				if (!useinferpars)
+				{
+					Infer = Info->Pars;
+				}
+				Infer.pop_back();
+
+				size_t addparcount = parcount - minfuncparcount;
+				for (size_t i = 0; i < addparcount; i++)
+				{
+					ParInfo v;
+					v.Type = *basetype;
+					Infer.push_back(v);
+				}
+
+				Inferautopushtis = PushThisPar;
+			}
+			else
+			{
+				UCodeLangUnreachable();
+			}
+
+		}
+	}
+}
+
+Vector<Symbol*> SystematicAnalysis::Type_FindForTypeFuncions(const TypeSymbol& maintype, const String& FuncionName)
+{
+	auto fortypeSyms = GetSymbolsWithName(ForTypeScope, SymbolType::ForType);
+
+	Vector<Symbol*> Symbols;
+	if (true)
+	{
+		TypeSymbol maintypenoatt = maintype;
+		Type_RemoveTypeattributes(maintypenoatt);
+		String mytypestr = ToString(maintypenoatt);
+		
+		for (auto& Item : fortypeSyms)
+		{
+			if (Item->Type == SymbolType::ForType)
+			{
+				{
+					if (Item->PassState == PassType::GetTypes && FuncionName.size() != 0)
+					{
+						if (Item->Get_NodeInfo<ForTypeNode>())
+						{
+							auto forn = Item->Get_NodeInfo<ForTypeNode>();
+
+							bool hasfunc = false;
+							for (auto& Item : forn->_Nodes)
+							{
+								auto nametoken = Item->_Signature._Name.token;
+								String_view funcname;
+								if (nametoken->Type == TokenType::Name)
+								{
+									funcname = nametoken->Value._String;
+								}
+								else
+								{
+									UCodeLangUnreachable();
+								}
+
+								if (FuncionName == funcname) 
+								{
+									hasfunc = true;
+									break;
+								}
+							}
+
+							if (!hasfunc)
+							{
+								continue;
+							}
+						}
+					}
+				}
+
+				Symbol_Update_ForType_ToFixedTypes(Item);
+
+				bool isreferringtomytype = false;
+
+				auto fortype = Item->VarType;
+				auto mtype = maintype;
+				Type_RemoveTypeattributes(fortype);
+				Type_RemoveTypeattributes(mtype);
+				isreferringtomytype = Type_AreTheSame(mtype, fortype);
+
+				if (isreferringtomytype)
+				{
+					ForTypeInfo* info = Item->Get_Info<ForTypeInfo>();
+
+					for (auto& Item : info->Funcs)
+					{
+						if (FuncionName.size() == 0 || ScopeHelper::GetNameFromFullName(Item->FullName) == FuncionName)
+						{
+							Symbols.push_back(Item);
+						}
+					}
+				}
+			}
+			else if (Item->Type == SymbolType::GenericForType)
+			{
+
+
+				Symbol_Update_ForType_ToFixedTypes(Item);
+
+				ForTypeInfo* info = Item->Get_Info<ForTypeInfo>();
+				const ForTypeNode* fornod = Item->Get_NodeInfo<ForTypeNode>();
+
+				String GennericName;
+
+				fornod->_typetoaddto._name.GetScopedName(GennericName);
+				if (StringHelper::Contains(mytypestr, GennericName))
+				{
+
+
+					{
+						bool isgood = false;
+
+						String scope = mytypestr;
+						{
+							size_t gwnericcount = 0;
+							for (int i = scope.size() - 1; i >= 0; i--)
+							{
+								char item = scope[i];
+
+								if (item == '<')
+								{
+									gwnericcount--;
+
+									if (gwnericcount == 0)
+									{
+										scope = scope.substr(0, i);
+										break;
+									}
+								}
+								else if (item == '>')
+								{
+									gwnericcount++;
+								}
+								else if (item == ScopeHelper::_ScopeSep)
+								{
+									break;
+								}
+
+
+							}
+						}
+
+						if (!StringHelper::EndWith(scope, GennericName))
+						{
+							continue;
+						}
+					}
+					NullablePtr<Symbol> forgeneric;
+					NullablePtr<Symbol> FindSym;
+					{
+						auto OldContext = SaveAndMove_SymbolContext();
+						Set_SymbolContext(info->Context.value());
+
+						FindSym = Symbol_GetSymbol(GennericName, SymbolType::Generic_class);
+
+						Set_SymbolContext(std::move(OldContext));
+					}
+
+					auto fortypetoken = NeverNullptr(fornod->_typetoaddto._name._ScopedName.front()._token);
+
+					if (!FindSym.has_value())
+					{
+						LogError_CantFindSymbolError(fortypetoken, GennericName);
+
+						return {};
+					}
+
+					auto foundsym = FindSym.value();
+
+					bool isgennerictype = (foundsym->Type == SymbolType::Generic_Alias
+						|| foundsym->Type == SymbolType::Generic_class
+						|| foundsym->Type == SymbolType::Generic_Enum);
+					//TODO Generic_traits
+
+
+					if (!isgennerictype)
+					{
+						LogError(ErrorCodes::InValidType, "The Symbol '" + foundsym->FullName + "' in for type must be an generic type", fortypetoken);
+
+						return {};
+					}
+
+					bool shouldmaketype = false;
+					{
+						_ClassStack.push({});//bad fix to stop error on Str_FuncGetName
+						for (auto& Item : fornod->_Nodes)
+						{
+							String_view funcstr = Item->_Signature._Name.token->Value._String;
+							FuncInfo::FuncType tep;
+
+							Str_FuncGetName(NeverNullptr(Item->_Signature._Name.token), funcstr, tep);
+
+							if (FuncionName.size() == 0 || funcstr == FuncionName)
+							{
+								shouldmaketype = true;
+								break;
+							}
+						}
+						_ClassStack.pop();
+					}
+					if (shouldmaketype == false)
+					{
+						continue;
+					}
+
+					NeverNullPtr<Generic> GenericData;
+					NeverNullPtr<Generic> MyBaseTypeGenericData;
+
+
+					NeverNullPtr<Symbol> mytypebasesymbol;
+					{
+						String scope = mytypestr;
+
+						{
+							size_t gwnericcount = 0;
+							for (int i = scope.size() - 1; i >= 0; i--)
+							{
+								char item = scope[i];
+
+								if (item == '<')
+								{
+									gwnericcount--;
+
+									if (gwnericcount == 0)
+									{
+										scope = scope.substr(0, i);
+										break;
+									}
+								}
+								else if (item == '>')
+								{
+									gwnericcount++;
+								}
+
+
+							}
+						}
+
+						mytypebasesymbol = Symbol_GetSymbol(scope, SymbolType::Type).value();
+					}
+
+					switch (mytypebasesymbol->Type)
+					{
+					case SymbolType::Generic_Alias:
+						MyBaseTypeGenericData = NeverNullptr(&mytypebasesymbol->Get_Info<Generic_AliasInfo>()->_GenericData);
+						break;
+					case SymbolType::Generic_class:
+						MyBaseTypeGenericData = NeverNullptr(&mytypebasesymbol->Get_Info<ClassInfo>()->_GenericData);
+						break;
+					case SymbolType::Generic_Enum:
+						MyBaseTypeGenericData = NeverNullptr(&mytypebasesymbol->Get_Info<EnumInfo>()->_GenericData);
+						break;
+					default:
+						continue;
+						break;
+					}
+
+					switch (foundsym->Type)
+					{
+					case SymbolType::Generic_Alias:
+						GenericData = NeverNullptr(&foundsym->Get_Info<Generic_AliasInfo>()->_GenericData);
+						break;
+					case SymbolType::Generic_class:
+						GenericData = NeverNullptr(&foundsym->Get_Info<ClassInfo>()->_GenericData);
+						break;
+					case SymbolType::Generic_Enum:
+						GenericData = NeverNullptr(&foundsym->Get_Info<EnumInfo>()->_GenericData);
+						break;
+					default:
+						UCodeLangUnreachable();
+						break;
+					}
+
+
+					size_t myTypeGenericCount = MyBaseTypeGenericData->GetMinimumCount();
+					size_t foundGenericCount = GenericData->GetMinimumCount();
+
+					if (myTypeGenericCount != foundGenericCount)
+					{
+						LogError_CanIncorrectGenericCount(fortypetoken, foundsym->FullName, myTypeGenericCount, foundGenericCount);
+						return {};
+					}
+
+					for (size_t i = 0; i < myTypeGenericCount; i++)
+					{
+						auto& mygen = MyBaseTypeGenericData->_Genericlist[i];
+						auto& foundgen = GenericData->_Genericlist[i];
+
+						if (mygen.IsConstantExpression() != foundgen.IsConstantExpression())
+						{
+							LogError(ErrorCodes::TreeAnalyerError, "Generic type/Generic Constant miss match on '" + std::to_string(i) + "' generic element", fortypetoken);
+							return {};
+						}
+					}
+
+					Vector<TypeSymbol> generics;
+
+					UCodeLangAssert(!GenericData->IsPack());
+					for (auto& item : MyBaseTypeGenericData->_Genericlist)
+					{
+						String GenericAliasName;
+
+						{
+							auto v = Symbol_GetSymbol(item.SybID);
+							GenericAliasName = ScopeHelper::GetNameFromFullName(v->FullName);
+						}
+
+						NeverNullPtr<Symbol> mytypegenericalias;
+						{
+							String scope = ScopeHelper::ApendedStrings(mytypestr, GenericAliasName);
+
+							mytypegenericalias = Symbol_GetSymbol(scope, SymbolType::Any).value();
+						}
+
+						generics.push_back(TypeSymbol(mytypegenericalias->VarType));
+					}
+
+
+					auto newsymname = Generic_SymbolGenericFullName(Item, generics);
+					NullablePtr<Symbol> hasthisformade;
+					{
+						auto list = GetSymbolsWithName(newsymname, SymbolType::ForType);
+						for (auto& Item : list)
+						{
+							if (Item->Type == SymbolType::ForType)
+							{
+								auto info = Item->Get_Info<ForTypeInfo>();
+
+								auto fortype = Item->VarType;
+								auto mtype = maintype;
+								Type_RemoveTypeattributes(fortype);
+								Type_RemoveTypeattributes(mtype);
+								bool isreferringtomytype = Type_AreTheSame(mtype, fortype);
+
+								if (isreferringtomytype)
+								{
+									hasthisformade = Item;
+									break;
+								}
+							}
+						}
+					}
+					if (!hasthisformade.has_value())
+					{
+						Generic_TypeInstantiate_ForType(NeverNullptr(Item), generics);
+
+						auto list = GetSymbolsWithName(newsymname, SymbolType::ForType);
+						for (auto& Item : list)
+						{
+							if (Item->Type == SymbolType::ForType)
+							{
+								auto info = Item->Get_Info<ForTypeInfo>();
+
+								auto fortype = Item->VarType;
+								auto mtype = maintype;
+								Type_RemoveTypeattributes(fortype);
+								Type_RemoveTypeattributes(mtype);
+								bool isreferringtomytype = Type_AreTheSame(mtype, fortype);
+
+								if (isreferringtomytype)
+								{
+									hasthisformade = Item;
+									break;
+								}
+							}
+						}
+
+					}
+
+					{
+						ForTypeInfo* info = hasthisformade.value()->Get_Info<ForTypeInfo>();
+
+						for (auto& Item : info->Funcs)
+						{
+							if (FuncionName.size() == 0 || ScopeHelper::GetNameFromFullName(Item->FullName) == FuncionName)
+							{
+								Symbols.push_back(Item);
+							}
+						}
+					}
+
+				}
+
+			}
+
+		}
+	}
+
+	return Symbols;
+}
+Vector<Symbol*> SystematicAnalysis::Type_FindForTypeFuncions(const TypeSymbol& ThisType)
+{
+	return Type_FindForTypeFuncions(ThisType, "");
 }
 SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedNameNode& Name, const ValueParametersNode& Pars, TypeSymbol Ret)
 {
@@ -924,14 +1471,6 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 			ScopedName == float32TypeName ||
 			ScopedName == float64TypeName)
 		{
-
-			if (Pars._Nodes.size() > 1)
-			{
-				LogError_CanIncorrectParCount(NeverNullptr(Name._ScopedName.back()._token), ScopedName, Pars._Nodes.size(), 1);
-			}
-
-
-
 			{
 				if (ScopedName == Uint8TypeName) { _LastExpressionType = TypesEnum::uInt8; }
 				else if (ScopedName == Uint16TypeName) { _LastExpressionType = TypesEnum::uInt16; }
@@ -961,6 +1500,8 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 				}
 			}
 
+
+			size_t parcount = 0;
 			if (Pars._Nodes.size() == 1)
 			{
 				auto FuncType = _LastExpressionType;
@@ -969,12 +1510,41 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 				OnExpressionTypeNode(Pars._Nodes[0].get(), GetValueMode::Read);
 				_LookingForTypes.pop();
 
-				if (!Type_CanBeImplicitConverted(_LastExpressionType, FuncType, true))
+				auto ex = _LastExpressionType;
+				parcount = 1;
+				auto symop = Symbol_GetSymbol(ex);
+				if (symop.has_value())
 				{
-					LogError_CantCastImplicitTypes(_LastLookedAtToken.value(), _LastExpressionType, FuncType, true);
+					auto sym = symop.value();
+					if (sym->Type == SymbolType::Type_Pack)
+					{
+						auto info = sym->Get_Info<TypePackInfo>();
+
+						parcount = info->List.size();
+						if (parcount) {
+							ex = info->List[0];
+						}
+					}
+				}
+
+				if (parcount != 0 && !Type_CanBeImplicitConverted(ex, FuncType, true))
+				{
+					LogError_CantCastImplicitTypes(_LastLookedAtToken.value(), ex, FuncType, true);
 				}
 				_LastExpressionType = FuncType;
+
+
 			}
+			else
+			{
+				parcount = Pars._Nodes.size();
+			}
+
+			if (parcount > 1)
+			{
+				LogError_CanIncorrectParCount(NeverNullptr(Name._ScopedName.back()._token), ScopedName, parcount, 1);
+			}
+
 			Get_FuncInfo r = { Get_FuncInfo::ThisPar_t::NoThisPar, nullptr };
 			r.BulitInTypeContructer = _LastExpressionType;
 			return r;
@@ -998,245 +1568,123 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 	Vector<ParInfo> ValueTypes;
 	ValueTypes.reserve(_ThisTypeIsNotNull ? Pars._Nodes.size() + 1 : Pars._Nodes.size());
 
+	if (StringHelper::Contains(ScopedName, TraitClassEnd))
+	{
+		String NewScopeName;
+		Vector<String> Scopes;
+
+		while (ScopedName.size())
+		{
+			auto name = ScopeHelper::GetNameFromFullName(ScopedName);
+			ScopeHelper::ReMoveScope(ScopedName);
+
+			Scopes.push_back(name);
+		}
+		for (auto riter = Scopes.rbegin();
+			 riter != Scopes.rend(); ++riter)
+		{
+			auto& Item = *riter;
+
+			if (StringHelper::EndWith(Item, TraitClassEnd))
+			{
+				Item = Item.substr(0, Item.size() + 1 - sizeof(TraitClassEnd));
+
+				ScopeHelper::GetApendedString(NewScopeName, Item);
+
+				auto symop = Symbol_GetSymbol(NewScopeName, SymbolType::Generic_Trait);
+
+				if (symop.has_value())
+				{
+					auto sym = symop.value();
+					if (sym->Type == SymbolType::Generic_Trait)
+					{
+						ScopeHelper::GetApendedString(NewScopeName, GenericTestStr);
+					}
+				}
+				continue;
+			}
+
+			ScopeHelper::GetApendedString(NewScopeName, Item);
+		}
+		ScopedName = std::move(NewScopeName);
+	}
+
 	auto Symbols = GetSymbolsWithName(ScopedName, SymbolType::Any);
 
 	Vector<ParInfo> Infer;
 	bool Inferautopushtis = false;
 
 	{//for type
-		auto fortypeSyms = GetSymbolsWithName(ForTypeScope, SymbolType::ForType);
-
-		TypeSymbol maintype;
-
+		bool isokfortype = false;
 		if (ThisParType == Get_FuncInfo::ThisPar_t::PushFromScopedName)
 		{
-			auto v = _ThisType;
-			v._IsAddress = false;
-			maintype = v;
+			isokfortype = true;
 		}
 		else
 		{
-			auto scope = ScopedName;
-			ScopeHelper::ReMoveScope(scope);
-			auto v = Symbol_GetSymbol(scope, SymbolType::Type);
-
-			if (auto val = v.value_unchecked())
-			{
-				maintype = val->VarType;
-			}
+			isokfortype = StringHelper::Contains(ScopedName, ":");
 		}
 
-		if (auto maintypesym = Symbol_GetSymbol(maintype).value_unchecked()) 
+		if (isokfortype) 
 		{
-			String mytypestr = ToString(maintype);
-			
-			for (auto& Item : fortypeSyms)
+			TypeSymbol maintype;
+			if (ThisParType == Get_FuncInfo::ThisPar_t::PushFromScopedName)
 			{
-				if (Item->Type == SymbolType::ForType)
+				auto v = _ThisType;
+				v._IsAddress = false;
+				maintype = v;
+			}
+			else
+			{
+				auto scope = ScopedName;
+				ScopeHelper::ReMoveScope(scope);
+				auto v = Symbol_GetSymbol(scope, SymbolType::Type);
+
+				if (auto val = v.value_unchecked())
 				{
-					Symbol_Update_ForType_ToFixedTypes(Item);
-
-					bool isreferringtomytype = false;
-
-					auto fortype = Item->VarType;
-
-					isreferringtomytype = Type_AreTheSame(maintype, fortype);
-
-					if (isreferringtomytype)
+					maintype = val->VarType;
+				}
+				else {
+					const static Array<std::pair<String_view, TypesEnum>, 17> PrimitiveList
 					{
-						ForTypeInfo* info = Item->Get_Info<ForTypeInfo>();
+						std::make_pair(String_view(CharTypeName),TypesEnum::Char),
+						std::make_pair(String_view(boolTypeName),TypesEnum::Bool),
 
-						for (auto& Item : info->Funcs)
+						std::make_pair(String_view(Uint8TypeName),TypesEnum::uInt8),
+						std::make_pair(String_view(Sint8TypeName),TypesEnum::sInt8),
+						std::make_pair(String_view(Uint16TypeName),TypesEnum::uInt16),
+						std::make_pair(String_view(Sint16TypeName),TypesEnum::sInt16),
+						std::make_pair(String_view(Uint32TypeName),TypesEnum::uInt32),
+						std::make_pair(String_view(Sint32TypeName),TypesEnum::sInt32),
+						std::make_pair(String_view(Uint64TypeName),TypesEnum::uInt64),
+						std::make_pair(String_view(Sint64TypeName),TypesEnum::sInt64),
+
+						std::make_pair(String_view(float32TypeName),TypesEnum::float32),
+						std::make_pair(String_view(float64TypeName),TypesEnum::float64),
+
+						std::make_pair(String_view(UintPtrTypeName),TypesEnum::uIntPtr),
+						std::make_pair(String_view(SintPtrTypeName),TypesEnum::sIntPtr),
+
+						std::make_pair(String_view(Uft8typeName),TypesEnum::Uft8),
+						std::make_pair(String_view(Uft16typeName),TypesEnum::Uft16),
+						std::make_pair(String_view(Uft32typeName),TypesEnum::Uft32),
+					};
+
+					for (auto& Item : PrimitiveList)
+					{
+						if (Item.first == scope)
 						{
-							Symbols.push_back(Item);
+							maintype = TypeSymbol(Item.second);
+							break;
 						}
 					}
 				}
-				else if (Item->Type == SymbolType::GenericForType)
-				{
+			}
 
-
-					Symbol_Update_ForType_ToFixedTypes(Item);
-
-					ForTypeInfo* info = Item->Get_Info<ForTypeInfo>();
-					const ForTypeNode* fornod = Item->Get_NodeInfo<ForTypeNode>();
-
-					String GennericName;
-
-					fornod->_typetoaddto._name.GetScopedName(GennericName);
-
-					if (StringHelper::Contains(mytypestr, GennericName))
-					{
-						NullablePtr<Symbol> forgeneric;
-						NullablePtr<Symbol> FindSym;
-						{
-							auto OldContext = SaveAndMove_SymbolContext();
-							Set_SymbolContext(info->Context.value());
-
-							FindSym = Symbol_GetSymbol(GennericName, SymbolType::Generic_class);
-
-							Set_SymbolContext(std::move(OldContext));
-						}
-
-						auto fortypetoken = NeverNullptr(fornod->_typetoaddto._name._ScopedName.front()._token);
-
-						if (!FindSym.has_value())
-						{
-							LogError_CantFindSymbolError(fortypetoken, GennericName);
-
-							return {};
-						}
-
-						auto foundsym = FindSym.value();
-
-						bool isgennerictype = (foundsym->Type == SymbolType::Generic_Alias
-							|| foundsym->Type == SymbolType::Generic_class
-							|| foundsym->Type == SymbolType::Generic_Enum);
-						//TODO Generic_traits
-
-
-						if (!isgennerictype)
-						{
-							LogError(ErrorCodes::InValidType, "The Symbol '" + foundsym->FullName + "' in for type must be an generic type", fortypetoken);
-
-							return {};
-						}
-
-						NeverNullPtr<Generic> GenericData;
-						NeverNullPtr<Generic> MyBaseTypeGenericData;
-
-
-						NeverNullPtr<Symbol> mytypebasesymbol;
-						{
-							String scope = mytypestr;
-
-							{
-								size_t gwnericcount = 0;
-								for (int i = scope.size() - 1; i >= 0; i--)
-								{
-									char item = scope[i];
-
-									if (item == '<')
-									{
-										gwnericcount--;
-
-										if (gwnericcount == 0)
-										{
-											scope = scope.substr(0, scope.size() - i);
-											break;
-										}
-									}
-									else if (item == '>')
-									{
-										gwnericcount++;
-									}
-
-
-								}
-							}
-
-							mytypebasesymbol = Symbol_GetSymbol(scope, SymbolType::Type).value();
-						}
-
-						switch (mytypebasesymbol->Type)
-						{
-						case SymbolType::Generic_Alias:
-							MyBaseTypeGenericData = NeverNullptr(&mytypebasesymbol->Get_Info<Generic_AliasInfo>()->_GenericData);
-							break;
-						case SymbolType::Generic_class:
-							MyBaseTypeGenericData = NeverNullptr(&mytypebasesymbol->Get_Info<ClassInfo>()->_GenericData);
-							break;
-						case SymbolType::Generic_Enum:
-							MyBaseTypeGenericData = NeverNullptr(&mytypebasesymbol->Get_Info<EnumInfo>()->_GenericData);
-							break;
-						default:
-							continue;
-							break;
-						}
-
-						switch (foundsym->Type)
-						{
-						case SymbolType::Generic_Alias:
-							GenericData = NeverNullptr(&foundsym->Get_Info<Generic_AliasInfo>()->_GenericData);
-							break;
-						case SymbolType::Generic_class:
-							GenericData = NeverNullptr(&foundsym->Get_Info<ClassInfo>()->_GenericData);
-							break;
-						case SymbolType::Generic_Enum:
-							GenericData = NeverNullptr(&foundsym->Get_Info<EnumInfo>()->_GenericData);
-							break;
-						default:
-							UCodeLangUnreachable();
-							break;
-						}
-
-
-						size_t myTypeGenericCount = MyBaseTypeGenericData->GetMinimumCount();
-						size_t foundGenericCount = GenericData->GetMinimumCount();
-
-						if (myTypeGenericCount != foundGenericCount)
-						{
-							LogError_CanIncorrectGenericCount(fortypetoken, foundsym->FullName, myTypeGenericCount, foundGenericCount);
-							return {};
-						}
-
-						for (size_t i = 0; i < myTypeGenericCount; i++)
-						{
-							auto& mygen = MyBaseTypeGenericData->_Genericlist[i];
-							auto& foundgen = GenericData->_Genericlist[i];
-
-							if (mygen.IsConstantExpression() != foundgen.IsConstantExpression())
-							{
-								LogError(ErrorCodes::TreeAnalyerError, "Generic type/Generic Constant miss match on '" + std::to_string(i) + "' generic element", fortypetoken);
-								return {};
-							}
-						}
-
-						Vector<TypeSymbol> generics;
-
-						UCodeLangAssert(!GenericData->IsPack());
-						for (auto& item : MyBaseTypeGenericData->_Genericlist)
-						{
-							String GenericAliasName;
-
-							{
-								auto v = Symbol_GetSymbol(item.SybID);
-								GenericAliasName = ScopeHelper::GetNameFromFullName(v->FullName);
-							}
-
-							NeverNullPtr<Symbol> mytypegenericalias;
-							{
-								String scope = ScopeHelper::ApendedStrings(mytypestr, GenericAliasName);
-
-								mytypegenericalias = Symbol_GetSymbol(scope, SymbolType::Any).value();
-							}
-
-							generics.push_back(TypeSymbol(mytypegenericalias->VarType));
-						}
-
-					
-						auto newsymname = Generic_SymbolGenericFullName(Item, generics);
-						auto hasthisformade = Symbol_GetSymbol(newsymname,SymbolType::ForType);
-
-						if (!hasthisformade.has_value())
-						{
-							Generic_TypeInstantiate_ForType(NeverNullptr(Item), generics);
-							hasthisformade = Symbol_GetSymbol(newsymname,SymbolType::ForType);
-						}
-		
-						{
-							ForTypeInfo* info = hasthisformade.value()->Get_Info<ForTypeInfo>();
-
-							for (auto& Item : info->Funcs)
-							{
-								Symbols.push_back(Item);
-							}
-						}
-	
-					}
-
-				}
-
+			auto newlist = Type_FindForTypeFuncions(maintype, ScopeHelper::GetNameFromFullName(ScopedName));
+			for (auto& Item : newlist)
+			{
+				Symbols.push_back(Item);
 			}
 		}
 	}
@@ -1276,8 +1724,11 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 				const FuncInfo* Info = Item->Get_Info<FuncInfo>();
 				Symbol_Update_FuncSym_ToFixedTypes(Item);
 
-				size_t parcount = Pars._Nodes.size();
-				if (Info->Pars.size() == parcount) {
+				bool islastparispack = false;
+				bool PushThisPar = Info->IsObjectCall();
+				size_t parcount = PushThisPar ? Pars._Nodes.size() + 1 : Pars._Nodes.size();
+				if (FuncInferFuncCountOk(Item->Type, Info, parcount, islastparispack))
+				{
 					//Infer = Info->Pars;
 					//Inferautopushtis = false;
 					//InferFunc = Item;
@@ -1304,7 +1755,7 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 							const auto& Funcnode = Item->Get_NodeInfo<FuncNode>();
 							auto& rettypenode = Funcnode->_Signature._ReturnType;
 
-							if (rettypenode._name._ScopedName.back()._generic.get()) 
+							if (rettypenode._name._ScopedName.back()._generic.get())
 							{
 								auto& _generic = *rettypenode._name._ScopedName.back()._generic;
 								for (auto& Gtype : _generic._Values)
@@ -1351,7 +1802,7 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 							{
 								if (typemap.HasValue(GItem.SybID))
 								{
-									RetType =Opt<ParInfo>({ Item.IsOutPar,typemap.GetValue(GItem.SybID) });
+									RetType = Opt<ParInfo>({ Item.IsOutPar,typemap.GetValue(GItem.SybID) });
 									break;
 								}
 							}
@@ -1361,6 +1812,9 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 
 
 						}
+
+
+						TryaddParPackInferTypes(islastparispack, Info, parcount, false, Inferautopushtis, R, true);
 						Infer = std::move(R);
 					}
 				}
@@ -1381,9 +1835,15 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 					bool PushThisPar = Info->IsObjectCall();
 
 					size_t parcount = PushThisPar ? Pars._Nodes.size() + 1 : Pars._Nodes.size();
-					if (Info->Pars.size() == parcount) {
+
+					bool islastparpack = false;
+
+					if (FuncInferFuncCountOk(Item2->Type, Info, parcount, islastparpack))
+					{
 						Infer = Info->Pars;
 						Inferautopushtis = PushThisPar;
+
+						TryaddParPackInferTypes(islastparpack, Info, parcount, PushThisPar, Inferautopushtis, Infer, false);
 					}
 				}
 			}
@@ -1431,8 +1891,8 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 								for (auto& Item : VariantInfo.Types)
 								{
 									Infer.push_back({ false,Item });
-								} 
-							}	
+								}
+							}
 						}
 					}
 
@@ -1445,7 +1905,7 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 				String Scope = V->FullName;
 				ScopeHelper::GetApendedString(Scope, GenericTestStr);
 				ScopeHelper::GetApendedString(Scope, ClassConstructorfunc);
-				
+
 				auto ConstructorSymbols = GetSymbolsWithName(Scope, SymbolType::Any);
 
 
@@ -1461,7 +1921,6 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 					}
 				}
 			}
-
 		}
 	}
 
@@ -1542,6 +2001,38 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 		}
 	}
 
+	{
+		for (size_t i = 0; i < ValueTypes.size(); i++)
+		{
+			auto& Item = ValueTypes[i];
+			auto syb = Symbol_GetSymbol(Item.Type);
+
+			if (syb.has_value())
+			{
+				auto symbol = syb.value();
+
+				if (symbol->Type == SymbolType::Type_Pack)
+				{
+					bool last = &Item == &ValueTypes.back();
+
+					if (!last)
+					{
+						const Token* token = Name._ScopedName.back()._token;
+
+						String msg;
+						msg += "Argment " + std::to_string(i);
+						msg += " is invaid because it is an Type_Pack but is not the last Argment";
+
+						LogError(ErrorCodes::InValidType, msg, NeverNullptr(token));
+
+						Get_FuncInfo V;
+						return V;
+					}
+				}
+			}
+		}
+	}
+
 	//unmaped
 	{
 		for (auto& Item : ValueTypes)
@@ -1554,6 +2045,13 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 
 				return V;//can't check because we are just testing.
 			}
+		}
+		if (Type_IsUnMapType(Ret))
+		{
+			Get_FuncInfo V;
+			V.CantCheckBecauseIsUnMaped = true;
+
+			return V;//can't check because we are just testing.
 		}
 
 
@@ -1627,7 +2125,7 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 							Eval_Set_ObjectAs(ValEx, (UInt64)Count);
 						}
 
-						F.EvalObject =Opt(std::move(ValEx.EvaluatedObject));
+						F.EvalObject = Opt(std::move(ValEx.EvaluatedObject));
 
 
 
@@ -1676,7 +2174,7 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 			}
 		}
 	}
-	
+
 	//TypeInfo
 	{
 		bool IsTypeInfo = ValueTypes.size() && ValueTypes.front().Type.IsTypeInfo();
@@ -1780,7 +2278,7 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 
 		}
 	}
-	
+
 	//compiler
 	{
 		if (Name._ScopedName.size() == 2)
@@ -1944,6 +2442,26 @@ StartSymbolsLoop:
 	if (Symbols.size() == 0 && Name._ScopedName.size() == 1)
 	{
 		auto look = Ret;
+
+		bool islook = false;
+		if (auto Val = Symbol_GetSymbol(look).value_unchecked())
+		{
+			if (Val->Type == SymbolType::Enum)
+			{
+				islook = true;
+			}
+		}
+
+		if (islook == false)
+		{
+			if (ValueTypes.size())
+			{
+				if (!ValueTypes[0].IsOutPar) {
+					look = ValueTypes[0].Type;
+				}
+			}
+		}
+		
 		if (auto Val = Symbol_GetSymbol(look).value_unchecked())
 		{
 			if (Val->Type == SymbolType::Enum)
@@ -1991,7 +2509,7 @@ StartSymbolsLoop:
 				OkFunctions.push_back({ ThisParType,r,FuncSymbol });
 			}
 		}
-		else if (Item->Type == SymbolType::GenericFunc)//TODO try for other befor this
+		else if (Item->Type == SymbolType::GenericFunc)
 		{
 			if (Item->IsInvalid())
 			{
@@ -2093,24 +2611,7 @@ StartSymbolsLoop:
 							auto FuncIsMade = Symbol_GetSymbol(NewName, SymbolType::Func);
 
 
-
-							if (!FuncIsMade)
-							{
-
-								{
-									if (CheckForGenericInputIsConstantExpression(Info, GenericInput))
-									{
-										continue;
-									}
-								}
-								auto Pointer = std::make_unique<Vector<TypeSymbol>>(std::move(GenericInput));
-								//pointer must be unique so it can't be on the stack
-
-								Generic_GenericFuncInstantiate(FuncSym, *Pointer);
-								_TepFuncs.push_back({ std::move(Pointer) });//keep pointer 
-								FuncSym = Symbol_GetSymbol(NewName, SymbolType::Func).value();
-							}
-							else
+							if (FuncIsMade)
 							{
 								FuncSym = FuncIsMade.value();
 							}
@@ -2424,7 +2925,7 @@ StartSymbolsLoop:
 			TagInfo* V = Item->Get_Info<TagInfo>();
 
 			const TagTypeNode& node = *Item->Get_NodeInfo<TagTypeNode>();
-			
+
 			NullablePtr<Symbol>  classsymop;
 			/*
 			auto classsybOp = Generic_InstantiateOrFindGeneric_Class(
@@ -2706,7 +3207,8 @@ StartSymbolsLoop:
 		}
 		else
 		{
-			if (ThisParType == Get_FuncInfo::ThisPar_t::NoThisPar && MayBeAutoThisFuncCall) {
+			if (ThisParType == Get_FuncInfo::ThisPar_t::AutoPushThis && MayBeAutoThisFuncCall && AutoThisCall)
+			{
 				ValueTypes.erase(ValueTypes.begin());
 			}
 
@@ -2762,13 +3264,13 @@ StartSymbolsLoop:
 
 
 					const FuncSignatureNode* Signature = &Item.SymFunc->Get_NodeInfo<FuncNode>()->_Signature;
-					
+
 					if (GenericInput.size() != Signature->_generic._Values.size())
 					{
 						continue;
 					}
 					_Table.AddScope(std::to_string((uintptr_t)Item.Func));
-					
+
 					for (size_t i = 0; i < Signature->_generic._Values.size(); i++)
 					{
 						auto& Item = Signature->_generic._Values[i];
@@ -2811,8 +3313,25 @@ StartSymbolsLoop:
 		if (RValue.SymFunc->Type == SymbolType::GenericFunc)
 		{
 			Vector<TypeSymbol> GenericInput;
-			auto Info  = RValue.SymFunc->Get_Info<FuncInfo>();
+			auto Info = RValue.SymFunc->Get_Info<FuncInfo>();
+
+			bool PushThisPar = Info->IsObjectCall();
+
+
+			if (PushThisPar != _ThisTypeIsNotNull)
+			{
+				TypeSymbol V;
+				V.SetType(Info->Pars.begin()->Type._CustomTypeSymbol);
+				V.SetAsAddress();
+				V.SetAsMoved();
+				ValueTypes.insert(ValueTypes.begin(), { false,V });
+			}
 			auto v = Type_FuncinferGenerics(GenericInput, ValueTypes, Generics, RValue.SymFunc, _ThisTypeIsNotNull);
+
+			if (PushThisPar != _ThisTypeIsNotNull)
+			{
+				ValueTypes.erase(ValueTypes.begin() + 0);
+			}
 
 			if (v.has_value())
 			{
@@ -2831,6 +3350,97 @@ StartSymbolsLoop:
 
 					if (!FuncIsMade)
 					{
+						bool funcisbad = false;
+						if (Info->_GenericData.IsPack())
+						{
+
+							auto& GInfo = Info->_GenericData._Genericlist.back();
+
+							if (GInfo.BaseOrRule.has_value())
+							{
+								bool islastparpack = false;
+
+								if (Info->Pars.size())
+								{
+									auto& last = Info->Pars.back();
+									auto symop = Symbol_GetSymbol(last.Type);
+									if (symop.has_value())
+									{
+										auto sym = symop.value();
+
+										if (GInfo.SybID == sym->ID)
+										{
+											islastparpack = true;
+										}
+
+									}
+								}
+
+								if (islastparpack)
+								{
+									auto& rule = GInfo.BaseOrRule.value();
+
+									if (rule.Is<TypeSymbol>())
+									{
+										auto& val = rule.Get<TypeSymbol>();
+
+										size_t startindex = Info->_GenericData._Genericlist.size() - 1;
+
+										bool isthesame = true;
+										for (size_t i = startindex; i < GenericInput.size(); i++)
+										{
+											auto& Input = GenericInput[i];
+
+											if (!Type_AreTheSame(Input, val))
+											{
+												isthesame = false;
+												break;
+											}
+										}
+
+										if (!isthesame)
+										{
+											funcisbad = true;
+											String msg = "Type_Pack on '" + FuncSym->FullName + "' Requres all types to be '";
+											msg += ToString(val);
+											msg += "'";
+											msg += " but the types were ";
+
+											bool isfirst = true;
+											for (size_t i = startindex; i < GenericInput.size(); i++)
+											{
+												auto& Input = GenericInput[i];
+
+												if (!Type_AreTheSame(Input, val))
+												{
+													if (!isfirst)
+													{
+														msg += ",";
+													}
+
+													msg += ToString(Input);
+													msg += " at Generic Index ";
+													msg += std::to_string(i);
+													isfirst = false;
+												}
+											}
+
+											LogError(ErrorCodes::InValidType, msg, NeverNullptr(Name._ScopedName.back()._token));
+											funcisbad = true;
+										}
+									}
+									else
+									{
+										UCodeLangUnreachable();
+									}
+								}
+							}
+						}
+
+						if (funcisbad)
+						{
+							return {};
+						}
 
 						{
 							UCodeLangAssert(CheckForGenericInputIsConstantExpression(Info, GenericInput) == false);
@@ -2909,6 +3519,39 @@ StartSymbolsLoop:
 			}
 		}
 
+		if (RValue.ThisPar == Get_FuncInfo::ThisPar_t::PushFromScopedNameDynamicTrait)
+		{
+			auto funcinfo = RValue.SymFunc->Get_Info<FuncInfo>();
+			if (!funcinfo->IsTraitDynamicDispatch)
+			{
+				auto token = NeverNullptr(Name._ScopedName.back()._token);
+				LogError(ErrorCodes::InValidType, "trying to call non 'dynamic' function on dynamic trait", token);
+				return { };
+			}
+		}
+
+		if (RValue.SymFunc->Type == SymbolType::Func)
+		{
+			auto funcinfo = RValue.SymFunc->Get_Info<FuncInfo>();
+			auto& att = funcinfo->Attributes;
+
+			for (auto& Item : att)
+			{
+				auto attrtype = Symbol_GetSymbol(Item->VarType).value().value();
+				if (IsEnableAttribute(*attrtype))
+				{
+					auto enabledata = GetEnableAttribute(*Item);
+
+					if (enabledata.IsEnable == false)
+					{
+						auto token = NeverNullptr(Name._ScopedName.back()._token);
+					
+						LogError(ErrorCodes::InValidType, "Funcion was Disabled because '" + enabledata.ErrorMsg + "'", token);
+						return { };
+					}
+				}
+			}
+		}
 
 		return RValue;
 
@@ -2925,9 +3568,15 @@ Optional< Optional<SystematicAnalysis::Get_FuncInfo>> SystematicAnalysis::Type_F
 	bool IsParPack = Info->_GenericData.IsPack();
 	bool LastParIsPack = IsParPack && Info->Pars.back().Type._CustomTypeSymbol == Info->_GenericData._Genericlist.back().SybID;
 
-	if (IsParPack)
+	if (LastParIsPack && IsParPack)
 	{
-		if (LastParIsPack && Info->Pars.size() - 1 >= ValueTypes.size())
+		bool parcountcheck = Info->Pars.size() - 1 >= ValueTypes.size();
+
+		if (!(Info->Pars.size() == 1 && ValueTypes.size()))
+		{
+			parcountcheck = false;
+		}
+		if (LastParIsPack && parcountcheck)
 		{
 			return {};
 		}
@@ -2997,7 +3646,7 @@ Optional< Optional<SystematicAnalysis::Get_FuncInfo>> SystematicAnalysis::Type_F
 				{
 					if (auto ItemSybOp = Symbol_GetSymbol(ItemValueType.Type))//Func<T>[Item<T> Item] ,caller:Item<int> V; Func(V)
 					{
-						if (Par.Type.IsBadType())//Type was not made because its generic.
+						if (Type_IsUnMapType(Par.Type))//Type was became unmaped because its generic.
 						{
 							auto ItemSyb = ItemSybOp.value();
 							auto& Funcnode = *Item->Get_NodeInfo<FuncNode>();
@@ -3079,9 +3728,9 @@ Optional< Optional<SystematicAnalysis::Get_FuncInfo>> SystematicAnalysis::Type_F
 	bool cangenericinputbeused = false;
 
 	bool isinputcountgood = false;
-	
+
 	if (IsParPack)
-	{	
+	{
 		isinputcountgood = true;
 	}
 	else
@@ -3095,7 +3744,7 @@ Optional< Optional<SystematicAnalysis::Get_FuncInfo>> SystematicAnalysis::Type_F
 
 		const FuncNode* fnode = Item->Get_NodeInfo<FuncNode>();
 
-		const auto& fpars = fnode->_Signature._Parameters._Parameters;		
+		const auto& fpars = fnode->_Signature._Parameters._Parameters;
 		const auto& fInput = GenericInput;
 		const auto& fgenericnode = fnode->_Signature._generic;
 
@@ -3107,10 +3756,10 @@ Optional< Optional<SystematicAnalysis::Get_FuncInfo>> SystematicAnalysis::Type_F
 		//Lambda because it's never used any were else
 		std::function<Optional<String>(const TypeNode&)> lazyattemp;
 
-		
-		lazyattemp = [this,&lazyattemp,&fInput,&fgenericnode,&fpars](const TypeNode& node) -> Optional<String>
-		{
-				if (node._name._ScopedName.back()._token->Type== TokenType::Name)
+
+		lazyattemp = [this, &lazyattemp, &fInput, &fgenericnode, &fpars](const TypeNode& node) -> Optional<String>
+			{
+				if (node._name._ScopedName.back()._token->Type == TokenType::Name)
 				{
 					String fullname;
 					node._name.GetScopedName(fullname);
@@ -3122,15 +3771,17 @@ Optional< Optional<SystematicAnalysis::Get_FuncInfo>> SystematicAnalysis::Type_F
 
 						if (gnode.AsString() == fullname)
 						{
-							return ToString(fin);
+							auto v = fin;
+							v._IsAddress = node._IsAddess;
+							return ToString(v);
 						}
 					}
-					
+
 					auto sym = Symbol_GetSymbol(fullname, SymbolType::Type);
 					if (sym)
 					{
 						const auto typegenics = node._name._ScopedName.back()._generic.get();
-						bool hasgenics = typegenics ?  typegenics->_Values.size() : 0;
+						bool hasgenics = typegenics ? typegenics->_Values.size() : 0;
 
 						if (hasgenics)
 						{
@@ -3149,32 +3800,99 @@ Optional< Optional<SystematicAnalysis::Get_FuncInfo>> SystematicAnalysis::Type_F
 
 							fullname += ">";
 						}
+						else if (sym.value()->Type == SymbolType::Type_alias)
+						{
+							return ToString(sym.value()->VarType);
+						}
 						return fullname;
 					}
 				}
-				return {};
-		};
-
-		for (size_t i = 0; i < fpars.size(); i++)
-		{
-			auto& Item = fpars[i];
-			auto& Par = ValueTypes[i].Type;
-			auto sym = lazyattemp(Item._Type);
-
-			if (sym.has_value())
-			{
-				auto symname = sym.value();
-				auto parname = ToString(Par);
-				
-				if (symname != parname)
+				else
 				{
-					cangenericinputbeused = false;
-					break;
+					auto lasttokentype = node._name._ScopedName.back()._token->Type;
+					if (TypeNode::IsPrimitive(lasttokentype))
+					{
+						String r;
+						switch (lasttokentype)
+						{
+						case TokenType::KeyWord_UInt8:r = Uint8TypeName; break;
+						case TokenType::KeyWord_UInt16:r = Uint16TypeName; break;
+						case TokenType::KeyWord_UInt32:r = Uint32TypeName; break;
+						case TokenType::KeyWord_UInt64:r = Uint64TypeName; break;
+
+						case TokenType::KeyWord_SInt8:r = Sint8TypeName; break;
+						case TokenType::KeyWord_SInt16:r = Sint16TypeName; break;
+						case TokenType::KeyWord_SInt32:r = Sint32TypeName; break;
+						case TokenType::KeyWord_SInt64:r = Sint64TypeName; break;
+
+						case TokenType::KeyWord_Char:r = CharTypeName; break;
+						case TokenType::KeyWord_uft8:r = Uft8typeName; break;
+						case TokenType::KeyWord_uft16:r = Uft16typeName; break;
+						case TokenType::KeyWord_uft32:r = Uft32typeName; break;
+
+						case TokenType::KeyWord_Bool:r = boolTypeName; break;
+						case TokenType::KeyWord_float32:r = float32TypeName; break;
+						case TokenType::KeyWord_float64:r = float64TypeName; break;
+						default:
+							UCodeLangUnreachable();
+							break;
+						}
+						return r;
+					}
+				}
+				return {};
+			};
+
+		if (ValueTypes.size() != 0)
+		{
+			if (fpars.size() > ValueTypes.size())
+			{
+				return {};
+			}
+			for (size_t i = 0; i < fpars.size(); i++)
+			{
+				auto& Item = fpars[i];
+				auto& Par = ValueTypes[i].Type;
+				auto sym = lazyattemp(Item._Type);
+
+				if (sym.has_value())
+				{
+					auto symname = sym.value();
+
+					bool symisaddress = false;
+					if (symname.size())
+					{
+						if (symname.back() == '&')
+						{
+							symisaddress = true;
+						}
+					}
+					auto teppar = Par;	
+					teppar._IsAddress = symisaddress;	
+
+					auto parname = ToString(teppar);
+
+
+
+					bool isnotgeneric = false;
+					{
+						bool issame = false;
+						if (StringHelper::EndWith(parname, symname))
+						{
+							issame = true;//this would need to updated soon but its ok for now.
+						}
+
+						isnotgeneric = !issame;
+					}
+
+					if (isnotgeneric)
+					{
+						cangenericinputbeused = false;
+						break;
+					}
 				}
 			}
 		}
-
-	
 	}
 
 	if (cangenericinputbeused) {
@@ -3411,12 +4129,23 @@ void SystematicAnalysis::IR_Build_DestructorCall(const ObjectToDrop& Object)
 				case ObjectToDropType::Operator:
 					FuncInfo.ThisPar = Get_FuncInfo::ThisPar_t::OnIRlocationStackNonedef;
 
-					if (Object._Operator.Type != IROperatorType::IRInstruction)
+
+
+					IRInstruction* ir;
+					switch (Object._Operator.Type)
 					{
+					case IROperatorType::IRInstruction:
+						ir = _IR_LookingAtIRBlock->NewLoad(Object._Operator.Pointer);
+						break;
+					case IROperatorType::IRParameter:
+						ir = _IR_LookingAtIRBlock->NewLoad(Object._Operator.Parameter);
+						break;
+					default:
 						UCodeLangUnreachable();
+						break;
 					}
 
-					_IR_IRlocations.push({ _IR_LookingAtIRBlock->NewLoad(Object._Operator.Pointer), false });
+					_IR_IRlocations.push({ ir, false });
 					break;
 				default:
 					UCodeLangUnreachable();
@@ -3457,7 +4186,7 @@ void SystematicAnalysis::IR_Build_DestructorCall(const ObjectToDrop& Object)
 
 	}
 }
-SystematicAnalysis::Get_FuncInfo SystematicAnalysis::Type_GetFunc(const TypeSymbol& Name, const ValueParametersNode& Pars)
+SystematicAnalysis::Get_FuncInfo SystematicAnalysis::Type_GetFunc(const TypeSymbol& Name, const ValueParametersNode& Pars,const NeverNullPtr<Token> ErrorToken)
 {
 	if (Name.IsBadType())
 	{
@@ -3488,12 +4217,13 @@ SystematicAnalysis::Get_FuncInfo SystematicAnalysis::Type_GetFunc(const TypeSymb
 	copyname._Isimmutable = false;
 	copyname._MoveData = MoveData::None;
 	copyname._IsAddress = false;
-	
+
 	String B = ToString(copyname);
 	Token T;
 	T.Type = TokenType::Name;
 	T.Value._String = B;
-
+	T.OnLine = ErrorToken->OnLine;
+	T.OnPos = ErrorToken->OnPos;
 
 	ScopedNameNode Tep;
 	ScopedName V;

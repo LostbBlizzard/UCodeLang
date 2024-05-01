@@ -73,6 +73,39 @@ bool SystematicAnalysis::Type_IsStaticArray(const TypeSymbol& TypeToCheck) const
 }
 
 
+bool SystematicAnalysis::Type_IsReference(const TypeSymbol& TypeToCheck) const
+{
+	if (Type_IsPrimitiveNotIncludingPointers(TypeToCheck))
+	{
+		return false;
+	}
+	auto symop = Symbol_GetSymbol(TypeToCheck);
+	if (symop.has_value())
+	{
+		auto sym = symop.value();
+		if (sym->Type == SymbolType::Type_class)
+		{
+			const auto info = sym->Get_Info<ClassInfo>();
+
+			for (auto& Item : info->Fields)
+			{
+				if (Item.Type.IsAddressArray())
+				{
+					bool nonpoddatatype = Type_HasCopyFunc(TypeToCheck) || info->_ClassHasMoveConstructor.has_value() || info->_AutoGenerateMoveConstructor;
+					if (!nonpoddatatype)
+					{
+						return true;
+					}
+				}
+			}
+		}
+	}
+
+
+
+
+	return false;
+}
 bool SystematicAnalysis::Type_IsimmutableRulesfollowed(const TypeSymbol& TypeToCheck, const TypeSymbol& Type) const
 {
 
@@ -84,24 +117,25 @@ bool SystematicAnalysis::Type_IsimmutableRulesfollowed(const TypeSymbol& TypeToC
 	{
 		return true;
 	}
-	else if (CmpTypeimm == false && Chechimm == true)
+	else if (CmpTypeimm == false && Chechimm == true && !Type_IsReference(TypeToCheck))
 	{
 		return true;
-		//return TypeToCheck.IsAddress() && Type.IsAddress();
-		
 	}
 
 	return false;
 }
-bool SystematicAnalysis::Type_IsAddessAndLValuesRulesfollowed(const TypeSymbol& TypeToCheck, const TypeSymbol& Type, bool ReassignMode) const
+bool SystematicAnalysis::Type_IsAddessAndLValuesRulesfollowed(const TypeSymbol& TypeToCheck, const TypeSymbol& Type, bool ReassignMode, bool isdeclare) const
 {
 	if (ReassignMode) { return true; }
 	bool CheckIsLocation = TypeToCheck.IsLocationValue() || TypeToCheck.IsAddress();
 	bool WantsALocation = Type.IsAddress();
 
-	if (!CheckIsLocation && WantsALocation)
+	if (isdeclare)
 	{
-		//return false;
+		if (!CheckIsLocation && WantsALocation)
+		{
+			return false;
+		}
 	}
 
 	return (
@@ -294,40 +328,40 @@ bool SystematicAnalysis::Type_GetSize(const TypeSymbol& Type, size_t& OutSize)
 				return true;
 			}
 			else
-			if (Info->VariantData.has_value())
-			{
-				auto tagsize = Type_GetSize(Info->Basetype, OutSize);
-				auto& Item = Info->VariantData.value();
-
-
-				if (!Item.VariantSize.has_value())
+				if (Info->VariantData.has_value())
 				{
-					size_t MaxSize = 0;
+					auto tagsize = Type_GetSize(Info->Basetype, OutSize);
+					auto& Item = Info->VariantData.value();
 
-					for (auto& Item2 : Item.Variants)
+
+					if (!Item.VariantSize.has_value())
 					{
-						size_t ItemSize = 0;
-						for (auto& Item3 : Item2.Types)
-						{
-							UAddress tep = 0;
-							Type_GetSize(Item3, tep);
-							ItemSize += tep;
-						}
-						if (ItemSize > MaxSize)
-						{
-							MaxSize = ItemSize;
-						}
-					}
-					Item.VariantSize = MaxSize;
-				}
-				OutSize += Item.VariantSize.value();
+						size_t MaxSize = 0;
 
-				return true;
-			}
-			else
-			{
-				return Type_GetSize(Info->Basetype, OutSize);
-			}
+						for (auto& Item2 : Item.Variants)
+						{
+							size_t ItemSize = 0;
+							for (auto& Item3 : Item2.Types)
+							{
+								UAddress tep = 0;
+								Type_GetSize(Item3, tep);
+								ItemSize += tep;
+							}
+							if (ItemSize > MaxSize)
+							{
+								MaxSize = ItemSize;
+							}
+						}
+						Item.VariantSize = MaxSize;
+					}
+					OutSize += Item.VariantSize.value();
+
+					return true;
+				}
+				else
+				{
+					return Type_GetSize(Info->Basetype, OutSize);
+				}
 		}
 		else if (V.Type == SymbolType::Func_ptr
 			|| V.Type == SymbolType::Hard_Func_ptr)
@@ -495,8 +529,34 @@ bool SystematicAnalysis::Type_IsSIntType(const TypeSymbol& TypeToCheck) const
 
 bool SystematicAnalysis::Type_IsCompatible(const IsCompatiblePar& FuncPar, const Vector<ParInfo>& ValueTypes, bool _ThisTypeIsNotNull, const NeverNullPtr<Token> Token)
 {
+	size_t valcount = ValueTypes.size();
 
-	if (FuncPar.Pars->size() != ValueTypes.size())
+	bool unpackparpack = true;
+	bool typepack = false;
+	if (ValueTypes.size())
+	{
+		auto& lastpartype = ValueTypes.back().Type;
+		auto symop = Symbol_GetSymbol(lastpartype);
+		if (symop.has_value())
+		{
+			auto val = symop.value();
+
+			if (val->Type == SymbolType::Type_Pack)
+			{
+				if (unpackparpack)
+				{
+					auto typelist = val->Get_Info<TypePackInfo>();
+					valcount -= 1;
+					valcount += typelist->List.size();
+
+					typepack = true;
+				}
+			}
+		}
+
+	}
+
+	if (FuncPar.Pars->size() != valcount)
 	{
 		return false;
 	}
@@ -544,22 +604,50 @@ bool SystematicAnalysis::Type_IsCompatible(const IsCompatiblePar& FuncPar, const
 	}
 	//
 
+	OptionalRef<Vector<TypeSymbol>> _TypePack;
+	if (unpackparpack && typepack)
+	{
+		auto& lastpartype = ValueTypes.back().Type;
+		_TypePack = Optionalref(Symbol_GetSymbol(lastpartype).value()->Get_Info<TypePackInfo>()->List);
+	}
 	for (size_t i = _ThisTypeIsNotNull ? 1 : 0; i < FuncPar.Pars->size(); i++)
 	{
 		auto& Item = (*FuncPar.Pars)[i];
-		auto& Item2 = ValueTypes[i];
 
-		if (Item.IsOutPar != Item2.IsOutPar)
+		bool Item2IsOutpar = false;
+		const TypeSymbol* Item2ptr = nullptr;
+		if (_TypePack.has_value())
+		{
+			if (i >= ValueTypes.size() - 1)
+			{
+				Item2IsOutpar = false;
+				auto newindex = i - (ValueTypes.size() - 1);
+				Item2ptr = &_TypePack.value()[newindex];
+			}
+			else
+			{
+				Item2ptr = &ValueTypes[i].Type;
+				Item2IsOutpar = ValueTypes[i].IsOutPar;
+			}
+		}
+		else
+		{
+			Item2ptr = &ValueTypes[i].Type;
+			Item2IsOutpar = ValueTypes[i].IsOutPar;
+		}
+
+		auto& Item2 = *Item2ptr;
+		if (Item.IsOutPar != Item2IsOutpar)
 		{
 			return false;
 		}
-		else if (Item2.IsOutPar && Item2.Type.IsAn(TypesEnum::Var))
+		else if (Item2IsOutpar && Item2.IsAn(TypesEnum::Var))
 		{
 			//is ok
 			continue;
 		}
 
-		if (!Type_CanBeImplicitConverted(Item2.Type, Item.Type, true))
+		if (!Type_CanBeImplicitConverted(Item2, Item.Type, true))
 		{
 			return false;
 		}
@@ -625,10 +713,75 @@ int SystematicAnalysis::Type_GetCompatibleScore(const IsCompatiblePar& Func, con
 	int r = 0;
 	auto& Pars = *Func.Pars;
 
+	bool unpackparpack = true;
+	bool typepack = false;
+	if (ValueTypes.size())
+	{
+		auto& lastpartype = ValueTypes.back().Type;
+		auto symop = Symbol_GetSymbol(lastpartype);
+		if (symop.has_value())
+		{
+			auto val = symop.value();
+
+			if (val->Type == SymbolType::Type_Pack)
+			{
+				if (unpackparpack)
+				{
+					auto typelist = val->Get_Info<TypePackInfo>();
+					typepack = true;
+				}
+			}
+		}
+
+	}
+
+	OptionalRef<Vector<TypeSymbol>> _TypePack;
+	if (unpackparpack && typepack)
+	{
+		auto& lastpartype = ValueTypes.back().Type;
+		_TypePack = Optionalref(Symbol_GetSymbol(lastpartype).value()->Get_Info<TypePackInfo>()->List);
+	}
 	for (size_t i = StartIndex; i < (Pars).size(); i++)
 	{
 		size_t ValueTypesIndex = StartIndex == 1 ? i - 1 : i;
-		r += Type_GetCompatibleScore(Pars[i], ValueTypes[ValueTypesIndex]);
+
+		ParInfo parinfo;
+		if (_TypePack.has_value())
+		{
+			if (ValueTypesIndex >= ValueTypes.size() - 1)
+			{
+				auto newindex = ValueTypesIndex - (ValueTypes.size() - 1);
+
+				parinfo.IsOutPar = false;
+				parinfo.Type = _TypePack.value()[newindex];
+			}
+			else
+			{
+				parinfo = ValueTypes[ValueTypesIndex];
+			}
+		}
+		else
+		{
+			auto& par = Pars[i];
+			{
+				auto symop = Symbol_GetSymbol(par.Type);
+				if (symop.has_value())
+				{
+					auto sym = symop.value();
+
+					if (sym->Type == SymbolType::Type_Pack || sym->Type == SymbolType::Unmaped_Generic_Type)
+					{
+						if (ValueTypesIndex >= ValueTypes.size())
+						{
+							continue;
+						}
+					}
+				}
+			}
+			parinfo = ValueTypes[ValueTypesIndex];
+		}
+
+		r += Type_GetCompatibleScore(Pars[i], parinfo);
 	}
 
 
@@ -738,7 +891,7 @@ bool SystematicAnalysis::Type_AreTheSameWithOutimmutable(const TypeSymbol& TypeA
 }
 bool SystematicAnalysis::Type_HasDefaultConstructorFunc(const TypeSymbol& Type) const
 {
-	if (Type.IsAddress() == false) 
+	if (Type.IsAddress() == false)
 	{
 		auto symOp = Symbol_GetSymbol(Type);
 		if (symOp.has_value())
@@ -751,7 +904,7 @@ bool SystematicAnalysis::Type_HasDefaultConstructorFunc(const TypeSymbol& Type) 
 
 				for (auto& Item : GetSymbolsWithName(scopename))
 				{
-					if (Item->Type == SymbolType::Func) 
+					if (Item->Type == SymbolType::Func)
 					{
 						auto funcinfo = Item->Get_Info<FuncInfo>();
 						if (funcinfo->Pars.size() == 1)
@@ -838,6 +991,14 @@ SystematicAnalysis::BinaryOverLoadWith_t SystematicAnalysis::Type_HasBinaryOverL
 					ScopeHelper::GetApendedString(funcName, Item.CompilerName);
 
 					auto V = GetSymbolsWithName(funcName, SymbolType::Func);
+					Optional<Symbol*> BestFit;
+					Optional<int> BestScore;
+
+					auto fortypefuncions = Type_FindForTypeFuncions(TypeA, Item.CompilerName);
+					for (auto& Item : fortypefuncions)
+					{
+						V.push_back(Item);
+					}
 
 					for (auto& Item : V)
 					{
@@ -847,15 +1008,33 @@ SystematicAnalysis::BinaryOverLoadWith_t SystematicAnalysis::Type_HasBinaryOverL
 							auto funcInfo = Item->Get_Info<FuncInfo>();
 							if (funcInfo->Pars.size() == 2)
 							{
-								bool r = Type_CanBeImplicitConverted(TypeA, funcInfo->Pars[0].Type)
-									&& Type_CanBeImplicitConverted(TypeB, funcInfo->Pars[1].Type);
+								auto ParA = funcInfo->Pars[0];
+								auto ParB = funcInfo->Pars[1];
+								bool r = Type_CanBeImplicitConverted(TypeA, ParA.Type)
+									&& Type_CanBeImplicitConverted(TypeB, ParB.Type);
 								if (r)
 								{
-									return { r, Item };
+									ParInfo pinfo;
+									pinfo.Type = TypeA;
+									ParInfo pinfo2;
+									pinfo2.Type = TypeB;
+
+									int itemscore = (Type_GetCompatibleScore(pinfo, ParA) + Type_GetCompatibleScore(pinfo2, ParB)) / 2;
+
+									if (!BestScore.has_value() || BestScore.value() < itemscore)
+									{
+										BestFit = Item;
+										BestScore = itemscore;
+									}
 								}
 
 							}
 						}
+					}
+
+					if (BestFit.has_value())
+					{
+						return { true, BestFit.value() };
 					}
 					break;
 				}
@@ -892,6 +1071,15 @@ SystematicAnalysis::CompoundOverLoadWith_t SystematicAnalysis::Type_HasCompoundO
 
 					auto V = GetSymbolsWithName(funcName, SymbolType::Func);
 
+					Optional<Symbol*> BestFit;
+					Optional<int> BestScore;
+
+					auto fortypefuncions = Type_FindForTypeFuncions(TypeA, Item.CompilerName);
+					for (auto& Item : fortypefuncions)
+					{
+						V.push_back(Item);
+					}
+
 					for (auto& Item : V)
 					{
 						Symbol_Update_FuncSym_ToFixedTypes(NeverNullptr(Item));
@@ -900,15 +1088,33 @@ SystematicAnalysis::CompoundOverLoadWith_t SystematicAnalysis::Type_HasCompoundO
 							auto funcInfo = Item->Get_Info<FuncInfo>();
 							if (funcInfo->Pars.size() == 2)
 							{
-								bool r = Type_CanBeImplicitConverted(TypeA, funcInfo->Pars[0].Type)
-									&& Type_CanBeImplicitConverted(TypeB, funcInfo->Pars[1].Type);
+								auto ParA = funcInfo->Pars[0];
+								auto ParB = funcInfo->Pars[1];
+
+								bool r = Type_CanBeImplicitConverted(TypeA, ParA.Type)
+									&& Type_CanBeImplicitConverted(TypeB, ParB.Type);
 								if (r)
 								{
-									return { r, Item };
+									ParInfo pinfo;
+									pinfo.Type = TypeA;
+									ParInfo pinfo2;
+									pinfo2.Type = TypeB;
+
+									int itemscore = (Type_GetCompatibleScore(pinfo, ParA) + Type_GetCompatibleScore(pinfo2, ParB)) / 2;
+
+									if (!BestScore.has_value() || BestScore.value() < itemscore)
+									{
+										BestFit = Item;
+										BestScore = itemscore;
+									}
 								}
 
 							}
 						}
+					}
+					if (BestFit.has_value())
+					{
+						return { true, BestFit.value() };
 					}
 					break;
 				}
@@ -995,6 +1201,23 @@ SystematicAnalysis::IndexOverLoadWith_t SystematicAnalysis::Type_HasIndexedOverL
 		{
 
 			String funcName = Syb->FullName;
+
+			if (StringHelper::EndWith((String_view)funcName, TraitClassEnd))
+			{
+				funcName = funcName.substr(0, funcName.size() - sizeof(TraitClassEnd) + 1);
+
+				auto SymOp = Symbol_GetSymbol(funcName, SymbolType::Trait_class);
+				if (SymOp.has_value())
+				{
+					auto Sym = SymOp.value();
+
+					if (Sym->Type == SymbolType::Generic_Trait)
+					{
+						ScopeHelper::GetApendedString(funcName, GenericTestStr);
+					}
+				}
+			}
+
 			ScopeHelper::GetApendedString(funcName, Overload_Index_Func);
 
 			auto V = GetSymbolsWithName(funcName, SymbolType::Func);
@@ -1101,104 +1324,30 @@ SystematicAnalysis::UrinaryOverLoadWith_t SystematicAnalysis::Type_HasUrinaryOve
 		{
 			if (Op == TokenType::QuestionMark)
 			{
-				auto name = ScopeHelper::GetNameFromFullName(Syb->FullName);
 
-				if (StringHelper::StartWith(name,UCode_OptionalType))
+				auto optinfo = IsOptionalType(TypeA);
+				if (optinfo.has_value())
 				{
-					EnumInfo* info = Syb->Get_Info<EnumInfo>();
-				
-					if (info->Fields.size() != 2 || !info->VariantData.has_value())
+					auto rettype = optinfo.value().SomeType;
+
+
+					_LastExpressionType = rettype;//Should return rettype and not set _LastExpressionType
+
+					return { {true} };
+				}
+				else
+				{
+					auto resultinfo = IsResultType(TypeA);
+
+					if (resultinfo.has_value())
 					{
-						return {};
-					}
-					EnumVariantField* hasNone = nullptr;
-					EnumVariantField* hasSome = nullptr;
+						auto& resulttype = resultinfo.value();
 
-					for (auto& Item : info->VariantData.value().Variants)
-					{
-						if (Item.Types.size() ==1)
-						{
-							hasSome = &Item;
-						}
-						else if (Item.Types.size() == 0)
-						{
-							hasNone = &Item;
-						}
-
-					}
-
-
-					if (hasSome && hasNone)
-					{
-						auto rettype = hasSome->Types[0];
-						
-
-						_LastExpressionType = rettype;//Should return rettype and not set _LastExpressionType
+						_LastExpressionType = resulttype.SomeType;
 
 						return { {true} };
 					}
-					else
-					{
-						return {};
-					}
-
-					
-
 				}
-				else if (StringHelper::StartWith(name,UCode_ResultType))
-				{
-					EnumInfo* info = Syb->Get_Info<EnumInfo>();
-
-					const Symbol* Resultgeneric = Symbol_GetSymbol(UCode_ResultType,SymbolType::Generic_Enum).value().value();
-					const EnumInfo* ResultgenericInfo = Resultgeneric->Get_Info<EnumInfo>();
-
-					if (info->Fields.size() != 2 || !info->VariantData.has_value())
-					{
-						return {};
-					}
-
-					if (ResultgenericInfo->_GenericData._Genericlist.size() == 2
-						&& ResultgenericInfo->Fields.size() != 2 || !ResultgenericInfo->VariantData.has_value())
-					{
-						return {};
-					}
-
-					size_t Indexval = 0;
-					size_t Indexerr = 0;
-
-					if (ResultgenericInfo->VariantData.value().Variants[0].Types.front()._CustomTypeSymbol == ResultgenericInfo->_GenericData._Genericlist[0].SybID)
-					{
-						Indexval = 0;
-						Indexerr = 1;
-					}
-					else
-					{
-						Indexval = 1;
-						Indexerr = 0;
-					}
-
-					UCodeLangAssert(Indexval != Indexerr);
-
-					auto& variantinfo = info->VariantData.value().Variants;
-
-					EnumVariantField* hasval = &variantinfo[Indexval];
-					EnumVariantField* haserr = &variantinfo[Indexerr];
-
-					if (hasval && haserr)
-					{
-						auto rettype = hasval->Types[0];
-
-
-						_LastExpressionType = rettype;//Should return rettype and not set _LastExpressionType
-
-						return { {true} };
-					}
-					else
-					{
-						return {};
-					}
-				}
-
 			}
 		}
 	}
@@ -1257,6 +1406,30 @@ bool SystematicAnalysis::Type_IsCopyable(const TypeSymbol& Type)
 		}
 	}
 	return true;
+}
+bool SystematicAnalysis::Type_HasCopyFunc(const TypeSymbol& Type) const
+{
+	if (auto val = Symbol_GetSymbol(Type))
+	{
+		auto& Syb = *val.value().value();
+
+		switch (Syb.Type)
+		{
+		case SymbolType::Type_class:
+		{
+			auto v = Syb.Get_Info<ClassInfo>();
+			bool r = v->_ClassAutoGenerateCopyConstructor
+				|| v->_ClassHasCopyConstructor.has_value();
+
+
+			return r;
+		}
+		break;
+		default:
+			break;
+		}
+	}
+	return false;
 }
 TypeSymbolID SystematicAnalysis::Type_GetTypeID(TypesEnum Type, SymbolID SymbolId)
 {
@@ -1432,10 +1605,19 @@ void SystematicAnalysis::Type_Convert(const TypeNode& V, TypeSymbol& Out)
 		if (_generic.has_value() && _generic.value()->_Values.size())
 		{
 			const UseGenericsNode* _genericval = _generic.value().value();
+	
+			bool remove = !GenericOutputs.HasValue(&Out);
+			if (remove) {
+				GenericOutputs.AddValue(&Out, Name);
+			}
 
 			auto Val = Generic_InstantiateOrFindGenericSymbol(NeverNullptr(V._name._ScopedName.back()._token), *_genericval, Name);
-			if (!Val.has_value()) { return; }
+			if (!Val.has_value()) { Out = Type_GetUnMapType(); return; }
 			SybV = Val.value().value();
+
+			if (remove) {
+				GenericOutputs.erase(&Out);
+			}
 		}
 		else
 		{
@@ -1500,22 +1682,23 @@ void SystematicAnalysis::Type_Convert(const TypeNode& V, TypeSymbol& Out)
 	{
 		//note this can only happen in a generic substitution
 		auto* node = V._node.get();
-		if (_ConstantExpressionMap.HasValue(node))
+		SymbolID id = Symbol_GetSymbolID(node);
+		if (_ConstantExpressionMap.HasValue(id))
 		{
-			auto& item = _ConstantExpressionMap.GetValue(node);
+			auto& item = Symbol_GetSymbol(id)->ID;
 			Out.SetType(item);
 		}
 		else
 		{
-			SymbolID id = Symbol_GetSymbolID(node);
 			auto& Syb = Symbol_AddSymbol(SymbolType::ConstantExpression, "?", "?", AccessModifierType::Private);
 			_Table.AddSymbolID(Syb, id);
 
+			_ConstantExpressionMap.AddValue(id);
 			ConstantExpressionInfo* info = new ConstantExpressionInfo();
 			info->Exnode = ExpressionNodeType::As(node);
 			info->Context = Save_SymbolContext();
 
-			_LookingForTypes.push(TypesEnum::Any);
+			_LookingForTypes.push(_LookingForTypes.top());
 
 			auto IsOk = Eval_EvaluateToAnyType(*info->Exnode);
 
@@ -1772,6 +1955,28 @@ void SystematicAnalysis::Type_Convert(const TypeNode& V, TypeSymbol& Out)
 			LogError_DynamicMustBeRrait(V, Out);
 			Out.SetType(TypesEnum::Null);
 		}
+		else
+		{
+			auto Info = Symbol_GetSymbol(Out).value()->Get_Info<TraitInfo>();
+			bool HasDynamicDispatchFunc = false;
+			for (auto& Item : Info->_Funcs)
+			{
+				bool IsDynamic = Item.Syb->Get_Info<FuncInfo>()->IsTraitDynamicDispatch;
+				if (IsDynamic)
+				{
+					HasDynamicDispatchFunc = true;
+					break;
+				}
+			}
+
+			if (HasDynamicDispatchFunc == false)
+			{
+				auto Token = NeverNullptr(V._name._ScopedName.back()._token);
+				LogError(ErrorCodes::InValidType, "Trait cant be dynamic Because has no dynamic Funcions", Token);
+				Out = TypesEnum::Null;
+				return;
+			}
+		}
 		Out._IsDynamic = true;
 	}
 
@@ -1922,39 +2127,9 @@ bool SystematicAnalysis::Type_IsValid(TypeSymbol& Out)
 {
 	return false;
 }
-bool SystematicAnalysis::Type_CanBeImplicitConverted(const TypeSymbol& TypeToCheck, const TypeSymbol& Type, bool ReassignMode)
+NullablePtr<FuncInfo> SystematicAnalysis::Symbol_GetAnImplicitConvertedFunc(const TypeSymbol& MainType, const TypeSymbol& ToType)
 {
-	if (Type_AreTheSameWithOutMoveAndimmutable(TypeToCheck, Type))
-	{
-		bool V0 = Type_IsimmutableRulesfollowed(TypeToCheck, Type);
-
-		bool V1 = Type_IsAddessAndLValuesRulesfollowed(TypeToCheck, Type, ReassignMode);
-
-		if (TypeToCheck._ValueInfo != TypeValueInfo::IsValue
-			&& !TypeToCheck.IsMovedType() && (!Type_IsCopyable(TypeToCheck))
-			&& !Type.IsAddress())
-		{
-			return false;
-		}
-
-		return V0 && V1;
-	}
-
-
-	if (Type_CanDoTypeToTrait(TypeToCheck, Type))
-	{
-
-		if (TypeToCheck.IsAddress() || TypeToCheck._ValueInfo == TypeValueInfo::IsLocation)
-		{
-			return true;
-		}
-		else
-		{
-			return false;
-		}
-	}
-
-	if (auto syb = Symbol_GetSymbol(Type).value_unchecked())
+	if (auto syb = Symbol_GetSymbol(MainType).value_unchecked())
 	{
 		if (syb->Type == SymbolType::Type_class)
 		{
@@ -1980,10 +2155,19 @@ bool SystematicAnalysis::Type_CanBeImplicitConverted(const TypeSymbol& TypeToChe
 
 						auto& Par = funcinfo->Pars[1];
 						auto par = Par.Type;
-						par._IsAddress = false;
-						if (Type_AreTheSame(par, TypeToCheck))
+						if (!ToType.IsAddress())
 						{
-							return true;
+							par._IsAddress = false;
+						}
+
+						if (!ToType.Isimmutable())
+						{
+							par._Isimmutable = false;
+						}
+							
+						if (Type_AreTheSame(par, ToType))
+						{
+							return Nullableptr(funcinfo);
 						}
 					}
 				}
@@ -1991,7 +2175,49 @@ bool SystematicAnalysis::Type_CanBeImplicitConverted(const TypeSymbol& TypeToChe
 			}
 		}
 	}
+	return {};
+}
+bool SystematicAnalysis::Type_CanBeImplicitConverted(const TypeSymbol& TypeToCheck, const TypeSymbol& Type, bool ReassignMode, bool isdeclare)
+{
+	if (Type_AreTheSameWithOutMoveAndimmutable(TypeToCheck, Type))
+	{
+		bool V0 = Type_IsimmutableRulesfollowed(TypeToCheck, Type);
 
+		bool V1 = Type_IsAddessAndLValuesRulesfollowed(TypeToCheck, Type, ReassignMode, isdeclare);
+
+		if (TypeToCheck._ValueInfo != TypeValueInfo::IsValue
+			&& !TypeToCheck.IsMovedType() && (!Type_IsCopyable(TypeToCheck))
+			&& !Type.IsAddress())
+		{
+			return false;
+		}
+		if ((V0 && V1) && Type.IsMovedType() && !TypeToCheck.IsMovedType())
+		{
+			return false;
+		}
+
+		return V0 && V1;
+	}
+
+
+	if (Type_CanDoTypeToTrait(TypeToCheck, Type))
+	{
+
+		if (TypeToCheck.IsAddress() || TypeToCheck._ValueInfo == TypeValueInfo::IsLocation)
+		{
+			return true;
+		}
+		else
+		{
+			return false;
+		}
+	}
+
+	auto implicefunc = Symbol_GetAnImplicitConvertedFunc(Type, TypeToCheck);
+	if (implicefunc.has_value())
+	{
+		return true;
+	}
 
 	return false;
 }

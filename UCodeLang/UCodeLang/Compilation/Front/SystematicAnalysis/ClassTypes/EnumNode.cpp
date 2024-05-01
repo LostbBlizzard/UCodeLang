@@ -55,6 +55,12 @@ void SystematicAnalysis::OnEnum(const EnumNode& node)
 	EvaluatedEx ex;
 	if (_PassType == PassType::FixedTypes)
 	{
+		if (Isgeneric_t) 
+		{
+			auto& GenericList = node._generic;
+			Generic_GenericAliasFixTypes(GenericList, IsgenericInstantiation, enumInf->_GenericData);
+		}
+
 		Type_ConvertAndValidateType(node._BaseType, enumInf->Basetype, NodeSyb_t::Any);
 		if (enumInf->Basetype.IsBadType() || Type_IsUnMapType(enumInf->Basetype)) { _Table.RemoveScope(); return; }
 		if (!Eavl_ConstantExpressionAbleType(enumInf->Basetype))
@@ -68,6 +74,7 @@ void SystematicAnalysis::OnEnum(const EnumNode& node)
 	bool HasCheckedForincrementOp = false;
 	_LookingForTypes.push(enumInf->Basetype);
 
+	Syb.PassState = _PassType;
 	for (size_t i = 0; i < node._Values.size(); i++)
 	{
 		auto& Item = node._Values[i];
@@ -154,7 +161,7 @@ void SystematicAnalysis::OnEnum(const EnumNode& node)
 							ClassInf->SizeInitialized = true;
 							ClassInf->Size = NewSize;
 
-							
+
 						}
 
 						EnumVa.Variants.push_back(std::move(V));
@@ -163,11 +170,11 @@ void SystematicAnalysis::OnEnum(const EnumNode& node)
 					{
 						EnumVariantField V;
 						V.Types.push_back(Type_ConvertAndValidateType(VariantType_, NodeSyb_t::Parameter));
-						
+
 						if (Symbol_HasDestructor(V.Types.front())) {
 							enumInf->HasDestructer = true;
 						}
-						
+
 						EnumVa.Variants.push_back(std::move(V));
 					}
 				}
@@ -239,7 +246,40 @@ void SystematicAnalysis::OnEnum(const EnumNode& node)
 
 				Field.Ex = ex.EvaluatedObject;
 			}
+
+
+			bool ispublic = node._Access == AccessModifierType::Public;
+			if (node._IsExport && ispublic)
+			{
+				if (!Type_IsTypeExported(enumInf->Basetype))
+				{
+					LogError_TypeIsNotExport(NeverNullptr(node._EnumName.token), enumInf->Basetype, NeverNullptr(&Syb));
+				}
+
+				if (enumInf->VariantData.has_value())
+				{
+					for (size_t i = 0; i < enumInf->VariantData.value().Variants.size(); i++)
+					{
+						auto& Item = enumInf->VariantData.value().Variants[i];
+				
+
+						for (auto& Item2 : Item.Types)
+						{
+							if (!Type_IsTypeExported(Item2))
+							{
+								LogError_TypeIsNotExport(NeverNullptr(node._Values[i]._Name.token), Item2,NeverNullptr(&Syb));
+							}
+						}
+					}
+				}
+			}
+
+			if (!ispublic && node._IsExport)
+			{
+				LogError_ExportIsPrivate(NeverNullptr(node._EnumName.token),NeverNullptr(&Syb));
+			}
 		}
+	
 
 		if (enumInf->HasDestructer)
 		{
@@ -291,6 +331,8 @@ void SystematicAnalysis::OnEnum(const EnumNode& node)
 
 			VClass.Base.Implementation = ClassStr + String(ClassBody);
 			VClass.Base.Implementation += "\n\n";
+			VClass.IsExported = node._IsExport;
+			VClass.AccessModifier = node._Access;
 			
 		}
 
@@ -421,7 +463,6 @@ void SystematicAnalysis::OnEnum(const EnumNode& node)
 	}
 
 	_Table.RemoveScope();
-	Syb.PassState = _PassType;
 }
 
 

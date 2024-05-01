@@ -15,31 +15,11 @@ on:
         type: boolean
         default: true
       
-      LanguageChangelog:
-        description: 'The Main Change Log'
-        required: true
-        type: string
-        default: 'added: fixed: removed:'
-
-      ImplementerChangelog:
-        description: 'The Change Log for implmenters(People who use this as a Scripting Lang Lib)'
-        required: true
-        type: string
-        default: 'added: fixed: removed:'
-
-
       UploadToVSMarketPlace:
         description: 'Upload To VS MarketPlace'
         required: true
         type: boolean
         default: false
-
-      LSPChangelog:
-        description: 'The Change Log for Editor Extenions'
-        required: true
-        type: string
-        default: 'added: fixed: removed:'
-
 
 jobs:
   
@@ -85,6 +65,7 @@ jobs:
            Output/UCodeLanguageSever
            Output/UCodeLang
            Output/UCodeLangSetup.exe
+           !Output/int
           retention-days: 1
 
   build-Linux:
@@ -126,6 +107,7 @@ jobs:
            Output/UCodeLanguageSever
            Output/UCodeLang
            Output/ULangPacked.tar.gz 
+           !Output/int
           retention-days: 1
 
   build-MacOS:
@@ -167,6 +149,7 @@ jobs:
            Output/UCodeLanguageSever
            Output/UCodeLang
            Output/ULangPacked.tar.gz
+           !Output/int 
           retention-days: 1
 
   build-Extensions:
@@ -213,6 +196,7 @@ jobs:
       - name: Download all workflow run artifacts
         uses: actions/download-artifact@v4
 
+
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
@@ -220,16 +204,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
         with:
           release_name: Release ${{ inputs.VersionNumber }}
-          body: |
-            LanguageChangelog Changelog:
-            ${{ inputs.LanguageChangelog }}
-
-            Implementers Changelog:
-            ${{ inputs.ImplementerChangelog }}
-
-            LSP Changelog:
-            ${{ inputs.LSPChangelog }}
-
+          body_path: ./changelog.md
           draft: false
           prerelease: ${{ inputs.IsPreRelease }}
           tag_name: Release-${{ inputs.VersionNumber }}
@@ -406,3 +381,14 @@ jobs:
           asset_path: ./Output_MacOS/UCodeLanguageSever/MacOS/Published/uclanglsp
           asset_name: uclanglsp-macos
           asset_content_type: application/octet-stream 
+ 
+      - name: Upload version Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
+          asset_path: version.txt
+          asset_name: version.txt
+          asset_content_type: application/octet-stream
+ 

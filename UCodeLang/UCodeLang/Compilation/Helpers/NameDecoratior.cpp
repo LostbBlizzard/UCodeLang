@@ -14,7 +14,7 @@ String NameDecoratior::GetDecoratedName(const String_view funcName, const Vector
 
 	if (Pars.size())
 	{
-		r += "^";
+		r += ParSpit;
 		for (auto& Item : Pars)
 		{
 			r += DecoratedNameType(Item);
@@ -84,6 +84,15 @@ String NameDecoratior::DecoratedNameType(const Par& Type)
 		break;
 	case ReflectionTypes::float64:
 		R += "f64";
+		break;
+	case ReflectionTypes::Uft8:
+		R += "c8";
+		break;
+	case ReflectionTypes::Uft16:
+		R += "c16";
+		break;
+	case ReflectionTypes::Uft32:
+		R += "c32";
 		break;
 	default:
 		R += Type.symbolFullName;

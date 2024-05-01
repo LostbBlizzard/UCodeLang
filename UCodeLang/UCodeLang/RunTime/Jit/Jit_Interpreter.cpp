@@ -90,7 +90,16 @@ thread_local JitRuningState _ThisState = {};
 
 Optional<InterpretorError> Jit_Interpreter::CheckForIntperpreterError()
 {
+#if HasNoSupportforJit
+	return _Interpreter.CheckForIntperpreterError();
+#else
+
+	#if UCodeLang_KeepJitInterpreterFallback
+	return _Interpreter.CheckForIntperpreterError();
+	#endif
+
 	return {};
+#endif
 }
 
 Interpreter::Return_t Jit_Interpreter::Call(UAddress address)

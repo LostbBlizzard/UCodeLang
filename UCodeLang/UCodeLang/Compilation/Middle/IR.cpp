@@ -53,15 +53,15 @@ void IRBuilder::Fix_Size(IRStruct* Struct, bool is32mode)
 						}
 
 					}
-					size_t fieldsize = GetSize(Item.Type, is32mode);
-
-					if (fieldsize > CompilerRet)
-					{
-						CompilerRet = fieldsize;
-					}
-
 					Item.Offset = 0;
+				}	
+				size_t fieldsize = GetSize(Item.Type, is32mode);
+
+				if (fieldsize > CompilerRet)
+				{
+					CompilerRet = fieldsize;
 				}
+
 			}
 			Struct->ObjectSize = CompilerRet;
 			Struct->IsSizeSet = true;
@@ -205,6 +205,8 @@ IRType IRBuilder::GetType(const IRInstruction* IR, const IROperator& Op) const
 			return IR->ObjectType;
 		}
 		case IROperatorType::Value:
+			return  IR->ObjectType;
+		case IROperatorType::Get_Func_Pointer:
 			return  IR->ObjectType;
 		default:
 			break;

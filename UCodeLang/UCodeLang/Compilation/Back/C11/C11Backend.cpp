@@ -80,8 +80,23 @@ void C11Backend::Build(const IRBuilder* Input)
 	}
 	else
 	{
+
+		{//Flags 
+			Flag_NoExceptions = Get_Settings().HasArg("NoExceptions");
+			Flag_CPPCodeAllowed = Get_Settings().HasArg("AllowCpp");
+
+		}
 		AddTextSignature();
 
+
+		if (Flag_CPPCodeAllowed)
+		{
+			String NameSpace = "CompiledULang";
+
+			OutBuffer += "namespace ";
+			OutBuffer += NameSpace;
+			OutBuffer += " {";
+		}
 
 		//types
 		AddBaseTypes();
@@ -92,6 +107,10 @@ void C11Backend::Build(const IRBuilder* Input)
 		OutBuffer += ToString();
 
 
+		if (Flag_CPPCodeAllowed)
+		{
+			OutBuffer += "\n\n}";
+		}
 
 		Set_Output(OutBuffer);
 	}
@@ -212,7 +231,18 @@ void C11Backend::AddBaseTypes()
 
 	OutBuffer += "#include <inttypes.h>\n";
 	OutBuffer += "#include <stdlib.h>\n";
+	OutBuffer += "#include <stdio.h>\n";
+	OutBuffer += "#include <string.h>\n";
 
+	if (Flag_CPPCodeAllowed)
+	{
+		if (Flag_NoExceptions == false)
+		{
+			bool hasexexceptions = true;
+
+			OutBuffer += "#include <exception>\n";
+		}
+	}
 	OutBuffer += "/*Types*/\n";
 	OutBuffer += "typedef float float32_t;\n";
 	OutBuffer += "typedef double float64_t;\n";
@@ -625,14 +655,25 @@ void C11Backend::UpdateCppLinks(UCodeLang::String& r, UCodeLang::IRBufferData* V
 	}
 }
 
+const char* includedfuncions[] = {
+ "malloc",
+ "free",
+ "memcpy",
+ "memmove",
+ "putchar",
+};
+constexpr size_t includefuncions_size = sizeof(includedfuncions) / sizeof(includedfuncions[0]);
 void C11Backend::ToString(UCodeLang::String& r, const IRFunc* Item, UCodeLang::C11Backend::ToStringState& State, bool OutputBody)
 {
 	{
 		auto str = FromIDToCindentifier(Item->identifier);
-		if (str == "malloc"
-			|| str == "free")
+		for (size_t i = 0; i < includefuncions_size; i++)
 		{
-			return;
+			auto item = includedfuncions[i];
+			if (str == item)
+			{
+				return;
+			}
 		}
 	}
 
@@ -764,7 +805,7 @@ void C11Backend::ToString(UCodeLang::String& r, const IRFunc* Item, UCodeLang::C
 					r += (String)IRReturnValue + " = ";
 					if (docast)
 					{
-						r += "(" + ToString(_Func->ReturnType) + ")(";
+						r += "*(" + ToString(_Func->ReturnType) + "*)(&";
 					}
 					r += ToString(State, *I, I->Target());
 					if (docast)
@@ -786,7 +827,7 @@ void C11Backend::ToString(UCodeLang::String& r, const IRFunc* Item, UCodeLang::C
 
 					if (docast)
 					{
-						r += "(" + ToString(I->ObjectType) + ")(";
+						r += "*(" + ToString(I->ObjectType) + "*)(&";
 					}
 					r += ToString(State, *I, I->Target());
 
@@ -937,13 +978,29 @@ void C11Backend::ToString(UCodeLang::String& r, const IRFunc* Item, UCodeLang::C
 						r += " = ";
 					}
 					r += FromIDToCindentifier(I->Target().identifier) + "(";
-					for (auto& Item : State.TepPushedParameters)
+					auto func = _Input->GetFunc(I->Target().identifier);
+					for (size_t i = 0; i < State.TepPushedParameters.size(); i++)
 					{
-						r += State.PointerToName.GetValue(Item->Target().Pointer);
+						auto& Item = State.TepPushedParameters[i];
+						auto& par = func->Pars[i];
+
+						if (_Input->GetType(Item) != par.type)
+						{
+							r += "*(";
+							r += ToString(par.type);
+							r += "*)&";
+							r += State.PointerToName.GetValue(Item->Target().Pointer);
+						}
+						else
+						{
+							r += State.PointerToName.GetValue(Item->Target().Pointer);
+						}
+
 						if (&Item != &State.TepPushedParameters.back())
 						{
 							r += ",";
 						}
+
 					}
 					State.TepPushedParameters.clear();
 					r += ")";
@@ -1115,14 +1172,43 @@ void C11Backend::ToString(UCodeLang::String& r, const IRFunc* Item, UCodeLang::C
 					tep = _Input->GetType(I.get(), I.get()->Target());
 					r += ToStringBinary(State, I.get(), "^");
 					break;
+				case IRInstructionType::UMod:
+					OutType = &tep;
+					tep = _Input->GetType(I.get(), I.get()->Target());
+					r += ToStringBinary(State, I.get(), "%");
+					break;
+				case IRInstructionType::SMod:
+					OutType = &tep;
+					tep = _Input->GetType(I.get(), I.get()->Target());
+					r += ToStringBinary(State, I.get(), "%");
+					break;
 				case IRInstructionType::BitWise_Not:
 					r += ToString(I->ObjectType);
 					r += " " + State.GetName(I.get());
 					r += " = ~" + ToString(State, *I, I->Target());
 					break;
 				case IRInstructionType::ThrowException:
+				{
+					if (Flag_NoExceptions == false)
+					{
+						if (Flag_CPPCodeAllowed)
+						{
+							r += "throw std::runtime_error(std::string(";
+							r += "(const char*)";
+							r += ToString(State, *I, I->Target());
+							r += ",";
+							r += "(size_t)";
+							r += ToString(State, *I, I->Input());
+							r += "))";
+						}
+						else
+						{
 
-					break;
+						}
+
+					}
+				}
+				break;
 				default:
 					UCodeLangUnreachable();
 					break;

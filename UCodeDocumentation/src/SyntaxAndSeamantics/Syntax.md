@@ -123,12 +123,17 @@ int? MaybeAnInt;//an optional int
 int[] Ints;//an Vector<int>
 
 ```
- - [Array](../Standardlibrary/Types/Generic/Array.md.md)
+ - [Array](../Standardlibrary/Types/Generic/Array.md)
 
 ```cpp
-int[5] MoreInts;//an Array<int,5>
+int[5] MoreInts;//an Array<int,5> //an Array<int,(somevarable)>
+int[(somevarable)] MoreInts; //an Array<int,(somevarable)>  Map short hand takes precedent over array in this case so you need parentheses. 
 ```
-
+- [Map](../Standardlibrary/Types/Generic/Map.md)
+```cpp
+int[String] StringToIntMap;//an Map<String,int>
+int[sometype] SomeTypeToIntMap;//an Map<sometype,int>
+```
  - [Span](../Standardlibrary/Types/Generic/Span.md)
 
 ```cpp

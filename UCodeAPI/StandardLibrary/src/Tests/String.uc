@@ -18,7 +18,51 @@ Tests:
   String Txt = "Hello";
   ret Txt == "Hello";
 
- [SkipedTest]
+ [Test]
  |StringSpan_5[]:
   String Txt = "World";
   ret Txt != "Hello";
+ 
+ [Test]
+ |StringSpan_6[]:
+  String Txt = "Hello";
+  Txt += " World";
+  ret Txt == "Hello World";
+ 
+ [Test]
+ |StringSpan_7[]:
+  String Txt = "Hello";
+  var copy = Txt;
+  ret copy == "Hello";
+
+ [Test]
+ |StringSpan_8[]:
+  String Txt = "Hello";
+  var copy = move Txt;
+  ret copy == "Hello" && Txt.Size() == 0;
+
+ [Test]
+ |StringSpan_9[]:
+  var Txt = "Hello" + " World";
+  ret Txt == "Hello World";
+
+ [Test]
+ |StringSpan_10[]:
+  String v = " World";
+  var Txt = "Hello" + v;
+  ret Txt == "Hello World";
+
+ [Test]
+ |StringSpan_11[]:
+  String v = "Hello World";
+  ret v.StartWith("Hello") == true; 
+
+ [Test]
+ |StringSpan_12[]:
+  String v = "Hello World";
+  //ret v.EndWith("World") == true; 
+ 
+ [Test]
+ |StringSpan_13[]:
+  String v = "Hello World";
+  ret v.Contains("llo") == true; 

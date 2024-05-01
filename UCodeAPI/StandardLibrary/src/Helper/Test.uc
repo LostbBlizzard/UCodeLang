@@ -1,4 +1,4 @@
 
-$Test tag;
+$Test tag export;
 
-$SkipedTest tag;
+$SkipedTest tag export;

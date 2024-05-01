@@ -126,16 +126,16 @@ public:
 	{
 		UCodeLangAssert(_Info->Insert_Copy_Method);//This Method may not exist if type is not copyable
 		_ptr.PushParameter(_UObject);
-		_ptr.PushParameter(&Obj,sizeof(void*));
 		_ptr.PushParameter(index);
+		_ptr.PushParameter(&Obj,sizeof(void*));
 		
 		_ptr.Call(_Info->Insert_Copy_Method);
 	}
 	inline void insert(size_t index,void*&& Obj)
 	{
 		_ptr.PushParameter(_UObject);
-		_ptr.PushParameter(&Obj, sizeof(void*));
 		_ptr.PushParameter(index);
+		_ptr.PushParameter(&Obj, sizeof(void*));
 
 		_ptr.Call(_Info->Insert_Moved_Method);
 	}
@@ -188,12 +188,10 @@ public:
 		remove_p(index,tep.Data(), tep.Size());
 		auto info = assembly->CallDestructor(GetElementType(), tep.Data(), is32bit);
 
-		#if UCodeLangDebug
 		if (!info.has_value())
 		{
 			UCodeLangThrowException("Calling Destructor fail");
 		}
-		#endif // DEBUG
 
 		if (info.has_value())
 		{
@@ -248,6 +246,7 @@ public:
 		SetUObject(UObject);
 		SetInfo(Info);
 		SetInterpreter(ptr);
+		elemsize = assembly.GetSize(GetElementType(), is32bit).value_or(0);
 	}
 	inline void SetUObject(void* UObject){_UObject = UObject;}
 	inline void SetInfo(const Info_t* Info){_Info = Info;}

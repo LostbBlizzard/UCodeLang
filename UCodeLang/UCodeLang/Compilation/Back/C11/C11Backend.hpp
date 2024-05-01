@@ -39,6 +39,10 @@ private:
 		String GetName(IRInstruction* Ptr);
 	};
 	IRType* OutType;
+	//Compile Flags
+	bool Flag_NoExceptions = false;
+	bool Flag_CPPCodeAllowed = false;
+
 	String ToString();
 
 	void AddSybToString(UCodeLang::String& r);

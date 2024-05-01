@@ -274,6 +274,7 @@ void SystematicAnalysis::OnStringLiteral(const StringliteralNode* nod, bool& ret
 						if (Item->Type == SymbolType::Func)
 						{
 							FuncInfo* finfo = Item->Get_Info<FuncInfo>();
+							Symbol_Update_FuncSym_ToFixedTypes(Item);
 							if (finfo->Pars.size() == 3)
 							{
 								auto& pointerpar = finfo->Pars[1];
@@ -539,7 +540,20 @@ void SystematicAnalysis::OnStringLiteral(const StringliteralNode* nod, bool& ret
 				irpointer = _IR_LookingAtIRBlock->NewAdd(IR_Load_UIntptr(mult), irpointer);
 			}
 			auto irsize = IR_Load_UIntptr(SpanSize);
-			IRInstruction* irspan = _IR_LookingAtIRBlock->NewLoad(IR_ConvertToIRType(SpanStringType));
+
+			IRInstruction* irspan =nullptr;
+			auto irspantype = IR_ConvertToIRType(SpanStringType);
+			if (_IR_IRlocations.size() && _IR_IRlocations.top().UsedlocationIR == false 
+				&& _IR_Builder.GetType(_IR_IRlocations.top().Value) == irspantype)
+			{
+				irspan = _IR_IRlocations.top().Value;
+				_IR_IRlocations.top().UsedlocationIR = true;
+			}
+			else
+			{
+				irspan = _IR_LookingAtIRBlock->NewLoad(irspantype);
+			}
+
 
 			FuncInfo* func = nullptr;
 

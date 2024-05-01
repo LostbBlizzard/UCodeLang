@@ -1,30 +1,56 @@
 
-$Vector<T>:
+$Vector<T>[Buffer_t<T>] export:
  private: 
   T[&] _data;
   uintptr _size;
   uintptr _capacity;
  public:
-  |new[this&]:
+  export |new<[T]Arg...>[this&,Arg args]:
    _data = unsafe bitcast<T[&]>(0);
    _size = 0;
    _capacity = 0;
-  |drop[this&]:
+
+   Reserve(args.Count());
+   $for [item : args]:
+     Push(item);
+
+  export |new[this&]:
+   _data = unsafe bitcast<T[&]>(0);
+   _size = 0;
+   _capacity = 0;
+
+  export |new[this&,imut this& tocopyfrom]:
+   _data = unsafe new T[tocopyfrom._size];
+   _size = tocopyfrom._size;
+   _capacity = tocopyfrom._size;
+   for [uintptr i = 0;i < tocopyfrom._size;i++]:
+       unsafe _data[i] = tocopyfrom._data[i];
+  
+  export |new[this&,moved this tocopyfrom]:
+   _data = tocopyfrom._data;
+   _size = tocopyfrom._size;
+   _capacity = tocopyfrom._capacity;
+   
+   tocopyfrom._data = unsafe bitcast<T[&]>(0);
+   tocopyfrom._size = 0;
+   tocopyfrom._capacity = 0;
+
+  export |drop[this&]:
    uintptr ptr =unsafe bitcast<uintptr>(_data);
    if ptr != uintptr(0):
    unsafe drop(_data);
 
-  unsafe |iData[imut this&] -> imut T[&]:ret _data;
-  unsafe |Data[this&] -> T[&]:ret _data;
+  export unsafe |Data[imut this&] -> imut T[&]:ret _data;
+  export unsafe |Data[this&] -> T[&]:ret _data;
 
-  |Size[imut this&] => _size;
-  |Capacity[imut this&] => _capacity;
+  export |Size[imut this&] => _size;
+  export |Capacity[imut this&] => _capacity;
 
-  |Resize[this&,uintptr Size] -> void:
+  export |Resize[this&,uintptr Size] -> void:
     Reserve(Size);
     _size = Size;
 
-  |Reserve[this&,uintptr Size] -> void:
+  export |Reserve[this&,uintptr Size] -> void:
     if Size > _capacity:
       var oldsize = _size;
       var old = _data;
@@ -39,93 +65,86 @@ $Vector<T>:
       if ptr != uintptr(0):
        unsafe drop(old);
   
-  |Clear[this&] -> void:_size = 0;
+  export |Clear[this&] -> void:_size = 0;
 
-  |Pop[this&] -> T:
+  export |Pop[this&] -> T:
    var r = move this[_size - 1];
    _size--;
    ret r;
 
-  |Remove[this&,uintptr Index] -> T:
+  export |Remove[this&,uintptr Index] -> T:
    $if compiler::IsDebug():
      if Index >= _size:panic("Index is out of bounds");
 
-   var r = move this[_size - 1];
-   
+   var r = move this[Index];
+   for [uintptr i = Index + 1;i < _size;i++]:
+    this[i-1] = move this[i];
+  
+   _size--;
 
-  |Push[this&,imut T& Val] -> void:
+   ret r;
+
+  export |Push[this&,imut T& Val] -> void:
    Resize(_size + 1);
    this[_size - 1] = Val;
 
 
-  |Push[this&,moved T Val] -> void:
+  export |Push[this&,moved T Val] -> void:
    Resize(_size + 1);
    this[_size - 1] = Val;
 
-  |Insert[this&,uintptr Index,imut T& Item] -> void:
+  export |Insert[this&,uintptr Index,imut T& Item] -> void:
+   $if compiler::IsDebug():
+     if Index > _size:panic("Index is out of bounds");
+
    Resize(_size + 1);
 
    //shift all the elements
-   uintptr i = _size - 2;
-   while true:
-    unsafe _data[i+1] =move _data[i];
-    
-    if i == Index: break;
-
-    i--;
+   for [uintptr i = _size - 1;i >= Index;i--]:
+    unsafe _data[i] =move _data[i - 1];    
 
    unsafe _data[Index] = Item;
 
-  |Insert[this&,uintptr Index,moved T Item] -> void:
+  export |Insert[this&,uintptr Index,moved T Item] -> void:
+   $if compiler::IsDebug():
+     if Index > _size:panic("Index is out of bounds");
+
    Resize(_size + 1);
 
    //shift all the elements
-   uintptr i = _size - 2;
-   while true:
-    unsafe _data[i+1] =move _data[i];
-    
-    if i == Index: break;
-
-    i--;
+   for [uintptr i = _size - 1;i >= Index;i--]:
+    unsafe _data[i] =move _data[i - 1];    
 
    unsafe _data[Index] = Item;
 
   //Not required Functions 
-  |Append[this&,imut T[:] Val] -> void:
+  export |Append[this&,imut T[:] Val] -> void:
    var oldsize = _size;
    Resize(_size + Val.Size());
 
    for [uintptr i = 0;i < Val.Size();i++]:
        unsafe _data[oldsize+i] = Val[i];
 
-  |Append[this&,moved Span<T> Val] -> void:
+  export |Append[this&,moved Span<T> Val] -> void:
    var oldsize = _size;
    Resize(_size + Val.Size());
 
    for [uintptr i = 0;i < Val.Size();i++]:
        unsafe _data[oldsize+i] = move Val[i];
 
-  |Insert[this&,uintptr Index,imut T[:] Val] -> void;
+  export |Insert[this&,uintptr Index,imut T[:] Val] -> void;
   
-  |Insert[this&,uintptr Index,moved Span<T> Val] -> void;
+  export |Insert[this&,uintptr Index,moved Span<T> Val] -> void;
 
   
-  |[][this&,uintptr Index] -> T&:
+  export |[][this&,uintptr Index] -> T&:
     $if compiler::IsDebug():
       if Index >= _size:panic("Index is out of bounds");
 
     ret unsafe _data[Index];
-  |[][imut this&,uintptr Index] -> imut T&:
+  export |[][imut this&,uintptr Index] -> imut T&:
     $if compiler::IsDebug():
       if Index >= _size:panic("Index is out of bounds");
     
     ret unsafe _data[Index];
-
-
-  //Span
-
-  |[][this&,Range_t<uintptr> Range] -> T[:]:ret AsSpan()[Range]; 
-  |[][imut this&,Range_t<uintptr> Range] -> imut T[:]:ret AsSpan()[Range];
-
-  |AsSpan[this&] -> T[:]:ret unsafe [_data,_size];
-  |iAsSpan[imut this&] -> imut T[:]:ret unsafe [_data,_size];
+ 

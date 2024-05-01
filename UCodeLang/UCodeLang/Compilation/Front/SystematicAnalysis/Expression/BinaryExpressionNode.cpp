@@ -129,8 +129,20 @@ void SystematicAnalysis::OnExpressionNode(const BinaryExpressionNode& node)
 			pars._Nodes.push_back(Unique_ptr<Node>(Ex0node));
 			pars._Nodes.push_back(Unique_ptr<Node>(Ex1node));
 
+			
+			bool didpush = _IR_IRlocations.size();
+			if (didpush) {
+				IRLocation_Cotr v;
+				v.UsedlocationIR = true;
+				v.Value = _IR_IRlocations.top().Value;
+				_IR_IRlocations.push(v);
+			}
+
 			IR_Build_FuncCall(V, Tep, pars);
 
+			if (didpush) {
+				_IR_IRlocations.pop();
+			}
 			//save so not free mem
 			auto par0 = pars._Nodes[0].release();
 			auto par1 = pars._Nodes[1].release();

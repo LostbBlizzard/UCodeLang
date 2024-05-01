@@ -90,6 +90,7 @@ private:
 
 	using TokenInedex = size_t;
 	Vector<TokenInedex> Indentations;
+	bool IsInStringConcatenate = false;
 
 
 	bool DoIndentation(bool& IsIndentationing, char Char, size_t& IndentationLevel, size_t& LastIndentationLevel, UCodeLang::Token& _Token);

@@ -139,8 +139,10 @@ project "UCApp"
     "UCodeLang/Dependencies/zydis/src"
    }
    
-   
-   
+    
+  
+   filter {}
+  
    links {
       "UCodeLang",
    }
@@ -610,7 +612,7 @@ newaction {
           
            print("----downloading glfw Packages")
 
-           executeorexit("brew install glfw")
+           executeorexit("arch -arm64 brew install glfw")
           
            print("----installing tools completed");
         end
@@ -695,7 +697,7 @@ newaction {
     description = "builds the UCApp",
     execute = function ()
         if os.istarget("linux") then
-         executeorexit("make UCApp -j4")
+         executeorexit("make UCApp -j(nproc)")
         end
 
         if os.istarget("windows") then
@@ -703,7 +705,7 @@ newaction {
         end
         
         if os.istarget("macosx") then
-         executeorexit("make UCApp -j4")
+         executeorexit("make UCApp -j(getconf _NPROCESSORS_ONLN)")
         end
     end
 }
@@ -721,7 +723,7 @@ newaction {
         end
         
         if os.istarget("macosx") then
-         executeorexit("make UCodelangCL -j(nproc)")
+         executeorexit("make UCodelangCL -j(getconf _NPROCESSORS_ONLN)")
         end
     end
 }
@@ -739,7 +741,7 @@ newaction {
         end
         
         if os.istarget("macosx") then
-         executeorexit("make -j$(nproc)")
+         executeorexit("make -j$(getconf _NPROCESSORS_ONLN)")
         end
     end
 }
@@ -757,7 +759,7 @@ newaction {
         end
         
         if os.istarget("macosx") then
-         executeorexit("make -j$(nproc)")
+         executeorexit("make -j$(getconf _NPROCESSORS_ONLN)")
         end
     end
 }
@@ -775,7 +777,7 @@ newaction {
         end
         
         if os.istarget("macosx") then
-         executeorexit("make config=published_macos -j$(nproc)")
+         executeorexit("make config=published_macos -j$(getconf _NPROCESSORS_ONLN)")
         end
     end
 }
@@ -793,7 +795,7 @@ newaction {
         end
         
         if os.istarget("macosx") then
-         executeorexit("make config=published_macos -j$(nproc)")
+         executeorexit("make config=published_macos -j$(getconf _NPROCESSORS_ONLN)")
         end
     end
 }
@@ -888,11 +890,11 @@ newaction {
         end
 
         if os.istarget("windows") then
-         executeorexit("emmake make config=debug_web -j4")
+         executeorexit("emmake make config=debug_web -j(nproc)")
         end
         
         if os.istarget("macosx") then
-         executeorexit("source ./emsdk_env.sh;emmake make config=debug_web -j$(nproc)")
+         executeorexit("source ./emsdk_env.sh;emmake make config=debug_web -j$(getconf _NPROCESSORS_ONLN)")
         end
     end
 }
@@ -911,7 +913,7 @@ newaction {
         end
         
         if os.istarget("macosx") then
-         executeorexit("emmake make config=published_web -j$(nproc)")
+         executeorexit("emmake make config=published_web -j$((getconf _NPROCESSORS_ONLN")
         end
     end
 }
@@ -929,7 +931,7 @@ newaction {
         end
         
         if os.istarget("macosx") then
-         executeorexit("emmake make UCodeIDE config=debug_web -j$(nproc)")
+         executeorexit("emmake make UCodeIDE config=debug_web -j$(getconf _NPROCESSORS_ONLN)")
         end
     end
 }
@@ -969,7 +971,7 @@ newaction {
         end
         
         if os.istarget("macosx") then
-         executeorexit("make config=debug_ios -j4")
+         executeorexit("make config=debug_ios -j(getconf _NPROCESSORS_ONLN)")
         end
     end
 }

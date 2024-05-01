@@ -301,6 +301,11 @@ void SystematicAnalysis::Symbol_RedefinitionCheck(const NeverNullPtr<Symbol> Syb
 						return;
 					}
 				}
+
+				if (Fvalue->FullName != SybValue->FullName)
+				{
+					return;
+				}
 				goto GoodJump;
 			}
 			else

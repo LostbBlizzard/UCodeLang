@@ -115,7 +115,12 @@ public:
 	}
 	void PushParameter(const void* Value, size_t ValueSize) { return Get_MyInterpreter().PushParameter(Value, ValueSize); }
 	bool CheckIfFunctionExist(const String& FunctionName) { return Get_MyInterpreter().CheckIfFunctionExist(FunctionName); }
-
+	
+	
+	Optional<InterpretorError> CheckForIntperpreterError()
+	{
+		return Get_MyInterpreter().CheckForIntperpreterError();
+	}
 	template<typename T> T Get_Return()
 	{
 		T r;

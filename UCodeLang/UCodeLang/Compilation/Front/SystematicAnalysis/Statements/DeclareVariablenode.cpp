@@ -206,7 +206,7 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node, 
 					_IR_LookingAtIRBlock = _IR_LookingAtIRFunc->Blocks.front().get();
 
 					auto pos = _IR_LookingAtIRBlock->InsCount() ? _IR_LookingAtIRBlock->GetIndex() : 0;
-					Debug_Add_SetLineNumber(NeverNullptr(node._Name.token),pos);
+					Debug_Add_SetLineNumber(NeverNullptr(node._Name.token), pos);
 					Debug_Add_SetVarableInfo(*syb, pos);
 
 					if (Type_IsStructPassByRef(syb)) {
@@ -259,9 +259,19 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node, 
 					_IR_IRlocations.push({ OnVarable ,false });
 				}
 
-				OnExpressionTypeNode(node._Expression._Value.get(), GetValueMode::Read);
-			}
+				auto tep = _LookingForTypes.top();
+				if (DelareVarableImplicit.HasValue(sybId))
+				{
+					_LookingForTypes.top() = DelareVarableImplicit.GetValue(sybId);
+				}
 
+				OnExpressionTypeNode(node._Expression._Value.get(), GetValueMode::Read);
+
+				if (DelareVarableImplicit.HasValue(sybId))
+				{
+					_LookingForTypes.top() = tep;
+				}
+			}
 		}
 		else
 		{
@@ -318,7 +328,7 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node, 
 						IRStruct* V = _IR_Builder.GetSymbol(IR_Build_ConvertToIRClassIR(*classSb))->Get_ExAs<IRStruct>();
 						auto output = _IR_LookingAtIRBlock->New_Member_Dereference(&_IR_LookingAtIRFunc->Pars[0], IR_ConvertToIRType(classSb->ID), IndexField);
 
-						auto Func = Type_GetFunc(syb->VarType, {});
+						auto Func = Type_GetFunc(syb->VarType, {},NeverNullptr(node._Name.token));
 						Func.ThisPar = Get_FuncInfo::ThisPar_t::PushFromLast;
 						_IR_LastExpressionField = _IR_LookingAtIRBlock->NewLoadPtr(output);
 
@@ -351,7 +361,21 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node, 
 			auto Token = NeverNullptr(node._Type._name._ScopedName.back()._token);
 			Type_DeclareVariableTypeCheck(VarType, Ex, Token);
 
+			bool doesimplconv = !Type_AreTheSameWithOutMoveAndimmutable(VarType, Ex);
+			if (doesimplconv)
+			{
+				auto f = Symbol_GetAnImplicitConvertedFunc(VarType, Ex);
+				if (f.has_value()) 
+				{
+					TypeSymbol ToFindSymbol = f.value()->Pars[1].Type;
+					ToFindSymbol._Isimmutable = false;
+					DelareVarableImplicit.AddValue(sybId, ToFindSymbol);
+				}
+			}
+		
 
+	
+			
 
 			if (syb->Type == SymbolType::ConstantExpression && !VarType.IsNull())
 			{
@@ -393,6 +417,14 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node, 
 				{
 					Class._WillHaveFielddeInit = true;
 				}
+				if (Type_HasCopyFunc(Item->Type) && !Type_IsPrimitive(Item->Type))
+				{
+					Class._ClassAutoGenerateCopyConstructor = true;
+				}
+				if (HasMoveContructerHasIRFunc(Item->Type) && !Type_IsPrimitive(Item->Type))
+				{
+					Class._ClassAutoGenerateMoveConstructor = true;
+				}
 			}
 
 
@@ -409,7 +441,7 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node, 
 
 			IR_Build_ImplicitConversion(_IR_LastExpressionField, _LastExpressionType, syb->VarType);
 
-
+			
 			IR_Build_OnStoreVarable(IsStructObjectPassRef, OnVarable, syb, sybId);
 
 			FileDependency_AddDependencyToCurrentFile(syb->VarType);
@@ -432,6 +464,20 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node, 
 				_IR_LookingAtIRBlock = oldblock;
 			}
 
+		}
+		else
+		{
+			if (syb->VarType._TypeInfo == TypeInfoPrimitive::Null)//dont feel like dealing with type info right now
+			{
+				auto data = syb->Get_Info<ConstantExpressionInfo>();
+
+				auto& eval = _Lib.Get_Assembly().AddEvalVarable((String)node._Name.token->Value._String, syb->FullName);
+				eval.IsExported = node._IsExport;
+				eval.Value._Data.Resize(data->Ex.ObjectSize);
+				memcpy(eval.Value._Data.Get_Data(), data->Ex.Object_AsPointer.get(), data->Ex.ObjectSize);
+
+				eval.Value._Type = Assembly_ConvertToType(syb->VarType);
+			}
 		}
 	}
 

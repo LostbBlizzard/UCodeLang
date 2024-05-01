@@ -1,73 +1,73 @@
 
-$Vec2f_t<T>:
+$Vec2f_t<T> export:
  T X;
  T Y;
  
- |new[this&]:
+ export |new[this&]:
   X = 0;
   Y = 0;
 
- |new[this&,T x,T y]:
+ export |new[this&,T x,T y]:
   X = x;
   Y = y;
 
- |==[imut this&,imut this& Other]:
+ export |==[imut this&,imut this& Other]:
   ret this.X == Other.X && this.Y == Other.Y;
 
- |!=[imut this&,imut this& Other]:
+ export |!=[imut this&,imut this& Other]:
   ret !(this == Other);
 
- |+=[this&,imut this& Other]:
+ export |+=[this&,imut this& Other]:
   this.X += Other.X;
   this.Y += Other.Y;
 
- |-=[this&,imut this& Other]:
+ export |-=[this&,imut this& Other]:
   this.X -= Other.X;
   this.Y -= Other.Y;
 
- |+[imut this&,imut this& Other] -> this:
+ export |+[imut this&,imut this& Other] -> this:
   var copy = this;
   copy += Other;
   ret copy;
 
- |-[imut this&,imut this& Other] -> this:
+ export |-[imut this&,imut this& Other] -> this:
   var copy = this;
   copy -= Other;
   ret copy;
 
-$Vec2i_t<T>:
+$Vec2i_t<T> export:
  T X;
  T Y;
- |new[this&]:
+ export |new[this&]:
   X = 0;
   Y = 0;
- |new[this&,T x,T y]:
+ export |new[this&,T x,T y]:
   X = x;
   Y = y;
 
- |==[imut this&,imut this& Other]:
+ export |==[imut this&,imut this& Other]:
   ret this.X == Other.X && this.Y == Other.Y;
 
- |!=[imut this&,imut this& Other]:
+ export |!=[imut this&,imut this& Other]:
   ret !(this == Other);
  
- |+=[this&,imut this& Other]:
+ export |+=[this&,imut this& Other]:
   this.X += Other.X;
   this.Y += Other.Y;
 
- |-=[this&,imut this& Other]:
+ export |-=[this&,imut this& Other]:
   this.X -= Other.X;
   this.Y -= Other.Y;
 
- |+[imut this&,imut this& Other] -> this:
+ export |+[imut this&,imut this& Other] -> this:
   var copy = this;
   copy += Other;
   ret copy;
 
- |-[imut this&,imut this& Other] -> this:
+ export |-[imut this&,imut this& Other] -> this:
   var copy = this;
   copy -= Other;
   ret copy;
 
-$Vec2 = Vec2f_t<float>;
-$Vec2i = Vec2i_t<int>;
+$Vec2 export = Vec2f_t<float>;
+$Vec2i export = Vec2i_t<int>;

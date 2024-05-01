@@ -18,6 +18,8 @@ $if compiler::IsBackendUCodeVM():
 
  extern dynamic |__Free[byte[&] Block] -> void;
 
+ extern dynamic |__Memcopy[byte[&] destination,byte[&] source,uintptr num] -> void;
+ extern dynamic |__Memmove[byte[&] destination,byte[&] source,uintptr num] -> void;
  //File IO
 
  extern dynamic |__OpenFile[FilePathChar[&] Path,uintptr Size] -> FileHandle;

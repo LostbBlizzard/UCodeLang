@@ -1,25 +1,30 @@
 
 
-$Array<T,(Size)>;
-
-
-/*
-$Array<T,(Size)>:
+$Array<T,[uintptr](ArraySize)>[Buffer_t<T>] export:
  private:
-  T[/Size] _data;
+  T[/ArraySize] _data;
  public:
-  unsafe |iData[imut this&] -> imut T[&]:ret _data;
-  unsafe |Data[this&] -> T[&]:ret _data;
+  export |new[this&] -> void;
 
-  |Size[imut this&] => Size;
+  export |new<[T]Agrs...>[this&,Agrs pars]: 
+   $if pars.Count() != ArraySize:
+    invalid("Args Count is not the same as ArraySize");
 
-  |[][this&,uintptr Index] -> T&:ret _data[Index];
-  |[][imut this&,uintptr Index] -> imut T&:ret _data[Index];
+   $for [i,par : pars]:
+    unsafe _data[i] = par;
 
-  |[][this&,Range_t<uintptr> Range] -> T[:]:ret AsSpan()[Range]; 
-  |[][imut this&,Range_t<uintptr> Range] -> imut T[:]:ret AsSpan()[Range];
+  export unsafe |Data[imut this&] -> imut T[&]:ret unsafe _data[0];
+  export unsafe |Data[this&] -> T[&]:ret unsafe _data[0];
 
-  |AsSpan[this&] -> T[:]:ret unsafe [_data,Size];
-  |iAsSpan[imut this&] -> imut T[:]:ret unsafe [_data,Size];
+  export |Size[imut this&] => ArraySize;
 
-*/
+  export |[][this&,uintptr Index] -> T&:
+    $if compiler::IsDebug():
+      if Index >= ArraySize:panic("Index is out of bounds");
+
+    ret unsafe _data[Index];
+  export |[][imut this&,uintptr Index] -> imut T&:
+    $if compiler::IsDebug():
+      if Index >= ArraySize:panic("Index is out of bounds");
+
+    ret unsafe _data[Index];

@@ -1,4 +1,5 @@
-$Object trait;
+$Object trait:
+ dynamic |drop[this&] -> void;
 
 
 

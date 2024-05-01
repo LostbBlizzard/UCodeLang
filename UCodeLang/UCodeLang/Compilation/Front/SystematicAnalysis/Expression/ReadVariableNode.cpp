@@ -122,6 +122,30 @@ void SystematicAnalysis::OnReadVariable(const ReadVariableNode& nod)
 
 			bool AsPointer = LookForT.IsAddress();
 
+
+			{
+				auto symop = Symbol_GetSymbol(V.Type);
+
+				if (symop.has_value())
+				{
+					auto sym = symop.value();
+
+					bool unpacktype = false;
+
+					if (unpacktype)
+					{
+						//... make struct
+					}
+					else
+					{
+						if (sym->Type == SymbolType::Type_Pack)
+						{
+							_LastExpressionType = V.Type;
+							return;
+						}
+					}
+				}
+			}
 			//
 
 			if (IsWrite(_GetExpressionMode.top()))
@@ -146,7 +170,9 @@ void SystematicAnalysis::OnReadVariable(const ReadVariableNode& nod)
 					}
 					else
 					{
-						_IR_LastStoreField = IR_Build_Member_Store(V, V.Type);
+						auto tep = V.Type;
+						tep._IsAddress = false;
+						_IR_LastStoreField = IR_Build_Member_Store(V, tep);
 					}
 				}
 			}
@@ -158,9 +184,15 @@ void SystematicAnalysis::OnReadVariable(const ReadVariableNode& nod)
 					_IR_LastExpressionField = IR_Build_Member_AsPointer(V);
 					V.Type.SetAsAddress();
 				}
+				else if (LookMove && V.Type.IsMovedType())
+				{
+					_IR_LastExpressionField = IR_Build_Member_GetValue(V);
+					V.Type.SetAsAddress();
+					V.Type._MoveData = MoveData::None;
+				}
 				else if (LookIsAddress == true && AmIsAddress == true)
 				{
-					if (_GetExpressionMode.top() == GetValueMode::ReadAndWrite) 
+					if (_GetExpressionMode.top() == GetValueMode::ReadAndWrite)
 					{
 						_IR_LastExpressionField = IR_Build_Member_AsValue(V);
 					}
@@ -378,6 +410,14 @@ bool SystematicAnalysis::Symbol_MemberTypeSymbolFromVar(size_t Start, size_t End
 							}
 						}
 					}
+
+					if (Type_IsUnMapType(look))
+					{
+						Out._Symbol = nullptr;
+						Out.Type = look;
+
+						return true;
+					}
 				}
 
 				LogError_CantFindVarError(Token, Str);
@@ -396,7 +436,7 @@ bool SystematicAnalysis::Symbol_MemberTypeSymbolFromVar(size_t Start, size_t End
 
 			if (IsWrite(Mod))
 			{
-				TryLogError_OnWritingVar(SymbolVar, Token, String_view(Str));
+				TryLogError_OnWritingVar(SymbolVar, Token, String_view(Str),Mod);
 			}
 			if (IsRead(Mod))
 			{
@@ -432,12 +472,15 @@ bool SystematicAnalysis::Symbol_MemberTypeSymbolFromVar(size_t Start, size_t End
 				V._token = ScopeName._token;
 				Tep._name._ScopedName.push_back(std::move(V));
 				auto& Other = *ScopeName._generic;
-				auto& _generic = *Tep._name._ScopedName.back()._generic;
 
-				{//can't copy TypeNode but we need anyway.
-					_generic._Values.resize(Other._Values.size());
-					memcpy(_generic._Values.data(), Other._Values.data(), sizeof(TypeNode) * Other._Values.size());
+				if (Tep._name._ScopedName.back()._generic.get())
+				{
+					auto& _generic = *Tep._name._ScopedName.back()._generic;
+					{//can't copy TypeNode but we need anyway.
+						_generic._Values.resize(Other._Values.size());
+						memcpy(_generic._Values.data(), Other._Values.data(), sizeof(TypeNode) * Other._Values.size());
 
+					}
 				}
 
 				TypeSymbol Type;
@@ -448,7 +491,10 @@ bool SystematicAnalysis::Symbol_MemberTypeSymbolFromVar(size_t Start, size_t End
 					Out._Symbol = Symbol_GetSymbol(Type).value_unchecked();
 				}
 
-				{// TypeNode has Unique_ptr we do this to not free it.
+				if (Tep._name._ScopedName.back()._generic.get()) 
+				{	
+					auto& _generic = *Tep._name._ScopedName.back()._generic;
+					// TypeNode has Unique_ptr we do this to not free it.
 					new (_generic._Values.data()) TypeNode[Other._Values.size()];
 				}
 			}
@@ -502,38 +548,51 @@ bool SystematicAnalysis::Symbol_MemberTypeSymbolFromVar(size_t Start, size_t End
 				return true;
 			}
 
-
-			auto ThisParSym = Symbol_GetSymbol(Func->Pars.front().Type).value();
-			if (IsSymbolLambdaObjectClass(ThisParSym))
+			auto thisparsymop = Symbol_GetSymbol(Func->Pars.front().Type);
+			if (thisparsymop.has_value())
 			{
-				//If The ThisPar an Lambda Object
-				auto parsym = Symbol_GetSymbol(ScopeHelper::ApendedStrings(ThisParSym->FullName, ThisSymbolName), SymbolType::ParameterVarable).value();
+				auto ThisParSym = thisparsymop.value();
+				if (IsSymbolLambdaObjectClass(ThisParSym))
+				{
+					//If The ThisPar an Lambda Object
+					auto parsym = Symbol_GetSymbol(ScopeHelper::ApendedStrings(ThisParSym->FullName, ThisSymbolName), SymbolType::ParameterVarable).value();
 
-				Out.Type = parsym->VarType;
-				Out._Symbol = parsym.value();
+					Out.Type = parsym->VarType;
+					Out._Symbol = parsym.value();
+				}
+				else
+				{
+					auto objecttypesyb = Symbol_GetSymbol(*ObjectType).value();
+					ClassInfo* V = objecttypesyb->Get_Info<ClassInfo>();
+
+					Out.Type = *Func->GetObjectForCall();
+					Out._Symbol =
+						Symbol_GetSymbol(ScopeHelper::ApendedStrings(Func->FullName, ThisSymbolName), SymbolType::ParameterVarable)
+						.value().value();
+
+
+					if (readcopythisptr)
+					{
+						Out.Type._Isimmutable = false;
+						/*
+						auto old = Out.Type;
+
+
+						Out.Type = TypeSymbol();
+
+						Out.Type._Type = old._Type;
+						Out.Type._CustomTypeSymbol = old._CustomTypeSymbol;
+						*/
+					}
+				}
 			}
 			else
 			{
-				auto objecttypesyb = Symbol_GetSymbol(*ObjectType).value();
-				ClassInfo* V = objecttypesyb->Get_Info<ClassInfo>();
-
-				Out.Type = *Func->GetObjectForCall();
 				Out._Symbol =
 					Symbol_GetSymbol(ScopeHelper::ApendedStrings(Func->FullName, ThisSymbolName), SymbolType::ParameterVarable)
 					.value().value();
-
-
-				if (readcopythisptr)
-				{
-					auto old = Out.Type;
-
-
-					Out.Type = TypeSymbol();
-
-					Out.Type._Type = old._Type;
-					Out.Type._CustomTypeSymbol = old._CustomTypeSymbol;
-				}
-			}//
+				Out.Type = *Func->GetObjectForCall();
+			}
 			Start++;
 			End--;
 			ScopedCount++;
@@ -617,7 +676,7 @@ bool SystematicAnalysis::Symbol_MemberTypeSymbolFromVar(size_t Start, size_t End
 		{
 			auto& Data = _Varable.top();
 
-			if (Out._Symbol->Type == SymbolType::ParameterVarable || Out._Symbol->Type == SymbolType::StackVarable) 
+			if (Out._Symbol->Type == SymbolType::ParameterVarable || Out._Symbol->Type == SymbolType::StackVarable)
 			{
 				Data._UsedSymbols.push_back(Out._Symbol);
 			}
@@ -789,7 +848,10 @@ bool SystematicAnalysis::Symbol_StepGetMemberTypeSymbolFromVar(const ScopedNameN
 		}
 	}
 
-
+	if (Type_IsUnMapType(Out.Type))
+	{
+		return false;
+	}
 	if (OpType == ScopedName::Operator_t::Null
 		|| OpType == ScopedName::Operator_t::ScopeResolution
 		|| OpType == ScopedName::Operator_t::Dot)
@@ -1063,7 +1125,7 @@ bool SystematicAnalysis::Symbol_StepGetMemberTypeSymbolFromVar(const ScopedNameN
 					Out.Type = TypesEnum::Null;
 					return false;
 				}
-				ClassInfo* CInfo = TypeAsSymbol->Type == SymbolType::Type_class  ? TypeAsSymbol->Get_Info<ClassInfo>() : TypeAsSymbol->Get_Info<TagInfo>();
+				ClassInfo* CInfo = TypeAsSymbol->Type == SymbolType::Type_class ? TypeAsSymbol->Get_Info<ClassInfo>() : TypeAsSymbol->Get_Info<TagInfo>();
 
 
 				auto FeldInfo = CInfo->GetField(ItemTokenString);
@@ -1079,10 +1141,11 @@ bool SystematicAnalysis::Symbol_StepGetMemberTypeSymbolFromVar(const ScopedNameN
 					return false;
 				}
 
+				NeverNullPtr<Symbol> FeldSyb;
 				{
 					auto FeldFullName = TypeAsSymbol->FullName;
 					ScopeHelper::GetApendedString(FeldFullName, ItemTokenString);
-					auto FeldSyb = Symbol_GetSymbol(FeldFullName, SymbolType::Class_Field).value();
+					FeldSyb = Symbol_GetSymbol(FeldFullName, SymbolType::Class_Field).value();
 					{
 						Symbol_AccessCheck(FeldSyb, ItemToken);
 					}
@@ -1091,12 +1154,13 @@ bool SystematicAnalysis::Symbol_StepGetMemberTypeSymbolFromVar(const ScopedNameN
 				auto& FieldType2 = (*FeldInfo)->Type;
 				if (FieldType2._Type == TypesEnum::CustomType)
 				{
-					Out._Symbol = Symbol_GetSymbol(FieldType2._CustomTypeSymbol).value();
+					Out._Symbol = FeldSyb.value();
 					Out.Type = FieldType2;
 				}
 				else
 				{
 					Out.Type = FieldType2;
+					//Out._Symbol = FeldSyb.value();
 
 					if (Index + 1 < node._ScopedName.size())
 					{
@@ -1142,26 +1206,71 @@ bool SystematicAnalysis::Symbol_StepGetMemberTypeSymbolFromVar(const ScopedNameN
 		}
 		else if (Out._Symbol->Type == SymbolType::Class_Field)
 		{
-			int a = 0;
 			String ClassSym = ScopeHelper::GetReMoveScope(Out._Symbol->FullName);
 			auto LamdbSym = GetSymbolsWithName(ClassSym).front();
-			UCodeLangAssert(IsSymbolLambdaObjectClass(NeverNullptr(LamdbSym)));
-			UCodeLangAssert(_PassType == PassType::BuidCode);
-			
-			UCodeLangAssert(OpType == ScopedName::Operator_t::Dot);//TODO remove this Assert and add if for it
 
-			ClassInfo* CInfo = LamdbSym->Get_Info<ClassInfo>();
-			auto ClassSym2 = Symbol_GetSymbol(CInfo->GetField(ThisSymbolName).value()->Type).value();
-			auto CInfo2 = ClassSym2->Get_Info<ClassInfo>();
-			auto field = CInfo2->GetField(ItemTokenString);
-			auto FeldInfo = field.value();
+			if (IsSymbolLambdaObjectClass(NeverNullptr(LamdbSym)))
+			{
+				UCodeLangAssert(_PassType == PassType::BuidCode);
 
-			auto SymFullName = ClassSym2->FullName;
-			ScopeHelper::GetApendedString(SymFullName, ItemTokenString);
-			auto FeldSybOp = Symbol_GetSymbol(SymFullName, SymbolType::Type);
+				UCodeLangAssert(OpType == ScopedName::Operator_t::Dot);//TODO remove this Assert and add if for it
 
-			Out._Symbol = FeldSybOp.value().value();
-			Out.Type = FeldInfo->Type;
+				ClassInfo* CInfo = LamdbSym->Get_Info<ClassInfo>();
+				auto ClassSym2 = Symbol_GetSymbol(CInfo->GetField(ThisSymbolName).value()->Type).value();
+				auto CInfo2 = ClassSym2->Get_Info<ClassInfo>();
+				auto field = CInfo2->GetField(ItemTokenString);
+				auto FeldInfo = field.value();
+
+				auto SymFullName = ClassSym2->FullName;
+				ScopeHelper::GetApendedString(SymFullName, ItemTokenString);
+				auto FeldSybOp = Symbol_GetSymbol(SymFullName, SymbolType::Type);
+
+				Out._Symbol = FeldSybOp.value().value();
+				Out.Type = FeldInfo->Type;
+			}
+			else
+			{
+				UCodeLangAssert(OpType == ScopedName::Operator_t::Dot);//TODO remove this Assert and add if for it
+
+
+				auto v = Out.Type;
+				auto LasTypeSym = Symbol_GetSymbol(v);
+
+				if (!LasTypeSym.has_value())
+				{
+					LogError_CantFindVarMemberError(ItemToken, ItemTokenString, Out.Type);
+					Out._Symbol = nullptr;
+					Out.Type = TypesEnum::Null;
+
+					return false;
+				}
+
+				ClassInfo* CInfo = LasTypeSym.value()->Get_Info<ClassInfo>();
+
+				auto fieldop = CInfo->GetField(ItemTokenString);
+				if (!fieldop.has_value())
+				{
+					if (_PassType == PassType::FixedTypes)
+					{
+						LogError_CantFindVarMemberError(ItemToken, ItemTokenString, Out.Type);
+					}
+
+					Out._Symbol = nullptr;
+					Out.Type = TypesEnum::Null;
+
+					return false;
+				}
+				auto* field = fieldop.value();
+
+				auto SymFullName = LasTypeSym.value()->FullName;
+				ScopeHelper::GetApendedString(SymFullName, ItemTokenString);
+				auto FeldSybOp = Symbol_GetSymbol(SymFullName, SymbolType::Type);
+
+				Out._Symbol = FeldSybOp.value().value();
+				Out.Type = field->Type;
+
+
+			}
 		}
 		else
 		{
@@ -1280,7 +1389,7 @@ IRInstruction* SystematicAnalysis::IR_Build_Member_GetValue(const GetMemberTypeS
 }
 IRInstruction* SystematicAnalysis::IR_Build_Member_AsPointer(const GetMemberTypeSymbolFromVar_t& In)
 {
-	if (In.Type.IsAddress() || In.Type.IsAddressArray())
+	if (In.Type.IsAddress() || In.Type.IsAddressArray() || In.Type.IsMovedType())
 	{
 		return IR_Build_Member_GetValue(In);
 	}
@@ -1321,7 +1430,7 @@ IRInstruction* SystematicAnalysis::IR_Build_Member_DereferenceValue(const GetMem
 }
 IRInstruction* SystematicAnalysis::IR_Build_Member_AsValue(const GetMemberTypeSymbolFromVar_t& In)
 {
-	if (In.Type.IsAddress() || In.Type.IsAddressArray())
+	if (In.Type.IsAddress() || In.Type.IsAddressArray() || In.Type.IsMovedType())
 	{
 		return IR_Build_Member_DereferenceValue(In);
 	}
@@ -1348,18 +1457,18 @@ void  SystematicAnalysis::BuildMember_Access(const GetMemberTypeSymbolFromVar_t&
 	Symbol* LastVarSym = nullptr;
 	//
 
-	if (In._Symbol->Type == SymbolType::Class_Field 
-		&& _FuncStack.size() 
+	if (In._Symbol->Type == SymbolType::Class_Field
+		&& _FuncStack.size()
 		&& _ClassStack.size()
 		&& _ClassStack.top().Info)
 	{
 		auto& Func = _FuncStack.back().Pointer;
-	
+
 		auto ThisParSym = Symbol_GetSymbol(Func->Pars.front().Type).value();
 		TypeSymbol ObjectType;
 		Variant<IRPar*, IRInstruction*> PointerIr;
 
-		auto Token = In.Start[In.End - 1]._token;
+		auto Token = In.Start[0]._token;
 
 		bool test = false;
 		if (IsSymbolLambdaObjectClass(ThisParSym) && Token->Type != TokenType::KeyWord_This
@@ -1367,7 +1476,7 @@ void  SystematicAnalysis::BuildMember_Access(const GetMemberTypeSymbolFromVar_t&
 		{
 			ClassInfo* f = ThisParSym->Get_Info<ClassInfo>();
 			auto parsym = Symbol_GetSymbol(ScopeHelper::ApendedStrings(ThisParSym->FullName, ThisSymbolName), SymbolType::ParameterVarable).value();
-			
+
 			PointerIr = _IR_LookingAtIRBlock->New_Member_Dereference(
 				&_IR_LookingAtIRFunc->Pars.front(),
 				_IR_LookingAtIRFunc->Pars.front().type,
@@ -1381,6 +1490,7 @@ void  SystematicAnalysis::BuildMember_Access(const GetMemberTypeSymbolFromVar_t&
 		{
 			PointerIr = &_IR_LookingAtIRFunc->Pars.front();
 			ObjectType = *Func->GetObjectForCall();
+			Last_Type = ObjectType;
 		}
 
 		ObjectType._IsAddress = false;
@@ -1390,7 +1500,7 @@ void  SystematicAnalysis::BuildMember_Access(const GetMemberTypeSymbolFromVar_t&
 		auto IRStructV = IR_Build_ConvertToIRClassIR(*objecttypesyb);
 		auto F = _IR_Builder.GetSymbol(IRStructV)->Get_ExAs<IRStruct>();
 
-		
+
 		const String_view& Str = Token->Type == TokenType::KeyWord_This ? ThisSymbolName : Token->Value._String;
 		ClassInfo* V = objecttypesyb->Get_Info<ClassInfo>();
 
@@ -1406,7 +1516,7 @@ void  SystematicAnalysis::BuildMember_Access(const GetMemberTypeSymbolFromVar_t&
 		size_t MemberIndex = V->GetFieldIndex(Str).value();
 
 
-		if (auto ir = PointerIr.Get_If<IRPar*>()) 
+		if (auto ir = PointerIr.Get_If<IRPar*>())
 		{
 			Output = _IR_LookingAtIRBlock->New_Member_Dereference(*ir, IRType(IRSymbol(IRStructV)), MemberIndex);
 		}
@@ -1419,7 +1529,7 @@ void  SystematicAnalysis::BuildMember_Access(const GetMemberTypeSymbolFromVar_t&
 			UCodeLangUnreachable();
 		}
 
-		return;
+		Last_Type = V->Fields[MemberIndex].Type;
 	}
 	else if (In.Start[0]._token->Type == TokenType::KeyWord_This)
 	{
@@ -1428,7 +1538,8 @@ void  SystematicAnalysis::BuildMember_Access(const GetMemberTypeSymbolFromVar_t&
 
 		auto& Func = _FuncStack.back();
 		Last_Type = *Func.Pointer->GetObjectForCall();
-	
+
+		/*
 		auto& lookingfortype = _LookingForTypes.top();
 		if (1 == In.End && !lookingfortype.IsAddress())
 		{
@@ -1438,14 +1549,15 @@ void  SystematicAnalysis::BuildMember_Access(const GetMemberTypeSymbolFromVar_t&
 			Output = _IR_LookingAtIRBlock->NewLoad_Dereferenc(Output, IR_ConvertToIRType(newtype));
 			Last_Type = newtype;
 		}
-		LastVarSym =Symbol_GetSymbol(ScopeHelper::ApendedStrings(_FuncStack.front().Pointer->FullName, ThisSymbolName),SymbolType::ParameterVarable).value().value();
+		*/
+		LastVarSym = Symbol_GetSymbol(ScopeHelper::ApendedStrings(_FuncStack.front().Pointer->FullName, ThisSymbolName), SymbolType::ParameterVarable).value().value();
 	}
 	else if (In._Symbol->Type == SymbolType::Class_Field)
 	{
-		
+
 		auto token = In.Start[0]._token;
 
-		auto sym  = Symbol_GetSymbol(token->Value._String,SymbolType::Any).value();
+		auto sym = Symbol_GetSymbol(token->Value._String, SymbolType::Any).value();
 
 		Last_Type = sym->VarType;
 
@@ -1578,7 +1690,7 @@ void SystematicAnalysis::StepBuildMember_Access(const ScopedName& Item, TypeSymb
 			case  SymbolType::ParameterVarable:
 			{
 				TypeSymbol& TypeSys = Last_Type;
-				if (TypeSys.IsAddress())
+				if (TypeSys.IsAddress() || TypeSys.IsMovedType())
 				{
 					Output = _IR_LookingAtIRBlock->New_Member_Dereference(LastVarSym->IR_Par, IR_ConvertToIRType(Sym->VarType), MemberIndex);
 				}

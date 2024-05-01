@@ -23,6 +23,9 @@ void WasmBackEnd::Build(const IRBuilder* Input)
 {
 	_Input = Input;
 
+	{//Flags 
+		Flag_NoExceptions = Get_Settings().HasArg("NoExceptions");
+	}
 
 	{
 		WasmFile::Section V1;

@@ -11,27 +11,189 @@ void ClassAssembly::PushCopyClasses(const ClassAssembly& source, ClassAssembly& 
 		Out.Classes.push_back(std::make_unique<AssemblyNode>(*Item));
 	}
 }
+Optional<ReflectionCustomTypeID> ClassAssembly::GetReflectionTypeID(const AssemblyNode* Item)
+{
+	Optional< ReflectionCustomTypeID> Value;
+
+	switch (Item->Get_Type())
+	{
+	case ClassType::Class:Value = Item->Get_ClassData().TypeID; break;
+	case ClassType::Enum:Value = Item->Get_EnumData().TypeID; break;
+	case ClassType::Alias:Value = Item->Get_AliasData().HardAliasTypeID; break;
+	case ClassType::Trait:Value = Item->Get_TraitData().TypeID; break;
+	case ClassType::Tag:Value = Item->Get_TagData().TypeID; break;
+	case ClassType::StaticArray:Value = Item->Get_StaticArray().TypeID; break;
+	case ClassType::FuncPtr:Value = Item->Get_FuncPtr().TypeID; break;
+	case ClassType::GenericClass:break;
+	case ClassType::GenericFunction:break;
+	case ClassType::NameSpace:break;
+	case ClassType::ForType:break;
+	case ClassType::Eval:break;
+	default:
+		UCodeLangUnreachable();
+		break;
+	}
+
+	return Value;
+}
+Optional<ClassMethod> ClassAssembly::Remove_Func(const String_view& FullName)
+{
+	for (auto& Item : Classes)
+	{
+		if (Item->Get_Type() == ClassType::Class)
+		{
+			auto& methods = Item->Get_ClassData().Methods;
+			for (size_t i = 0; i < methods.size(); i++)
+			{
+				auto& Item2 = methods[i];
+
+				if (Item2.DecorationName == FullName
+					|| Item2.FullName == FullName)
+				{
+					auto t = std::move(Item2);
+					return t;
+				}
+			}
+		}
+		else if (Item->Get_Type() == ClassType::ForType)
+		{
+			auto& methods = Item->Get_ForType()._AddedMethods;
+			for (size_t i = 0; i < methods.size(); i++)
+			{
+				auto& Item2 = methods[i];
+
+				if (Item2.DecorationName == FullName
+					|| Item2.FullName == FullName)
+				{
+					auto t = std::move(Item2);
+					return t;
+				}
+			}
+		} 
+	}
+	return {};
+}
+void ClassAssembly::Remove_NullFunc()
+{
+	for (auto& Item : Classes)
+	{
+		if (Item->Get_Type() == ClassType::Class)
+		{
+			auto& methods = Item->Get_ClassData().Methods;
+
+			methods.erase(std::remove_if(methods.begin(), methods.end(), [](ClassMethod& Item)
+				{
+					return Item.DecorationName.empty() && Item.FullName.empty();
+				}), methods.end());
+		}
+		else if (Item->Get_Type() == ClassType::ForType)
+		{
+			auto& methods = Item->Get_ForType()._AddedMethods;
+
+			methods.erase(std::remove_if(methods.begin(), methods.end(), [](ClassMethod& Item)
+				{
+					return Item.DecorationName.empty() && Item.FullName.empty();
+				}), methods.end());
+		}
+	}
+}
+const ClassMethod* ClassAssembly::Find_Func(const String_view& FullName) const
+{
+	for (auto& Item : Classes)
+	{
+		if (Item->Get_Type() == ClassType::Class)
+		{
+			for (auto& Item2 : Item->Get_ClassData().Methods)
+			{
+				if (Item2.DecorationName == FullName
+					|| Item2.FullName == FullName)
+				{
+					return &Item2;
+				}
+			}
+		}
+		else if (Item->Get_Type() == ClassType::ForType)
+		{
+			for (auto& Item2 : Item->Get_ForType()._AddedMethods)
+			{
+				if (Item2.DecorationName == FullName
+					|| Item2.FullName == FullName)
+				{
+					return &Item2;
+				}
+			}
+		}
+	}
+	return nullptr;
+}
+Vector<ClassMethod*> ClassAssembly::Find_Funcs(const String_view& FullName)
+{
+	Vector<ClassMethod*> r;
+	for (auto& Item : Classes)
+	{
+		if (Item->Get_Type() == ClassType::Class)
+		{
+			for (auto& Item2 : Item->Get_ClassData().Methods)
+			{
+				if (Item2.DecorationName == FullName
+					|| Item2.FullName == FullName)
+				{
+					r.push_back(&Item2);
+				}
+			}
+		}
+		else if (Item->Get_Type() == ClassType::ForType)
+		{
+			for (auto& Item2 : Item->Get_ForType()._AddedMethods)
+			{
+				if (Item2.DecorationName == FullName
+					|| Item2.FullName == FullName)
+				{
+					r.push_back(&Item2);
+				}
+			}
+
+		}
+	}
+	return r;
+}
+Vector<const ClassMethod*> ClassAssembly::Find_FuncsUsingName(const String_view& Name) const
+{
+	Vector<const ClassMethod*> r;
+	for (auto& Item : Classes)
+	{
+		if (Item->Get_Type() == ClassType::Class)
+		{
+			for (auto& Item2 : Item->Get_ClassData().Methods)
+			{
+				if (Item2.DecorationName == Name
+					|| Item2.FullName == Name
+					|| ScopeHelper::GetNameFromFullName(Item2.FullName) == Name)
+				{
+					r.push_back(&Item2);
+				}
+			}
+		}
+		else if (Item->Get_Type() == ClassType::ForType)
+		{
+			for (auto& Item2 : Item->Get_ForType()._AddedMethods)
+			{
+				if (Item2.DecorationName == Name
+					|| Item2.FullName == Name
+					|| ScopeHelper::GetNameFromFullName(Item2.FullName) == Name)
+				{
+					r.push_back(&Item2);
+				}
+			}
+		}
+	}
+	return r;
+}
 const AssemblyNode* ClassAssembly::Find_Node(ReflectionCustomTypeID TypeID) const
 {
 	for (auto& Item : Classes)
 	{
-		Optional< ReflectionCustomTypeID> Value;
-	
-		switch (Item->Get_Type())
-		{
-		case ClassType::Class:Value = Item->Get_ClassData().TypeID; break;
-		case ClassType::Enum:Value = Item->Get_EnumData().TypeID; break;
-		case ClassType::Alias:Value = Item->Get_AliasData().HardAliasTypeID; break;
-		case ClassType::Trait:Value = Item->Get_TraitData().TypeID; break;
-		case ClassType::Tag:Value = Item->Get_TagData().TypeID; break;
-		case ClassType::FuncPtr:break;
-		case ClassType::GenericClass:break;
-		case ClassType::GenericFunction:break;
-		case ClassType::StaticArray:Value = Item->Get_StaticArray().TypeID; break;
-		default:
-			UCodeLangUnreachable();
-			break;
-		}
+		Optional< ReflectionCustomTypeID> Value = GetReflectionTypeID(Item.get());
 
 		if (Value.has_value())
 		{
@@ -268,6 +430,32 @@ Optional<Optional<Vector<ClassAssembly::OnDoDefaultConstructorCall>>> ClassAssem
 
 		return  { InerRet() };
 	}
+	case ReflectionTypes::uIntPtr:
+	{
+		if (Is32Bit)
+		{
+			*(UInt32*)(Object) = UInt32();
+		}
+		else
+		{
+			*(UInt64*)(Object) = UInt64();
+		}
+
+		return  { InerRet() };
+	}
+	case ReflectionTypes::sIntPtr:
+	{
+		if (Is32Bit)
+		{
+			*(Int32*)(Object) = Int32();
+		}
+		else
+		{
+			*(Int64*)(Object) = Int64();
+		}
+
+		return  { InerRet() };
+	}
 	case ReflectionTypes::CustomType:
 	{
 		auto Node = this->Find_Node(Type._CustomTypeID);
@@ -302,8 +490,18 @@ Optional<Optional<Vector<ClassAssembly::OnDoDefaultConstructorCall>>> ClassAssem
 			{
 				auto& ClassData = Node->Get_ClassData();
 
-				
-				if (auto FuncToCall = ClassData.Get_ClassConstructor())
+				auto list = ClassData.Get_ClassConstructors();
+				const ClassMethod* FuncToCall = nullptr;
+				for (auto& Item : list)
+				{
+					if (Item->ParsType.size() == 1)
+					{
+						FuncToCall = Item;
+						break;
+					}
+				}
+
+				if (FuncToCall)
 				{
 					OnDoDefaultConstructorCall r;
 					r.MethodToCall = FuncToCall;
@@ -613,6 +811,32 @@ Optional<Optional<Vector<ClassAssembly::OnMoveConstructorCall>>>  ClassAssembly:
 
 		return   { InerRetType() };
 	}
+	case ReflectionTypes::uIntPtr:
+	{
+		if (Is32Bit)
+		{
+			*(UInt32*)(Output) = std::move(*(UInt32*)Source);
+		}
+		else
+		{
+			*(UInt64*)(Output) = std::move(*(UInt64*)Source);
+		}
+		
+		return   { InerRetType() };
+	}
+	case ReflectionTypes::sIntPtr:
+	{
+		if (Is32Bit)
+		{
+			*(Int32*)(Output) = std::move(*(Int32*)Source);
+		}
+		else
+		{
+			*(Int64*)(Output) = std::move(*(Int64*)Source);
+		}
+
+		return   { InerRetType() };
+	}
 	case ReflectionTypes::CustomType:
 	{
 
@@ -625,6 +849,113 @@ Optional<Optional<Vector<ClassAssembly::OnMoveConstructorCall>>>  ClassAssembly:
 Optional<Optional<Vector<ClassAssembly::OnDoDefaultConstructorCall>>> ClassAssembly::CallDestructor(const ReflectionTypeInfo& Type, void* Object, bool Is32Bit) const
 {
 	using InerRetType = Optional<Vector<ClassAssembly::OnDoDefaultConstructorCall>>;
+
+	if (IsPrimitve(Type._Type))
+	{
+		return { InerRetType() };
+	}
+	else if (auto v = Find_Node(Type._CustomTypeID))
+	{
+		switch (v->Get_Type())
+		{
+		case ClassType::Class:
+		{
+			auto& info = v->Get_ClassData();
+			if (auto d = info.Get_ClassDestructor())
+			{
+				Vector<ClassAssembly::OnDoDefaultConstructorCall> drop;
+				ClassAssembly::OnDoDefaultConstructorCall p;
+				p.MethodToCall = d;
+				p.ThisPtr = Object;
+				drop.push_back(std::move(p));
+
+				InerRetType r = { std::move(drop) };
+				return  r;
+			}
+		}
+		break;
+		case ClassType::Alias:
+		{
+			auto& info = v->Get_AliasData();
+			return CallDestructor(info.Type, Object, Is32Bit);
+		}
+		break;
+		case ClassType::Enum:
+		{
+			auto& info = v->Get_EnumData();
+			InerRetType r = {};
+			if (info.DestructorFuncFullName)
+			{
+				auto f = Find_Func(info.DestructorFuncFullName.value());
+				if (f)
+				{
+					Vector<ClassAssembly::OnDoDefaultConstructorCall> drop;
+					ClassAssembly::OnDoDefaultConstructorCall p;
+					p.MethodToCall = f;
+					p.ThisPtr = Object;
+					drop.push_back(std::move(p));
+
+					r = std::move(drop);
+				}
+			}
+
+			if (!r.has_value())
+			{
+				size_t keysize = GetSize(info.BaseType, Is32Bit).value();
+				void* key = Object;
+				for (auto& Item : info.Values)
+				{
+					bool isthis = memcmp(key, Item._Data.Get_Data(), keysize) == 0;
+
+					if (isthis && Item.EnumVariantType.has_value())
+					{
+						auto& variant = Item.EnumVariantType.value();
+						void* varantobject = (void*)((uintptr_t)Object + (uintptr_t)keysize);
+						return 	CallDestructor(variant, varantobject, Is32Bit);
+					}
+				}
+			}
+			return r;
+		}
+		break;
+		case ClassType::StaticArray:
+		{
+			auto& info = v->Get_StaticArray();
+			size_t basesize = GetSize(info.BaseType, Is32Bit).value_or(0);
+
+
+			Vector<ClassAssembly::OnDoDefaultConstructorCall> r;
+
+			for (size_t i = 1; i < info.Count; i++)
+			{
+				void* itemobject = (void*)((size_t)Object + (i * basesize));
+
+				auto g = CallDefaultConstructor(info.BaseType, itemobject, Is32Bit);
+				if (g.has_value() && g.value().has_value())
+				{
+					auto& d = g.value().value();
+					for (auto& Item : d)
+					{
+						ClassAssembly::OnDoDefaultConstructorCall p;
+						p.MethodToCall = Item.MethodToCall;
+						p.ThisPtr = Item.ThisPtr;
+						r.push_back(std::move(p));
+					}
+				}
+				else
+				{
+					return {};
+				}
+			}
+
+			return r;
+		}
+		break;
+		default:
+			UCodeLangUnreachable();
+			break;
+		}
+	}
 
 	return {};
 }
@@ -1316,6 +1647,12 @@ AssemblyNode::AssemblyNode(ClassType type) : Type(type)
 	case ClassType::GenericFunction:
 		new (&_GenericFunc) GenericFunction_Data();
 		break;
+	case ClassType::NameSpace:
+		new (&_NameSapce) NameSpace_Data();
+		break;
+	case ClassType::ForType:
+		new (&_ForType) ForType_Data();
+		break;
 	default:
 		UCodeLangUnreachable();
 		break;
@@ -1336,37 +1673,43 @@ AssemblyNode& AssemblyNode::operator=(AssemblyNode&& node)
 		new (&_Class) Class_Data(std::move(node.Get_ClassData()));
 		break;
 	case ClassType::Enum:
-		new (&_Enum) Enum_Data(node.Get_EnumData());
+		new (&_Enum) Enum_Data(std::move(node.Get_EnumData()));
 		break;
 	case ClassType::Alias:
-		new (&_Alias) Alias_Data(node.Get_AliasData());
+		new (&_Alias) Alias_Data(std::move(node.Get_AliasData()));
 		break;
 	case ClassType::Eval:
-		new (&_Eval) Eval_Data(node.Get_EvalData());
+		new (&_Eval) Eval_Data(std::move(node.Get_EvalData()));
 		break;
 	case ClassType::Trait:
-		new (&_Trait) Trait_Data(node.Get_TraitData());
+		new (&_Trait) Trait_Data(std::move(node.Get_TraitData()));
 		break;
 	case ClassType::Tag:
-		new (&_Tag) Tag_Data(node.Get_TagData());
+		new (&_Tag) Tag_Data(std::move(node.Get_TagData()));
 		break;
 	case ClassType::StaticVarable:
-		new (&_StaticVar) StaticVar_Data(node.Get_StaticVar());
+		new (&_StaticVar) StaticVar_Data(std::move(node.Get_StaticVar()));
 		break;
 	case ClassType::ThreadVarable:
-		new (&_ThreadVar) ThreadVar_Data(node.Get_ThreadVar());
+		new (&_ThreadVar) ThreadVar_Data(std::move(node.Get_ThreadVar()));
 		break;
 	case ClassType::StaticArray:
-		new (&_StaticArr) StaticArray_Data(node.Get_StaticArray());
+		new (&_StaticArr) StaticArray_Data(std::move(node.Get_StaticArray()));
 		break;
 	case ClassType::FuncPtr:
-		new (&_FuncPtr) FuncPtr_Data(node.Get_FuncPtr());
+		new (&_FuncPtr) FuncPtr_Data(std::move(node.Get_FuncPtr()));
 		break;
 	case ClassType::GenericClass:
-		new (&_GenericClass) GenericClass_Data(node.Get_GenericClass());
+		new (&_GenericClass) GenericClass_Data(std::move(node.Get_GenericClass()));
 		break;
 	case ClassType::GenericFunction:
-		new (&_GenericFunc) GenericFunction_Data(node.Get_GenericFunctionData());
+		new (&_GenericFunc) GenericFunction_Data(std::move(node.Get_GenericFunctionData()));
+		break;
+	case ClassType::NameSpace:
+		new (&_NameSapce) NameSpace_Data(std::move(node.Get_NameSpace()));
+		break;
+	case ClassType::ForType:
+		new (&_ForType) ForType_Data(std::move(node.Get_ForType()));
 		break;
 	default:
 		UCodeLangUnreachable();
@@ -1421,6 +1764,12 @@ AssemblyNode& AssemblyNode::operator=(const AssemblyNode& node)
 	case ClassType::GenericFunction:
 		new (&_GenericFunc) GenericFunction_Data(node.Get_GenericFunctionData());
 		break;
+	case ClassType::ForType:
+		new (&_ForType) ForType_Data(node.Get_ForType());
+		break;
+	case ClassType::NameSpace:
+		new (&_NameSapce) NameSpace_Data(node.Get_NameSpace());
+		break;
 	default:
 		UCodeLangUnreachable();
 		break;
@@ -1468,6 +1817,12 @@ AssemblyNode::~AssemblyNode()
 		break;
 	case ClassType::GenericFunction:
 		_GenericFunc.~GenericFunction_Data();
+		break;
+	case ClassType::NameSpace:
+		_NameSapce.~NameSpace_Data();
+		break;
+	case ClassType::ForType:
+		_ForType.~ForType_Data();
 		break;
 	default:
 		UCodeLangUnreachable();

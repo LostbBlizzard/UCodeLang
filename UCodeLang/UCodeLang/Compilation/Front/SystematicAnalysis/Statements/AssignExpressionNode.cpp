@@ -8,7 +8,7 @@ void SystematicAnalysis::OnAssignExpressionNode(const AssignExpressionNode& node
 	if (_PassType == PassType::GetTypes)
 	{
 		OnExpressionTypeNode(node._Expression._Value.get(), GetValueMode::Read);
-		OnExpressionTypeNode(node._ToAssign._Value.get(), GetValueMode::Write);
+		OnExpressionTypeNode(node._ToAssign._Value.get(),node._ReassignAddress ? GetValueMode::WritePointerReassment : GetValueMode::Write);
 
 		if (node._ReassignAddress && !IsInUnSafeBlock())
 		{
@@ -19,7 +19,7 @@ void SystematicAnalysis::OnAssignExpressionNode(const AssignExpressionNode& node
 	else if (_PassType == PassType::FixedTypes)
 	{
 		_LookingForTypes.push(TypesEnum::Var);
-		OnExpressionTypeNode(node._ToAssign._Value.get(), GetValueMode::Write);
+		OnExpressionTypeNode(node._ToAssign._Value.get(),node._ReassignAddress ? GetValueMode::WritePointerReassment : GetValueMode::Write);
 		_LookingForTypes.pop();
 
 		auto AssignType = _LastExpressionType;
@@ -40,9 +40,13 @@ void SystematicAnalysis::OnAssignExpressionNode(const AssignExpressionNode& node
 
 		if (!Type_CanBeImplicitConverted(ExpressionType, AssignType, false))
 		{
-			auto  Token = _LastLookedAtToken;
-			LogError_CantCastImplicitTypes(Token.value(), ExpressionType, AssignType , false);
-
+			auto  Token = NeverNullptr(node._Token);
+			LogError_CantCastImplicitTypes(Token, ExpressionType, AssignType , false);
+		}
+		else if (AssignType.IsMovedType())
+		{
+			auto  Token = NeverNullptr(node._Token);
+			LogError(ErrorCodes::InValidType,"Cant Reassign because the assignment an moved type", Token.value());
 		}
 		auto ID = Symbol_GetSymbolID(node);
 
@@ -67,34 +71,124 @@ void SystematicAnalysis::OnAssignExpressionNode(const AssignExpressionNode& node
 		auto ExpressionType = _LastExpressionType;
 		auto ExIR = _IR_LastExpressionField;
 
-		if (Symbol_HasDestructor(AssignType.Op0))
-		{
-			ObjectToDrop dropinfo;
-			dropinfo.DropType = ObjectToDropType::IRInstruction;
-			dropinfo._Object = ExIR;
-			dropinfo.Type = ExpressionType;
-
-			IR_Build_DestructorCall(dropinfo);
-
-			_IR_LastExpressionField = ExIR ;
-		}
-
-			
+		
 
 		auto implictype = Type_AreTheSameWithOutMoveAndimmutable(ExpressionType, AssignType.Op1) ? AssignType.Op0 : AssignType.Op1;
 
-		IR_Build_ImplicitConversion(ExIR, ExpressionType, implictype);
+		bool domove_ctor = false;
+		bool ismoved = implictype.IsMovedType();
+		
+		TypeSymbol NewvalEx;
+		NewvalEx = ExpressionType;
+		if (implictype.IsMovedType() && HasMoveContructerHasIRFunc(ExpressionType))
+		{
+			implictype._MoveData = MoveData::None;
+			NewvalEx._MoveData = MoveData::None;
+			NewvalEx._ValueInfo = TypeValueInfo::IsValue;//seting this stops the move in ImplicitConversio 
+
+			domove_ctor = true;
+		}
+
+		IR_Build_ImplicitConversion(ExIR, NewvalEx, implictype);
 		ExIR = _IR_LastExpressionField;
 
+		auto t = AssignType.Op1;
+		if (Symbol_HasDestructor(AssignType.Op1) || domove_ctor)
+		{
+			t.SetAsAddress();
+		}
 
-		_LookingForTypes.push(AssignType.Op1);
+		_LookingForTypes.push(t);
 		OnExpressionTypeNode(node._ToAssign._Value.get(),
 			node._ReassignAddress ? GetValueMode::WritePointerReassment : GetValueMode::Write);
 		_LookingForTypes.pop();
 
 		auto AssignIR = _IR_LastExpressionField;
+		auto AssignExType = _LastExpressionType;
 
-		if (node._ReassignAddress)
+		auto tw = AssignType.Op1;
+		tw._IsAddress = false;
+		if (Symbol_HasDestructor(tw))
+		{
+			ObjectToDrop dropinfo;
+			dropinfo.DropType = ObjectToDropType::Operator;
+
+			IROperator obj;
+			auto store = _IR_LastStoreField;
+			switch (_IR_LastStoreField.Type)
+			{
+			case IROperatorType::IRInstruction:
+				obj = _IR_LastStoreField.Pointer;
+				break;
+			case IROperatorType::DereferenceOf_IRParameter:
+				obj = _IR_LastStoreField.Parameter;
+				AssignExType._IsAddress = false;
+			break;
+			case IROperatorType::IRParameter:
+				obj = _IR_LastStoreField.Parameter;
+				AssignExType._IsAddress = false;
+			break;
+
+			default:
+				UCodeLangUnreachable();
+				break;
+			}
+
+			if (domove_ctor)
+			{
+				AssignExType._IsAddress = false;
+			}
+
+			dropinfo._Operator = obj;
+			dropinfo.Type = AssignExType;
+
+			IR_Build_DestructorCall(dropinfo);
+
+			auto& callinsir = _IR_LookingAtIRBlock->Instructions.back();
+
+			if (callinsir->Type == IRInstructionType::CleanupFuncCall)
+			{
+				auto tocall = callinsir->B.identifier;
+				callinsir->Type = IRInstructionType::Call;
+				callinsir->A = IROperator(tocall);
+				callinsir->B = IROperator();
+			}
+
+			_IR_LastStoreField = store;
+			if (_IR_LastStoreField.Type == IROperatorType::DereferenceOf_IRParameter)
+			{
+				_IR_LastStoreField = IROperator(_IR_LastStoreField.Parameter);
+			}
+		}
+
+		if (domove_ctor) 
+		{
+			Symbol* move_ctor_sym = nullptr;
+			auto symop = Symbol_GetSymbol(ExpressionType);
+			auto sym = symop.value();
+			switch (sym->Type)
+			{
+			case SymbolType::Type_class:
+			{
+				move_ctor_sym = Symbol_GetSymbol(sym->Get_Info<ClassInfo>()->_ClassHasMoveConstructor.value()).value();
+			}
+			break;
+			default:
+				UCodeLangUnreachable();
+				break;
+			}
+
+			FuncInfo* move_ctor = move_ctor_sym->Get_Info<FuncInfo>();
+
+			auto par0 = AssignIR;
+			auto par1 = ExIR;
+
+			_IR_LookingAtIRBlock->NewPushParameter(par0);
+			_IR_LookingAtIRBlock->NewPushParameter(par1);
+
+			_IR_LookingAtIRBlock->NewCall(IR_GetIRID(move_ctor));
+		}
+		else if (node._ReassignAddress)
 		{
 			IR_WriteTo(ExIR, _IR_LastStoreField);
 		}

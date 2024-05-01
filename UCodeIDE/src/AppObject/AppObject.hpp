@@ -235,6 +235,8 @@ private:
 		bool AutoCompile = true;
 		bool AutoReload = true;
 		bool AutoHotReload = false;
+		bool StripFuncions = false;
+		bool StripTypes = false;
 
 		UCodeLang::OptimizationFlags Flags = UCodeLang::OptimizationFlags::O_2;
 		bool InDebug = false;
@@ -269,6 +271,7 @@ private:
 			String StringValue;
 		};
 		Vector<InsData> InsInfo;
+		UnorderedMap<UCodeLang::UAddress, size_t> MapToInsInfoIndex;
 		InsData& GetIns(UCodeLang::UAddress address)
 		{
 			return InsInfo[address];
@@ -291,6 +294,7 @@ private:
 
 		UCodeLang::ReflectionTypeInfo _LastRetType;
 		BytesPtr _LastRet;
+		Optional<UCodeLang::InterpretorError> _LastError;
 
 		bool CallStaticAndThreadInit = true;
 		bool CallStaticAndThreadDeInit = true;

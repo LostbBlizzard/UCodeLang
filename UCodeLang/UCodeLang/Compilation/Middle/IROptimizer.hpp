@@ -113,8 +113,9 @@ private:
 		Optimization_RemoveUnneedMeallocAndFree = false;
 		Optimization_FloatFastMath = false;
 	}
-	//
-
+	//Compile Flags
+	bool Flag_NoExceptions = false;
+	Optional<Vector<String>> Flag_FuncsToKeep;
 
 	void ReplaceAllTypesTo(IRidentifierID typetolookfor, IRidentifierID newtype);
 

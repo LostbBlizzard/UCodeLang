@@ -10,6 +10,7 @@
 #define StackName_ "[" + StackName + "]"
 
 #include "Zydis/Zydis.h"
+#include "UCodeLang/Compilation/Helpers/InstructionBuilder.hpp"
 UAssemblyStart
 struct OutputIRLineState
 {
@@ -96,6 +97,9 @@ bool UAssembly::Assemble(const String_view& Text, UClib* Out)
 
 	return _ErrorsOutput->Has_Errors() == false;
 }
+
+
+
 String UAssembly::ToString(const UClib* Lib, Optional<Path> SourceFiles, bool ShowIR)
 {
 	auto& InsMapData = Get_InsToInsMapValue();
@@ -135,6 +139,12 @@ String UAssembly::ToString(const UClib* Lib, Optional<Path> SourceFiles, bool Sh
 	{
 		switch (Item->Get_Type())
 		{
+		case ClassType::NameSpace:
+		{
+			r += "namespace " + Item->FullName + ";";
+			r += "\n\n";
+		}
+		break;
 		case ClassType::Class:
 		{
 			auto& Class = Item->Get_ClassData();
@@ -147,54 +157,60 @@ String UAssembly::ToString(const UClib* Lib, Optional<Path> SourceFiles, bool Sh
 			{
 				r += '\n';
 			}
-			r += "$" + Item->FullName + ":\n";
-			
 
-			r += ".size:" + std::to_string(Class.Size) + "\n";
-			
-			for (auto Item2 : Class.Fields)
+			bool hasany = Class.Fields.size() || Class.Methods.size();
+
+			r += "$" + Item->FullName;	
+			if (!hasany)
 			{
-				r += " " + ToString(Item2.Type, Assembly) + " " + Item2.Name + ";//Offset " + std::to_string(Item2.offset) + "\n";
+				r += ";";
 			}
-			r += "\n";
-
-			for (auto& Item2 : Class.Methods)
+		
+			if (hasany)
 			{
-				r += " ";
-				for (auto& Item3 : Item2.Attributes.Attributes)
+				if (Class.IsExported)
 				{
-					r += ToString(Item3, Assembly, Lib->BitSize);
+					r += " export";
 				}
-				if (Class.Attributes.Attributes.size())
-				{
-					r += '\n';
-				}
+				r += ":\n";
+				r += ".size:" + std::to_string(Class.Size) + "\n";
 
-				r += "|" + ScopeHelper::GetNameFromFullName(Item2.FullName) + "[";
-				
-				for (auto& Item3 : Item2.ParsType)
-				{
-					if (&Item3 == &Item2.ParsType.front() && Item2.IsThisFunction)
-					{
+				Optional<AccessModifierType> _AccessModifier;
 
-						if (Item3.Type.Isimmutable())
-						{
-							r += "umut ";
-						}
-						
-						r += "this&";
-					}
-					else 
+				for (auto& Item2 : Class.Fields)
+				{
+					if (!_AccessModifier.has_value() || _AccessModifier.value() != Item2.Protection)
 					{
-						r += ToString(Item3, Assembly);
+						r += "\n";
+						r += Item2.Protection == AccessModifierType::Public ?
+							"public" :
+							"private";
+
+						r += ": \n";
+
+						_AccessModifier = Item2.Protection;
 					}
-					if (&Item3 != &Item2.ParsType.back()) {
-						r += ", ";
-					}
+
+					r += " " + ToString(Item2.Type, Assembly) + " " + Item2.Name + ";//Offset " + std::to_string(Item2.offset) + "\n";
 				}
-				r += "] -> " + ToString(Item2.RetType, Assembly) + ";" ;
-				r += "//" + Item2.DecorationName + '\n';
-					
+				r += "\n";
+
+				for (auto& Item2 : Class.Methods)
+				{
+					if (!_AccessModifier.has_value() || _AccessModifier.value() != Item2.Protection)
+					{
+						r += "\n";
+						r += Item2.Protection == AccessModifierType::Public ?
+							"public" :
+							"private";
+
+						r += ": \n";
+
+						_AccessModifier = Item2.Protection;
+					}
+
+					ToString(r, Item2, Lib);
+				}
 			}
 			r += "\n\n";
 		}
@@ -202,7 +218,14 @@ String UAssembly::ToString(const UClib* Lib, Optional<Path> SourceFiles, bool Sh
 		case ClassType::Alias:
 		{
 			auto& Class = Item->Get_AliasData();
-			r += "$" + Item->FullName + " = ";
+			r += "$" + Item->FullName;
+
+			if (Class.IsExported)
+			{
+				r += " export";
+			}
+
+			r += " = ";
 
 			if (Class.HardAliasTypeID.has_value()) {
 				r += "!";
@@ -213,7 +236,21 @@ String UAssembly::ToString(const UClib* Lib, Optional<Path> SourceFiles, bool Sh
 		case ClassType::Enum:
 		{
 			auto& Enum = Item->Get_EnumData();
-			r += "$" + Item->FullName + " enum[" + ToString(Enum.BaseType,Assembly) + "]:\n";
+			r += "$" + Item->FullName + " enum[" + ToString(Enum.BaseType,Assembly) + "]";
+
+			if (Enum.IsExported)
+			{
+				r += " export";
+			}
+			bool hasany = Enum.Values.size();
+			if (hasany)
+			{
+				r += ":\n";
+			}
+			else
+			{
+				r += ";";
+			}
 			for (auto& Item : Enum.Values)
 			{
 				r += " " + Item.Name;
@@ -248,7 +285,14 @@ String UAssembly::ToString(const UClib* Lib, Optional<Path> SourceFiles, bool Sh
 		{
 			auto& FuncPtr = Item->Get_FuncPtr();
 
-			r += "$" + Item->FullName + " = |[";
+			r += "$" + Item->FullName;
+			
+			if (FuncPtr.IsExported)
+			{
+				r += " export";
+			}
+			
+			r+=" = |[";
 
 			for (auto& Item : FuncPtr.ParsType)
 			{
@@ -265,58 +309,86 @@ String UAssembly::ToString(const UClib* Lib, Optional<Path> SourceFiles, bool Sh
 		break;
 		case ClassType::Tag:
 		{
-			r += "$" + Item->FullName + " tag:\n";
+			r += "$" + Item->FullName + " tag";
 
-			auto& TagData= Item->Get_TagData();
-			for (auto& Item2 : TagData.Fields)
+			auto& TagData = Item->Get_TagData();
+			bool hasany = TagData.Fields.size() || TagData.Fields.size();
+			
+			if (TagData.IsExported)
 			{
-				r += " " + ToString(Item2.Type, Assembly) + " " + Item2.Name + ";//Offset " + std::to_string(Item2.offset) + "\n";
+				r += " export";
 			}
-			r += "\n";
 
-			for (auto& Item2 : TagData.Methods)
+			if (hasany)
 			{
-				r += " ";
-				for (auto& Item3 : Item2.Attributes.Attributes)
+				r += ":\n";
+				for (auto& Item2 : TagData.Fields)
 				{
-					r += ToString(Item3, Assembly, Lib->BitSize);
+					r += " " + ToString(Item2.Type, Assembly) + " " + Item2.Name + ";//Offset " + std::to_string(Item2.offset) + "\n";
 				}
+				r += "\n";
 
-				r += "|" + ScopeHelper::GetNameFromFullName(Item2.FullName) + "[";
-
-				for (auto& Item3 : Item2.ParsType)
+				for (auto& Item2 : TagData.Methods)
 				{
-					if (&Item3 == &Item2.ParsType.front() && Item2.IsThisFunction)
+					r += " ";
+					for (auto& Item3 : Item2.Attributes.Attributes)
 					{
+						r += ToString(Item3, Assembly, Lib->BitSize);
+					}
 
-						if (Item3.Type.Isimmutable())
+					r += "|" + ScopeHelper::GetNameFromFullName(Item2.FullName) + "[";
+
+					for (auto& Item3 : Item2.ParsType)
+					{
+						if (&Item3 == &Item2.ParsType.front() && Item2.IsThisFunction)
 						{
-							r += "umut ";
+
+							if (Item3.Type.Isimmutable())
+							{
+								r += "imut ";
+							}
+
+							r += "this&";
 						}
+						else
+						{
+							r += ToString(Item3, Assembly);
+						}
+						if (&Item3 != &Item2.ParsType.back()) {
+							r += ", ";
+						}
+					}
+					r += "] -> " + ToString(Item2.RetType, Assembly) + ";";
+					r += "//" + Item2.DecorationName + '\n';
 
-						r += "this&";
-					}
-					else
-					{
-						r += ToString(Item3, Assembly);
-					}
-					if (&Item3 != &Item2.ParsType.back()) {
-						r += ", ";
-					}
 				}
-				r += "] -> " + ToString(Item2.RetType, Assembly) + ";";
-				r += "//" + Item2.DecorationName + '\n';
-
+			}
+			else
+			{
+				r += ";";
 			}
 			r += "\n\n";
 		}
 		break;
 		case ClassType::Trait:
 		{
-			r += "$" + Item->FullName + " trait:\n";
+			r += "$" + Item->FullName + " trait";
 			auto& TraitData = Item->Get_TraitData();
-		
 
+			if (TraitData.IsExported)
+			{
+				r += " export";
+			}
+
+			bool hasany = false;
+			if (hasany)
+			{
+				r += ":\n";
+			}
+			else
+			{
+				r += ";\n";
+			}
 		}
 		break;
 		case ClassType::GenericClass:
@@ -337,7 +409,47 @@ String UAssembly::ToString(const UClib* Lib, Optional<Path> SourceFiles, bool Sh
 		{
 		}
 		break;
-		efault:
+		case ClassType::ForType:
+		{
+			auto& TraitData = Item->Get_ForType();
+			r += "$for " + ToString(TraitData._TargetType,Assembly);
+
+			if (TraitData.IsExported)
+			{
+				r += " export";
+			}
+			if (TraitData._AddedMethods.size())
+			{
+				r += ": \n";
+
+				for (auto& Item : TraitData._AddedMethods)
+				{
+					ToString(r, Item,Lib);
+				}
+			}
+			else 
+			{
+				r += ";";
+			}
+		}
+		break;
+		case ClassType::Eval:
+		{
+			auto& TraitData = Item->Get_EvalData();
+			if (TraitData.IsExported)
+			{
+				r += " export ";
+			}
+			r += "eval ";
+			r += ToString(TraitData.Value._Type, Assembly);
+			r += " ";
+			r += Item->FullName;
+			r += " = ";
+			r += ToString(TraitData.Value,Assembly,Lib->BitSize);
+			r += ";\n";
+		}
+		break;
+		default:
 			UCodeLangUnreachable();
 			break;
 		} 
@@ -617,6 +729,8 @@ String UAssembly::ToString(const UClib* Lib, Optional<Path> SourceFiles, bool Sh
 size_t UAssembly::ParseInstruction( size_t I,const Span<Instruction> Data, String& r, const BytesView staticbytesview, UnorderedMap<UAddress, String>& AddressToName
 , bool CombineIns)
 {
+	bool is32mode = UCodeLang_32BitSytem;
+	bool is64mode = !is32mode;
 	auto& InsMapData = Get_InsToInsMapValue();
 
 	if (CombineIns == false) 
@@ -695,7 +809,7 @@ size_t UAssembly::ParseInstruction( size_t I,const Span<Instruction> Data, Strin
 		{
 
 			{
-				auto Opt = Instruction::IsCall(Data, I);
+				auto Opt = Instruction::IsCall(Data, I,is32mode);
 				if (Opt)
 				{
 					UAddress V = Opt.value();
@@ -703,26 +817,33 @@ size_t UAssembly::ParseInstruction( size_t I,const Span<Instruction> Data, Strin
 					OpValueToString(InsMapData.at(Data[I].OpCode)->Op_A, &V, AddressToName, staticbytesview, r);
 
 
-					#if UCodeLang_32BitSytem
-					return 1;
-					#else
-					return 3;
-					#endif 
+					if (is32mode)
+					{
+						return 1;
+					}
+					else
+					{
+						return 3;
+					}
 				}
 			}
 			{
-				auto Opt = Instruction::IsCallIf(Data, I);
+				auto Opt = Instruction::IsCallIf(Data, I,is32mode);
 				if (Opt)
 				{
 					UAddress V = Opt.value().Func;
 					r += "Callif ";
 					OpValueToString(InsMapData.at(Data[I].OpCode)->Op_B, &V, AddressToName, staticbytesview, r);
 					r += "," + GetRegisterToString(Opt.value().Reg);
-					#if UCodeLang_32BitSytem
-					return 1;
-					#else
-					return 3;
-					#endif 
+				
+					if (is32mode)
+					{
+						return 1;
+					}
+					else
+					{
+						return 3;
+					}
 				}
 
 			}
@@ -730,7 +851,7 @@ size_t UAssembly::ParseInstruction( size_t I,const Span<Instruction> Data, Strin
 		if (Data[I].OpCode == InstructionSet::Jumpv1)
 		{
 			{
-				auto Opt = Instruction::IsJump(Data, I);
+				auto Opt = Instruction::IsJump(Data, I,is32mode);
 				if (Opt)
 				{
 					UAddress V = Opt.value();
@@ -738,15 +859,18 @@ size_t UAssembly::ParseInstruction( size_t I,const Span<Instruction> Data, Strin
 					OpValueToString(InsMapData.at(Data[I].OpCode)->Op_A, &V, AddressToName, staticbytesview, r);
 
 
-					#if UCodeLang_32BitSytem
-					return 1;
-					#else
-					return 3;
-					#endif 
+					if (is32mode)
+					{
+						return 1;
+					}
+					else 
+					{
+						return 3;
+					}
 				}
 			}
 			{
-				auto Opt = Instruction::IsJumpIf(Data, I);
+				auto Opt = Instruction::IsJumpIf(Data, I,is32mode);
 				if (Opt)
 				{
 					UAddress V = Opt.value().Func;
@@ -755,18 +879,21 @@ size_t UAssembly::ParseInstruction( size_t I,const Span<Instruction> Data, Strin
 					r += ",";
 					OpValueToString(InsMapData.at(InstructionSet::Jumpif)->Op_B, &V, AddressToName, staticbytesview, r);
 
-					#if UCodeLang_32BitSytem
-					return 1;
-					#else
-					return 3;
-					#endif 
+					if (is32mode)
+					{
+						return 1;
+					}
+					else 
+					{
+						return 3;
+					}
 				}
 
 			}
 		}
 		if (Data[I].OpCode == InstructionSet::LoadFuncPtrV1)
 		{
-			auto Opt = Instruction::IsLoadFuncPtr(Data, I);
+			auto Opt = Instruction::IsLoadFuncPtr(Data, I,is32mode);
 			if (Opt)
 			{
 				UAddress V = Opt.value();
@@ -774,11 +901,14 @@ size_t UAssembly::ParseInstruction( size_t I,const Span<Instruction> Data, Strin
 				r += ", "; 
 				OpValueToString(InsMapData.at(Data[I].OpCode)->Op_B, &V, AddressToName, staticbytesview, r);
 
-				#if UCodeLang_32BitSytem
-				return 1;
-				#else
-				return 3;
-				#endif 
+				if (is32mode)
+				{
+					return 1;
+				}
+				else 
+				{
+					return 3;
+				}
 			}
 
 		}
@@ -1138,6 +1268,50 @@ String UAssembly::ToString(const ClassMethod::Par& Value, const ClassAssembly& A
 	R += ToString(Value.Type, Assembly);
 	return R;
 }
+void UAssembly::ToString(String& r, ClassMethod& Item2, const UClib* Lib)
+{
+	auto& Assembly = Lib->Get_Assembly();
+	r += " ";
+	for (auto& Item3 : Item2.Attributes.Attributes)
+	{
+		r += ToString(Item3, Assembly, Lib->BitSize);
+	}
+	if (Item2.Attributes.Attributes.size())
+	{
+		r += '\n';
+	}
+	if (Item2.IsExport)
+	{
+		r += "export ";
+	}
+
+		
+
+	r += "|" + ScopeHelper::GetNameFromFullName(Item2.FullName) + "[";
+
+	for (auto& Item3 : Item2.ParsType)
+	{
+		if (&Item3 == &Item2.ParsType.front() && Item2.IsThisFunction)
+		{
+
+			if (Item3.Type.Isimmutable())
+			{
+				r += "umut ";
+			}
+
+			r += "this&";
+		}
+		else
+		{
+			r += ToString(Item3, Assembly);
+		}
+		if (&Item3 != &Item2.ParsType.back()) {
+			r += ", ";
+		}
+	}
+	r += "] -> " + ToString(Item2.RetType, Assembly) + ";";
+	r += "//" + Item2.DecorationName + '\n';
+}
 void UAssembly::OpValueToString(OpCodeType OpType,const void* In,const UnorderedMap<UAddress, String>& AddressToName,const BytesView StaticVarablesData, String& out)
 {
 
@@ -1206,6 +1380,940 @@ size_t UAssembly::BuildHashForSub(const Instruction* Pointer, size_t BufferSize)
 
 	return std::hash<String_view>()(Item);
 }
+UAssembly::StripOutput UAssembly::Strip(UClib& lib,const StripSettings& settings)
+{
+	UAssembly::StripOutput r;
+
+
+	if (settings.DebugInfo)
+	{
+		lib._DebugBytes.clear();
+	
+		for (auto& Item : lib._Layers)
+		{
+			if (Item->_Name == settings.TargetCodeLayer)
+			{
+				if (Item->_Data.Is<CodeLayer::UCodeByteCode>()) {
+					auto& v = Item->_Data.Get<CodeLayer::UCodeByteCode>();
+					v.DebugInfo = {};
+					break;
+				}
+			}
+		}
+	}
+	if (settings.FuncToAddress)
+	{
+		for (auto& Item : lib._Layers)
+		{
+			if (Item->_Name == settings.TargetCodeLayer)
+			{
+				if (Item->_Data.Is<CodeLayer::UCodeByteCode>()) {
+					auto& v = Item->_Data.Get<CodeLayer::UCodeByteCode>();
+					r.StripedFuncToAddress = std::move(v._NameToPtr);
+				}
+			}
+		}
+	}
+	if (settings.TypeAssembly)
+	{
+		r.StripedAssembly = std::move(lib.Get_Assembly());
+	}
+
+	return r;
+}
+UAssembly::StripFuncs UAssembly::StripFunc(UClib& lib, const StripFuncSettings& setting, TaskManger& tasks)
+{
+	StripFuncs r;
+
+	auto layer = lib.GetLayer(UCode_CodeLayer_UCodeVM_Name);
+	if (layer == nullptr || !layer->_Data.Is<CodeLayer::UCodeByteCode>())
+	{
+		return r;
+	}
+	CodeLayer::UCodeByteCode* ByteCodeLayer = &layer->_Data.Get<CodeLayer::UCodeByteCode>();
+
+	bool is32mode = lib.BitSize == UClib::NTypeSize::int32;
+	bool is64mode = !is32mode;
+
+	Vector<const ClassMethod*> FuncionsToKeep;
+	{
+		UnorderedMap<const ClassMethod*, Vector<const ClassMethod*>> DirectReference;
+		UnorderedMap<UAddress, String> AddToName;
+		{
+			DirectReference.reserve(ByteCodeLayer->_NameToPtr.size());
+
+			auto c = tasks.WorkerCount();
+			auto sizeperworker = ByteCodeLayer->_NameToPtr.size() / c;
+			Vector<std::pair<const String, UAddress>*> ptrs;
+
+			for (auto& Item : ByteCodeLayer->_NameToPtr)
+			{
+				ptrs.push_back(&Item);
+			}
+			auto& assembly = lib.Get_Assembly();
+
+			using taskr = Vector<std::pair<const ClassMethod*, Vector<const ClassMethod*>>>;
+			Vector<TaskManger::Task<taskr>> _tasks;
+			_tasks.reserve(c);
+
+			AddToName.reserve(ByteCodeLayer->_NameToPtr.size());
+			for (auto& Item : ByteCodeLayer->_NameToPtr)
+			{
+				AddToName.AddValue(Item.second, Item.first);
+			}
+
+			for (size_t i = 0; i < c; i++)
+			{
+				std::function<taskr()> f = [is32mode,&AddToName, &assembly, &ptrs, i, ByteCodeLayer, sizeperworker, c]()
+					{
+						taskr r;
+
+						size_t StartIndex = sizeperworker * i;
+						size_t EndIndex = 0;
+						bool lastone = i + 1 == c;
+
+						if (lastone)
+						{
+							EndIndex = ByteCodeLayer->_NameToPtr.size();
+						}
+						else
+						{
+							EndIndex = std::min(sizeperworker * (i + 1), ByteCodeLayer->_NameToPtr.size());
+						}
+
+						Span<std::pair<const String, UAddress>*> mylist = Span(ptrs.data() + StartIndex, EndIndex - StartIndex);
+
+						for (auto& Item : mylist)
+						{
+							auto f = assembly.Find_Func(Item->first);
+							if (f == nullptr) { continue; }
+
+							auto funcstart = ByteCodeLayer->_NameToPtr.GetValue(Item->first);
+							Vector<const ClassMethod*> methods;
+
+							for (size_t i = funcstart; i < ByteCodeLayer->_Instructions.size(); i++)
+							{
+								auto& Ins = ByteCodeLayer->_Instructions[i];
+
+								Optional<UAddress> address;
+								{
+									address = Ins.IsCall(Span<Instruction>(ByteCodeLayer->_Instructions.data(), ByteCodeLayer->_Instructions.size()),i,is32mode);
+									if (!address.has_value())
+									{
+										address = Ins.IsLoadFuncPtr(Span<Instruction>(ByteCodeLayer->_Instructions.data(), ByteCodeLayer->_Instructions.size()), i,is32mode);
+									}
+									if (!address.has_value())
+									{
+										auto v = Ins.IsCallIf(Span<Instruction>(ByteCodeLayer->_Instructions.data(), ByteCodeLayer->_Instructions.size()), i,is32mode);
+
+										if (v.has_value()) {
+											address = v.value().Func;
+										}
+									}
+									if (!address.has_value())
+									{
+										auto v = Ins.IsJumpIf(Span<Instruction>(ByteCodeLayer->_Instructions.data(), ByteCodeLayer->_Instructions.size()), i,is32mode);
+
+										if (v.has_value()) {
+											address = v.value().Func;
+										}
+									}
+									if (!address.has_value())
+									{
+										address = Ins.IsJump(Span<Instruction>(ByteCodeLayer->_Instructions.data(), ByteCodeLayer->_Instructions.size()), i,is32mode);
+									}
+								}
+
+								if (address.has_value())
+								{
+									UAddress add = address.value() + 1;
+									NullablePtr<ClassMethod> p;
+									auto s = AddToName.TryFindValue(add);
+									if (s.has_value())
+									{
+										auto func = assembly.Find_Func(s.value());
+										if (func)
+										{
+											methods.push_back(func);
+										}
+									}
+								}
+
+								if (Ins.OpCode == InstructionSet::Return)
+								{
+									break;
+								}
+							}
+
+							r.push_back(std::make_pair(f, std::move(methods)));
+
+						}
+
+						return r;
+					};
+				_tasks.push_back(tasks.AddTask(f, {}));
+			}
+
+			auto v = tasks.WaitFor(_tasks);
+			for (auto& Item : v)
+			{
+				for (auto& Item2 : Item)
+				{
+					DirectReference.AddValue(Item2.first, std::move(Item2.second));
+				}
+			}
+		}
+		auto t = &lib;
+		const auto& lib = *t;
+
+		FuncionsToKeep.reserve(setting.FuncionsToKeep.size());
+
+		Vector<const ClassMethod*> SearchFuncions;
+
+		{
+			SearchFuncions.reserve(setting.FuncionsToKeep.size());
+			for (auto& Item : setting.FuncionsToKeep)
+			{
+				SearchFuncions.push_back(Item);
+			}
+			Array<UCodeLang::String_view, 4> basefuncions = { StaticVariablesInitializeFunc, StaticVariablesUnLoadFunc, ThreadVariablesInitializeFunc, ThreadVariablesUnLoadFunc };
+
+			for (auto& Item : basefuncions)
+			{
+				if (ByteCodeLayer->_NameToPtr.HasValue((String)Item))
+				{
+					auto v = ByteCodeLayer->_NameToPtr.GetValue((String)Item);
+
+					UAddress startfunc = v;
+					UAddress endfunc = 0;
+
+					auto& NewIns = ByteCodeLayer->_Instructions;
+					for (size_t i = startfunc; i < NewIns.size(); i++)
+					{
+						auto& Item = NewIns[i];
+						auto span = Span<Instruction>(NewIns.data(), NewIns.size());
+						{
+							auto v = Instruction::IsCall(span, i, is32mode);
+							if (v.has_value())
+							{
+								auto tocall = v.value() + 1;
+
+								if (AddToName.HasValue(tocall))
+								{
+									auto& name = AddToName.GetValue(tocall);
+
+									const ClassMethod* ptr = lib.Get_Assembly().Find_Func(name);
+
+									if (ptr)
+									{
+										bool isinlist = false;
+
+										for (auto& Item : SearchFuncions)
+										{
+											if (Item == ptr)
+											{
+												isinlist = true;
+												break;
+											}
+										}
+
+										if (isinlist == false)
+										{
+											SearchFuncions.push_back(ptr);
+										}
+									}
+								}
+							}
+						}
+
+						{
+							auto v = Instruction::IsLoadFuncPtr(span, i, is32mode);
+							if (v.has_value())
+							{
+								RegisterID reg = NewIns[0].Op_RegUInt16.A;
+
+								auto tocall = v.value() + 1;
+
+								if (AddToName.HasValue(tocall))
+								{
+									auto& name = AddToName.GetValue(tocall);
+
+									const ClassMethod* ptr = lib.Get_Assembly().Find_Func(name);
+
+									if (ptr)
+									{
+										bool isinlist = false;
+										
+										for (auto& Item : SearchFuncions)
+										{
+											if (Item == ptr)
+											{
+												isinlist = true;
+												break;
+											}
+										}
+
+										if (isinlist == false)
+										{
+											SearchFuncions.push_back(ptr);
+										}
+									}
+								}
+
+
+							}
+						}
+						if (Item.OpCode == InstructionSet::Return)
+						{
+							endfunc = i;
+							break;
+						}
+					}
+
+
+				}
+			}
+		}
+
+		size_t funcfoundcount = 0;
+		Vector<const ClassMethod*> SearchCopy;
+		do
+		{
+			funcfoundcount = FuncionsToKeep.size();
+
+			SearchCopy = std::move(SearchFuncions);
+			for (auto& Item : SearchCopy)
+			{
+				bool isinfuncionstokeep = false;
+				{
+					for (auto& Itemp : FuncionsToKeep)
+					{
+						if (Item == Itemp)
+						{
+							isinfuncionstokeep = true;
+							break;
+						}
+					}
+				}
+				if (isinfuncionstokeep == false)
+				{
+					auto& funclist = DirectReference.GetValue(Item);
+
+					FuncionsToKeep.push_back(Item);
+					for (auto& Item : funclist)
+					{
+						bool isinfuncionstokeep = false;
+						{
+							for (auto& Itemp : FuncionsToKeep)
+							{
+								if (Item == Itemp)
+								{
+									isinfuncionstokeep = true;
+									break;
+								}
+							}
+						}
+
+						if (isinfuncionstokeep == false)
+						{
+							SearchFuncions.push_back(Item);
+						}
+					}
+				}
+			}
+
+		} while (FuncionsToKeep.size() != funcfoundcount);
+	}
+
+
+	UnorderedMap<UAddress, UAddress> oldtonew;
+	Vector<Instruction> NewIns;
+	UnorderedMap<String, UAddress> NewNameToAddress;
+
+	for (auto& Item : ByteCodeLayer->_NameToPtr)
+	{
+		bool functokeep = false;
+
+		if (Item.first == StaticVariablesInitializeFunc)
+		{
+			functokeep = true;
+		}
+		else if (Item.first == StaticVariablesUnLoadFunc)
+		{
+			functokeep = true;
+		}
+		else if (Item.first == ThreadVariablesInitializeFunc)
+		{
+			functokeep = true;
+		}
+		else if (Item.first == ThreadVariablesUnLoadFunc)
+		{
+			functokeep = true;
+		}
+		else 
+		{
+			for (auto& Itemp : FuncionsToKeep)
+			{
+				if (Itemp->DecorationName == Item.first)
+				{
+					functokeep = true;
+					break;
+				}
+			}
+		}
+		
+		if (!functokeep)
+		{
+			UAddress startfunc = Item.second;
+			UAddress endfunc = 0;
+
+			for (size_t i = startfunc; i < ByteCodeLayer->_Instructions.size(); i++)
+			{
+				auto& Item = ByteCodeLayer->_Instructions[i];
+
+				if (Item.OpCode == InstructionSet::Return)
+				{
+					endfunc = i;
+				}
+			}
+
+			UAddress funcsize = endfunc - startfunc;
+
+			if (setting.RemoveFuncions)
+			{
+				auto p = lib.Get_Assembly().Remove_Func(Item.first);
+				if (p.has_value()) 
+				{
+				
+					r.RemovedFuncions.push_back(p.value());
+				}
+			}
+		}
+		else
+		{
+			UAddress startfunc = Item.second;
+			UAddress endfunc = 0;
+
+			for (size_t i = startfunc; i < ByteCodeLayer->_Instructions.size(); i++)
+			{
+				auto& Item = ByteCodeLayer->_Instructions[i];
+
+				if (Item.OpCode == InstructionSet::Return)
+				{
+					endfunc = i+1;
+					break;
+				}
+			}
+
+			UAddress funcsize = endfunc - startfunc;
+			
+			size_t oldstartpos = NewIns.size();
+			NewIns.resize(NewIns.size() + funcsize);
+
+			oldtonew.AddValue(Item.second,oldstartpos);
+
+			memcpy(NewIns.data() + oldstartpos,ByteCodeLayer->_Instructions.data() + startfunc,funcsize * sizeof(Instruction));
+			NewNameToAddress.AddValue(Item.first, oldstartpos);
+
+			auto span = Span(NewIns.data(), NewIns.size());
+			for (size_t i = oldstartpos; i < oldstartpos + funcsize; i++)
+			{
+				auto& Ins = NewIns[i];
+
+				{
+					auto p = Instruction::IsJump(span, i, is32mode);
+					if (p.has_value())
+					{
+						auto jumpto = p.value();
+
+						bool ispartofthisfunc = false;
+						if (jumpto >= startfunc) 
+						{
+							ispartofthisfunc  = (jumpto - startfunc) < funcsize;
+						}
+
+						if (ispartofthisfunc)
+						{
+							auto oldindexpos =Item.second + (i - oldstartpos);
+							auto jumppos =Instruction::IsJump(Span(ByteCodeLayer->_Instructions.data(), ByteCodeLayer->_Instructions.size()),oldindexpos,is32mode).value();
+
+							size_t newpos;
+							{
+								size_t diff = jumpto - startfunc;
+
+							
+								newpos = oldstartpos + diff;
+							}
+
+							InstructionBuilder::Jumpv1(newpos, NewIns[i + 0]);
+							InstructionBuilder::Jumpv2(newpos, NewIns[i + 1]);
+							
+							if (is64mode)
+							{
+								InstructionBuilder::Jumpv3(newpos, NewIns[i + 2]);
+								InstructionBuilder::Jumpv4(newpos, NewIns[i + 3]);
+							}
+						}
+						else
+						{
+							UCodeLangToDo();
+						}
+
+							
+					}
+				}
+
+				{
+					auto p2 = Instruction::IsJumpIf(span, i, is32mode);
+					if (p2.has_value())
+					{
+						auto jumpto = p2.value().Func;
+						auto regto = p2.value().Reg;
+
+						bool ispartofthisfunc = false;
+						if (jumpto >= startfunc) 
+						{
+							ispartofthisfunc  = (jumpto - startfunc) < funcsize;
+						}
+
+
+						if (ispartofthisfunc)
+						{
+							auto oldindexpos =Item.second + (i - oldstartpos);
+							auto jumppos = Instruction::IsJumpIf(Span(ByteCodeLayer->_Instructions.data(), ByteCodeLayer->_Instructions.size()), oldindexpos, is32mode).value().Func;
+
+							size_t newpos;
+							{
+								size_t diff = jumpto - startfunc;
+
+							
+								newpos = oldstartpos + diff;
+							}
+
+								
+							
+							InstructionBuilder::Jumpv1(newpos, NewIns[i + 0]);
+							
+							if (is64mode) {
+								InstructionBuilder::Jumpv2(newpos, NewIns[i + 1]);
+							}
+							else
+							{
+								InstructionBuilder::Jumpifv2(newpos,regto, NewIns[i + 1]);
+							}
+
+							if (is64mode) 
+							{
+								InstructionBuilder::Jumpv3(newpos, NewIns[i + 2]);
+								InstructionBuilder::Jumpifv4(newpos,regto, NewIns[i + 3]);
+							}
+						}
+						else
+						{
+							UCodeLangToDo();
+						}
+					}
+				}
+			}
+		}
+	}
+	
+	for (size_t i = 0; i < NewIns.size(); i++)
+	{
+		auto span = Span<Instruction>(NewIns.data(), NewIns.size());
+		{
+			auto v = Instruction::IsCall(span,i, is32mode);
+			if (v.has_value())
+			{
+				UAddress tocall = v.value() +1;
+				UAddress newcall = oldtonew.GetValue(tocall)-1;
+
+				InstructionBuilder::Callv1(newcall, NewIns[i + 0]);
+				InstructionBuilder::Callv2(newcall, NewIns[i + 1]);
+
+				if (is64mode)
+				{
+					InstructionBuilder::Callv3(newcall, NewIns[i + 2]);
+					InstructionBuilder::Callv4(newcall, NewIns[i + 3]);
+				}
+			}
+		}
+
+		{
+			auto v = Instruction::IsLoadFuncPtr(span,i, is32mode);
+			if (v.has_value())
+			{
+				RegisterID reg = NewIns[0].Op_RegUInt16.A;
+
+				UAddress tocall = v.value()+1;
+				UAddress newcall = oldtonew.GetValue(tocall)-1;
+
+				InstructionBuilder::LoadFuncPtr_V1(newcall,reg, NewIns[i + 0]);
+				InstructionBuilder::LoadFuncPtr_V2(newcall,reg, NewIns[i + 1]);
+
+				if (is64mode)
+				{
+					InstructionBuilder::LoadFuncPtr_V3(newcall,reg, NewIns[i + 2]);
+					InstructionBuilder::LoadFuncPtr_V4(newcall,reg, NewIns[i + 3]);
+				}
+			}
+		}
+
+	}
+
+
+	ByteCodeLayer->_NameToPtr = std::move(NewNameToAddress);
+	ByteCodeLayer->_Instructions = std::move(NewIns);
+
+	if (setting.RemoveType)	
+	{
+		auto& list = lib._Assembly.Classes;
+
+		size_t count = 0;
+		do
+		{
+			count = list.size();
+			list.erase(std::remove_if(list.begin(), list.end(), [&FuncionsToKeep,&r,&list](Unique_ptr<AssemblyNode>& node) mutable -> bool
+			{
+				bool removed = false;
+
+				auto opid = ClassAssembly::GetReflectionTypeID(node.get());
+			
+				
+				bool isused = true;
+				if (opid.has_value())
+				{
+					auto id = opid.value();
+
+					isused = false;
+					for (auto& Item : list)
+					{
+						if (Item.get()) {
+							isused = NodeDependsonType(Item.get(), id);
+						}
+						if (isused)
+						{
+							break;
+						}
+					}
+				}
+				else
+				{
+					isused = false;
+				}
+
+				if (!isused) 
+				{
+					removed = true;
+					OptionalRef<Vector<ClassMethod>> OpMethods;
+
+					switch (node->Get_Type())
+					{
+					case ClassType::Class:
+						OpMethods = Optionalref(node->Get_ClassData().Methods);
+						break;
+					case ClassType::Tag:
+						OpMethods = Optionalref(node->Get_TagData().Methods);
+						break;
+					default:
+						break;
+					}		
+
+					if (OpMethods.has_value())
+					{
+						bool isinlist = false;
+					
+						for (auto& Item2 : FuncionsToKeep) 
+						{
+							for (auto& Item : OpMethods.value())
+							{
+								if (Item2 == &Item)
+								{
+									isinlist = true;
+									break;
+								}
+							}
+							if (isinlist) { break; }
+						}
+
+						if (isinlist)
+						{
+							removed =false;
+						}
+					}
+
+				}
+			
+				if (removed)
+				{
+					r.RemovedTypes.push_back(std::move(node));
+				}
+				return removed;
+			}),list.end());
+
+		} while (count != list.size());
+
+		int a = 0;
+	}
+
+	lib.Get_Assembly().Remove_NullFunc();
+
+	return r;
+}
+
+bool NodeDependsOn(const ClassMethod& Item,ReflectionCustomTypeID id)
+{
+	for (auto& Item2 : Item.Attributes.Attributes)
+	{
+		if (Item2.TypeID == id)
+		{
+			return true;
+		}
+	}
+	if (Item.RetType._CustomTypeID == id)
+	{
+		return true;
+	}
+
+	for (auto& Par : Item.ParsType)
+	{
+		if (Par.Type._CustomTypeID == id)
+		{
+			return true;
+		}
+	}
+	return false;
+}
+bool UAssembly::NodeDependsonType(const AssemblyNode* node, ReflectionCustomTypeID id)
+{
+	bool isused = false;
+	switch (node->Get_Type())
+	{
+	case ClassType::Class:
+	{
+		auto& data = node->Get_ClassData();
+
+
+		for (auto& Item : data.Attributes.Attributes)
+		{
+			if (Item.TypeID == id)
+			{
+				isused = true;
+				break;
+			}
+		}
+
+		if (isused) { break; }
+		for (auto& Item : data.Fields)
+		{
+			if (Item.Type._CustomTypeID == id)
+			{
+				isused = true;
+				break;
+			}
+		}
+		if (isused) { break; }
+
+		for (auto& Item : data.InheritedTypes)
+		{
+			if (Item.TraitID == id)
+			{
+				isused = true;
+				break;
+			}
+		}
+		if (isused) { break; }
+
+		for (auto& Item : data.Methods)
+		{
+			if (NodeDependsOn(Item, id))
+			{
+				isused = true;
+			}
+			if (isused) { break; }
+		}
+		if (isused) { break; }
+	}
+	break;
+	case ClassType::Enum:
+	{
+		auto& data = node->Get_EnumData();
+		if (data.BaseType._CustomTypeID == id)
+		{
+			isused = true;
+			break;
+		}
+
+		if (data.EnumVariantUnion.has_value())
+		{
+			auto& unioninfo = data.EnumVariantUnion.value();
+
+			if (unioninfo == id)
+			{
+				isused =true;
+				break;
+			}
+		}
+	}
+	break;
+	case ClassType::Alias:
+	{
+		auto& data = node->Get_AliasData();
+		if (data.Type._CustomTypeID == id)
+		{
+			isused = true;
+			break;
+		}
+	}
+	break;
+	case ClassType::Tag:
+	{
+		auto& data = node->Get_TagData();
+
+		for (auto& Item : data.Fields)
+		{
+			if (Item.Type._CustomTypeID == id)
+			{
+				isused = true;
+				break;
+			}
+		}
+		if (isused) { break; }
+
+		for (auto& Item : data.Methods)
+		{
+			if (NodeDependsOn(Item, id))
+			{
+				isused = true;
+			}
+			if (isused) { break; }
+		}
+		if (isused) { break; }
+
+	}
+	break;
+	case ClassType::Trait:
+	{
+		auto& data = node->Get_TraitData();
+
+		for (auto& Item : data.Fields)
+		{
+			if (Item.Type._CustomTypeID == id)
+			{
+				isused = true;
+				break;
+			}
+		}
+		if (isused) { break; }
+
+		for (auto& Item : data.Methods)
+		{
+			for (auto& Item2 : Item.method.Attributes.Attributes)
+			{
+				if (Item2.TypeID == id)
+				{
+					isused = true;
+					break;
+				}
+			}
+		
+			if (isused) { break; }
+			if (Item.method.RetType._CustomTypeID == id)
+			{
+				isused = true;
+				break;
+			}
+			if (isused) { break; }
+			for (auto& Par : Item.method.ParsType)
+			{
+				if (Par.Type._CustomTypeID == id)
+				{
+					isused = true;
+				}
+				break;
+			}
+			if (isused) { break; }
+		}
+		if (isused) { break; }
+
+	}
+	break;
+	case ClassType::Eval:
+	{
+		auto& data = node->Get_EvalData();
+
+		if (data.Value._Type._CustomTypeID == id)
+		{
+			isused = true;
+		}
+	}
+	break;
+	case ClassType::FuncPtr:
+	{
+		auto& data = node->Get_FuncPtr();
+
+		if (data.RetType._CustomTypeID == id)
+		{
+			isused = true;
+		}
+
+		if (isused)
+		{
+			break;
+		}
+
+		for (auto& Item : data.ParsType)
+		{
+			if (Item.Type._CustomTypeID == id)
+			{
+				isused = true;
+				break;
+			}
+		}	
+	}
+	break;
+	case ClassType::StaticArray:
+	{
+		auto& data = node->Get_StaticArray();
+
+		if (data.BaseType._CustomTypeID == id)
+		{
+			isused = true;
+		}
+	}
+	break;
+	case ClassType::ForType:
+	{
+		auto& data = node->Get_ForType();
+
+		if (data._TargetType._CustomTypeID == id)
+		{
+			isused = true;
+		}
+		else
+		{
+			for (auto& Item : data._AddedMethods)
+			{
+				if (NodeDependsOn(Item, id))
+				{
+					isused = true;
+				}
+				if (isused) { break; }
+			}
+		}
+	}
+	break;
+	case ClassType::NameSpace:
+	case ClassType::GenericClass:
+	case ClassType::GenericFunction:
+		break;
+	default:
+		UCodeLangUnreachable();
+		break;
+	}
+	return isused;
+}
+
 UAssemblyEnd
 
 

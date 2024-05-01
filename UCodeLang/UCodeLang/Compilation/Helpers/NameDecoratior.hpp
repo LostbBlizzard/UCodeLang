@@ -5,6 +5,7 @@ UCodeLangStart
 class NameDecoratior
 {
 public:
+	static constexpr char ParSpit = '^';
 	struct Par
 	{
 		ClassMethod::Par par;

@@ -18,8 +18,7 @@ void SystematicAnalysis::OnAnonymousObjectConstructor(const AnonymousObjectConst
 				{
 					if (StaticArr->Count != nod->_Fields._Nodes.size())
 					{
-						const NeverNullPtr<Token> Token = _LastLookedAtToken.value();
-						LogError_CanIncorrectStaticArrCount(Token, Type, nod->_Fields._Nodes.size(), StaticArr->Count);
+						LogError_CanIncorrectStaticArrCount(NeverNullptr(nod->token), Type, nod->_Fields._Nodes.size(), StaticArr->Count);
 						_LastExpressionType.SetType(TypesEnum::Null);
 						return;
 					}
@@ -86,7 +85,7 @@ void SystematicAnalysis::OnAnonymousObjectConstructor(const AnonymousObjectConst
 
 		if (_PassType == PassType::FixedTypes)
 		{
-			auto Func = Type_GetFunc(Type, nod->_Fields);
+			auto Func = Type_GetFunc(Type, nod->_Fields,NeverNullptr(nod->token));
 			_FuncToSyboID.AddValue(Symbol_GetSymbolID(nod),Func);
 
 			Type_SetFuncRetAsLastEx(Func);
