@@ -5516,7 +5516,7 @@ void UCodeBackEndObject::MoveValueInReg(const IRlocData& Value, size_t Offset, R
 			}
 			break;
 			default:
-				UCodeLangUnreachable()
+				UCodeLangUnreachable();
 					break;
 			}
 			
