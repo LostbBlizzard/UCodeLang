@@ -683,7 +683,7 @@ private:
 	{
 		auto& tasklist = WorkData.TaskToID;
 		Optional<std::function<void()>> r;
-		auto func = [tasklist, &r, This](UnorderedMap<TaskID, Shared_ptr<RuningTaskInfo>>& val) mutable
+		auto func = [&tasklist, &r, This](UnorderedMap<TaskID, Shared_ptr<RuningTaskInfo>>& val) mutable
 			{
 				for (size_t i = 0; i < tasklist.size(); i++)
 				{
