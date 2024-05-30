@@ -1914,7 +1914,7 @@ String CppHelper::ToString(CppToULangState& State, const ClassType& Value, const
 	
 	if (Value.IsTrait)
 	{
-		R += " trait";
+		R += " export trait";
 	}
 	else 
 	{
