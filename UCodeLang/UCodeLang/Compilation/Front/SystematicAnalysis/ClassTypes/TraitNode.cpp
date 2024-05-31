@@ -708,21 +708,23 @@ void SystematicAnalysis::Symbol_InheritTrait(NeverNullPtr<Symbol> Syb, ClassInfo
 
 		{
 			_Table.AddUseing(Trait->FullName);
-			for (auto& Item : Trait->Get_NodeInfo<TraitNode>()->_generic._Values)
+			const TraitInfo* info = Trait->Get_Info<TraitInfo>();
+
+			for (auto& Item : info->_GenericAlias)
 			{
 				String scope = Trait->FullName;
-				ScopeHelper::GetApendedString(scope, Item.token->Value._String);
+				ScopeHelper::GetApendedString(scope, Item.Name);
 				auto s = Symbol_GetSymbol(scope, SymbolType::Generic_Alias).value();
 				s->Access = AccessModifierType::Public;
-			}
+			}	
 			for (auto& Item : Traitinfo->_Symbols)
 			{
 				OnTraitSymbol(Item);
 			}
-			for (auto& Item : Trait->Get_NodeInfo<TraitNode>()->_generic._Values)
+			for (auto& Item : info->_GenericAlias)
 			{
 				String scope = Trait->FullName;
-				ScopeHelper::GetApendedString(scope, Item.token->Value._String);
+				ScopeHelper::GetApendedString(scope, Item.Name);
 				auto s = Symbol_GetSymbol(scope, SymbolType::Generic_Alias).value();
 				s->Access = AccessModifierType::Private;
 			}
