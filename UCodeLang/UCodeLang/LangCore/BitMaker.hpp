@@ -1,6 +1,7 @@
 #pragma once
 #include "BitConverter.hpp"
 #include <cstring>//Strlen
+#include <bitset>
 UCodeLangStart
 
 //Endian will be BitConverter InputOutEndian
@@ -83,7 +84,6 @@ public:
 
 	UCodeLangForceinline  void WriteType(const float64& Value) { WriteTypeAsBytes(BitConverter::GetBytes(Value)); }
 
-
 	//
 	
 	UCodeLangForceinline  void WriteType(const char*& Value)
@@ -126,6 +126,15 @@ public:
 			WriteType(Value.value());
 		}
 	}
+	template<size_t bitcount>
+	UCodeLangForceinline void WriteType(const std::bitset<bitcount>& Value)
+	{
+		constexpr size_t MaxByteCount = (bitcount + 7) / 8;// +7 for round up division 
+		Byte* rawbytes = (Byte*)&Value;
+
+		WriteBytes(rawbytes, MaxByteCount);
+	}
+
 
 	BytesPtr AsBytePtr();
 	BytesPtr AsBytePtrAndMove();
@@ -361,6 +370,16 @@ public:
 			ReadType(OpValue);
 
 			Value = std::move(OpValue);
+		}
+	}
+	template<size_t bitcount> void ReadType(std::bitset<bitcount>& Value)
+	{
+		constexpr size_t MaxByteCount = (bitcount + 7) / 8;// +7 for round up division 
+		Byte* rawbytes = (Byte*)&Value;
+
+		for (size_t i = 0; i < MaxByteCount; i++)
+		{
+			ReadType(rawbytes[i]);
 		}
 	}
 private:
