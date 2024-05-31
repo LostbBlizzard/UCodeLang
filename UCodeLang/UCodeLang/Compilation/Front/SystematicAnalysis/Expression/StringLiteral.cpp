@@ -537,7 +537,7 @@ void SystematicAnalysis::OnStringLiteral(const StringliteralNode* nod, bool& ret
 					UCodeLangUnreachable();
 					break;
 				}
-				irpointer = _IR_LookingAtIRBlock->NewAdd(IR_Load_UIntptr(mult), irpointer);
+				irpointer = _IR_LookingAtIRBlock->NewAdd(IR_Load_UIntptr(mult * Span.Offset), irpointer);
 			}
 			auto irsize = IR_Load_UIntptr(SpanSize);
 
