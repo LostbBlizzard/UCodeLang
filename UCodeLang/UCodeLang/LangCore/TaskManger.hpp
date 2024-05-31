@@ -572,7 +572,7 @@ public:
 			}
 
 		}
-		return std::main(r.value());
+		return std::move(r.value());
 	}
 
 	template<typename T>
