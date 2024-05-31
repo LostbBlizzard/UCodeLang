@@ -480,7 +480,6 @@ bool NextIsCusomTypeID(ReflectionTypes type)
 }
 void UClib::ToBytes(BitMaker& Output, const ReflectionTypeInfo& Data)
 {
-	//We should combined _Type and _Type attribute into one byte
 	Output.WriteType((ReflectionTypes_t)Data._Type);
 
 	std::bitset<(size_t)ReflectionTypeInfoBools::Max> bits;
@@ -1431,7 +1430,6 @@ void UClib::FromBytes(BitReader& Input, ClassMethod& Data)
 }
 void UClib::FromBytes(BitReader& Input, ReflectionTypeInfo& Data)
 {
-	//We should combined _Type and _Type attribute into one byte
 	Input.ReadType(*(ReflectionTypes_t*)&Data._Type, *(ReflectionTypes_t*)Data._Type);
 
 	std::bitset<(size_t)ReflectionTypeInfoBools::Max> bits;
