@@ -467,6 +467,12 @@ String UAssembly::ToString(const UClib* Lib, Optional<Path> SourceFiles, bool Sh
 		String OnFunc; 
 		UnorderedMap<IRidentifierID, OutputIRLineState> IRStringStates;
 		BytesView staticbytesview = BytesView::Make(Lib->_StaticBytes.data(), Lib->_StaticBytes.size());
+		
+		Optional<ULangDebugInfo::Cach> Chach; 
+		if (Info.DebugInfo.has_value())
+		{
+			Chach = Info.DebugInfo.value().MakeCach();
+		}
 		for (size_t i = 0; i < Insts.size(); i++)
 		{
 			auto& Item = Insts[i];
@@ -481,8 +487,13 @@ String UAssembly::ToString(const UClib* Lib, Optional<Path> SourceFiles, bool Sh
 			if (Info.DebugInfo.has_value())
 			{
 				auto& Value = Info.DebugInfo.value();
-				auto List = Value.GetForIns(i);
-
+				auto ListOp = Value.GetForIns(i,Chach.value());
+				if (!ListOp.has_value())
+				{
+					r += '\n';
+					continue;
+				}
+				auto& List = *ListOp.value();
 				if (List.size())
 				{
 					r += '\n';

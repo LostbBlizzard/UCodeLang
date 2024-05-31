@@ -47,7 +47,7 @@ public:
 	{
 		if (string.size() < MatchString.size()) { return false; }
 		size_t v = 0;
-		for (int i = MatchString.size() - 1; i >= 0; i--)
+		for (intptr_t i = (intptr_t)(MatchString.size() - 1); i >= 0; i--)
 		{
 			if (string[string.size() - 1 - v] != MatchString[i])
 			{

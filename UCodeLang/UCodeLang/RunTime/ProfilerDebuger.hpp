@@ -72,6 +72,16 @@ struct DebugData
 class ProfilerDebuger
 {
 public:
+	struct Cach
+	{
+		Optional<ULangDebugInfo::Cach> cach;
+		void Clear()
+		{
+			cach = {};
+		}
+
+	};
+
 	using OnBreakPointCallBack = int;
 	ProfilerDebuger(){}
 	~ProfilerDebuger(){}
@@ -93,11 +103,11 @@ public:
 
 	UCodeLangAPIExport void AddRunTimeBreakPoint(UAddress Item, OnBreakPointCallBack OnHit);
 	UCodeLangAPIExport void RemoveRunTimeBreakPoint(UAddress Item);
-	UCodeLangAPIExport void UpdateDebugData(DebugData& Out);
-	DebugData GetDebugData()
+	UCodeLangAPIExport void UpdateDebugData(DebugData& Out,Cach& cach);
+	DebugData GetDebugData(Cach& cach)
 	{
 		DebugData v;
-		UpdateDebugData(v);
+		UpdateDebugData(v,cach);
 		return v;
 	}
 	

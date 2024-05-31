@@ -195,6 +195,7 @@ private:
 	UCodeLang::RunTimeLangState _RunTimeState;
 	UCodeLang::AnyInterpreter _AnyInterpreter;
 	UCodeLang::RunTimeLib _RuntimeLib;
+	Optional<UCodeLang::ULangDebugInfo::Cach> _Cach;
 	//Windows
 
 	enum class BackEndType

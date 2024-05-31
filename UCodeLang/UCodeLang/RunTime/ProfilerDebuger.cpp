@@ -41,7 +41,7 @@ UCodeLangAPIExport void ProfilerDebuger::RemoveRunTimeBreakPoint(UAddress Item)
     return;
 }
 
-UCodeLangAPIExport void ProfilerDebuger::UpdateDebugData(DebugData& Out)
+UCodeLangAPIExport void ProfilerDebuger::UpdateDebugData(DebugData& Out,Cach& cach)
 {
 	auto stackoffset = StepedInterpreter->_CPU.Stack.StackOffSet;
 	auto ins= GetCurrentInstruction();
@@ -57,11 +57,20 @@ UCodeLangAPIExport void ProfilerDebuger::UpdateDebugData(DebugData& Out)
 	DebugStackFrame F;
 	F._Function = func;
 
+	if (!cach.cach.has_value())
+	{
+		cach.cach = DebugInfo.MakeCach();
+	}
 
 	const ClassMethod* FuncString = nullptr;
 	for (size_t i = func; i < ins; i++)
 	{
-		auto info = DebugInfo.GetForIns(i);
+		auto infoop = DebugInfo.GetForIns(i,cach.cach.value());
+		if (infoop.has_value())
+		{
+			continue;
+		}
+		auto& info = *infoop.value();
 
 		for (auto& Item : info)
 		{

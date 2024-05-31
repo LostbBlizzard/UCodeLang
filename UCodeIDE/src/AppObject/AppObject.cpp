@@ -2772,7 +2772,13 @@ void AppObject::ShowDebugerMenu(UCodeVMWindow& windowdata)
     
     if (InFunction)
     {
-        Debuger.UpdateDebugData(DebugInfo);
+        UCodeLang::ProfilerDebuger::Cach cach;
+        cach.cach = std::move(_Cach);
+
+        Debuger.UpdateDebugData(DebugInfo,cach);
+
+        _Cach = cach.cach;
+
         ImGui::Text("Varables");
         auto& thisFrame = DebugInfo._StackFrames.front();
 
@@ -3016,7 +3022,12 @@ void AppObject::ShowDebugerMenu(UCodeVMWindow& windowdata)
                             String tep = "Panic Msg:" + PanicMsg;
                             ImGui::Text(tep.c_str());
 
-                            auto d = UCodeLang::GetDetils(error.StatckFrames, &_RunTimeState);
+                            UCodeLang::GetDetilsCach cach;
+                            cach.cach = std::move(_Cach);
+
+                            auto d = UCodeLang::GetDetils(error.StatckFrames, &_RunTimeState,cach);
+
+                            _Cach = std::move(cach.cach);
 
                             for (size_t i = 0; i < d.size(); i++)
                             {
@@ -3291,6 +3302,7 @@ void AppObject::ShowDebugerMenu(UCodeVMWindow& windowdata)
 
 void AppObject::OnRuntimeUpdated()
 {
+    _Cach = {};
     UpdateInsData(windowdata);
 
     callFuncContext.current_method = nullptr;

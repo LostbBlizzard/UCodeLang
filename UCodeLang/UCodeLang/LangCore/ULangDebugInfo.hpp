@@ -185,14 +185,15 @@ enum class VarableInfoType : VarableInfoType_t
 	Stack,
 	Static,
 	Thread,
+	Null,
 };
 struct VarableInfo
 {
 	String FileDeclaredIn;
-	size_t DeclaredLine;
-	size_t DeclaredPos;
+	size_t DeclaredLine = 0;
+	size_t DeclaredPos = 0;
 
-	VarableInfoType VarableType;
+	VarableInfoType VarableType = VarableInfoType::Null;
 	ReflectionTypeInfo ReflectionType;
 
 	struct None{};
@@ -282,62 +283,74 @@ struct ULangDebugInfo
 	{
 		VarablesInfo.AddValue(name, Info);
 	}
-	Vector<UDebugIns*> GetForIns(size_t Ins)
+
+	struct Cach
 	{
-		return GetForIns(DebugInfo, Ins);
+		UnorderedMap<size_t, Vector<const UDebugIns*>> IndexToIns;
+	};
+	Cach MakeCach() const
+	{
+		return MakeCach(DebugInfo);
 	}
-	Vector<const UDebugIns*> GetForIns(size_t Ins) const
+	static Cach MakeCach(const Vector<UDebugIns>& DebugInfo)
 	{
-		return GetForIns(DebugInfo, Ins);
+		Cach r = {};
+
+		for (auto& Item : DebugInfo)
+		{
+			if (Item.Get_Ins().has_value())
+			{
+				size_t val = Item.Get_Ins().value();
+
+				auto& list = r.IndexToIns.GetOrAdd(val, {});
+				list.push_back(&Item);
+			}
+		}
+
+		return r;
+	}
+	NullablePtr<Vector<UDebugIns*>> GetForIns(size_t Ins,Cach& chach)
+	{
+		return GetForIns(DebugInfo, Ins,chach);
+	}
+	NullablePtr<Vector<const UDebugIns*>> GetForIns(size_t Ins,Cach& chach) const
+	{
+		return GetForIns(DebugInfo, Ins,chach);
 	}
 	
-	static Vector<const UDebugIns*> GetForIns(const Vector<UDebugIns>& DebugInfo, size_t Ins)
+	static NullablePtr<Vector<const UDebugIns*>> GetForIns(const Vector<UDebugIns>& DebugInfo, size_t Ins,Cach& chach)
 	{
-		Vector<const UDebugIns*> R;
+		NullablePtr<Vector<const UDebugIns*>> R;
 
 
-		GetForIns(DebugInfo, Ins, R);
+		GetForIns(DebugInfo, Ins, R,chach);
 
 		return R;
 	}
-	static Vector<UDebugIns*> GetForIns(Vector<UDebugIns>& DebugInfo,size_t Ins)
+	static NullablePtr<Vector<UDebugIns*>> GetForIns(Vector<UDebugIns>& DebugInfo,size_t Ins,Cach& chach)
 	{
-		Vector<UDebugIns*> R;
+		NullablePtr<Vector<UDebugIns*>> R;
 
-		GetForIns(DebugInfo, Ins, R);
+		GetForIns(DebugInfo, Ins, R,chach);
 
 		return R;
 	}
 
-	static void GetForIns(const Vector<UDebugIns>& DebugInfo, size_t Ins,Vector<const UDebugIns*>& Out)
+	static void GetForIns(const Vector<UDebugIns>& DebugInfo, size_t Ins, NullablePtr<Vector<const UDebugIns*>>& Out, Cach& chach)
 	{
-		Out.clear();
-
-		for (auto& Item : DebugInfo)
+		if (chach.IndexToIns.HasValue(Ins))
 		{
-			auto V = Item.Get_Ins();
-
-			if (V.has_value() && V.value() == Ins)
-			{
-				Out.push_back(&Item);
-			}
+			Out = Nullableptr(&chach.IndexToIns.GetValue(Ins));
 		}
-
+		else
+		{
+			Out = {};
+		}
 	}
-	static void GetForIns(Vector<UDebugIns>& DebugInfo, size_t Ins, Vector<UDebugIns*>& Out)
+	static void GetForIns(Vector<UDebugIns>& DebugInfo, size_t Ins, NullablePtr<Vector<UDebugIns*>>& Out, Cach& chach)
 	{
-		Out.clear();
-
-		for (auto& Item : DebugInfo)
-		{
-			auto V = Item.Get_Ins();
-
-			if (V.has_value() && V.value() == Ins)
-			{
-				Out.push_back(&Item);
-			}
-		}
-
+		auto& val = *(NullablePtr<Vector<const UDebugIns*>>*) & Out;
+		return GetForIns(DebugInfo,Ins, val,chach);
 	}
 };
 

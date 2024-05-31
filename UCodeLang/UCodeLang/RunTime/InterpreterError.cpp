@@ -2,18 +2,28 @@
 #include "RunTimeLangState.hpp"
 UCodeLangStart
 
-void GetDetils(UAddress Input,StackFrameDetails& Out,const RunTimeLangState* State)
+void GetDetils(UAddress Input,StackFrameDetails& Out,const RunTimeLangState* State,GetDetilsCach& cach)
 {
 	auto& DebugInfo = State->Get_Libs().Get_DebugInfo();
 
 	UAddress funccall = 0;
 	
+	if (!cach.cach.has_value()) 
+	{
+		cach.cach = DebugInfo.MakeCach();
+	}
+
 	{
 		for (int i = Input; i >= 0; i--)
 		{
 			auto Ins = State->GetInst(i);
 
-			auto infos = DebugInfo.GetForIns(i);
+			auto infosop = DebugInfo.GetForIns(i,cach.cach.value());
+			if (infosop.has_value())
+			{
+				continue;
+			}
+			auto infos = *infosop.value();
 
 			for (auto& Item : infos)
 			{
@@ -54,22 +64,22 @@ void GetDetils(UAddress Input,StackFrameDetails& Out,const RunTimeLangState* Sta
 	Out.FuncionName = Ins;
 
 }
-void GetDetils(const StackFrames& Input,const RunTimeLangState* State, Vector<StackFrameDetails>& Out)
+void GetDetils(const StackFrames& Input,const RunTimeLangState* State, Vector<StackFrameDetails>& Out,GetDetilsCach& cach)
 {
 	Out.clear();
 	Out.resize(Input.StackOfCallers.size());
 	
 	for (size_t i = 0; i < Input.StackOfCallers.size(); i++)
 	{
-		GetDetils(Input.StackOfCallers[i],Out[i], State);
+		GetDetils(Input.StackOfCallers[i],Out[i], State,cach);
 	}
 }
 
-Vector<StackFrameDetails> GetDetils(const StackFrames& Input,const RunTimeLangState* State)
+Vector<StackFrameDetails> GetDetils(const StackFrames& Input,const RunTimeLangState* State,GetDetilsCach& cach)
 {
 	Vector<StackFrameDetails> r;
 
-	GetDetils(Input,State,r);
+	GetDetils(Input,State,r,cach);
 
 	return r;
 }
