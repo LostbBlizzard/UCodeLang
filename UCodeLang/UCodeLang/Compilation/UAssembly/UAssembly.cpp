@@ -1309,7 +1309,7 @@ void UAssembly::ToString(String& r, ClassMethod& Item2, const UClib* Lib)
 
 			if (Item3.Type.Isimmutable())
 			{
-				r += "umut ";
+				r += "imut ";
 			}
 
 			r += "this&";
