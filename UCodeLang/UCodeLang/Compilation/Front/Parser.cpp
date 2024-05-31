@@ -982,6 +982,7 @@ GotNodeType Parser::GetFuncNode(FuncNode& out)
 		V._Statements._Nodes.push_back(nullptr);
 
 		RetStatementNode* r = RetStatementNode::Gen();
+		r->_RetToken = ColonToken;
 		GetExpressionTypeNode(r->_Expression);
 		V._Statements._Nodes.back() = Unique_ptr<Node>(r);
 
