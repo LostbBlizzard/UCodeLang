@@ -488,62 +488,38 @@ String UAssembly::ToString(const UClib* Lib, Optional<Path> SourceFiles, bool Sh
 			{
 				auto& Value = Info.DebugInfo.value();
 				auto ListOp = Value.GetForIns(i,Chach.value());
-				if (!ListOp.has_value())
+				if (ListOp.has_value())
 				{
-					r += '\n';
-					continue;
-				}
-				auto& List = *ListOp.value();
-				if (List.size())
-				{
-					r += '\n';
-				}
-				for (auto& Item : List)
-				{
-					if (auto Val = Item->Debug.Get_If<UDebugSetFile>())
+					auto& List = *ListOp.value();
+					if (List.size())
 					{
-						r += "   //File:";
-						r += Val->FileName;
 						r += '\n';
-
-						OnFile = Val->FileName;
 					}
-					else if (auto Val = Item->Debug.Get_If<UDebugSetLineNumber>())
+					for (auto& Item : List)
 					{
-						r += "   //Line:";
-						r += std::to_string(Val->LineNumber);
-						r += '\n';
-
-
-						if (SourceFiles.has_value())
+						if (auto Val = Item->Debug.Get_If<UDebugSetFile>())
 						{
-							r += "   //Source Line:";
-							String LineStr;
+							r += "   //File:";
+							r += Val->FileName;
+							r += '\n';
 
-							String* ItemValue = nullptr;
-							if (OpenedSourceFilesLines.HasValue(OnFile))
+							OnFile = Val->FileName;
+						}
+						else if (auto Val = Item->Debug.Get_If<UDebugSetLineNumber>())
+						{
+							r += "   //Line:";
+							r += std::to_string(Val->LineNumber);
+							r += '\n';
+
+
+							if (SourceFiles.has_value())
 							{
-								auto& Item = OpenedSourceFilesLines.GetValue(OnFile);
+								r += "   //Source Line:";
+								String LineStr;
 
-								if (Val->LineNumber - 1 < Item.size()) {
-									ItemValue = &Item[Val->LineNumber - 1];
-								}
-							}
-							else
-							{
-								std::ifstream file;
-
-								file.open(Path(SourceFiles.value() / Path(OnFile).native()));
-								if (file.is_open())
+								String* ItemValue = nullptr;
+								if (OpenedSourceFilesLines.HasValue(OnFile))
 								{
-									std::string str;
-									Vector<String> Lines;
-									while (std::getline(file, str))
-									{
-										Lines.push_back(std::move(str));
-									}
-									OpenedSourceFilesLines.AddValue(OnFile, std::move(Lines));
-
 									auto& Item = OpenedSourceFilesLines.GetValue(OnFile);
 
 									if (Val->LineNumber - 1 < Item.size()) {
@@ -552,129 +528,155 @@ String UAssembly::ToString(const UClib* Lib, Optional<Path> SourceFiles, bool Sh
 								}
 								else
 								{
-									OpenedSourceFilesLines.AddValue(OnFile, {});
-								}
+									std::ifstream file;
 
-							}
-
-
-							if (ItemValue)
-							{
-								LineStr += *ItemValue;
-							}
-							else
-							{
-								LineStr += "[Cant Find Line]";
-							}
-
-							r += LineStr;
-							r += '\n';
-						}
-						if (IRInfo.has_value() && ShowIR)
-						{
-							auto& IRInfoVal = IRInfo.value();
-
-
-							bool HasStackFrame = OnFuncFrameStackSize != 0;
-							if (StaticVariablesInitializeFunc == OnFunc)
-							{
-								auto Id = IRInfoVal._StaticInit.identifier;
-								if (!IRStringStates.HasValue(Id))
-								{
-									OutputIRLineState LineState;
-									String Unused;
-									IRInfoVal.ToString(LineState.State, &IRInfoVal._StaticInit, Unused);
-									IRStringStates.AddValue(Id, std::move(LineState));
-								}
-								OutputIRLineInfo(&IRInfoVal, &IRInfoVal._StaticInit, Val, IRStringStates.GetValue(Id), r);
-							}
-							else if (ThreadVariablesInitializeFunc == OnFunc)
-							{
-								auto Id = IRInfoVal._threadInit.identifier;
-								if (!IRStringStates.HasValue(Id))
-								{
-									OutputIRLineState LineState;
-									String Unused;
-									IRInfoVal.ToString(LineState.State, &IRInfoVal._threadInit, Unused);
-									IRStringStates.AddValue(Id, std::move(LineState));
-								}
-								OutputIRLineInfo(&IRInfoVal, &IRInfoVal._threadInit, Val, IRStringStates.GetValue(Id), r);
-							}
-							else if (StaticVariablesUnLoadFunc == OnFunc)
-							{
-								auto Id = IRInfoVal._StaticdeInit.identifier;
-								if (!IRStringStates.HasValue(Id))
-								{
-									OutputIRLineState LineState;
-									String Unused;
-									IRInfoVal.ToString(LineState.State, &IRInfoVal._StaticdeInit, Unused);
-									IRStringStates.AddValue(Id, std::move(LineState));
-								}
-								OutputIRLineInfo(&IRInfoVal, &IRInfoVal._StaticdeInit, Val, IRStringStates.GetValue(Id), r);
-							}
-							else if (ThreadVariablesUnLoadFunc == OnFunc)
-							{
-								auto Id = IRInfoVal._threaddeInit.identifier;
-								if (!IRStringStates.HasValue(Id))
-								{
-									OutputIRLineState LineState;
-									String Unused;
-									IRInfoVal.ToString(LineState.State, &IRInfoVal._threaddeInit, Unused);
-									IRStringStates.AddValue(Id, std::move(LineState));
-								}
-								OutputIRLineInfo(&IRInfoVal, &IRInfoVal._threaddeInit, Val, IRStringStates.GetValue(Id), r);
-							}
-							else
-							{
-								for (auto& Func : IRInfoVal.Funcs)
-								{
-
-									if (IRInfoVal.FromID(Func->identifier) == OnFunc)
+									file.open(Path(SourceFiles.value() / Path(OnFile).native()));
+									if (file.is_open())
 									{
-										auto Id = Func->identifier;
-										if (!IRStringStates.HasValue(Id))
+										std::string str;
+										Vector<String> Lines;
+										while (std::getline(file, str))
 										{
-											OutputIRLineState LineState;
-											String Unused;
-											IRInfoVal.ToString(LineState.State, Func.get(), Unused);
-											IRStringStates.AddValue(Id, std::move(LineState));
+											Lines.push_back(std::move(str));
 										}
-										OutputIRLineInfo(&IRInfoVal, Func.get(), Val, IRStringStates.GetValue(Id), r);
-										break;
+										OpenedSourceFilesLines.AddValue(OnFile, std::move(Lines));
+
+										auto& Item = OpenedSourceFilesLines.GetValue(OnFile);
+
+										if (Val->LineNumber - 1 < Item.size()) {
+											ItemValue = &Item[Val->LineNumber - 1];
+										}
+									}
+									else
+									{
+										OpenedSourceFilesLines.AddValue(OnFile, {});
+									}
+
+								}
+
+
+								if (ItemValue)
+								{
+									LineStr += *ItemValue;
+								}
+								else
+								{
+									LineStr += "[Cant Find Line]";
+								}
+
+								r += LineStr;
+								r += '\n';
+							}
+							if (IRInfo.has_value() && ShowIR)
+							{
+								auto& IRInfoVal = IRInfo.value();
+
+
+								bool HasStackFrame = OnFuncFrameStackSize != 0;
+								if (StaticVariablesInitializeFunc == OnFunc)
+								{
+									auto Id = IRInfoVal._StaticInit.identifier;
+									if (!IRStringStates.HasValue(Id))
+									{
+										OutputIRLineState LineState;
+										String Unused;
+										IRInfoVal.ToString(LineState.State, &IRInfoVal._StaticInit, Unused);
+										IRStringStates.AddValue(Id, std::move(LineState));
+									}
+									OutputIRLineInfo(&IRInfoVal, &IRInfoVal._StaticInit, Val, IRStringStates.GetValue(Id), r);
+								}
+								else if (ThreadVariablesInitializeFunc == OnFunc)
+								{
+									auto Id = IRInfoVal._threadInit.identifier;
+									if (!IRStringStates.HasValue(Id))
+									{
+										OutputIRLineState LineState;
+										String Unused;
+										IRInfoVal.ToString(LineState.State, &IRInfoVal._threadInit, Unused);
+										IRStringStates.AddValue(Id, std::move(LineState));
+									}
+									OutputIRLineInfo(&IRInfoVal, &IRInfoVal._threadInit, Val, IRStringStates.GetValue(Id), r);
+								}
+								else if (StaticVariablesUnLoadFunc == OnFunc)
+								{
+									auto Id = IRInfoVal._StaticdeInit.identifier;
+									if (!IRStringStates.HasValue(Id))
+									{
+										OutputIRLineState LineState;
+										String Unused;
+										IRInfoVal.ToString(LineState.State, &IRInfoVal._StaticdeInit, Unused);
+										IRStringStates.AddValue(Id, std::move(LineState));
+									}
+									OutputIRLineInfo(&IRInfoVal, &IRInfoVal._StaticdeInit, Val, IRStringStates.GetValue(Id), r);
+								}
+								else if (ThreadVariablesUnLoadFunc == OnFunc)
+								{
+									auto Id = IRInfoVal._threaddeInit.identifier;
+									if (!IRStringStates.HasValue(Id))
+									{
+										OutputIRLineState LineState;
+										String Unused;
+										IRInfoVal.ToString(LineState.State, &IRInfoVal._threaddeInit, Unused);
+										IRStringStates.AddValue(Id, std::move(LineState));
+									}
+									OutputIRLineInfo(&IRInfoVal, &IRInfoVal._threaddeInit, Val, IRStringStates.GetValue(Id), r);
+								}
+								else
+								{
+									for (auto& Func : IRInfoVal.Funcs)
+									{
+
+										if (IRInfoVal.FromID(Func->identifier) == OnFunc)
+										{
+											auto Id = Func->identifier;
+											if (!IRStringStates.HasValue(Id))
+											{
+												OutputIRLineState LineState;
+												String Unused;
+												IRInfoVal.ToString(LineState.State, Func.get(), Unused);
+												IRStringStates.AddValue(Id, std::move(LineState));
+											}
+											OutputIRLineInfo(&IRInfoVal, Func.get(), Val, IRStringStates.GetValue(Id), r);
+											break;
+										}
 									}
 								}
 							}
 						}
-					}
-					else if (auto Val = Item->Debug.Get_If<UDebugSetFuncStackFrameSize>())
-					{
-						r += "   //StackFrameSize:" + std::to_string(Val->StackFrameSize);
-						r += '\n';
-						OnFuncFrameStackSize = Val->StackFrameSize;
-					}
-					else if (auto Val = Item->Debug.Get_If<UDebugSetVarableLoc>())
-					{
-						r += "   //";
+						else if (auto Val = Item->Debug.Get_If<UDebugSetFuncStackFrameSize>())
+						{
+							r += "   //StackFrameSize:" + std::to_string(Val->StackFrameSize);
+							r += '\n';
+							OnFuncFrameStackSize = Val->StackFrameSize;
+						}
+						else if (auto Val = Item->Debug.Get_If<UDebugSetVarableLoc>())
+						{
+							r += "   //";
 
-						if (auto Value = Val->Type.Get_If<RegisterID>())
-						{
-							r += GetRegisterToString(*Value);
+							if (auto Value = Val->Type.Get_If<RegisterID>())
+							{
+								r += GetRegisterToString(*Value);
+							}
+							else
+							{
+								UCodeLangThrowException("not added");
+							}
+							r += " = ";
+							r += Val->VarableFullName;
+							r += '\n';
 						}
-						else
-						{
-							UCodeLangThrowException("not added");
-						}
-						r += " = ";
-						r += Val->VarableFullName;
+					}
+
+
+
+					if (List.size())
+					{
 						r += '\n';
 					}
 				}
-
-
-
-				if (List.size())
+				else
 				{
-					r += '\n';
+					r += "\n";
 				}
 			}
 
