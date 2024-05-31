@@ -1,6 +1,7 @@
 #include "UClib.hpp"
 #include <fstream>
 #include "UCodeLang/LangCore/Version.hpp"
+#include <bitset>
 UCodeLangStart
 
 UClib::UClib() : LibEndianess(BitConverter::InputOutEndian)
@@ -459,15 +460,43 @@ void UClib::ToBytes(BitMaker& Output, const ClassMethod& Data)
 
 	ToBytes(Output, Data.Attributes);
 }
+
+enum class ReflectionTypeInfoBools
+{
+	IsAddress,
+	IsAddressArray,
+	Isimmutable,
+	IsDynamic,
+	IsMove,
+	Max,
+};
+size_t AsIndex(ReflectionTypeInfoBools index)
+{
+	return (size_t)index;
+}
+bool NextIsCusomTypeID(ReflectionTypes type)
+{
+	return type == ReflectionTypes::CustomType;
+}
 void UClib::ToBytes(BitMaker& Output, const ReflectionTypeInfo& Data)
 {
-	Output.WriteType(Data._CustomTypeID);
+	//We should combined _Type and _Type attribute into one byte
 	Output.WriteType((ReflectionTypes_t)Data._Type);
-	Output.WriteType(Data._IsAddress);
-	Output.WriteType(Data._IsAddressArray);
-	Output.WriteType(Data._Isimmutable);
-	Output.WriteType(Data._IsDynamic);
-	Output.WriteType((ReflectionMoveData_t)Data._MoveData);
+
+	std::bitset<(size_t)ReflectionTypeInfoBools::Max> bits;
+	bits[(size_t)ReflectionTypeInfoBools::IsAddress] = Data.IsAddress();
+	bits[(size_t)ReflectionTypeInfoBools::IsAddressArray] = Data.IsAddressArray();
+	bits[(size_t)ReflectionTypeInfoBools::Isimmutable] = Data.Isimmutable();
+	bits[(size_t)ReflectionTypeInfoBools::IsDynamic] = Data.IsDynamicTrait();
+	bits[(size_t)ReflectionTypeInfoBools::IsMove] = Data.IsMovedType();
+
+	Output.WriteType(bits);
+
+	if (NextIsCusomTypeID(Data._Type))
+	{
+		Output.WriteType(Data._CustomTypeID);
+	}
+
 }
 void UClib::ToBytes(BitMaker& Output, const ClassMethod::Par& Par)
 {
@@ -1402,13 +1431,26 @@ void UClib::FromBytes(BitReader& Input, ClassMethod& Data)
 }
 void UClib::FromBytes(BitReader& Input, ReflectionTypeInfo& Data)
 {
-	Input.ReadType(Data._CustomTypeID, Data._CustomTypeID);
+	//We should combined _Type and _Type attribute into one byte
 	Input.ReadType(*(ReflectionTypes_t*)&Data._Type, *(ReflectionTypes_t*)Data._Type);
-	Input.ReadType(Data._IsAddress, Data._IsAddress);
-	Input.ReadType(Data._IsAddressArray, Data._IsAddressArray);
-	Input.ReadType(Data._Isimmutable, Data._Isimmutable);
-	Input.ReadType(Data._IsDynamic, Data._IsDynamic);
-	Input.ReadType(*(ReflectionMoveData_t*)&Data._MoveData, *(ReflectionMoveData_t*)&Data._MoveData);
+
+	std::bitset<(size_t)ReflectionTypeInfoBools::Max> bits;
+	Input.ReadType(bits, bits);
+
+	Data._IsAddress = bits[(size_t)ReflectionTypeInfoBools::IsAddress];
+	Data._IsAddressArray = bits[(size_t)ReflectionTypeInfoBools::IsAddressArray];
+	Data._Isimmutable = bits[(size_t)ReflectionTypeInfoBools::Isimmutable];
+	Data._IsDynamic = bits[(size_t)ReflectionTypeInfoBools::IsDynamic];
+	Data._MoveData = bits[(size_t)ReflectionTypeInfoBools::IsMove] ? ReflectionMoveData::Moved : ReflectionMoveData::None;
+
+	if (NextIsCusomTypeID(Data._Type))
+	{
+		Input.ReadType(Data._CustomTypeID, Data._CustomTypeID);
+	}
+	else
+	{
+		Data._CustomTypeID = {};
+	}
 }
 void UClib::FromBytes(BitReader& Input, TraitSymbol& Data)
 {
