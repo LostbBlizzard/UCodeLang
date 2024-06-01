@@ -168,6 +168,24 @@ String UAssembly::ToString(const UClib* Lib, Optional<Path> SourceFiles, bool Sh
 		
 			if (hasany)
 			{
+				if (Class.InheritedTypes.size())
+				{
+					r += "[";
+					for (auto& Item : Class.InheritedTypes)
+					{
+						ReflectionTypeInfo info;
+						info._Type = ReflectionTypes::CustomType;
+						info._CustomTypeID = Item.TraitID;
+						r += ToString(info, Assembly);
+
+						if (&Item != &Class.InheritedTypes.back())
+						{
+							r += ",";
+						}
+					}
+
+					r += "]";
+				}
 				if (Class.IsExported)
 				{
 					r += " export";
