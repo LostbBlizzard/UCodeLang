@@ -563,7 +563,7 @@ bool SystematicAnalysis::Type_IsCompatible(const IsCompatiblePar& FuncPar, const
 
 
 	//
-	if ((PassType_t)FuncPar.Item->PassState < (PassType_t)_PassType)
+	if ((PassType_t)FuncPar.Item->PassState < (PassType_t)_PassType && _PassType == PassType::FixedTypes)
 	{
 		if (FuncPar.Item->Type != SymbolType::Func)
 		{
