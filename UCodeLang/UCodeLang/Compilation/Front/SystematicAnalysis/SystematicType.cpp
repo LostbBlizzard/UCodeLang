@@ -1909,6 +1909,10 @@ void SystematicAnalysis::Type_Convert(const TypeNode& V, TypeSymbol& Out)
 
 							info->Fields.push_back(std::move(F));
 							EnumValue++;
+					
+							auto& FieldSyb = Symbol_AddSymbol(SymbolType::Enum_Field, valuename,
+								ScopeHelper::ApendedStrings(SymName,valuename), AccessModifierType::Public);
+
 						}
 
 						EnumVariantData Variantdata;
