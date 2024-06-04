@@ -315,6 +315,15 @@ void UClib::ToBytes(BitMaker& Output, const TraitAlias& TraitData)
 		}
 	}
 }
+void UClib::ToBytes(BitMaker& Output, const CapturedUseStatements& UseStatments)
+{
+	Output.WriteType((BitMaker::SizeAsBits)UseStatments.NameSpaces.size());
+
+	for (auto& Item : UseStatments.NameSpaces)
+	{
+		Output.WriteType(Item);
+	}
+}
 void UClib::ToBytes(BitMaker& Output, const InheritedTrait_Data& TraitData)
 {
 	Output.WriteType(TraitData.TraitID);
@@ -519,12 +528,14 @@ void UClib::ToBytes(BitMaker& Output, const GenericClass_Data& FuncPtrData)
 	ToBytes(Output, FuncPtrData.Base);
 	Output.WriteType((AccessModifierType_t)FuncPtrData.AccessModifier);
 	Output.WriteType(FuncPtrData.IsExported);
+	ToBytes(Output,FuncPtrData.UseStatments);
 }
 void UClib::ToBytes(BitMaker& Output, const GenericFunction_Data& FuncPtrData)
 {
 	ToBytes(Output, FuncPtrData.Base);
 	Output.WriteType((AccessModifierType_t)FuncPtrData.AccessModifier);
 	Output.WriteType(FuncPtrData.IsExported);
+	ToBytes(Output,FuncPtrData.UseStatments);
 }
 void UClib::ToBytes(BitMaker& Output, const StaticArray_Data& FuncPtrData)
 {
@@ -1243,12 +1254,14 @@ void UClib::FromBytes(BitReader& reader, GenericClass_Data& Ptr)
 	FromBytes(reader, Ptr.Base);
 	reader.ReadType(*(AccessModifierType_t*)&Ptr.AccessModifier,*(AccessModifierType_t*)&Ptr.AccessModifier);
 	reader.ReadType(Ptr.IsExported, Ptr.IsExported);
+	FromBytes(reader, Ptr.UseStatments);
 }
 void UClib::FromBytes(BitReader& reader, GenericFunction_Data& Ptr)
 {
 	FromBytes(reader, Ptr.Base);
 	reader.ReadType(*(AccessModifierType_t*)&Ptr.AccessModifier,*(AccessModifierType_t*)&Ptr.AccessModifier);
 	reader.ReadType(Ptr.IsExported, Ptr.IsExported);
+	FromBytes(reader, Ptr.UseStatments);
 }
 void UClib::FromBytes(BitReader& Input, GenericBase_Data& Data)
 {
@@ -1492,6 +1505,22 @@ void UClib::FromBytes(BitReader& Input, TraitAlias& Data)
 
 		Data.TypePack = std::move(types);
 	}
+}
+void UClib::FromBytes(BitReader& Input, CapturedUseStatements& Data)
+{
+	BitReader::SizeAsBits size = 0;
+	Input.ReadType(size);
+
+	Data.NameSpaces.reserve(size);
+	for (size_t i = 0; i < size; i++)
+	{
+		String item;
+		Input.ReadType(item);
+
+		Data.NameSpaces.push_back(std::move(item));
+	}
+
+
 }
 void UClib::FixRawValue(Endian AssemblyEndian, NTypeSize BitSize, const ClassAssembly& Types, ReflectionRawData& RawValue, const ReflectionTypeInfo& Type)
 {
