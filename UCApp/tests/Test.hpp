@@ -149,7 +149,7 @@ inline String ModeType(OptimizationFlags Flags)
 	return r;
 }
 
-static const Array<TestInfo, 151> Tests{
+static const Array<TestInfo, 152> Tests{
 
 	TestInfo("main_0", "BasicTests/main.uc", "Main", SuccessCondition::Compilation),
 
@@ -363,6 +363,8 @@ static const Array<TestInfo, 151> Tests{
 	TestInfo("DoubleConstructer_2", "Objects/DoubleConstructer.uc", "main2", SuccessCondition::RunTimeValue,bool(true)),
 	
 	TestInfo("SpanKeepImut", "Std/SpanKeepImut.uc", "main", SuccessCondition::CompilationFail),
+
+	TestInfo("Attribute Contruct 3", "Eval/Attribute3.uc","", SuccessCondition::CompilationFail),
 	//TestInfo("ForTypeReadThis", "Objects/ForTypeReadThis.uc", "main", SuccessCondition::RunTimeValue,int(20)),
 };
 struct SkipTestRange
