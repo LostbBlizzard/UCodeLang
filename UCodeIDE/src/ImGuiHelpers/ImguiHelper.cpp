@@ -1,11 +1,57 @@
 #include "ImguiHelper.hpp"
 #include "imgui/misc/cpp/imgui_stdlib.h"
+#include "imgui_internal.h"
 UCodeIDEStart
 
 
 UCodeLang::AnyInterpreterPtr ImguiHelper::_Ptr;
 
 
+//From https://github.com/ocornut/imgui/issues/3469
+void ImguiHelper::ItemLabel(StringView title, ItemLabelFlag flags)
+{
+	ImGuiWindow* window = ImGui::GetCurrentWindow();
+	const ImVec2 lineStart = ImGui::GetCursorScreenPos();
+	const ImGuiStyle& style = ImGui::GetStyle();
+	float fullWidth = ImGui::GetContentRegionAvail().x;
+	float itemWidth = ImGui::CalcItemWidth() + style.ItemSpacing.x;
+	ImVec2 textSize = ImGui::CalcTextSize(title.data(), title.data() + title.size());
+	ImRect textRect;
+	textRect.Min = ImGui::GetCursorScreenPos();
+	if (flags & ItemLabelFlag::Right)
+		textRect.Min.x = textRect.Min.x + itemWidth;
+	textRect.Max = textRect.Min;
+	textRect.Max.x += fullWidth - itemWidth;
+	textRect.Max.y += textSize.y;
+
+	ImGui::SetCursorScreenPos(textRect.Min);
+
+	ImGui::AlignTextToFramePadding();
+	// Adjust text rect manually because we render it directly into a drawlist instead of using public functions.
+	textRect.Min.y += window->DC.CurrLineTextBaseOffset;
+	textRect.Max.y += window->DC.CurrLineTextBaseOffset;
+
+	ImGui::ItemSize(textRect);
+	if (ImGui::ItemAdd(textRect, window->GetID(title.data(), title.data() + title.size())))
+	{
+		ImGui::RenderTextEllipsis(ImGui::GetWindowDrawList(), textRect.Min, textRect.Max, textRect.Max.x,
+			textRect.Max.x, title.data(), title.data() + title.size(), &textSize);
+
+		if (textRect.GetWidth() < textSize.x && ImGui::IsItemHovered())
+			ImGui::SetTooltip("%.*s", (int)title.size(), title.data());
+	}
+	if (flags & ItemLabelFlag::Left)
+	{
+		auto v = ImVec2{ 0, textSize.y + window->DC.CurrLineTextBaseOffset };
+		auto n = textRect.Max;
+		n.x -= v.x;
+		n.x -= v.x;
+		ImGui::SetCursorScreenPos(n);
+		ImGui::SameLine();
+	}
+	else if (flags & ItemLabelFlag::Right)
+		ImGui::SetCursorScreenPos(lineStart);
+};
 bool ImguiHelper::UCodeObjectField(const char* FieldName, void* Object, const UCodeLang::ClassMethod::Par& type, const UCodeLang::ClassAssembly& assembly, bool IfClassRemoveFlags )
 {
 	if (type.IsOutPar)
@@ -193,8 +239,8 @@ bool ImguiHelper::UCodeObjectField(const char* FieldName, void* Object, const UC
 			if (Syb->Get_Type() == UCodeLang::ClassType::Enum)
 			{
 				auto& EnumInfo = Syb->Get_EnumData();
-				ImGui::Text(FieldName);
-				ImGui::SameLine();
+				ImguiHelper::ItemLabel(StringView(FieldName), Left);
+
 				return DrawEnum(Object, EnumInfo, assembly);
 			}
 			else if (Syb->Get_Type() == UCodeLang::ClassType::Class)
@@ -434,9 +480,8 @@ bool ImguiHelper::uInt64Field(const char* FieldName, UInt64& Value)
 }
 
 bool ImguiHelper::uInt32Field(const char* FieldName, UInt32& Value)
-{
-	ImGui::Text(FieldName);
-	ImGui::SameLine();
+{	
+	ImguiHelper::ItemLabel(StringView(FieldName), Left);
 
 	ImGui::PushID(&Value);
 	auto V = ImGui::DragScalar("", ImGuiDataType_U32, (void*)&Value);
@@ -447,8 +492,7 @@ bool ImguiHelper::uInt32Field(const char* FieldName, UInt32& Value)
 
 bool ImguiHelper::uInt16Field(const char* FieldName, UInt16& Value)
 {
-	ImGui::Text(FieldName);
-	ImGui::SameLine();
+	ImguiHelper::ItemLabel(StringView(FieldName), Left);
 
 	ImGui::PushID(&Value);
 	auto V = ImGui::DragScalar("", ImGuiDataType_U16, (void*)&Value);
@@ -459,8 +503,7 @@ bool ImguiHelper::uInt16Field(const char* FieldName, UInt16& Value)
 
 bool ImguiHelper::uInt8Field(const char* FieldName, UInt8& Value)
 {
-	ImGui::Text(FieldName);
-	ImGui::SameLine();
+	ImguiHelper::ItemLabel(StringView(FieldName), Left);
 
 	ImGui::PushID(&Value);
 	auto V = ImGui::DragScalar("", ImGuiDataType_U8, (void*)&Value);
@@ -469,9 +512,8 @@ bool ImguiHelper::uInt8Field(const char* FieldName, UInt8& Value)
 	return V;
 }
 bool ImguiHelper::uIntptrField(const char* FieldName, uintptr_t& Value)
-{
-	ImGui::Text(FieldName);
-	ImGui::SameLine();
+{	
+	ImguiHelper::ItemLabel(StringView(FieldName), Left);
 
 	ImGui::PushID(&Value);
 	auto V = InputSize_t("",&Value);
@@ -481,8 +523,7 @@ bool ImguiHelper::uIntptrField(const char* FieldName, uintptr_t& Value)
 }
 bool ImguiHelper::IntptrField(const char* FieldName, intptr_t& Value)
 {
-	ImGui::Text(FieldName);
-	ImGui::SameLine();
+	ImguiHelper::ItemLabel(StringView(FieldName), Left);
 
 	ImGui::PushID(&Value);
 	auto V = InputSize_t("", &Value);
@@ -492,8 +533,7 @@ bool ImguiHelper::IntptrField(const char* FieldName, intptr_t& Value)
 }
 bool ImguiHelper::InputText(const char* label, String& buffer, ImGuiInputTextFlags flags)
 {
-	ImGui::Text(label);
-	ImGui::SameLine();
+	ImguiHelper::ItemLabel(StringView(label), Left);
 
 	ImGui::PushID(&buffer);
 	auto V = ImGui::InputText("", &buffer, flags);
@@ -531,8 +571,7 @@ int TextReflectionCallBack(ImGuiInputTextCallbackData* data)
 }
 bool ImguiHelper::InputText(const char* label, UCodeLang::ReflectionString& buffer, ImGuiInputTextFlags flags)
 {
-	ImGui::Text(label);
-	ImGui::SameLine();
+	ImguiHelper::ItemLabel(StringView(label), Left);
 
 	ImGui::PushID(&buffer);
 
@@ -558,8 +597,7 @@ bool ImguiHelper::MultLineText(const char* label, String& buffer, ImVec2 Size, I
 }
 bool ImguiHelper::Vec2float32Field(const char* label, float vec2[2])
 {
-	ImGui::Text(label);
-	ImGui::SameLine();
+	ImguiHelper::ItemLabel(StringView(label), Left);
 
 	ImGui::PushID(&vec2);
 	auto V = ImGui::DragScalarN("", ImGuiDataType_Float, vec2, 2);
@@ -569,8 +607,7 @@ bool ImguiHelper::Vec2float32Field(const char* label, float vec2[2])
 }
 bool ImguiHelper::Vec2float64Field(const char* label, double vec2[2])
 {
-	ImGui::Text(label);
-	ImGui::SameLine();
+	ImguiHelper::ItemLabel(StringView(label), Left);
 
 	ImGui::PushID(&vec2);
 	auto V = ImGui::DragScalarN("", ImGuiDataType_Double, vec2, 2);
@@ -580,8 +617,7 @@ bool ImguiHelper::Vec2float64Field(const char* label, double vec2[2])
 }
 bool ImguiHelper::Vec2IntField(const char* label, UInt64 vec2[2])
 {
-	ImGui::Text(label);
-	ImGui::SameLine();
+	ImguiHelper::ItemLabel(StringView(label), Left);
 
 	ImGui::PushID(&vec2);
 	auto V = ImGui::DragScalarN("", ImGuiDataType_U64, vec2, 2);
@@ -591,8 +627,7 @@ bool ImguiHelper::Vec2IntField(const char* label, UInt64 vec2[2])
 }
 bool ImguiHelper::Vec2IntField(const char* label, Int64 vec2[2])
 {
-	ImGui::Text(label);
-	ImGui::SameLine();
+	ImguiHelper::ItemLabel(StringView(label), Left);
 
 	ImGui::PushID(&vec2);
 	auto V = ImGui::DragScalarN("", ImGuiDataType_S64, vec2, 2);
@@ -602,8 +637,7 @@ bool ImguiHelper::Vec2IntField(const char* label, Int64 vec2[2])
 }
 bool ImguiHelper::Vec2IntField(const char* label, UInt32 vec2[2])
 {
-	ImGui::Text(label);
-	ImGui::SameLine();
+	ImguiHelper::ItemLabel(StringView(label), Left);
 
 	ImGui::PushID(&vec2);
 	auto V = ImGui::DragScalarN("", ImGuiDataType_U32, vec2, 2);
@@ -613,8 +647,7 @@ bool ImguiHelper::Vec2IntField(const char* label, UInt32 vec2[2])
 }
 bool ImguiHelper::Vec2IntField(const char* label, Int32 vec2[2])
 {
-	ImGui::Text(label);
-	ImGui::SameLine();
+	ImguiHelper::ItemLabel(StringView(label), Left);
 
 	ImGui::PushID(&vec2);
 	auto V = ImGui::DragScalarN("", ImGuiDataType_S32, vec2, 2);
@@ -624,8 +657,7 @@ bool ImguiHelper::Vec2IntField(const char* label, Int32 vec2[2])
 }
 bool ImguiHelper::Vec2IntField(const char* label, UInt16 vec2[2])
 {
-	ImGui::Text(label);
-	ImGui::SameLine();
+	ImguiHelper::ItemLabel(StringView(label), Left);
 
 	ImGui::PushID(&vec2);
 	auto V = ImGui::DragScalarN("", ImGuiDataType_U16, vec2, 2);
@@ -635,8 +667,7 @@ bool ImguiHelper::Vec2IntField(const char* label, UInt16 vec2[2])
 }
 bool ImguiHelper::Vec2IntField(const char* label, Int16 vec2[2])
 {
-	ImGui::Text(label);
-	ImGui::SameLine();
+	ImguiHelper::ItemLabel(StringView(label), Left);
 
 	ImGui::PushID(&vec2);
 	auto V = ImGui::DragScalarN("", ImGuiDataType_S16, vec2, 2);
@@ -645,9 +676,8 @@ bool ImguiHelper::Vec2IntField(const char* label, Int16 vec2[2])
 	return V;
 }
 bool ImguiHelper::Vec2IntField(const char* label, UInt8 vec2[2])
-{
-	ImGui::Text(label);
-	ImGui::SameLine();
+{	
+	ImguiHelper::ItemLabel(StringView(label), Left);
 
 	ImGui::PushID(&vec2);
 	auto V = ImGui::DragScalarN("", ImGuiDataType_U8, vec2, 2);
@@ -657,8 +687,7 @@ bool ImguiHelper::Vec2IntField(const char* label, UInt8 vec2[2])
 }
 bool ImguiHelper::Vec2IntField(const char* label, Int8 vec2[2])
 {
-	ImGui::Text(label);
-	ImGui::SameLine();
+	ImguiHelper::ItemLabel(StringView(label), Left);
 
 	ImGui::PushID(&vec2);
 	auto V = ImGui::DragScalarN("", ImGuiDataType_S8, vec2, 2);
@@ -669,8 +698,7 @@ bool ImguiHelper::Vec2IntField(const char* label, Int8 vec2[2])
 
 bool ImguiHelper::Vec3float32Field(const char* label, float vec2[3])
 {
-	ImGui::Text(label);
-	ImGui::SameLine();
+	ImguiHelper::ItemLabel(StringView(label), Left);
 
 	ImGui::PushID(&vec2);
 	auto V = ImGui::DragScalarN("", ImGuiDataType_Float, vec2, 3);
@@ -680,8 +708,7 @@ bool ImguiHelper::Vec3float32Field(const char* label, float vec2[3])
 }
 bool ImguiHelper::Vec3float64Field(const char* label, double vec2[3])
 {
-	ImGui::Text(label);
-	ImGui::SameLine();
+	ImguiHelper::ItemLabel(StringView(label), Left);
 
 	ImGui::PushID(&vec2);
 	auto V = ImGui::DragScalarN("", ImGuiDataType_Double, vec2, 3);
@@ -691,8 +718,7 @@ bool ImguiHelper::Vec3float64Field(const char* label, double vec2[3])
 }
 bool ImguiHelper::Vec3IntField(const char* label, UInt64 vec2[3])
 {
-	ImGui::Text(label);
-	ImGui::SameLine();
+	ImguiHelper::ItemLabel(StringView(label), Left);
 
 	ImGui::PushID(&vec2);
 	auto V = ImGui::DragScalarN("", ImGuiDataType_U64, vec2, 3);
@@ -702,8 +728,7 @@ bool ImguiHelper::Vec3IntField(const char* label, UInt64 vec2[3])
 }
 bool ImguiHelper::Vec3IntField(const char* label, Int64 vec2[3])
 {
-	ImGui::Text(label);
-	ImGui::SameLine();
+	ImguiHelper::ItemLabel(StringView(label), Left);
 
 	ImGui::PushID(&vec2);
 	auto V = ImGui::DragScalarN("", ImGuiDataType_S64, vec2, 3);
@@ -713,8 +738,7 @@ bool ImguiHelper::Vec3IntField(const char* label, Int64 vec2[3])
 }
 bool ImguiHelper::Vec3IntField(const char* label, UInt32 vec2[3])
 {
-	ImGui::Text(label);
-	ImGui::SameLine();
+	ImguiHelper::ItemLabel(StringView(label), Left);
 
 	ImGui::PushID(&vec2);
 	auto V = ImGui::DragScalarN("", ImGuiDataType_U32, vec2, 3);
@@ -724,8 +748,7 @@ bool ImguiHelper::Vec3IntField(const char* label, UInt32 vec2[3])
 }
 bool ImguiHelper::Vec3IntField(const char* label, Int32 vec2[3])
 {
-	ImGui::Text(label);
-	ImGui::SameLine();
+	ImguiHelper::ItemLabel(StringView(label), Left);
 
 	ImGui::PushID(&vec2);
 	auto V = ImGui::DragScalarN("", ImGuiDataType_S32, vec2, 3);
@@ -735,8 +758,7 @@ bool ImguiHelper::Vec3IntField(const char* label, Int32 vec2[3])
 }
 bool ImguiHelper::Vec3IntField(const char* label, UInt16 vec2[3])
 {
-	ImGui::Text(label);
-	ImGui::SameLine();
+	ImguiHelper::ItemLabel(StringView(label), Left);
 
 	ImGui::PushID(&vec2);
 	auto V = ImGui::DragScalarN("", ImGuiDataType_U16, vec2, 3);
@@ -746,8 +768,7 @@ bool ImguiHelper::Vec3IntField(const char* label, UInt16 vec2[3])
 }
 bool ImguiHelper::Vec3IntField(const char* label, Int16 vec2[3])
 {
-	ImGui::Text(label);
-	ImGui::SameLine();
+	ImguiHelper::ItemLabel(StringView(label), Left);
 
 	ImGui::PushID(&vec2);
 	auto V = ImGui::DragScalarN("", ImGuiDataType_S16, vec2, 3);
@@ -757,8 +778,7 @@ bool ImguiHelper::Vec3IntField(const char* label, Int16 vec2[3])
 }
 bool ImguiHelper::Vec3IntField(const char* label, UInt8 vec2[3])
 {
-	ImGui::Text(label);
-	ImGui::SameLine();
+	ImguiHelper::ItemLabel(StringView(label), Left);
 
 	ImGui::PushID(&vec2);
 	auto V = ImGui::DragScalarN("", ImGuiDataType_U8, vec2, 3);
@@ -768,8 +788,7 @@ bool ImguiHelper::Vec3IntField(const char* label, UInt8 vec2[3])
 }
 bool ImguiHelper::Vec3IntField(const char* label, Int8 vec2[3])
 {
-	ImGui::Text(label);
-	ImGui::SameLine();
+	ImguiHelper::ItemLabel(StringView(label), Left);
 
 	ImGui::PushID(&vec2);
 	auto V = ImGui::DragScalarN("", ImGuiDataType_S8, vec2, 3);
@@ -813,8 +832,7 @@ bool ImguiHelper::CharField(const char* FieldName, char& Value)
 }
 bool ImguiHelper::Int64Field(const char* FieldName, Int64& Value)
 {
-	ImGui::Text(FieldName);
-	ImGui::SameLine();
+	ImguiHelper::ItemLabel(StringView(FieldName), Left);
 
 	ImGui::PushID(&Value);
 	auto V = ImGui::DragScalar("", ImGuiDataType_S64, (void*)&Value);
@@ -824,8 +842,7 @@ bool ImguiHelper::Int64Field(const char* FieldName, Int64& Value)
 }
 bool ImguiHelper::Int32Field(const char* FieldName, Int32& Value)
 {
-	ImGui::Text(FieldName);
-	ImGui::SameLine();
+	ImguiHelper::ItemLabel(StringView(FieldName), Left);
 
 	ImGui::PushID(&Value);
 	auto V = ImGui::DragScalar("", ImGuiDataType_S32, (void*)&Value);
@@ -835,8 +852,7 @@ bool ImguiHelper::Int32Field(const char* FieldName, Int32& Value)
 }
 bool ImguiHelper::Int16Field(const char* FieldName, Int16& Value)
 {
-	ImGui::Text(FieldName);
-	ImGui::SameLine();
+	ImguiHelper::ItemLabel(StringView(FieldName), Left);
 
 	ImGui::PushID(&Value);
 	auto V = ImGui::DragScalar("", ImGuiDataType_S16, (void*)&Value);
@@ -846,8 +862,7 @@ bool ImguiHelper::Int16Field(const char* FieldName, Int16& Value)
 }
 bool ImguiHelper::Int8Field(const char* FieldName, Int8& Value)
 {
-	ImGui::Text(FieldName);
-	ImGui::SameLine();
+	ImguiHelper::ItemLabel(StringView(FieldName), Left);
 
 	ImGui::PushID(&Value);
 	auto V = ImGui::DragScalar("", ImGuiDataType_S8, (void*)&Value);
@@ -857,8 +872,7 @@ bool ImguiHelper::Int8Field(const char* FieldName, Int8& Value)
 }
 bool ImguiHelper::float32Field(const char* FieldName, float32& Value)
 {
-	ImGui::Text(FieldName);
-	ImGui::SameLine();
+	ImguiHelper::ItemLabel(StringView(FieldName), Left);
 
 	ImGui::PushID(&Value);
 	auto V = ImGui::DragScalar("", ImGuiDataType_Float, (void*)&Value);
@@ -868,8 +882,7 @@ bool ImguiHelper::float32Field(const char* FieldName, float32& Value)
 }
 bool ImguiHelper::float64Field(const char* FieldName, float64& Value)
 {
-	ImGui::Text(FieldName);
-	ImGui::SameLine();
+	ImguiHelper::ItemLabel(StringView(FieldName), Left);
 
 	ImGui::PushID(&Value);
 	auto V = ImGui::DragScalar("", ImGuiDataType_Double, (void*)&Value);
@@ -902,8 +915,7 @@ bool ImguiHelper::EnumField(const char* label, void* Value, const EnumValue2* Va
 		current_item = &Values[0];
 
 	}
-
-	ImGui::Text(label); ImGui::SameLine();
+	ItemLabel(StringView(label),Left);
 	ImGui::PushID(Value);
 	if (ImGui::BeginCombo("", current_item->label, ImGuiComboFlags_NoArrowButton))
 	{

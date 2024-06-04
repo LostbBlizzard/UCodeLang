@@ -2824,7 +2824,8 @@ void AppObject::ShowDebugerMenu(UCodeVMWindow& windowdata)
 
         auto GlobalObject = Assembly.Get_GlobalObject_Class();
 
-        ImGui::Text("Call Function:"); ImGui::SameLine();
+        ImguiHelper::ItemLabel(StringView("Call Function:"), ImguiHelper::Left);
+
         
         ImGui::PushID(&callFuncContext.current_method);
 

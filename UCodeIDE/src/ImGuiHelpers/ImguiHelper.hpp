@@ -16,6 +16,13 @@ class ImguiHelper
 public:
 	static UCodeLang::AnyInterpreterPtr _Ptr;
 
+	enum ItemLabelFlag
+	{
+		Left = 1u << 0u,
+		Right = 1u << 1u,
+		Default = Left,
+	};
+	static void ItemLabel(StringView title, ItemLabelFlag flags);
 	static bool UCodeObjectField(const char* FieldName, void* Object, const UCodeLang::ClassMethod::Par& type, const UCodeLang::ClassAssembly& assembly,bool IfClassRemoveFlags=false);
 	static bool UCodeObjectField(void* Pointer, const UCodeLang::ReflectionTypeInfo& Type, const UCodeLang::ClassAssembly& Assembly, bool IfClassRemoveFlags = false);
 
