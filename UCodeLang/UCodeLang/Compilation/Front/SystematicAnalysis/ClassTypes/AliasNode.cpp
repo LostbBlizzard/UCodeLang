@@ -208,7 +208,7 @@ void SystematicAnalysis::OnAliasNode(const AliasNode& node)
 			VClass.Base.Implementation += "\n\n";
 			VClass.AccessModifier = Syb.Access;
 			VClass.IsExported = node.IsExport;
-
+			VClass.UseStatments = Generic_GetCurrentUseStatements();
 		}
 	}
 

@@ -1147,6 +1147,7 @@ private:
 	void OnAliasNode(const AliasNode& node);
 	void OnUseingNode(const UsingNode& node);
 
+	CapturedUseStatements Generic_GetCurrentUseStatements();
 	void Generic_InitGenericalias(const GenericValuesNode& GenericList, bool IsgenericInstantiation, Generic& Out);
 	void Generic_GenericAliasFixTypes(const GenericValuesNode& GenericList, bool IsgenericInstantiation, Generic& Out);
 	//Because we support function overloading

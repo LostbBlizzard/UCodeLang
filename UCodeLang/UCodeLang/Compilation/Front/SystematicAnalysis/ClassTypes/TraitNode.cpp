@@ -321,7 +321,7 @@ void SystematicAnalysis::OnTrait(const TraitNode& node)
 			VClass.Base.Implementation += "\n\n";
 			VClass.AccessModifier = Syb.Access;
 			VClass.IsExported = node._IsExport;
-
+			VClass.UseStatments = Generic_GetCurrentUseStatements();
 		}
 		else
 		{

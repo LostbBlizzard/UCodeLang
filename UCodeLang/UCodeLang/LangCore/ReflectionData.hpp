@@ -477,6 +477,10 @@ struct GenericBase_Data
 {
 	String Implementation;
 };
+struct CapturedUseStatements
+{
+	Vector<String> NameSpaces;
+};
 struct GenericClass_Data
 {
 	GenericBase_Data Base;
@@ -486,6 +490,7 @@ struct GenericClass_Data
 	}
 	AccessModifierType AccessModifier = AccessModifierType::Default;
 	bool IsExported = false;
+	CapturedUseStatements UseStatments;
 };
 
 
@@ -498,6 +503,7 @@ struct GenericFunction_Data
 	}
 	AccessModifierType AccessModifier = AccessModifierType::Default;
 	bool IsExported = false;
+	CapturedUseStatements UseStatments;
 };
 struct GenericEnum_Data
 {
