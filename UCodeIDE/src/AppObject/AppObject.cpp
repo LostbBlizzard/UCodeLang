@@ -2030,7 +2030,9 @@ void AppObject::OnDraw()
             CompileText(GetTextEditorString());
         }
         
-        if (ImGui::Button("Copy To Clip Board"))
+        auto& style = ImGui::GetStyle();
+        auto aval = ImGui::GetContentRegionAvail().x;
+        if (ImGui::Button("Copy To Clip Board", { aval * (1.0f/3.0f),ImGui::GetFrameHeight()}))
         {
             ImGui::LogToClipboard();
             ImGui::LogText(_LibInfoString.c_str());
@@ -2048,7 +2050,7 @@ void AppObject::OnDraw()
             {
                 Txt += "Open in Compiler Explorer [C/C++]";
             }
-            if (ImGui::Button(Txt.c_str()))
+            if (ImGui::Button(Txt.c_str(),{ aval * (2.0f/3.0f)- style.ItemSpacing.x,ImGui::GetFrameHeight() }))
             {
                 if (OutputWindow.Type == BackEndType::LLVM) 
                 {
@@ -2681,25 +2683,51 @@ bool DrawAnyInt64(const char* Name,UCodeLang::AnyInt64& V)
     bool updated = false;
     if (ImGui::TreeNode(Name))
     {
+        uintptr_t p = (uintptr_t )&V;
+
+        ImGui::PushID(p);
         if (ImguiHelper::Int8Field("int8", V.AsInt8))
         {
             updated = true;
         }
+        ImGui::PopID();
+
+
+        ImGui::PushID(p + 1);
         if (ImguiHelper::Int16Field("int16", V.AsInt16))
         {
             updated = true;
         }
+        ImGui::PopID();
+
+        ImGui::PushID(p + 2);
         if (ImguiHelper::Int32Field("int32", V.AsInt32))
         {
             updated = true;
         }
+        ImGui::PopID();
+        
+        ImGui::PushID(p + 3);
         if (ImguiHelper::Int64Field("int64", V.AsInt64))
         {
             updated = true;
         }
-        ImguiHelper::float32Field("float32", V.Asfloat32);
-        ImguiHelper::float64Field("float64", V.Asfloat64);
+        ImGui::PopID();
 
+
+        ImGui::PushID(p + 4);
+        if (ImguiHelper::float32Field("float32", V.Asfloat32))
+        {
+            updated = true;
+        }
+        ImGui::PopID();
+        
+        ImGui::PushID(p + 5);
+        if (ImguiHelper::float64Field("float64", V.Asfloat64))
+        {
+            updated = true;
+        }
+        ImGui::PopID();
 
 
         ImGui::TreePop();
@@ -2709,19 +2737,19 @@ bool DrawAnyInt64(const char* Name,UCodeLang::AnyInt64& V)
 
 void AppObject::ShowDebugerMenu(UCodeVMWindow& windowdata)
 {
-
-   
-
     ImGui::Separator();
 
     bool IsinFileMode = false;
-    ImVec2 Buttonsize = { 80,20 };
+    const int buttioncount = 3;
+    auto& style = ImGui::GetStyle();
+    ImVec2 Buttonsize = { ((ImGui::GetContentRegionAvail().x - style.ItemSpacing.x *2)/ buttioncount),ImGui::GetFrameHeight()};
 
     static UCodeLang::DebugData DebugInfo;
 
     bool InFunction = Debuger.IsinFunc();
 
-    ImGui::Button("Reset", Buttonsize);
+    ImGui::Button("Reset", {ImGui::GetContentRegionAvail().x,ImGui::GetFrameHeight()});
+
 
     ImguiHelper::BoolEnumField("Call Static/Thread Init On Reload", windowdata.CallStaticVarOnReload);
 
@@ -2938,7 +2966,9 @@ void AppObject::ShowDebugerMenu(UCodeVMWindow& windowdata)
                     ImguiHelper::BoolEnumField("Call Stack/Thread de-init", callFuncContext.CallStaticAndThreadDeInit);
 
                 }
-                if (ImGui::Button(((String)"Call:" + MethodString).c_str()))
+                ImVec2 buttionsize = { (ImGui::GetContentRegionAvail().x  / 2) , ImGui::GetFrameHeight() };
+                String tepstr = String("Call:") + MethodString;
+                if (ImGui::Button(tepstr.c_str(),buttionsize))
                 {
                     callFuncContext._LastRetType = callFuncContext.current_method->RetType;
                     callFuncContext._LastRet.Resize(Assembly.GetSize(callFuncContext._LastRetType, Is32bits).value_or(0));
@@ -2979,7 +3009,8 @@ void AppObject::ShowDebugerMenu(UCodeVMWindow& windowdata)
 
                 }
                 ImGui::SameLine();
-                if (ImGui::Button(((String)"Step Into:" + MethodString).c_str()))
+                tepstr = String("Step Into:") + MethodString;
+                if (ImGui::Button(tepstr.c_str()))
                 {
                     Debuger.Attach(&_RunTimeState);
                     callFuncContext._LastRetType = callFuncContext.current_method->RetType;
