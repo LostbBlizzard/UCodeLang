@@ -2965,6 +2965,8 @@ StartSymbolsLoop:
 						const FuncInfo* finfo = FuncItem->Get_Info<FuncInfo>();
 						const FuncNode* fnode = FuncItem->Get_NodeInfo<FuncNode>();
 
+						if (ValueTypes.size() < finfo->Pars.size() - 1) { continue; }
+
 						Vector<Variant<TypeSymbol, EvaluatedEx>> genericinput;
 						genericinput.resize(V->_GenericData.GetMinimumCount());
 

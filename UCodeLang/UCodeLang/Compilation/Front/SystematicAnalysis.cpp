@@ -3394,6 +3394,7 @@ String SystematicAnalysis::ToString(SymbolType Value) const
 	case SymbolType::Generic_Tag:return "Generic Tag";
 	case SymbolType::Generic_Enum:return "Generic Enum";
 	case SymbolType::Trait_class:return "Trait Class";
+	case SymbolType::Tag_class:return "Tag Class";
 	case SymbolType::Generic_Trait:return "Generic Trait";
 	default:
 		UCodeLangUnreachable();
