@@ -290,6 +290,7 @@ void SystematicAnalysis::IR_Build_FuncCall(Get_FuncInfo Func, const ScopedNameNo
 					}\
 				}\
 				IR_Build_ImplicitConversion(_IR_LastExpressionField, _LastExpressionType, iNfo);\
+				_LastExpressionType = iNfo; \
 				_LookingForTypes.pop();\
 			}\
 			else\
