@@ -789,6 +789,11 @@ void SystematicAnalysis::IR_Build_FuncDropUsingFields(const ClassInfo* ClassInfo
 			obj._Object = _IR_LookingAtIRBlock->New_Member_Dereference(&_IR_LookingAtIRFunc->Pars.front(), ThisPar, i);
 
 			IR_Build_DestructorCall(obj);
+
+			if (_IR_LastExpressionField->Type == IRInstructionType::CleanupFuncCall)
+			{
+				_IR_LastExpressionField->Type = IRInstructionType::Call;
+			}
 		}
 	}
 }
