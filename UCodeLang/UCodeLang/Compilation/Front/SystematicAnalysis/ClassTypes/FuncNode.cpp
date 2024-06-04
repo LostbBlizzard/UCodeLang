@@ -984,6 +984,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 		assemblyfunc.Base.Implementation = GetImplementationFromFunc(filetext, nametoken, endtoken);
 		assemblyfunc.AccessModifier = syb->Access;
 		assemblyfunc.IsExported = node._Signature._IsExport;
+		assemblyfunc.UseStatments = Generic_GetCurrentUseStatements();
 	}
 
 	if (_PassType == PassType::FixedTypes)

@@ -924,6 +924,7 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 			VClass.Base.Implementation += "\n\n";
 			VClass.AccessModifier = Syb.Access;
 			VClass.IsExported = Node._IsExport;
+			VClass.UseStatments = Generic_GetCurrentUseStatements();
 		}
 	}
 
@@ -931,7 +932,16 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 	_Table.RemoveScope();
 
 }
-
+CapturedUseStatements SystematicAnalysis::Generic_GetCurrentUseStatements()
+{
+	CapturedUseStatements r;
+	r.NameSpaces.resize(_Table.Useings.size());
+	for (auto& Item : _Table.Useings)
+	{
+		r.NameSpaces.push_back(Item);
+	}
+	return r;
+}
 UCodeLangFrontEnd
 
 #endif
