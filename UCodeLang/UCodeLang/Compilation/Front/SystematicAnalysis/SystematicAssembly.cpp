@@ -231,12 +231,14 @@ void SystematicAnalysis::Assembly_LoadLibSymbols(const UClib& lib, ImportLibInfo
 			Optional<String_view> TextOp;
 			AccessModifierType Access = AccessModifierType::Default;
 			bool IsExport = false;
+			CapturedUseStatements* Uses = nullptr;
 			if (Item->Get_Type() == ClassType::GenericClass)
 			{
 				auto& data = Item->Get_GenericClass();
 				TextOp = data.Base.Implementation;
 				Access = data.AccessModifier;
 				IsExport = data.IsExported;
+				Uses = &data.UseStatments;
 			}
 			else if (Item->Get_Type() == ClassType::GenericFunction)
 			{
@@ -244,6 +246,7 @@ void SystematicAnalysis::Assembly_LoadLibSymbols(const UClib& lib, ImportLibInfo
 				TextOp = data.Base.Implementation;
 				Access = data.AccessModifier;
 				IsExport = data.IsExported;
+				Uses = &data.UseStatments;
 			}
 
 			if (TextOp.has_value() && IsExport)
@@ -310,6 +313,10 @@ void SystematicAnalysis::Assembly_LoadLibSymbols(const UClib& lib, ImportLibInfo
 						_ClassStack.push(std::move(tep));
 					}
 				}
+				for (auto& Item : Uses->NameSpaces)
+				{
+					_Table.Useings.push_back(Item);
+				}
 
 				auto pass = _PassType;
 				for (auto& Item2 : list)
@@ -359,6 +366,10 @@ void SystematicAnalysis::Assembly_LoadLibSymbols(const UClib& lib, ImportLibInfo
 					}
 				}
 
+				for (size_t i = 0; i < Uses->NameSpaces.size(); i++)
+				{
+					_Table.Useings.erase(_Table.Useings.end());
+				}
 				for (size_t i = 0; i < ScopeCount; i++)
 				{
 					_Table.RemoveScope();
@@ -380,13 +391,18 @@ void SystematicAnalysis::Assembly_LoadLibSymbols(const UClib& lib, ImportLibInfo
 			if (Item->Get_Type() == ClassType::GenericClass || Item->Get_Type() == ClassType::GenericFunction)
 			{
 				bool Export;
+				CapturedUseStatements* Uses = nullptr;
 				if (Item->Get_Type() == ClassType::GenericClass)
 				{
-					Export = Item->Get_GenericClass().IsExported;
+					auto& Data = Item->Get_GenericClass();
+					Export = Data.IsExported;
+					Uses = &Data.UseStatments;
 				}
 				else
 				{
-					Export = Item->Get_GenericFunctionData().IsExported;
+					auto& Data = Item->Get_GenericFunctionData();
+					Export = Data.IsExported;
+					Uses = &Data.UseStatments;
 				}
 				if (!Export) { continue; }
 				if (!LibGenericSymbolLoad.HasValue(Item)) { continue; }
@@ -420,6 +436,10 @@ void SystematicAnalysis::Assembly_LoadLibSymbols(const UClib& lib, ImportLibInfo
 
 						_ClassStack.push(std::move(tep));
 					}
+				}
+				for (auto& Item : Uses->NameSpaces)
+				{
+					_Table.Useings.push_back(Item);
 				}
 
 				switch (Item2->Get_Type())
@@ -458,6 +478,10 @@ void SystematicAnalysis::Assembly_LoadLibSymbols(const UClib& lib, ImportLibInfo
 					}
 				}
 
+				for (size_t i = 0; i < Uses->NameSpaces.size(); i++)
+				{
+					_Table.Useings.erase(_Table.Useings.end());
+				}
 				for (size_t i = 0; i < ScopeCount; i++)
 				{
 					_Table.RemoveScope();
