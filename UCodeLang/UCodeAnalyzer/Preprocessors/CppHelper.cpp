@@ -2175,6 +2175,17 @@ String CppHelper::ToString(CppToULangState& State, const CPPType& Value)
 		
 		R += "sintptr";
 	}
+	else if (CMPStr == "float"
+		|| CMPStr == "float_t")
+	{
+		
+		R += "float32";
+	}
+	else if (CMPStr == "double"
+		|| CMPStr == "double_t")
+	{	
+		R += "float64";
+	}
 	else if (CMPStr == "void")
 	{
 		R += "void";
@@ -2200,7 +2211,6 @@ String CppHelper::ToString(CppToULangState& State, const CPPType& Value)
 
 	return R;
 }
-
 String CppHelper::ToString(CppToULangState& State, const CPPExpression& Value)
 {
 	return Value.Value;
