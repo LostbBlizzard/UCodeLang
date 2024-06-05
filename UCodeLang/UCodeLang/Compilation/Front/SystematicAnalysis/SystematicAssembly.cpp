@@ -61,7 +61,7 @@ void SystematicAnalysis::Assembly_LoadLibSymbols()
 		V.FileName = (*_LibsNames)[i];
 	}
 
-	Set<String> AddedSymbols;
+	UnorderedSet<String> AddedSymbols;
 	UnorderedMap<FileNode*, ImportLibInfo> Importinfo;
 
 	while (Mode != LoadLibMode::Done)
