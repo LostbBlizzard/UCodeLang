@@ -2126,7 +2126,7 @@ String CppHelper::ToString(CppToULangState& State, const CPPType& Value)
 	else if (CMPStr == "int8_t" || CMPStr == "int8" || CMPStr == "Int8" || CMPStr == "sInt8"
 		|| CMPStr == "sint8" || CMPStr == "signed char")
 	{
-		R += "uint8";
+		R += "int8";
 	}
 	else if (CMPStr == "int16_t" || CMPStr == "int16" || CMPStr == "Int16" || CMPStr == "sInt16"
 		|| CMPStr == "sint8" || CMPStr == "signed short" || CMPStr == "short")
