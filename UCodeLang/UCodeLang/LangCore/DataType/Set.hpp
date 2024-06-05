@@ -3,7 +3,6 @@
 #include "../LangTypes.hpp"
 UCodeLangStart
 
-/*
 template<typename Key>
 class Set
 {
@@ -35,7 +34,7 @@ private:
 	std::set<Key> _Base;
 	
 };
-*/
+
 
 template<typename Key>
 class UnorderedSet
