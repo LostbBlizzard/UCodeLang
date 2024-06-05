@@ -368,7 +368,7 @@ void SystematicAnalysis::Assembly_LoadLibSymbols(const UClib& lib, ImportLibInfo
 
 				for (size_t i = 0; i < Uses->NameSpaces.size(); i++)
 				{
-					_Table.Useings.erase(_Table.Useings.end());
+					_Table.Useings.erase(_Table.Useings.end() - 1);
 				}
 				for (size_t i = 0; i < ScopeCount; i++)
 				{
@@ -480,7 +480,7 @@ void SystematicAnalysis::Assembly_LoadLibSymbols(const UClib& lib, ImportLibInfo
 
 				for (size_t i = 0; i < Uses->NameSpaces.size(); i++)
 				{
-					_Table.Useings.erase(_Table.Useings.end());
+					_Table.Useings.erase(_Table.Useings.end() - 1);
 				}
 				for (size_t i = 0; i < ScopeCount; i++)
 				{
