@@ -893,7 +893,7 @@ private:
 	String _LastIRFileName;
 	size_t _LastLineNumber = -1;
 
-	Set<SymbolID> _ConstantExpressionMap;
+	UnorderedSet<SymbolID> _ConstantExpressionMap;
 	Stack<GetValueMode> _GetExpressionMode;
 	Stack<VarableUseData> _Varable;
 	Vector<Unique_ptr<EvalFuncData>> _Eval_FuncStackFrames;
@@ -1381,7 +1381,7 @@ private:
 
 	struct ImportLibInfo
 	{
-		Set<AssemblyNode*> ClassesToAdd;
+		UnorderedSet<AssemblyNode*> ClassesToAdd;
 	};
 
 	void Assembly_LoadLibSymbols();
