@@ -37,6 +37,30 @@ void UCodeBackEndObject::Reset()
 }
 void UCodeBackEndObject::BuildSymbols()
 {
+	if (IsDebugMode())
+	{
+		for (auto& Item : _Input->_Debug.Symbols)
+		{
+			if (Item.second._Type == IRDebugSymbol::Type::Stack)
+			{
+
+				VarableInfo info;
+				info.DeclaredLine = 0;
+				info.DeclaredPos = 0;
+				info.FileDeclaredIn = "n/a.uc";
+
+				if (Item.second.LangType == UCode_LangType_UCodeLang)
+				{
+					BytesView bits = BytesView::Make(Item.second.TypeInfo.data(), Item.second.TypeInfo.size());
+					BitReader r;
+					r.SetBytes(bits.Data(), bits.Size());
+					UClib::FromBytes(r, info.ReflectionType);
+				}
+				_DebugInfo.Add_SetVarableName(Item.second.IRVarableName, std::move(info));
+			}
+		}
+	}
+
 	for (auto& Item : _Input->_Symbols)
 	{
 		if (Item->SymType == IRSymbolType::StaticVarable || Item->SymType == IRSymbolType::ThreadLocalVarable)
@@ -2937,7 +2961,7 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 			break;
 		}
 
-		// UpdateVarableLocs();
+		UpdateVarableLocs();
 
 		IRToUCodeInsPost.AddValue(i, _OutLayer->Get_Instructions().size() - 1);
 	}

@@ -240,7 +240,7 @@ private:
 		bool StripTypes = false;
 
 		UCodeLang::OptimizationFlags Flags = UCodeLang::OptimizationFlags::O_2;
-		bool InDebug = false;
+		bool InDebug = true;
 		bool ImportStandardLibrary = false;
 
 		NativeSet OldNativeCpuType = NativeSet::Native;

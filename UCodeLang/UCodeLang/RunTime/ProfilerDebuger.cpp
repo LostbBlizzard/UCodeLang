@@ -66,7 +66,7 @@ UCodeLangAPIExport void ProfilerDebuger::UpdateDebugData(DebugData& Out,Cach& ca
 	for (size_t i = func; i < ins; i++)
 	{
 		auto infoop = DebugInfo.GetForIns(i,cach.cach.value());
-		if (infoop.has_value())
+		if (!infoop.has_value())
 		{
 			continue;
 		}
@@ -95,10 +95,24 @@ UCodeLangAPIExport void ProfilerDebuger::UpdateDebugData(DebugData& Out,Cach& ca
 					UCodeLangUnreachable();
 				}
 
-				d.VarableType = DebugVarable::VarType::Parameter;
+				d.VarableType = DebugVarable::VarType::Stack;
 				d.Type = Var.ReflectionType;
 
-				F._Varables.push_back(d);
+
+				bool wasadded = false;
+				for (auto& Item : F._Varables)
+				{
+					if (Item.VarableName == d.VarableName)
+					{
+						Item = std::move(d);
+						wasadded = true;
+						break;
+					}
+				}
+				if (wasadded == false) 
+				{
+					F._Varables.push_back(d);
+				}
 			}
 		}
 	}
