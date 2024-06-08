@@ -1341,27 +1341,6 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 
 		IRToUCodeInsPre.AddValue(i, _OutLayer->_Instructions.size());
 
-		if (IsDebugMode())
-		{
-			auto lastIRIndex = i;
-			auto DebugInfo = IR->DebugInfo.Get_debugfor(lastIRIndex);
-			for (auto& Item : DebugInfo)
-			{
-				auto InsIndex = (IRToUCodeInsPre.GetValue(i));
-
-				// i == 0 ? _OutLayer->_Instructions.size() : _OutLayer->_Instructions.size() - 1;
-				if (auto Val = Item->Debug.Get_If<IRDebugSetFile>())
-				{
-					Add_SetFile(Val->FileName, InsIndex);
-				}
-				else if (auto Val = Item->Debug.Get_If<IRDebugSetLineNumber>())
-				{
-					InstructionBuilder::Debug_LineEnter(_Ins);
-					PushIns();
-					Add_SetLineNumber(Val->LineNumber, InsIndex);
-				}
-			}
-		}
 
 		switch (Item->Type)
 		{
@@ -2961,8 +2940,28 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 			break;
 		}
 
-		UpdateVarableLocs();
+		{
+			auto lastIRIndex = i;
+			auto DebugInfo = IR->DebugInfo.Get_debugfor(lastIRIndex);
+			for (auto& Item : DebugInfo)
+			{
+				auto InsIndex = (IRToUCodeInsPre.GetValue(i));
 
+				// i == 0 ? _OutLayer->_Instructions.size() : _OutLayer->_Instructions.size() - 1;
+				if (auto Val = Item->Debug.Get_If<IRDebugSetFile>())
+				{
+					Add_SetFile(Val->FileName, InsIndex);
+				}
+				else if (auto Val = Item->Debug.Get_If<IRDebugSetLineNumber>())
+				{
+					InstructionBuilder::Debug_LineEnter(_Ins);
+					PushIns();
+					Add_SetLineNumber(Val->LineNumber, InsIndex);
+				}
+
+			}
+		}
+		UpdateVarableLocs();
 		IRToUCodeInsPost.AddValue(i, _OutLayer->Get_Instructions().size() - 1);
 	}
 DoneLoop:
