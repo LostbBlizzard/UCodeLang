@@ -151,6 +151,10 @@ public:
 	UCodeLangAPIExport void VM_StepOver();
 	UCodeLangAPIExport void VM_StepOut();
 	
+	size_t GetLineNumber(UAddress Ins,Cach& cach);
+
+	//Note this is File identifier not the file full path.
+	Path GetFile(UAddress Ins,Cach& cach);
 private:
 	RunTimeLangState* _state = nullptr;
 	AnyInterpreterPtr _Interpreter;
