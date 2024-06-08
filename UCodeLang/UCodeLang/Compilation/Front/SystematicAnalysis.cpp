@@ -1038,6 +1038,10 @@ IRidentifierID SystematicAnalysis::IR_Build_ConvertToStaticArray(const Symbol& C
 
 				IR_Build_DestructorCall(tep);
 
+				if (_IR_LastExpressionField->Type == IRInstructionType::CleanupFuncCall)
+				{
+					_IR_LastExpressionField->Type = IRInstructionType::Call;
+				}
 
 				if (i + 1 < clasinfo->Count) {
 					_IR_LookingAtIRBlock->NewStore(accumulatorPtr, _IR_LookingAtIRBlock->NewAdd(elmsizeir, accumulatorPtr));
