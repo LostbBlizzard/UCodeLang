@@ -365,7 +365,7 @@ void SystematicAnalysis::Debug_Add_SetVarableInfo(const Symbol& Syb, size_t InsI
 
 		auto irfuncname = _IR_LookingAtIRFunc ? _IR_Builder.FromID(_IR_LookingAtIRFunc->identifier) : "";
 
-		irvarname = irfuncname + scope + ScopeHelper::GetNameFromFullName(Syb.FullName);
+		irvarname = irfuncname + scope;
 	}
 	auto ID = _IR_Builder.ToID(RemoveSymboolFuncOverloadMangling(irvarname));
 	IRDebugSetVarableName V;
