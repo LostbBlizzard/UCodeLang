@@ -1457,114 +1457,123 @@ void  SystematicAnalysis::BuildMember_Access(const GetMemberTypeSymbolFromVar_t&
 	Symbol* LastVarSym = nullptr;
 	//
 
-	if (In._Symbol->Type == SymbolType::Class_Field
-		&& _FuncStack.size()
-		&& _ClassStack.size()
-		&& _ClassStack.top().Info)
+	auto starttoken = In.Start[0]._token;
+
+	if (starttoken->Type == TokenType::Name)
 	{
-		auto& Func = _FuncStack.back().Pointer;
-
-		auto ThisParSym = Symbol_GetSymbol(Func->Pars.front().Type).value();
-		TypeSymbol ObjectType;
-		Variant<IRPar*, IRInstruction*> PointerIr;
-
-		auto Token = In.Start[0]._token;
-
-		bool test = false;
-		if (IsSymbolLambdaObjectClass(ThisParSym) && Token->Type != TokenType::KeyWord_This
-			&& IsLambdaClassSymFromThisPtr(ThisParSym, In._Symbol))
-		{
-			ClassInfo* f = ThisParSym->Get_Info<ClassInfo>();
-			auto parsym = Symbol_GetSymbol(ScopeHelper::ApendedStrings(ThisParSym->FullName, ThisSymbolName), SymbolType::ParameterVarable).value();
-
-			PointerIr = _IR_LookingAtIRBlock->New_Member_Dereference(
-				&_IR_LookingAtIRFunc->Pars.front(),
-				_IR_LookingAtIRFunc->Pars.front().type,
-				f->GetFieldIndex(ThisSymbolName).value());
-
-			ObjectType = parsym.value()->VarType;
-
-			test = true;
-		}
-		else
-		{
-			PointerIr = &_IR_LookingAtIRFunc->Pars.front();
-			ObjectType = *Func->GetObjectForCall();
-			Last_Type = ObjectType;
-		}
-
-		ObjectType._IsAddress = false;
-
-		auto objecttypesyb = Symbol_GetSymbol(ObjectType).value();
-
-		auto IRStructV = IR_Build_ConvertToIRClassIR(*objecttypesyb);
-		auto F = _IR_Builder.GetSymbol(IRStructV)->Get_ExAs<IRStruct>();
-
-
-		const String_view& Str = Token->Type == TokenType::KeyWord_This ? ThisSymbolName : Token->Value._String;
-		ClassInfo* V = objecttypesyb->Get_Info<ClassInfo>();
-
-		if (IsSymbolLambdaObjectClass(objecttypesyb) && Token->Type != TokenType::KeyWord_This
-			&& IsLambdaClassSymFromThisPtr(objecttypesyb, In._Symbol))
-		{
-			auto ClassSym2 = Symbol_GetSymbol(V->GetField(ThisSymbolName).value()->Type).value();
-			auto CInfo2 = ClassSym2->Get_Info<ClassInfo>();
-
-			V = CInfo2;
-		}
-
-		size_t MemberIndex = V->GetFieldIndex(Str).value();
-
-
-		if (auto ir = PointerIr.Get_If<IRPar*>())
-		{
-			Output = _IR_LookingAtIRBlock->New_Member_Dereference(*ir, IRType(IRSymbol(IRStructV)), MemberIndex);
-		}
-		else if (auto ir = PointerIr.Get_If<IRInstruction*>())
-		{
-			Output = _IR_LookingAtIRBlock->New_Member_Dereference(*ir, IRType(IRSymbol(IRStructV)), MemberIndex);
-		}
-		else
-		{
-			UCodeLangUnreachable();
-		}
-
-		Last_Type = V->Fields[MemberIndex].Type;
-	}
-	else if (In.Start[0]._token->Type == TokenType::KeyWord_This)
-	{
-		auto& PointerIr = _IR_LookingAtIRFunc->Pars.front();
-		Output = _IR_LookingAtIRBlock->NewLoad(&PointerIr);
-
-		auto& Func = _FuncStack.back();
-		Last_Type = *Func.Pointer->GetObjectForCall();
-
-		/*
-		auto& lookingfortype = _LookingForTypes.top();
-		if (1 == In.End && !lookingfortype.IsAddress())
-		{
-			auto newtype = Last_Type;
-			newtype._IsAddress = false;
-
-			Output = _IR_LookingAtIRBlock->NewLoad_Dereferenc(Output, IR_ConvertToIRType(newtype));
-			Last_Type = newtype;
-		}
-		*/
-		LastVarSym = Symbol_GetSymbol(ScopeHelper::ApendedStrings(_FuncStack.front().Pointer->FullName, ThisSymbolName), SymbolType::ParameterVarable).value().value();
-	}
-	else if (In._Symbol->Type == SymbolType::Class_Field)
-	{
-
-		auto token = In.Start[0]._token;
+		auto token = starttoken;
 
 		auto sym = Symbol_GetSymbol(token->Value._String, SymbolType::Any).value();
 
 		Last_Type = sym->VarType;
+		LastVarSym = sym.value();
 
-		if (sym->Type == SymbolType::StackVarable) {
+		if (sym->Type == SymbolType::StackVarable)
+		{
 			Output = sym->IR_Ins;
 		}
-		LastVarSym = sym.value();
+		else if (sym->Type == SymbolType::Class_Field)
+		{
+			auto& Func = _FuncStack.back().Pointer;
+
+			auto ThisParSym = Symbol_GetSymbol(Func->Pars.front().Type).value();
+			TypeSymbol ObjectType;
+			Variant<IRPar*, IRInstruction*> PointerIr;
+
+			auto Token = In.Start[0]._token;
+
+			if (IsSymbolLambdaObjectClass(ThisParSym) && IsLambdaClassSymFromThisPtr(ThisParSym, In._Symbol))
+			{
+				ClassInfo* f = ThisParSym->Get_Info<ClassInfo>();
+				auto parsym = Symbol_GetSymbol(ScopeHelper::ApendedStrings(ThisParSym->FullName, ThisSymbolName), SymbolType::ParameterVarable).value();
+
+				PointerIr = _IR_LookingAtIRBlock->New_Member_Dereference(
+					&_IR_LookingAtIRFunc->Pars.front(),
+					_IR_LookingAtIRFunc->Pars.front().type,
+					f->GetFieldIndex(ThisSymbolName).value());
+
+				ObjectType = parsym.value()->VarType;
+
+			}
+			else
+			{
+				PointerIr = &_IR_LookingAtIRFunc->Pars.front();
+				ObjectType = *Func->GetObjectForCall();
+				Last_Type = ObjectType;
+			}
+
+			ObjectType._IsAddress = false;
+
+			auto objecttypesyb = Symbol_GetSymbol(ObjectType).value();
+
+			auto IRStructV = IR_Build_ConvertToIRClassIR(*objecttypesyb);
+			auto F = _IR_Builder.GetSymbol(IRStructV)->Get_ExAs<IRStruct>();
+
+
+			const String_view Str = Token->Value._String;
+			ClassInfo* V = objecttypesyb->Get_Info<ClassInfo>();
+
+			if (IsSymbolLambdaObjectClass(objecttypesyb) && IsLambdaClassSymFromThisPtr(objecttypesyb, In._Symbol))
+			{
+				auto ClassSym2 = Symbol_GetSymbol(V->GetField(ThisSymbolName).value()->Type).value();
+				auto CInfo2 = ClassSym2->Get_Info<ClassInfo>();
+
+				V = CInfo2;
+			}
+
+			size_t MemberIndex = V->GetFieldIndex(Str).value();
+
+
+			if (auto ir = PointerIr.Get_If<IRPar*>())
+			{
+				Output = _IR_LookingAtIRBlock->New_Member_Dereference(*ir, IRType(IRSymbol(IRStructV)), MemberIndex);
+			}
+			else if (auto ir = PointerIr.Get_If<IRInstruction*>())
+			{
+				Output = _IR_LookingAtIRBlock->New_Member_Dereference(*ir, IRType(IRSymbol(IRStructV)), MemberIndex);
+			}
+			else
+			{
+				UCodeLangUnreachable();
+			}
+
+			Last_Type = V->Fields[MemberIndex].Type;
+		}
+	}
+	else if (starttoken->Type == TokenType::KeyWord_This)
+	{
+		auto& Func = _FuncStack.back();
+
+
+		auto parsymop = Symbol_GetSymbol(Func.Pointer->Pars.front().Type);
+		if (parsymop.has_value()) 
+		{
+			auto ThisParSym = parsymop.value();
+
+			if (IsSymbolLambdaObjectClass(ThisParSym) && IsLambdaClassSymFromThisPtr(ThisParSym, In._Symbol))
+			{
+				ClassInfo* f = ThisParSym->Get_Info<ClassInfo>();
+				auto parsym = Symbol_GetSymbol(ScopeHelper::ApendedStrings(ThisParSym->FullName, ThisSymbolName), SymbolType::ParameterVarable).value();
+
+				auto ThisIr = _IR_LookingAtIRBlock->New_Member_Dereference(
+					&_IR_LookingAtIRFunc->Pars.front(),
+					_IR_LookingAtIRFunc->Pars.front().type,
+					f->GetFieldIndex(ThisSymbolName).value());
+
+				Output = ThisIr;
+				LastVarSym = parsym.value();
+				Last_Type = parsym.value()->VarType;
+			}
+			else
+			{
+				auto& PointerIr = _IR_LookingAtIRFunc->Pars.front();
+				Output = _IR_LookingAtIRBlock->NewLoad(&PointerIr);
+
+
+				Last_Type = *Func.Pointer->GetObjectForCall();
+				LastVarSym = Symbol_GetSymbol(ScopeHelper::ApendedStrings(_FuncStack.front().Pointer->FullName, ThisSymbolName), SymbolType::ParameterVarable).value().value();
+			}
+		}
 	}
 	//
 
