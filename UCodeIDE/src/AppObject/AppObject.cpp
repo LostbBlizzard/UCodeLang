@@ -2803,22 +2803,33 @@ void AppObject::ShowDebugerMenu(UCodeVMWindow& windowdata)
         UCodeLang::ProfilerDebuger::Cach cach;
         cach.cach = std::move(_Cach);
 
-        Debuger.UpdateDebugData(DebugInfo,cach);
-
-        _Cach = cach.cach;
+        Debuger.UpdateDebugData(DebugInfo, cach);
 
         ImGui::Text("Varables");
         auto& thisFrame = DebugInfo._StackFrames.front();
 
 
-        for (auto& Item : thisFrame._Varables) 
+        for (auto& Item : thisFrame._Varables)
         {
             ImguiHelper::UCodeObjectField(
                 Item.VarableName.c_str(),
                 Item.GetObjectPtr(),
-                Item.Type, 
+                Item.Type,
                 _RunTimeState.Get_Assembly());
         }
+
+        {
+            auto ins = Debuger.GetCurrentInstruction();
+
+            size_t linenumber = Debuger.GetLineNumber(ins,cach);
+;
+            _Editor.currentdebugline = linenumber;
+        }
+        _Cach = cach.cach;
+    }
+    else
+    {
+        _Editor.currentdebugline = {};
     }
 
     if (InFunction) 

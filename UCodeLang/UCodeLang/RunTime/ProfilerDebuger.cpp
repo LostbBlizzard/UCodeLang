@@ -65,7 +65,7 @@ UCodeLangAPIExport void ProfilerDebuger::UpdateDebugData(DebugData& Out,Cach& ca
 	const ClassMethod* FuncString = nullptr;
 	for (size_t i = func; i < ins; i++)
 	{
-		auto infoop = DebugInfo.GetForIns(i,cach.cach.value());
+		auto infoop = DebugInfo.GetForIns(i-1,cach.cach.value());
 		if (!infoop.has_value())
 		{
 			continue;
@@ -123,6 +123,41 @@ UCodeLangAPIExport void ProfilerDebuger::UpdateDebugData(DebugData& Out,Cach& ca
 
     return;
 }
+size_t ProfilerDebuger::GetLineNumber(UAddress Ins,Cach& cach)
+{
+	auto func = GetStartofFunc(Ins);
+
+	auto& DebugInfo = StepedInterpreter->Get_State()->Get_Libs().Get_DebugInfo();
+
+	size_t liner = 0;
+
+	//this would faster if we go reverse
+	for (size_t i = func; i < Ins; i++)
+	{
+		auto infoop = DebugInfo.GetForIns(i - 1, cach.cach.value());
+		if (!infoop.has_value())
+		{
+			continue;
+		}
+		auto& info = *infoop.value();
+
+		for (auto& Item : info)
+		{
+			if (auto loc = Item->Debug.Get_If<UDebugSetLineNumber>())
+			{
+				liner = loc->LineNumber;
+			}
+		}
+	}
+
+	return liner;
+}
+Path ProfilerDebuger::GetFile(UAddress Ins,Cach& cach)
+{
+
+	return {};
+}
+
 void ProfilerDebuger::StepInto(Interpreter* Interpreter, UAddress Address)
 {
 	auto OldStackPrePars = Interpreter->_CPU.Stack.StackOffSet;
