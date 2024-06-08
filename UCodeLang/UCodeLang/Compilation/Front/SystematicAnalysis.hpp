@@ -1615,6 +1615,7 @@ private:
 
 
 	bool Symbol_HasDestructor(const TypeSymbol& TypeToCheck);
+	bool Symbol_HasDestructor(const SymbolID& TypeToCheck);
 
 	void Symbol_Update_ClassSym_ToFixedTypes(NeverNullPtr<Symbol> Sym);
 	void Symbol_Update_FuncSym_ToFixedTypes(NeverNullPtr<Symbol> Sym);
