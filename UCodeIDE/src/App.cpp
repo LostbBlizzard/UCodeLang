@@ -27,6 +27,11 @@ void loop()
             
         
         ImGui::LoadIniSettingsFromDisk("wasmassets/imgui.ini");
+        #else 
+        if (!std::filesystem::exists("imgui.ini"))
+        {
+            std::filesystem::copy("wasmassets/imgui.ini", "imgui.ini");
+        }
         #endif 
         
     }
