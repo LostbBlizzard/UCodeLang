@@ -247,6 +247,49 @@ void SystematicAnalysis::IR_Build_EnumOut(NeverNullPtr<Symbol> EnumSymbol, size_
 	IR_Build_EnumOut(EnumSymbol, ThisObj, EnumIndex, Pars, 1);
 
 }
+
+
+struct PrimitiveFuncConstructers
+{
+	using Func = IRInstruction * (*)(IRBlock* ins);
+
+	String_view TypeName;
+	TypesEnum TypeEnum;
+	Func DefaultConstructor;
+	PrimitiveFuncConstructers(String_view name, TypesEnum Enum,Func constructor)
+		:TypeName(name), TypeEnum(Enum),DefaultConstructor(constructor)
+
+	{
+
+	}
+};
+const static Array<PrimitiveFuncConstructers, 17> PrimitiveList =
+{
+	PrimitiveFuncConstructers(Uint8TypeName,TypesEnum::uInt8,[](IRBlock* ins) {return ins->NewLoad((UInt8)0); }),
+	{Uint16TypeName,TypesEnum::uInt16,[](IRBlock* ins) {return ins->NewLoad((UInt16)0); }},
+	{Uint32TypeName,TypesEnum::uInt32,[](IRBlock* ins) {return ins->NewLoad((UInt32)0); }},
+	{Uint64TypeName,TypesEnum::uInt64,[](IRBlock* ins) {return ins->NewLoad((UInt64)0); }},
+
+	
+	{Sint8TypeName,TypesEnum::sInt8 ,[](IRBlock* ins) {return ins->NewLoad((UInt8)0); }},
+	{Sint16TypeName,TypesEnum::sInt16,[](IRBlock* ins) {return ins->NewLoad((UInt16)0); }},
+	{Sint32TypeName,TypesEnum::sInt32,[](IRBlock* ins) {return ins->NewLoad((Int32)0); }},
+	{Sint64TypeName,TypesEnum::sInt64,[](IRBlock* ins) {return ins->NewLoad((Int64)0); }},
+
+	{SintPtrTypeName,TypesEnum::sIntPtr,nullptr},
+	{UintPtrTypeName,TypesEnum::uIntPtr,nullptr},
+
+	{boolTypeName,TypesEnum::Bool,[](IRBlock* ins) {return ins->NewLoad((bool)0); }},
+	
+	{CharTypeName,TypesEnum::Char,[](IRBlock* ins) {return ins->NewLoad((char)0); }},
+	{Uft8typeName,TypesEnum::Uft8,[](IRBlock* ins) {return ins->NewLoad((Utf8)0); }},
+	{Uft16typeName,TypesEnum::Uft16,[](IRBlock* ins) {return ins->NewLoad((Utf16)0); }},
+	{Uft32typeName,TypesEnum::Uft32,[](IRBlock* ins) {return ins->NewLoad((Utf32)0); }},
+
+	{float32TypeName,TypesEnum::float32,[](IRBlock* ins) {return ins->NewLoad((float32)0); }},
+	{float64TypeName,TypesEnum::float64,[](IRBlock* ins) {return ins->NewLoad((float64)0); }},
+};
+
 void SystematicAnalysis::IR_Build_FuncCall(Get_FuncInfo Func, const ScopedNameNode& Name, const ValueParametersNode& Pars)
 {
 	if (_PassType != PassType::BuidCode) { return; }
@@ -256,51 +299,6 @@ void SystematicAnalysis::IR_Build_FuncCall(Get_FuncInfo Func, const ScopedNameNo
 	}
 	{
 
-#define PrimitiveTypeCall(FullName,TypeEnum,DefaultValue) if (ScopedName == FullName) \
-		{\
-			TypeSymbol iNfo;\
-			iNfo.SetType(TypeEnum);\
-			if (Pars._Nodes.size())\
-			{\
-				_LookingForTypes.push(iNfo);\
-				auto& Item = Pars._Nodes[0];\
-				OnExpressionTypeNode(Item.get(),GetValueMode::Read);\
-				auto extype = _LastExpressionType; \
-				{ \
-					auto symop = Symbol_GetSymbol(extype); \
-					if (symop.has_value())\
-					{\
-						auto sym = symop.value();\
-						if (sym->Type == SymbolType::Type_Pack)\
-						{\
-							TypePackInfo* info = sym->Get_Info<TypePackInfo>();\
-							if (info->List.size() == 0)\
-							{\
-								_LastExpressionType = iNfo;\
-								DefaultValue;\
-							}\
-							else \
-							{\
-								_LastExpressionType = info->List[0]; \
-								size_t irindex = _IR_LookingAtIRFunc->Pars.size() - info->List.size(); \
-								auto irpar = &_IR_LookingAtIRFunc->Pars[irindex]; \
-								_IR_LastExpressionField = _IR_LookingAtIRBlock->NewLoad(irpar); \
-							}\
-						}\
-					}\
-				}\
-				IR_Build_ImplicitConversion(_IR_LastExpressionField, _LastExpressionType, iNfo);\
-				_LastExpressionType = iNfo; \
-				_LookingForTypes.pop();\
-			}\
-			else\
-			{\
-				_LastExpressionType = iNfo;\
-				DefaultValue;\
-			}\
-			return;\
-		}\
-
 		auto ScopedName = Str_GetScopedNameAsString(Name);
 		auto SymbolsV = Symbol_GetSymbol(ScopedName, SymbolType::Any);
 		if (SymbolsV && SymbolsV.value()->Type == SymbolType::Type_alias)
@@ -308,31 +306,85 @@ void SystematicAnalysis::IR_Build_FuncCall(Get_FuncInfo Func, const ScopedNameNo
 			ScopedName = ToString(SymbolsV.value()->VarType);
 		}
 
-		PrimitiveTypeCall(Uint8TypeName, TypesEnum::uInt8, _IR_LastExpressionField = _IR_LookingAtIRBlock->NewLoad((UInt8)0);)
-		else PrimitiveTypeCall(Uint16TypeName, TypesEnum::uInt16, _IR_LastExpressionField = _IR_LookingAtIRBlock->NewLoad((UInt16)0))
-else PrimitiveTypeCall(Uint32TypeName, TypesEnum::uInt32, _IR_LastExpressionField = _IR_LookingAtIRBlock->NewLoad((UInt32)0))
-	else PrimitiveTypeCall(Uint64TypeName, TypesEnum::uInt64, _IR_LastExpressionField = _IR_LookingAtIRBlock->NewLoad(((UInt64)0)))
 
-	else PrimitiveTypeCall(Sint8TypeName, TypesEnum::sInt8, _IR_LastExpressionField = _IR_LookingAtIRBlock->NewLoad((Int8)0);)
-		else PrimitiveTypeCall(Sint16TypeName, TypesEnum::sInt16, _IR_LastExpressionField = _IR_LookingAtIRBlock->NewLoad((Int16)0))
-		else PrimitiveTypeCall(Sint32TypeName, TypesEnum::sInt32, _IR_LastExpressionField = _IR_LookingAtIRBlock->NewLoad((Int32)0))
-		else PrimitiveTypeCall(Sint64TypeName, TypesEnum::sInt64, _IR_LastExpressionField = _IR_LookingAtIRBlock->NewLoad((Int64)0))
+		//Primitive Constructors
+		for (auto& Item : PrimitiveList)
+		{
+			if (ScopedName == Item.TypeName)
+			{
+				TypeSymbol iNfo;
+				iNfo.SetType(Item.TypeEnum);
 
-		else PrimitiveTypeCall(boolTypeName, TypesEnum::Bool, _IR_LastExpressionField = _IR_LookingAtIRBlock->NewLoad(false))
-		else PrimitiveTypeCall(CharTypeName, TypesEnum::Char, _IR_LastExpressionField = _IR_LookingAtIRBlock->NewLoad('\0'))
-		else PrimitiveTypeCall(Uft8typeName, TypesEnum::Uft8, _IR_LastExpressionField = _IR_LookingAtIRBlock->NewLoad(Utf8('\0')))
-		else PrimitiveTypeCall(Uft16typeName, TypesEnum::Uft16, _IR_LastExpressionField = _IR_LookingAtIRBlock->NewLoad(Utf16('\0')))
-		else PrimitiveTypeCall(Uft32typeName, TypesEnum::Uft32, _IR_LastExpressionField = _IR_LookingAtIRBlock->NewLoad(Utf32('\0')))
+				if (Pars._Nodes.size())
+				{
+					_LookingForTypes.push(iNfo);
+					auto& ItemNode = Pars._Nodes[0];
+					OnExpressionTypeNode(ItemNode.get(), GetValueMode::Read);
+					auto extype = _LastExpressionType;
 
+					{
+						auto symop = Symbol_GetSymbol(extype);
+						if (symop.has_value())
+						{
+							auto sym = symop.value();
+							if (sym->Type == SymbolType::Type_Pack)
+							{
+								TypePackInfo* info = sym->Get_Info<TypePackInfo>();
+								if (info->List.size() == 0)
+								{
+									_LastExpressionType = iNfo;
+									//DefaultValue
+									if (Item.TypeEnum == TypesEnum::uIntPtr)
+									{
+										_IR_LastExpressionField = IR_Load_UIntptr(0);
+									}
+									else if (Item.TypeEnum == TypesEnum::sIntPtr)
+									{
+										_IR_LastExpressionField = IR_Load_SIntptr(0);
+									}
+									else
+									{
+										_IR_LastExpressionField = Item.DefaultConstructor(_IR_LookingAtIRBlock);
+									}
+								}
+								else
+								{
+									_LastExpressionType = info->List[0];
+									size_t irindex = _IR_LookingAtIRFunc->Pars.size() - info->List.size();
+									auto irpar = &_IR_LookingAtIRFunc->Pars[irindex];
+									_IR_LastExpressionField = _IR_LookingAtIRBlock->NewLoad(irpar);
+								}
+							}
+						}
+					}
 
+					IR_Build_ImplicitConversion(_IR_LastExpressionField, _LastExpressionType, iNfo);
+					_LastExpressionType = iNfo;
+					_LookingForTypes.pop();
+				}
+				else
+				{//DefaultValue
+					_LastExpressionType = iNfo;
+					if (Item.TypeEnum == TypesEnum::uIntPtr)
+					{
+						_IR_LastExpressionField = IR_Load_UIntptr(0);
+					}
+					else if (Item.TypeEnum == TypesEnum::sIntPtr)
+					{
+						_IR_LastExpressionField = IR_Load_SIntptr(0);
+					}
+					else
+					{
+						_IR_LastExpressionField = Item.DefaultConstructor(_IR_LookingAtIRBlock);
+					}
 
-		else PrimitiveTypeCall(float32TypeName, TypesEnum::float32, _IR_LastExpressionField = _IR_LookingAtIRBlock->NewLoad((float32)0))
-		else PrimitiveTypeCall(float64TypeName, TypesEnum::float64, _IR_LastExpressionField = _IR_LookingAtIRBlock->NewLoad((float64)0))
+				}
+				return;
+			}
+		}
 
-		else PrimitiveTypeCall(UintPtrTypeName, TypesEnum::uIntPtr, _IR_LastExpressionField = IR_Load_UIntptr(0))
-		else PrimitiveTypeCall(SintPtrTypeName, TypesEnum::sIntPtr, _IR_LastExpressionField = IR_Load_SIntptr(0))
-
-
+		
+		
 	}
 	if (Func.Func == nullptr)
 	{
@@ -1334,6 +1386,7 @@ Vector<Symbol*> SystematicAnalysis::Type_FindForTypeFuncions(const TypeSymbol& T
 {
 	return Type_FindForTypeFuncions(ThisType, "");
 }
+
 SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedNameNode& Name, const ValueParametersNode& Pars, TypeSymbol Ret)
 {
 
@@ -1454,53 +1507,19 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 		}
 
 
-		if (ScopedName == Uint8TypeName ||
-			ScopedName == Uint16TypeName ||
-			ScopedName == Uint32TypeName ||
-			ScopedName == Uint64TypeName ||
-			ScopedName == Sint8TypeName ||
-			ScopedName == Sint16TypeName ||
-			ScopedName == Sint32TypeName ||
-			ScopedName == Sint64TypeName ||
-			ScopedName == SintPtrTypeName ||
-			ScopedName == UintPtrTypeName ||
-			ScopedName == boolTypeName ||
-			ScopedName == CharTypeName ||
-			ScopedName == Uft8typeName ||
-			ScopedName == Uft16typeName ||
-			ScopedName == Uft32typeName ||
-			ScopedName == float32TypeName ||
-			ScopedName == float64TypeName)
+		Optional<TypesEnum> PrimvType;
+		for (auto& Item : PrimitiveList)
 		{
+			if (Item.TypeName == ScopedName)
 			{
-				if (ScopedName == Uint8TypeName) { _LastExpressionType = TypesEnum::uInt8; }
-				else if (ScopedName == Uint16TypeName) { _LastExpressionType = TypesEnum::uInt16; }
-				else if (ScopedName == Uint32TypeName) { _LastExpressionType = TypesEnum::uInt32; }
-				else if (ScopedName == Uint64TypeName) { _LastExpressionType = TypesEnum::uInt64; }
-
-				else if (ScopedName == Sint8TypeName) { _LastExpressionType = TypesEnum::sInt8; }
-				else if (ScopedName == Sint16TypeName) { _LastExpressionType = TypesEnum::sInt16; }
-				else if (ScopedName == Sint32TypeName) { _LastExpressionType = TypesEnum::sInt32; }
-				else if (ScopedName == Sint64TypeName) { _LastExpressionType = TypesEnum::sInt64; }
-
-				else if (ScopedName == SintPtrTypeName) { _LastExpressionType = TypesEnum::sIntPtr; }
-				else if (ScopedName == UintPtrTypeName) { _LastExpressionType = TypesEnum::uIntPtr; }
-
-				else if (ScopedName == boolTypeName) { _LastExpressionType = TypesEnum::Bool; }
-				else if (ScopedName == CharTypeName) { _LastExpressionType = TypesEnum::Char; }
-				else if (ScopedName == Uft8typeName) { _LastExpressionType = TypesEnum::Uft8; }
-				else if (ScopedName == Uft16typeName) { _LastExpressionType = TypesEnum::Uft16; }
-				else if (ScopedName == Uft32typeName) { _LastExpressionType = TypesEnum::Uft32; }
-
-				else if (ScopedName == float32TypeName) { _LastExpressionType = TypesEnum::float32; }
-				else if (ScopedName == float64TypeName) { _LastExpressionType = TypesEnum::float64; }
-
-				else
-				{
-					UCodeLangUnreachable();
-				}
+				PrimvType = Item.TypeEnum;
+				break;
 			}
-
+		}
+		
+		if (PrimvType.has_value())
+		{
+			_LastExpressionType = PrimvType.value();
 
 			size_t parcount = 0;
 			if (Pars._Nodes.size() == 1)
@@ -1645,37 +1664,13 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 				{
 					maintype = val->VarType;
 				}
-				else {
-					const static Array<std::pair<String_view, TypesEnum>, 17> PrimitiveList
-					{
-						std::make_pair(String_view(CharTypeName),TypesEnum::Char),
-						std::make_pair(String_view(boolTypeName),TypesEnum::Bool),
-
-						std::make_pair(String_view(Uint8TypeName),TypesEnum::uInt8),
-						std::make_pair(String_view(Sint8TypeName),TypesEnum::sInt8),
-						std::make_pair(String_view(Uint16TypeName),TypesEnum::uInt16),
-						std::make_pair(String_view(Sint16TypeName),TypesEnum::sInt16),
-						std::make_pair(String_view(Uint32TypeName),TypesEnum::uInt32),
-						std::make_pair(String_view(Sint32TypeName),TypesEnum::sInt32),
-						std::make_pair(String_view(Uint64TypeName),TypesEnum::uInt64),
-						std::make_pair(String_view(Sint64TypeName),TypesEnum::sInt64),
-
-						std::make_pair(String_view(float32TypeName),TypesEnum::float32),
-						std::make_pair(String_view(float64TypeName),TypesEnum::float64),
-
-						std::make_pair(String_view(UintPtrTypeName),TypesEnum::uIntPtr),
-						std::make_pair(String_view(SintPtrTypeName),TypesEnum::sIntPtr),
-
-						std::make_pair(String_view(Uft8typeName),TypesEnum::Uft8),
-						std::make_pair(String_view(Uft16typeName),TypesEnum::Uft16),
-						std::make_pair(String_view(Uft32typeName),TypesEnum::Uft32),
-					};
-
+				else 
+				{
 					for (auto& Item : PrimitiveList)
 					{
-						if (Item.first == scope)
+						if (Item.TypeName == scope)
 						{
-							maintype = TypeSymbol(Item.second);
+							maintype = TypeSymbol(Item.TypeEnum);
 							break;
 						}
 					}
