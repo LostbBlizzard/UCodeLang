@@ -43,11 +43,13 @@ void SystematicAnalysis::OnDropStatementNode(const DropStatementNode& node)
 	if (_PassType == PassType::BuidCode)
 	{
 
-		bool TypeHaveDestructor = Symbol_HasDestructor(Ex0Type);
 		if (Ex0Type.IsAddressArray())
 		{
 			Ex0Type._IsAddressArray = false;
 
+			auto val = Ex0Type;
+			Type_RemoveTypeattributes(val);
+			bool TypeHaveDestructor = Symbol_HasDestructor(val);
 
 			if (TypeHaveDestructor)
 			{
@@ -155,6 +157,10 @@ void SystematicAnalysis::OnDropStatementNode(const DropStatementNode& node)
 			}
 			else
 			{
+				auto val = Ex0Type;
+				Type_RemoveTypeattributes(val);
+				bool TypeHaveDestructor = Type_HasDefaultConstructorFunc(val);
+
 				if (TypeHaveDestructor)
 				{
 					TypeSymbol tep = Ex0Type;
