@@ -554,171 +554,177 @@ void SystematicAnalysis::IR_Build_FuncCall(Get_FuncInfo Func, const ScopedNameNo
 
 			IRParsList.push_back(IR_Build_Member_AsPointer(V));
 		}
-		else
-			if (Func.ThisPar == Get_FuncInfo::ThisPar_t::PushFromScopedName)
+		else if (Func.ThisPar == Get_FuncInfo::ThisPar_t::PushFromScopedName)
+		{
+			_LookingForTypes.push(Func.Func->Pars[0].Type);
+
+			_GetExpressionMode.push(GetValueMode::Read);
+			GetMemberTypeSymbolFromVar_t V;
+			Symbol_MemberTypeSymbolFromVar(0, Name._ScopedName.size() - 1, Name, V);
+			_GetExpressionMode.pop();
+
+
+			IRParsList.push_back(IR_Build_Member_AsPointer(V));
+
+			_LookingForTypes.pop();
+		}
+		else if (Func.ThisPar == Get_FuncInfo::ThisPar_t::PushFromLast)
+		{
+			IRParsList.push_back(_IR_LastExpressionField);
+		}
+		else if (Func.ThisPar == Get_FuncInfo::ThisPar_t::OnIRlocationStack)
+		{
+
+			bool UseedTopIR = _IR_IRlocations.size() != 0 && _IR_IRlocations.top().UsedlocationIR == true;
+			bool makenew = false;
+			if (!UseedTopIR)
 			{
-				_LookingForTypes.push(Func.Func->Pars[0].Type);
-
-				_GetExpressionMode.push(GetValueMode::Read);
-				GetMemberTypeSymbolFromVar_t V;
-				Symbol_MemberTypeSymbolFromVar(0, Name._ScopedName.size() - 1, Name, V);
-				_GetExpressionMode.pop();
-
-
-				IRParsList.push_back(IR_Build_Member_AsPointer(V));
-
-				_LookingForTypes.pop();
-			}
-			else if (Func.ThisPar == Get_FuncInfo::ThisPar_t::PushFromLast)
-			{
-				IRParsList.push_back(_IR_LastExpressionField);
-			}
-			else if (Func.ThisPar == Get_FuncInfo::ThisPar_t::OnIRlocationStack)
-			{
-
-				bool UseedTopIR = _IR_IRlocations.size() != 0 && _IR_IRlocations.top().UsedlocationIR == true;
-				bool makenew = false;
-				if (!UseedTopIR)
-				{	
-					if (_IR_IRlocations.size())
-					{
-						auto Type = Func.Func->Pars[0];
-						auto v = IR_ConvertToIRType(Type);
-
-						const auto& top = _IR_IRlocations.top();
-						IRType val = _IR_Builder.GetType(top.Value);	
-
-						if (v._symbol.ID != val._symbol.ID)
-						{
-							makenew = true;
-						}
-					}
-				}
-
-				bool shouldpushnew = UseedTopIR || makenew || _IR_IRlocations.size() == 0;
-				if (shouldpushnew)
+				if (_IR_IRlocations.size())
 				{
-					IRLocation_Cotr tep;
-					tep.UsedlocationIR = false;
-
 					auto Type = Func.Func->Pars[0];
-					if (Type.Type.IsAddress())
+					auto v = IR_ConvertToIRType(Type);
+
+					const auto& top = _IR_IRlocations.top();
+					IRType val = _IR_Builder.GetType(top.Value);
+
+					if (v._symbol.ID != val._symbol.ID)
 					{
-						Type.Type._IsAddress = false;
-					}
-
-					PushIRStackRet = tep.Value = _IR_LookingAtIRBlock->NewLoad(IR_ConvertToIRType(Type));
-					_IR_IRlocations.push(tep);
-				}
-				else
-				{
-					PushIRStackRet = _IR_IRlocations.top().Value;
-
-					UCodeLangAssert(_IR_IRlocations.top().UsedlocationIR == false);
-				}
-
-
-				{
-					auto Defe = _IR_LookingAtIRBlock->NewLoadPtr(_IR_IRlocations.top().Value);
-					_IR_IRlocations.top().UsedlocationIR = true;
-					IRParsList.push_back(Defe);
-				}
-
-				if (shouldpushnew)
-				{
-					_IR_IRlocations.pop();
-				}
-
-			}
-			else if (Func.ThisPar == Get_FuncInfo::ThisPar_t::OnIRlocationStackNonedef)
-			{
-				bool UseedTopIR = _IR_IRlocations.size() != 0 && _IR_IRlocations.top().UsedlocationIR == true;
-				bool makenew = false;
-				if (!UseedTopIR)
-				{	
-					if (_IR_IRlocations.size())
-					{
-						auto Type = Func.Func->Pars[0];
-						auto v = IR_ConvertToIRType(Type);
-
-						const auto& top = _IR_IRlocations.top();
-						IRType val = _IR_Builder.GetType(top.Value);	
-						if (v._symbol.ID != val._symbol.ID)
-						{
-							makenew = true;
-						}
+						makenew = true;
 					}
 				}
-
-				bool shouldpushnew = UseedTopIR || makenew || _IR_IRlocations.size() == 0;
-				if (shouldpushnew)
-				{
-					IRLocation_Cotr tep;
-					tep.UsedlocationIR = false;
-
-					auto Type = Func.Func->Pars[0];
-					if (Type.Type.IsAddress())
-					{
-						Type.Type._IsAddress = false;
-					}
-
-
-					PushIRStackRet = tep.Value = _IR_LookingAtIRBlock->NewLoad(IR_ConvertToIRType(Type.Type));
-					_IR_IRlocations.push(tep);
-				}
-
-				{
-					UCodeLangAssert(_IR_IRlocations.top().UsedlocationIR == false);
-					IRParsList.push_back(_IR_IRlocations.top().Value);
-					_IR_IRlocations.top().UsedlocationIR = true;
-				}
-
-				if (shouldpushnew)
-				{
-					_IR_IRlocations.pop();
-				}
 			}
-			else if (Func.ThisPar == Get_FuncInfo::ThisPar_t::PushWasCalled)
-			{
-				UCodeLangUnreachable();//just add IRPar list
-				//what does  "just add IRPar list" mean
-			}
-			else if (Func.ThisPar == Get_FuncInfo::ThisPar_t::AutoPushThis)
-			{
 
-				auto& InFunc = _FuncStack.back().Pointer;
+			bool shouldpushnew = UseedTopIR || makenew || _IR_IRlocations.size() == 0;
+			if (shouldpushnew)
+			{
+				IRLocation_Cotr tep;
+				tep.UsedlocationIR = false;
 
-				auto ThisParSym = Symbol_GetSymbol(InFunc->Pars.front().Type).value();
-				if (IsSymbolLambdaObjectClass(ThisParSym))
+				auto Type = Func.Func->Pars[0];
+				if (Type.Type.IsAddress())
 				{
-					ClassInfo* f = ThisParSym->Get_Info<ClassInfo>();
-					auto parsym = Symbol_GetSymbol(ScopeHelper::ApendedStrings(ThisParSym->FullName, ThisSymbolName), SymbolType::ParameterVarable).value();
-
-					auto PointerIr = _IR_LookingAtIRBlock->New_Member_Dereference(
-						&_IR_LookingAtIRFunc->Pars.front(),
-						_IR_LookingAtIRFunc->Pars.front().type,
-						f->GetFieldIndex(ThisSymbolName).value());
-
-					IRParsList.push_back(PointerIr);
+					Type.Type._IsAddress = false;
 				}
-				else
-				{
-					IRParsList.push_back(_IR_LookingAtIRBlock->NewLoad(&_IR_LookingAtIRFunc->Pars.front()));
-				}
-			}
-			else if (Func.ThisPar == Get_FuncInfo::ThisPar_t::PushFromScopedNameDynamicTrait)
-			{
-				_GetExpressionMode.push(GetValueMode::Read);
-				GetMemberTypeSymbolFromVar_t V;
-				Symbol_MemberTypeSymbolFromVar(0, Name._ScopedName.size() - 1, Name, V);
-				_GetExpressionMode.pop();
 
-				IRParsList.push_back(IR_Build_Member_AsPointer(V));
+				PushIRStackRet = tep.Value = _IR_LookingAtIRBlock->NewLoad(IR_ConvertToIRType(Type));
+				_IR_IRlocations.push(tep);
 			}
 			else
 			{
-				UCodeLangUnreachable();;
+				PushIRStackRet = _IR_IRlocations.top().Value;
+
+				UCodeLangAssert(_IR_IRlocations.top().UsedlocationIR == false);
 			}
+
+
+			{
+				auto Defe = _IR_LookingAtIRBlock->NewLoadPtr(_IR_IRlocations.top().Value);
+				_IR_IRlocations.top().UsedlocationIR = true;
+				IRParsList.push_back(Defe);
+			}
+
+			if (shouldpushnew)
+			{
+				_IR_IRlocations.pop();
+			}
+
+		}
+		else if (Func.ThisPar == Get_FuncInfo::ThisPar_t::OnIRlocationStackNonedef)
+		{
+			bool UseedTopIR = _IR_IRlocations.size() != 0 && _IR_IRlocations.top().UsedlocationIR == true;
+			bool makenew = false;
+			if (!UseedTopIR)
+			{
+				if (_IR_IRlocations.size())
+				{
+					auto Type = Func.Func->Pars[0];
+					auto v = IR_ConvertToIRType(Type);
+
+
+					const auto& top = _IR_IRlocations.top();
+					IRType val = _IR_Builder.GetType(top.Value);
+					//GetType does not work correctly becuase its mean for the BackEnd
+					
+					if (val._Type != IRTypes::Null)//This is temporary fix
+					{
+						if (v._symbol.ID != val._symbol.ID)
+						{
+							makenew = true;
+						}
+					}
+
+				}
+			}
+
+			bool shouldpushnew = UseedTopIR || makenew || _IR_IRlocations.size() == 0;
+			if (shouldpushnew)
+			{
+				IRLocation_Cotr tep;
+				tep.UsedlocationIR = false;
+
+				auto Type = Func.Func->Pars[0];
+				if (Type.Type.IsAddress())
+				{
+					Type.Type._IsAddress = false;
+				}
+
+
+				PushIRStackRet = tep.Value = _IR_LookingAtIRBlock->NewLoad(IR_ConvertToIRType(Type.Type));
+				_IR_IRlocations.push(tep);
+			}
+
+			{
+				UCodeLangAssert(_IR_IRlocations.top().UsedlocationIR == false);
+				IRParsList.push_back(_IR_IRlocations.top().Value);
+				_IR_IRlocations.top().UsedlocationIR = true;
+			}
+
+			if (shouldpushnew)
+			{
+				_IR_IRlocations.pop();
+			}
+		}
+		else if (Func.ThisPar == Get_FuncInfo::ThisPar_t::PushWasCalled)
+		{
+			UCodeLangUnreachable();//just add IRPar list
+			//what does  "just add IRPar list" mean
+		}
+		else if (Func.ThisPar == Get_FuncInfo::ThisPar_t::AutoPushThis)
+		{
+
+			auto& InFunc = _FuncStack.back().Pointer;
+
+			auto ThisParSym = Symbol_GetSymbol(InFunc->Pars.front().Type).value();
+			if (IsSymbolLambdaObjectClass(ThisParSym))
+			{
+				ClassInfo* f = ThisParSym->Get_Info<ClassInfo>();
+				auto parsym = Symbol_GetSymbol(ScopeHelper::ApendedStrings(ThisParSym->FullName, ThisSymbolName), SymbolType::ParameterVarable).value();
+
+				auto PointerIr = _IR_LookingAtIRBlock->New_Member_Dereference(
+					&_IR_LookingAtIRFunc->Pars.front(),
+					_IR_LookingAtIRFunc->Pars.front().type,
+					f->GetFieldIndex(ThisSymbolName).value());
+
+				IRParsList.push_back(PointerIr);
+			}
+			else
+			{
+				IRParsList.push_back(_IR_LookingAtIRBlock->NewLoad(&_IR_LookingAtIRFunc->Pars.front()));
+			}
+		}
+		else if (Func.ThisPar == Get_FuncInfo::ThisPar_t::PushFromScopedNameDynamicTrait)
+		{
+			_GetExpressionMode.push(GetValueMode::Read);
+			GetMemberTypeSymbolFromVar_t V;
+			Symbol_MemberTypeSymbolFromVar(0, Name._ScopedName.size() - 1, Name, V);
+			_GetExpressionMode.pop();
+
+			IRParsList.push_back(IR_Build_Member_AsPointer(V));
+		}
+		else
+		{
+			UCodeLangUnreachable();
+		}
 	}
 
 
