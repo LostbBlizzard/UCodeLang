@@ -3691,15 +3691,17 @@ Optional< Optional<SystematicAnalysis::Get_FuncInfo>> SystematicAnalysis::Type_F
 
 				if (addinput)
 				{
+					auto removed = InputType;
+					Type_RemoveTypeattributes(removed);
 					if (i2 >= HasBenAdded.size())
 					{
-						GenericInput.push_back(InputType);
+						GenericInput.push_back(removed);
 						Added = true;
 						continue;
 					}
 					else if (HasBenAdded[i2] == false)
 					{
-						GenericInput.push_back(InputType);
+						GenericInput.push_back(removed);
 						HasBenAdded[i2] = true;
 						Added = true;
 						continue;
