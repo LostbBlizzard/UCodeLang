@@ -89,8 +89,11 @@ void SystematicAnalysis::OnAssignExpressionNode(const AssignExpressionNode& node
 			domove_ctor = true;
 		}
 
-		IR_Build_ImplicitConversion(ExIR, NewvalEx, implictype);
-		ExIR = _IR_LastExpressionField;
+		if (domove_ctor == false)
+		{
+			IR_Build_ImplicitConversion(ExIR, NewvalEx, implictype);
+			ExIR = _IR_LastExpressionField;
+		}
 
 		auto t = AssignType.Op1;
 		if (Symbol_HasDestructor(AssignType.Op1) || domove_ctor)
@@ -119,6 +122,7 @@ void SystematicAnalysis::OnAssignExpressionNode(const AssignExpressionNode& node
 			{
 			case IROperatorType::IRInstruction:
 				obj = _IR_LastStoreField.Pointer;
+				AssignIR = _IR_LastStoreField.Pointer;
 				break;
 			case IROperatorType::DereferenceOf_IRParameter:
 				obj = _IR_LastStoreField.Parameter;
@@ -127,6 +131,8 @@ void SystematicAnalysis::OnAssignExpressionNode(const AssignExpressionNode& node
 			case IROperatorType::IRParameter:
 				obj = _IR_LastStoreField.Parameter;
 				AssignExType._IsAddress = false;
+
+				AssignIR = _IR_LookingAtIRBlock->NewLoad(_IR_LastStoreField.Parameter);
 			break;
 
 			default:
