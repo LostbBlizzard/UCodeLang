@@ -183,6 +183,10 @@ void AppObject::Init()
         {
             OutputWindow.Type = BackEndType::C89;
         }
+        if (UCodeLang::StringHelper::Contains(str, "//IR"))
+        {
+            OutputWindow.Type = BackEndType::IR;
+        }
         
         UpdateBackEnd();
         CompileText(GetTextEditorString());
