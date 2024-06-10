@@ -176,7 +176,16 @@ void SystematicAnalysis::OnAssignExpressionNode(const AssignExpressionNode& node
 			{
 			case SymbolType::Type_class:
 			{
-				move_ctor_sym = Symbol_GetSymbol(sym->Get_Info<ClassInfo>()->_ClassHasMoveConstructor.value()).value();
+				auto info = sym->Get_Info<ClassInfo>();
+
+				if (info->_ClassHasMoveConstructor.has_value()) 
+				{
+					move_ctor_sym = Symbol_GetSymbol(info->_ClassHasMoveConstructor.value()).value();
+				}
+				else
+				{
+					move_ctor_sym = Symbol_GetSymbol(info->_AutoGenerateMoveConstructor.value()).value();
+				}
 			}
 			break;
 			default:
