@@ -4052,47 +4052,6 @@ SystematicAnalysis::Get_FuncInfo SystematicAnalysis::Symbol_GetEnumVariantFunc(N
 }
 void SystematicAnalysis::IR_Build_DestructorCall(const ObjectToDrop& Object)
 {
-
-	if (Type_IsPrimitive(Object.Type))
-	{
-		/*
-		return;
-		UAddress NewValue;
-		UAddress ObjectSize;
-		GetSize(Object.Type, ObjectSize);
-
-		Byte* ValuePtr = (Byte*)&NewValue;
-
-		size_t Length = ObjectSize < sizeof(NewValue) ? ObjectSize : sizeof(NewValue);
-		for (size_t i = 0; i < Length; i++)
-		{
-			*ValuePtr = DebugGarbageByte;
-
-			ValuePtr++;
-		}
-
-		#define Primitive_Destructor(X) \
-		case sizeof(UInt##X):\
-		{\
-			_Builder.Build_Assign(IROperand::AsInt##X(*(UInt##X*)&NewValue));\
-		}break;\
-
-		switch (ObjectSize)
-		{
-			Primitive_Destructor(8)
-			Primitive_Destructor(16)
-			Primitive_Destructor(32)
-			Primitive_Destructor(64)
-
-		default:break;
-		}
-
-		auto Op = IROperand::AsLocation(_Builder.GetLastField());
-		auto NewOp = IROperand::AsLocation(Object.Object);
-		_Builder.Build_Assign(NewOp, Op);
-		*/
-	}
-	else
 	{
 
 		if (Object.Type.IsAn(TypesEnum::CustomType))

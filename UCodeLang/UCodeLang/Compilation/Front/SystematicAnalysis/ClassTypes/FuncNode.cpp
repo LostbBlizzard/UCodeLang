@@ -769,7 +769,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 						ObjectToDrop V;
 						V.DropType = ObjectToDropType::Operator;
 						V.ID = ParSybID;
-						V._Operator = IROperator(&d);
+						V._Operator = IROperator(_IR_LookingAtIRBlock->NewLoadPtr(&d));
 						V.Type = PackType;
 
 						_IR_StackFrames.back().OnEndStackFrame.push_back(V);
