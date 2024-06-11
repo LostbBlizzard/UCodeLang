@@ -4779,7 +4779,7 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IRInstructi
 			}
 			else
 			{
-				R = GetIRLocData(Ins->Target());
+				R = GetIRLocData(Ins,Ins->Target());
 			}
 
 			if (GetAddress)
@@ -5206,15 +5206,14 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IRInstructi
 				tep.Info = IRlocData_StackPost(pre->Offset);
 				return tep;
 			}
-			auto V = GetIRLocData(InsPar);
 
-			IRlocData tep = GetFreeStackLoc(InsPar->ObjectType);
+			IRlocData tep = GetFreeStackLoc(outputtype);
 
 			auto v = _Stack.Get(tep.Info.Get<IRlocData_StackPost>().offset);
 			v.value()->IR = IRAndOperator(Ins, &Op);
 
 
-
+			auto V = GetIRLocData(InsPar);
 			V.ObjectType = outputtype;
 			CopyValues(V, tep, true, false);
 
