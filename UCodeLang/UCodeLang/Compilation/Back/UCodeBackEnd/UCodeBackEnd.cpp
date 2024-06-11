@@ -2020,7 +2020,25 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 		case IRInstructionType::Reassign_dereference:
 		{
 			RegisterID Pointer = MakeIntoRegister(Item, Item->Target());
-			StoreValueInPointer(Pointer, GetIRLocData(Item, Item->Input()));
+
+			bool shouldset = !_Registers.IsUsed(Pointer);
+
+			if (shouldset) {
+				_Registers.SetRegister(Pointer, Item->Target());
+			}
+
+			IRlocData Src = GetIRLocData(Item, Item->Input());
+
+			IRlocData Out;
+			Out.ObjectType = Src.ObjectType;
+			Out.Info = Pointer;
+
+			CopyValues(Src,Out, false, true);
+
+			if (shouldset)
+			{
+				_Registers.FreeRegister(Pointer);
+			}
 		}
 		break;
 		case IRInstructionType::EqualTo:
@@ -5779,7 +5797,7 @@ void UCodeBackEndObject::CopyValues(const IRlocData& Src, const IRlocData& Out, 
 				IRlocData V;
 				V.Info = Tep;
 				V.ObjectType = IRTypes::i32;
-				ReadValueFromPointer(SrcPointer, Offset, V);
+				StoreValueInPointer(OutPointer,Offset,V);
 			}
 			else
 			{
@@ -5815,13 +5833,13 @@ void UCodeBackEndObject::CopyValues(const IRlocData& Src, const IRlocData& Out, 
 				IRlocData V;
 				V.Info = Tep;
 				V.ObjectType = IRTypes::i16;
-				ReadValueFromPointer(SrcPointer, Offset, V);
+				StoreValueInPointer(OutPointer,Offset,V);
 			}
 			else
 			{
 				IRlocData V;
 				V.Info = Out.Info;
-				V.ObjectType = IRTypes::i32;
+				V.ObjectType = IRTypes::i16;
 				MoveRegInValue(Tep, V, Offset);
 			}
 
@@ -5851,7 +5869,7 @@ void UCodeBackEndObject::CopyValues(const IRlocData& Src, const IRlocData& Out, 
 				IRlocData V;
 				V.Info = Tep;
 				V.ObjectType = IRTypes::i8;
-				ReadValueFromPointer(SrcPointer, Offset, V);
+				StoreValueInPointer(OutPointer,Offset,V);
 			}
 			else
 			{
