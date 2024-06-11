@@ -200,7 +200,12 @@ void SystematicAnalysis::OnExpressionNode(const IndexedExpresionNode& node)
 
 
 
-		_IndexedExpresion_Datas.AddValue(Symbol_GetSymbolID(node), V);
+		auto symid = Symbol_GetSymbolID(node);
+		
+		if (!_IndexedExpresion_Datas.HasValue(symid)) 
+		{
+			_IndexedExpresion_Datas.AddValue(symid, V);
+		}
 
 	}
 
