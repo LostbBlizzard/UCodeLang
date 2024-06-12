@@ -2410,7 +2410,8 @@ void AppObject::ShowUCodeVMWindow()
 
 
             {
-                std::system(("node " + node_file.generic_string() + " > " + out_file.generic_string()).c_str());
+                String val = "node " + node_file.generic_string() + " > " + out_file.generic_string();
+                std::system(val.c_str());
             }
 
             std::stringstream ss_out;
@@ -3329,7 +3330,8 @@ void AppObject::ShowDebugerMenu(UCodeVMWindow& windowdata)
                     {
                         void* Object = (void*)((uintptr_t)Memptr + (uintptr_t)Val->offset);
 
-                        ImGui::Text(("offset:" + std::to_string(Val->offset)).c_str());
+                        String val ="offset:" + std::to_string(Val->offset);
+                        ImGui::Text(val.c_str());
                         ImGui::SameLine();
                         ImguiHelper::UCodeObjectField(Item.first.c_str(),Object, Item.second.ReflectionType, Assembly);
                     }
