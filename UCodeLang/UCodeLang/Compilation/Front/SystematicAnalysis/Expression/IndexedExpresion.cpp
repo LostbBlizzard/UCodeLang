@@ -259,6 +259,7 @@ void SystematicAnalysis::OnExpressionNode(const IndexedExpresionNode& node)
 					{
 						auto rawtype = _LastExpressionType;
 						rawtype._IsAddress = false;
+						rawtype._ValueInfo = TypeValueInfo::IsValue;
 
 						_IR_LastExpressionField = _IR_LookingAtIRBlock->NewLoad_Dereferenc(_IR_LastExpressionField
 							, IR_ConvertToIRType(rawtype));
@@ -348,6 +349,7 @@ void SystematicAnalysis::OnExpressionNode(const IndexedExpresionNode& node)
 						lookingfor.SetAsAddress();
 					}
 					lookingfor._IsAddressArray = false;
+					lookingfor._ValueInfo = TypeValueInfo::IsValue;
 					_LastExpressionType = lookingfor;
 				}
 
