@@ -27,7 +27,9 @@ bool SystematicAnalysis::Type_IsCharType(const TypeSymbol& TypeToCheck) const
 }
 bool SystematicAnalysis::Type_IsPrimitive(const TypeSymbol& TypeToCheck) const
 {
-	bool r = TypeToCheck.IsAddress() || Type_IsPrimitiveNotIncludingPointers(TypeToCheck);
+	bool r = TypeToCheck.IsAddress() 
+		|| TypeToCheck.IsAddressArray() 
+		|| Type_IsPrimitiveNotIncludingPointers(TypeToCheck);
 
 	if (!r && TypeToCheck.IsAn(TypesEnum::CustomType))
 	{
