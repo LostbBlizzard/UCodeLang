@@ -209,6 +209,7 @@ void SystematicAnalysis::OnReadVariable(const ReadVariableNode& nod)
 				{
 					_IR_LastExpressionField = IR_Build_Member_AsPointer(V);
 					V.Type.SetAsAddress();
+					V.Type._ValueInfo = TypeValueInfo::IsValue;
 				}
 				else if (LookIsAddress == false && AmIsAddress == true)
 				{
