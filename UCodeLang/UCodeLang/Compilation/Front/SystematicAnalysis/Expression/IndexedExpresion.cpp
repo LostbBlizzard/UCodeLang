@@ -6,7 +6,12 @@ void SystematicAnalysis::OnExpressionNode(const IndexedExpresionNode& node)
 {
 	if (_LookingForTypes.size() && _LookingForTypes.top()._Type == TypesEnum::Var)
 	{
-		TypeSymbol V; V.SetType(TypesEnum::Any);
+		auto& top = _LookingForTypes.top();
+
+		TypeSymbol V;
+		V.SetType(TypesEnum::Any);
+		V._IsAddress = top.IsAddress();
+
 		_LookingForTypes.push(V);
 	}
 	else
