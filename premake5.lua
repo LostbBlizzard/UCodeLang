@@ -879,8 +879,6 @@ newaction {
     trigger = "build_website",
     description = "build website",
     execute = function ()
-        local mymodule = require("UCodeWebsite.update_doc")
-        mymodule.update_doc();
         
     end
 }
