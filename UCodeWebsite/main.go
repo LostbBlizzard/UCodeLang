@@ -132,26 +132,7 @@ func main() {
 		return c.Render(200, "index", pagedata)
 	})
 	e.GET("/doc", func(c echo.Context) error {
-		file, err := staticfolder.ReadFile("static/doc/index.html")
-		if err != nil {
-			return err
-		}
-
-		return c.HTML(http.StatusOK, string(file[:]))
-	})
-
-	e.GET("/doc/**", func(c echo.Context) error {
-
-		url := c.Request().URL.Path
-
-		fmt.Println(url)
-
-		file, err := staticfolder.ReadFile("static/doc/index.html")
-		if err != nil {
-			return err
-		}
-
-		return c.HTML(http.StatusOK, string(file[:]))
+		return c.Redirect(http.StatusPermanentRedirect, "/static/doc/index.html")
 	})
 	e.GET("/install", func(c echo.Context) error {
 
