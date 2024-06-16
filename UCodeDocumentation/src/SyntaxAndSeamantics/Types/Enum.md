@@ -9,7 +9,7 @@ $PrimaryColors enum:
   Blue,
 ```
 
-The base type of an enum is an  [byte](../Types/ints.md) by default, unless specified otherwise:
+The base type of an enum is an [byte](../Types/ints.md) by default, unless specified otherwise:
 
 ```
 $PrimaryColors[int] enum:
@@ -22,7 +22,7 @@ The value of each enum field is determined by the default value of the base type
 
 ```
 $PrimaryColors[int] enum:
-  Red ,//the default value of int is 0. 
+  Red ,//the default value of int is 0.
   Green,//Red + 1 = 1
   Blue,//Green + 1 = 2
 ```
@@ -43,7 +43,7 @@ $PrimaryColors[PrimaryColors_t] enum:
 
 Enum Variants are Keys to maped Data.
 
-```    
+```
 $FireData;
 $IceData;
 $PowerUp enum:
@@ -54,17 +54,16 @@ $PowerUp enum:
   Speed[int MaxSpeed,int acceleration],
 ```
 
-
 Then Can be used like this.
 
-```
+```cpp
 |main[]:
   PowerUp nonePower =  PowerUp::None;
   PowerUp speedPower = PowerUp::Speed(5,5);
                                        //^set values
-    
+
   if PowerUp::Speed(speedPower,out Speed,out acceleration):
-    int NewMaxSpeed =Speed; 
+    int NewMaxSpeed =Speed;
 ```
 
 You must the pass the enum with [out](../Keywords/out.md) values to get the value to get the stored value in the Enum.
@@ -72,9 +71,10 @@ You must the pass the enum with [out](../Keywords/out.md) values to get the valu
 note it's not possible to get the stored enum without a conditional statement such as a if,else if,while,do,match.
 
 # Enum specification
-Enum Variants are compiled down to classes and Unions showed below in its [IR representation]("IR.md").
 
-```    
+Enum Variants are compiled down to classes and Unions showed below.
+
+```cpp
 $FireData;
 $IceData;
 $PowerUp enum:
@@ -83,23 +83,24 @@ $PowerUp enum:
   Ice[IceData],
   Damage[int Dmg],
   Speed[int MaxSpeed,int acceleration],
-    
+
 
 //As IR form
-    
+
 $FireData;
-$IceData; $PowerUp_Speed_type:
+$IceData;
+$PowerUp_Speed_type:
   int MaxSpeed;
   int acceleration;
 
 $PowerUp_union union:
     //none has no type associated so its uneeded.
     FireData Item_1;//Fire
-    
+
     IceData Item_2;//Ice
-    
+
     int Item_3;// Damage
-  
+
     PowerUp_Speed_type Item_4;// Speed
 
 $PowerUpClass:
@@ -111,7 +112,7 @@ $PowerUpClass:
 
 Enum Variants Destructors are a list if chans.
 
-checking its Key With the field Key and calling its Destructor.the same idea applies to 
+checking its Key With the field Key and calling its Destructor.the same idea applies to
 copy Constructors,
 move Constructors,
 copy assignments,

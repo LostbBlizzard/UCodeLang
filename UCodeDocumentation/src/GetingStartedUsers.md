@@ -1,13 +1,13 @@
 # Geting Started Users
 
-Despite that UCodeLang was designed to embed into applications.
+Despite that UCodeLang was designed to embed into applications. You can use Directly using uclang command line tool.
 
-You can use it by itself.
 ## Download
+
 You may use the [Playground](https://lostbblizzard.github.io/UCodeLang/UCodeIDE/UCodeIDE.html) to try it without Downloading.
 
-
 Run The following in your terminal to install on linux/MacOs.
+
 ```
 curl -L https://github.com/LostbBlizzard/UCodeLang/releases/latest/download/install.sh | sh
 ```
@@ -21,36 +21,40 @@ uclang help
 ```
 
 ## Extension
-lets also download the [VsCode extension](https://marketplace.visualstudio.com/items?itemName=Lostblizzard.ucode-language) to make our lives easier. 
+
+lets also download the [VsCode extension](https://marketplace.visualstudio.com/items?itemName=Lostblizzard.ucode-language) to make our lives easier.
 
 just search up UCodeLang by Lost blizzard in your extension tab.
 
 ## Hello main
-after geting your extension. run 
+
+after geting your extension. run
+
 ```
 uclang new
 ```
+
 This will ask you about the Project name and author's name.
 
 You can put HelloMain as the ProjectName.
 and MySelf as the AuthorName.
 
 Inside the new folder.You will Have this folder structure.
+
 ```
 - HelloMain
-  
+
   - src
     - main.uc
 
   - ULangModule.ucm
-  
+
   - Build.uc
 
 ```
 
 The 'src' Folder is were all your code is going to be.
 UCodeLang uses the .uc file extension for all source files.
-
 
 main.uc is were your main funcion is.This is were your program will start executing.
 
@@ -60,18 +64,20 @@ Lasly [ULangModule.uc](./Users/ULangModule.md) Is were you place your dependenci
 
 ## build and runing
 
-Now lets build our Hello World Program 
+Now lets build our Hello World Program
 by runing uclang build.
 
 ```
 uclang build
 ```
+
 And run to program by using uclang run
+
 ```
 uclang run
 ```
-You should see Hello World On your Screen.
 
+You should see Hello World On your Screen.
 
 Also See [Syntax And Semantics](./SyntaxAndSemantics.md)
 
