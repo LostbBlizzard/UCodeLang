@@ -1281,6 +1281,8 @@ struct ExtendedFuncExpression : Node
 
 	AddforNode(ExtendedFuncExpression);
 
+	ExtendedFuncExpression(ExtendedFuncExpression&& source) noexcept = default;
+
 	ExtendedFuncExpression() : Node(NodeType::ExtendedFuncExpression)
 	{
 
@@ -1454,4 +1456,15 @@ struct ForTypeNode :Node
 	bool _IsExport = false;
 };
 
+struct ExtendedFuncStatement : Node
+{
+	ExtendedFuncStatement(ExtendedFuncExpression&& val) : Node(NodeType::ExtendedFuncStatement)
+		,_Base(std::move(val))
+	{
+
+	}
+	ExtendedFuncStatement(ExtendedFuncStatement&& Source) = default;
+
+	ExtendedFuncExpression _Base;
+};
 UCodeLangFrontEnd

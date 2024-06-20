@@ -90,6 +90,7 @@ enum class NodeType :UInt8
 	DeferStatementNode,
 	UnaryExpressionNode,
 	ForTypeNode,
+	ExtendedFuncStatement,
 };
 
 
