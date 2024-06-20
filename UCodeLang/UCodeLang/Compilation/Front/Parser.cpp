@@ -912,7 +912,7 @@ GotNodeType Parser::GetStatement(Node*& out)
 			r = GetPostfixStatement();
 			break;
 		case MyEnum::FuncCall:
-			r = GetFuncCallStatementNode();
+			r = GetFuncCallStatementNode2();
 			break;
 		default:
 			UCodeLangUnreachable();
@@ -3466,6 +3466,101 @@ GotNodeType Parser::GetFuncCallStatementNode(FuncCallStatementNode& out)
 
 	auto SemicolonToken = TryGetToken(); TokenTypeCheck(SemicolonToken, TokenType::Semicolon);
 	NextToken();
+	return GotNodeType::Success;
+}
+GotNodeType Parser::GetFuncCallStatementNode2(Node*& out)
+{
+	FuncCallNode node;
+	GetFuncCallNode(node);
+
+	auto SemicolonToken = TryGetToken();
+
+	if (SemicolonToken->Type == TokenType::Semicolon)
+	{
+		NextToken();
+
+		FuncCallStatementNode* V = FuncCallStatementNode::Gen();
+
+		V->_Base = std::move(node);
+		out = V;
+
+		return GotNodeType::Success;
+	}
+	else if (ScopedName::Get_IsScoped(SemicolonToken->Type))
+	{
+		auto Operator = SemicolonToken->Type;
+		Node* Ex = new FuncCallNode(std::move(node));
+
+
+		do
+		{
+
+			NextToken();
+
+			ScopedNameNode node;
+			GetName(node);
+	
+			bool isfunc = false;
+			auto DotToken = TryGetToken();
+			if (DotToken->Type == TokenType::Left_Parentheses)
+			{
+				NextToken();
+
+				auto ExtendedNode = ExtendedFuncExpression::Gen();
+				ExtendedNode->_Expression._Value = Unique_ptr<Node>(Ex);
+				ExtendedNode->_Operator = ScopedName::Get_Scoped(Operator);
+				ExtendedNode->_Extended._FuncName._ScopedName = std::move(node._ScopedName);
+
+				GetValueParametersNode(ExtendedNode->_Extended.Parameters);
+
+				TokenTypeCheck(TryGetToken(), TokenType::Right_Parentheses);
+				NextToken();
+
+				Ex = ExtendedNode;
+
+				isfunc = true;
+			}
+			else
+			{
+
+				auto ExtendedNode = ExtendedScopeExpression::Gen();
+				ExtendedNode->_Expression._Value = Unique_ptr<Node>(Ex);
+				ExtendedNode->_Operator = ScopedName::Get_Scoped(Operator);
+				ExtendedNode->_Extended._ScopedName = std::move(node._ScopedName);
+
+				Ex = ExtendedNode;
+			}
+
+			auto nexttoken = TryGetToken();
+
+			if (nexttoken->Type == TokenType::Semicolon && isfunc)
+			{
+				NextToken();
+				
+				auto ptr = (ExtendedFuncExpression*)Ex;
+				ExtendedFuncStatement* NewEx = new ExtendedFuncStatement(std::move(*ptr));
+				
+				delete Ex;
+				out = NewEx;
+				return GotNodeType::Success;
+			}
+			else if (ScopedName::Get_IsScoped(nexttoken->Type))
+			{
+				continue;
+			}
+			else
+			{
+				UCodeLangToDo();
+			}
+
+		} while (true);
+
+	}
+	else
+	{
+		TokenTypeCheck(SemicolonToken, TokenType::Semicolon);
+	}
+
 	return GotNodeType::Success;
 }
 GotNodeType Parser::GetFuncCallNode(FuncCallNode& out)
