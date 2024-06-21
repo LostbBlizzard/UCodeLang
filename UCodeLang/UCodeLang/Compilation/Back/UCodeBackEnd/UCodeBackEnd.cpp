@@ -4312,6 +4312,31 @@ RegisterID UCodeBackEndObject::LoadOp(const IRInstruction* Ins, const IROperator
 	UCodeLangUnreachable();
 }
 
+UCodeBackEndObject::MemberAccessOffsetInfo UCodeBackEndObject::GetMemberAccessDereferenceOffset(const IRInstruction* VIns) 
+{
+	size_t Offset = 0;
+	while (VIns->Type == IRInstructionType::Member_Access)
+	{
+		auto V = _Input->GetOffset(
+			_Input->GetSymbol(GetType(VIns->Target())._symbol)->Get_ExAs<IRStruct>(), VIns->Input().Value.AsUIntNative);
+
+		Offset += V;
+		auto Tar = VIns->Target();
+		if (Tar.Type == IROperatorType::IRInstruction)
+		{
+			VIns = Tar.Pointer;
+		}
+		else
+		{
+			break;
+		}
+	}
+
+	UCodeBackEndObject::MemberAccessOffsetInfo r;
+	r.Offset = Offset;
+	r.BaseInstruction = VIns;
+	return r;
+}
 void UCodeBackEndObject::StoreValue(const IRInstruction* Ins, const IROperator& OutputLocationIR, const IROperator& Input)
 {
 	if (OutputLocationIR.Type == IROperatorType::IRInstruction)
@@ -4334,24 +4359,10 @@ void UCodeBackEndObject::StoreValue(const IRInstruction* Ins, const IROperator& 
 
 		if (VIns->Type == IRInstructionType::Member_Access_Dereference)
 		{
-			VIns = Item;
-			size_t Offset = 0;
-			while (VIns->Type == IRInstructionType::Member_Access)
-			{
-				auto V = _Input->GetOffset(
-					_Input->GetSymbol(GetType(VIns->Target())._symbol)->Get_ExAs<IRStruct>(), VIns->Input().Value.AsUIntNative);
+			auto Val = GetMemberAccessDereferenceOffset(Item);
+			//Not using Offset in Val is most likely a bug
 
-				Offset += V;
-				auto Tar = VIns->Target();
-				if (Tar.Type == IROperatorType::IRInstruction)
-				{
-					VIns = Tar.Pointer;
-				}
-				else
-				{
-					break;
-				}
-			}
+			auto& VIns = Val.BaseInstruction;
 
 			auto Type = VIns->ObjectType;
 
@@ -5159,6 +5170,10 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IRInstructi
 						Pos.ObjectType = VStruct->Fields[FieldIndex].Type;
 
 						return Pos;
+					}
+					else if (Item->Type == IRInstructionType::Member_Access_Dereference)
+					{
+						return GetIRLocData(Item, GetAddress);
 					}
 					else
 					{
