@@ -1324,6 +1324,7 @@ private:
 	void OnStatements(const StatementsNode& node);
 	void OnPanicStatement(const PanicNode& node);
 	void OnForTypeNode(const ForTypeNode& node);
+	void OnExtenedFuncStatmentNode(const ExtendedFuncStatement& node);
 
 
 	struct OptionalTypeInfo
