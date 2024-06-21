@@ -3491,6 +3491,9 @@ GotNodeType Parser::GetFuncCallStatementNode2(Node*& out)
 		auto Operator = SemicolonToken->Type;
 		Node* Ex = new FuncCallNode(std::move(node));
 
+		auto val = new ValueExpressionNode();
+		val->_Value.reset(Ex);
+		Ex = val;
 
 		do
 		{

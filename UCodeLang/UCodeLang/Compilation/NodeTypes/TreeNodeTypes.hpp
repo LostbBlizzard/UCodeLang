@@ -1458,6 +1458,10 @@ struct ForTypeNode :Node
 
 struct ExtendedFuncStatement : Node
 {
+	ExtendedFuncStatement() : Node(NodeType::ExtendedFuncStatement)
+	{
+
+	}
 	ExtendedFuncStatement(ExtendedFuncExpression&& val) : Node(NodeType::ExtendedFuncStatement)
 		,_Base(std::move(val))
 	{
@@ -1465,6 +1469,7 @@ struct ExtendedFuncStatement : Node
 	}
 	ExtendedFuncStatement(ExtendedFuncStatement&& Source) = default;
 
+	AddforNode(ExtendedFuncStatement);
 	ExtendedFuncExpression _Base;
 };
 UCodeLangFrontEnd
