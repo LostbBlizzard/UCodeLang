@@ -149,7 +149,7 @@ inline String ModeType(OptimizationFlags Flags)
 	return r;
 }
 
-static const Array<TestInfo, 157> Tests{
+static const Array<TestInfo, 158> Tests{
 
 	TestInfo("main_0", "BasicTests/main.uc", "Main", SuccessCondition::Compilation),
 
@@ -373,6 +373,8 @@ static const Array<TestInfo, 157> Tests{
 	TestInfo("IndexVarCheck", "BasicTests/IndexVarCheck.uc", "main", SuccessCondition::RunTimeValue,int(5)),
 	
 	TestInfo("MemberAccessProp", "BasicTests/MemberAccessProp.uc", "main", SuccessCondition::RunTimeValue,bool(true)),
+
+	TestInfo("ExtenededStatment", "Objects/ExtenedStatment.uc", "main", SuccessCondition::RunTimeValue,int(2)),
 };
 struct SkipTestRange
 {
