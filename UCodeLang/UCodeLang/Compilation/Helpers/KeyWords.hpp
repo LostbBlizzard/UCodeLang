@@ -117,6 +117,8 @@ inline const char* S_KeyWord_compiler = "compiler";
 
 inline const char* S_KeyWord_export = "export";
 
+inline const char* S_KeyWord_functor = "functor";
+
 struct KeyWord
 {
 	const char* keyWord;
@@ -235,6 +237,8 @@ inline KeyWord KeyWords[] =
 	KeyWord(S_KeyWord_compiler, TokenType::KeyWord_compiler),
 
 	KeyWord(S_KeyWord_export, TokenType::KeyWord_export),
+	
+	KeyWord(S_KeyWord_functor, TokenType::KeyWord_functor),
 };
 constexpr size_t KeyWords_Size = sizeof(KeyWords) / sizeof(KeyWords[0]);
 class KeyWordHelper

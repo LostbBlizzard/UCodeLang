@@ -1932,25 +1932,60 @@ GotNodeType Parser::TryGetGeneric(GenericValuesNode& out)
 			if (TryGetToken()->Type == TokenType::Left_Bracket)
 			{
 				NextToken();
-				
-				ScopedNameNode sym;
-				GetName(sym);
-				bool isrule = false;
 
-				if (TryGetToken()->Type == TokenType::Left_Parentheses)
+				auto currenttoken = TryGetToken();
+
+				if (currenttoken->Type == TokenType::KeyWord_functor)
 				{
 					NextToken();
 
-					TokenTypeCheck(TryGetToken(), TokenType::Right_Parentheses);
+					FunctorNode functor;
 
+					auto LPToken = TryGetToken();
+					TokenTypeCheck(LPToken, declareFuncParsStart);
 					NextToken();
+
+					functor._Base = std::make_unique<NamedParametersNode>();
+
+					auto Parameters = GetNamedParametersNode(*functor._Base);
+
+					auto RPToken = TryGetToken();
+					TokenTypeCheck(RPToken, declareFuncParsEnd);
+					NextToken();
+
+					auto Arrow = TryGetToken();
+					TokenTypeCheck(Arrow, TokenType::RightArrow);
+					NextToken();
+
+					functor._ReturnType = std::make_unique<TypeNode>();
+
+					GetType(*functor._ReturnType);
+
+					Item._BaseOrRuleScopeName = std::move(functor);
+				}
+				else
+				{
+					ScopedNameNode sym;
+					GetName(sym);
+					bool isrule = false;
+
+					if (TryGetToken()->Type == TokenType::Left_Parentheses)
+					{
+						NextToken();
+
+						TokenTypeCheck(TryGetToken(), TokenType::Right_Parentheses);
+
+						NextToken();
+					}
+
+					Item._BaseOrRuleScopeName = std::move(sym);
+					Item.IsRule = isrule;
+
 				}
 
-				Item._BaseOrRuleScopeName = std::move(sym);
-				Item.IsRule = isrule;
-				
 				TokenTypeCheck(TryGetToken(), TokenType::Right_Bracket);
 				NextToken();
+
 			}
 			auto NameToken = TryGetToken();
 
