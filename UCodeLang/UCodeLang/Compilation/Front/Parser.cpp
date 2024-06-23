@@ -4195,10 +4195,9 @@ GotNodeType Parser::GetShortLambdaNode(LambdaNode& out)
 		auto nametoken = TryGetToken();
 		NextToken();
 
-		if (TryGetToken()->Type == TokenType::Comma
-			|| TryGetToken()->Type == TokenType::Right_Bracket)
+		if (TryGetToken()->Type == TokenType::Comma)		
 		{
-			//NextToken();
+			NextToken();
 		}
 		else
 		{
