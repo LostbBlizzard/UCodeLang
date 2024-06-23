@@ -210,7 +210,14 @@ struct NamespaceNode :Node
 };
 
 
+struct TypeNode;
+struct NamedParametersNode;
 
+struct FunctorNode
+{
+	Unique_ptr<NamedParametersNode> _Base;
+	Unique_ptr<TypeNode> _ReturnType;
+};
 struct GenericValueNode :Node
 {
 
@@ -227,7 +234,7 @@ struct GenericValueNode :Node
 	}
 	const Token* token = nullptr;
 	GenericType _Generictype = GenericType::Name;
-	Optional<ScopedNameNode> _BaseOrRuleScopeName;
+	Optional<Variant<ScopedNameNode,FunctorNode>> _BaseOrRuleScopeName;
 	bool IsRule = false;
 
 
@@ -254,7 +261,6 @@ struct GenericValuesNode :Node
 	}
 };
 
-struct TypeNode;
 
 struct UseGenericsNode :Node
 {

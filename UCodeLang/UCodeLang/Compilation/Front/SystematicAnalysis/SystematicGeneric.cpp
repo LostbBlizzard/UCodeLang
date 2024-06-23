@@ -750,25 +750,32 @@ void SystematicAnalysis::Generic_GenericAliasFixTypes(const GenericValuesNode& G
 			auto& rule = Item._BaseOrRuleScopeName.value();
 			Optional<Variant<TypeSymbol, SymbolID>> base;
 			{
-				bool istype = true;
+				if (const ScopedNameNode* scoperule = rule.Get_If<ScopedNameNode>()) 
 				{
-					String scope;
-					rule.GetScopedName(scope);
-					auto sym = GetSymbolsWithName(scope);
-				}
+					bool istype = true;
+					{
+						String scope;
+						scoperule->GetScopedName(scope);
+						auto sym = GetSymbolsWithName(scope);
+					}
 
-				if (istype)
-				{
-					TypeSymbol type;
-					TypeNode typenode;
-					typenode._name._ScopedName = rule._ScopedName;
-					Type_Convert(typenode, type);
+					if (istype)
+					{
+						TypeSymbol type;
+						TypeNode typenode;
+						typenode._name._ScopedName = scoperule->_ScopedName;
+						Type_Convert(typenode, type);
 
-					base = type;
+						base = type;
+					}
+					else
+					{
+						UCodeLangUnreachable();
+					}
 				}
 				else
 				{
-					UCodeLangUnreachable();
+					UCodeLangToDo();
 				}
 			}
 
