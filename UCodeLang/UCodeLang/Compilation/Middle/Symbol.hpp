@@ -254,7 +254,15 @@ enum class SymbolType : UInt8
 
 	ForType,
 	GenericForType,
+
+	Functor,
+	UnmapedFunctor,
 };
+
+inline bool IsSymbolUnmapedType(SymbolType Type)
+{
+	return Type == SymbolType::Unmaped_Generic_Type || Type == SymbolType::UnmapedFunctor;
+}
 enum class SymbolValidState : UInt8
 {
 	//Symbol Got Errors so it should not be used
@@ -946,6 +954,13 @@ public:
 	Optional<SymbolContext> Context;	
 	Generic _GenericData;
 	Vector<Symbol*> Funcs;
+};
+
+
+struct FunctorInfo : public Symbol_Info
+{
+	Vector<ParInfo> Pars;
+	TypeSymbol Ret;
 };
 
 class Symbol

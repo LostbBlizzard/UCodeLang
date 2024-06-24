@@ -773,6 +773,13 @@ private:
 			Ret = &Info->Ret;
 			this->Item = Item;
 		}
+		void SetAsFunctorPtrInfo(Symbol* Item)
+		{
+			FunctorInfo* Info = Item->Get_Info<FunctorInfo>();
+			Pars = &Info->Pars;
+			Ret = &Info->Ret;
+			this->Item = Item;
+		}
 	};
 	struct StrExELav
 	{

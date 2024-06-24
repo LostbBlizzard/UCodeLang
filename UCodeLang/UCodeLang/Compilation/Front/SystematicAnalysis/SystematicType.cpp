@@ -1688,7 +1688,7 @@ void SystematicAnalysis::Type_Convert(const TypeNode& V, TypeSymbol& Out)
 					Out.SetType(SybV->ID);
 				}
 			}
-			else if (SybV->Type == SymbolType::Unmaped_Generic_Type)
+			else if (IsSymbolUnmapedType(SybV->Type))
 			{
 				Out.SetType(SybV->ID);
 			}
