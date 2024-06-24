@@ -4170,6 +4170,7 @@ GotNodeType Parser::GetLambdaNode(LambdaNode& out)
 		StatementsNode Statements;
 
 		RetStatementNode* r = RetStatementNode::Gen();
+		r->_RetToken = AssmentToken;
 		GetExpressionTypeNode(r->_Expression);
 		Statements._Nodes.push_back(Unique_ptr<Node>(r));
 
@@ -4198,6 +4199,10 @@ GotNodeType Parser::GetShortLambdaNode(LambdaNode& out)
 		if (TryGetToken()->Type == TokenType::Comma)		
 		{
 			NextToken();
+		}
+		else if (TryGetToken()->Type == TokenType::Right_Bracket)
+		{
+
 		}
 		else
 		{
@@ -4232,6 +4237,7 @@ GotNodeType Parser::GetShortLambdaNode(LambdaNode& out)
 		StatementsNode Statements;
 
 		RetStatementNode* r1 = RetStatementNode::Gen();
+		r1->_RetToken = AssmentToken;
 		GetExpressionTypeNode(r1->_Expression);
 		Statements._Nodes.push_back(Unique_ptr<Node>(r1));
 

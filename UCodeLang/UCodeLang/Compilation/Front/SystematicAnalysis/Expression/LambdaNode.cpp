@@ -67,6 +67,12 @@ void SystematicAnalysis::OnLambdaNode(const LambdaNode& node)
 					ParHint = &PtrInfo->Pars;
 					RetHint = &PtrInfo->Ret;
 				}
+				else if (Sym->Type == SymbolType::UnmapedFunctor)
+				{
+					const FunctorInfo* PtrInfo = Symbol_GetSymbol(Sym->VarType).value()->Get_Info<FunctorInfo>();
+					ParHint = &PtrInfo->Pars;
+					RetHint = &PtrInfo->Ret;
+				}
 			}
 		}
 

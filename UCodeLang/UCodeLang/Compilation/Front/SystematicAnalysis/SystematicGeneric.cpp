@@ -750,7 +750,7 @@ void SystematicAnalysis::Generic_GenericAliasFixTypes(const GenericValuesNode& G
 			auto& rule = Item._BaseOrRuleScopeName.value();
 			Optional<Variant<TypeSymbol, SymbolID>> base;
 			{
-				if (const ScopedNameNode* scoperule = rule.Get_If<ScopedNameNode>()) 
+				if (const ScopedNameNode* scoperule = rule.Get_If<ScopedNameNode>())
 				{
 					bool istype = true;
 					{
@@ -773,14 +773,47 @@ void SystematicAnalysis::Generic_GenericAliasFixTypes(const GenericValuesNode& G
 						UCodeLangUnreachable();
 					}
 				}
+				else if (const FunctorNode* functorule = rule.Get_If<FunctorNode>())
+				{
+					auto par = Symbol_GetSymbol(Symbol_GetSymbolID(Item));
+
+					size_t parcount = functorule->_Base.get()->_Parameters.size();
+
+					auto& sym = Symbol_AddSymbol(SymbolType::Functor,"N/A","N/A",AccessModifierType::Public);
+					sym.PassState = PassType::FixedTypes;
+
+					FunctorInfo* info = new FunctorInfo();
+					sym.Info.reset(info);
+
+					info->Pars.resize(parcount);
+
+					for (size_t i = 0; i < parcount; i++)
+					{
+						auto& parin = functorule->_Base.get()->_Parameters[i]._Type;
+						auto& parout = info->Pars[i].Type;
+
+						Type_Convert(parin, parout);
+					}
+
+					Type_Convert(*functorule->_ReturnType, info->Ret);
+
+					auto symid = Symbol_GetSymbolID(functorule);
+					_Table.AddSymbolID(sym, symid);
+					auto type = TypeSymbol(symid);
+
+					OutItem.BaseOrRule = type;
+
+					par->VarType = type; 
+					par->Type = SymbolType::UnmapedFunctor;
+				}
 				else
 				{
 					UCodeLangToDo();
 				}
+
+
 			}
-
 			OutItem.BaseOrRule = std::move(base);
-
 		}
 	}
 }

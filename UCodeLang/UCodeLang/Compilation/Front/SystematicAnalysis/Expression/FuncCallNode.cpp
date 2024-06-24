@@ -2725,6 +2725,26 @@ StartSymbolsLoop:
 						OkFunctions.push_back({ ThisParType,r,FuncSymbol });
 					}
 				}
+				else if (Type->Type == SymbolType::UnmapedFunctor)
+				{
+					auto inyoursym = Symbol_GetSymbol(Type->VarType);
+					FunctorNode* Info = inyoursym.value()->Get_Info<FunctorNode>();//must be the same as Item->Type == SymbolType::Func
+
+					IsCompatiblePar CMPPar;
+					CMPPar.SetAsFunctorPtrInfo(inyoursym.value_unchecked());
+
+					if (!Type_IsCompatible(CMPPar, ValueTypes, _ThisTypeIsNotNull, NeverNullptr(Name._ScopedName.back()._token)))
+					{
+						continue;
+					}
+
+					{
+						r = nullptr;
+						FuncSymbol = Item;
+						T = SymbolType::FuncCall;
+						OkFunctions.push_back({ ThisParType,r,FuncSymbol });
+					}
+				}
 				else if (Type->Type == SymbolType::Type_class)
 				{
 					String Scope = Type->FullName;
@@ -3240,9 +3260,18 @@ StartSymbolsLoop:
 			else if (Symbol_IsVarableType(Item.SymFunc->Type))
 			{
 				Symbol* Type = Symbol_GetSymbol(Item.SymFunc->VarType).value_unchecked();
-				if (Type && (Type->Type == SymbolType::Func_ptr || Type->Type == SymbolType::Hard_Func_ptr))
+				if (Type == nullptr)
+				{
+					UCodeLangUnreachable();
+				}
+
+				if (Type->Type == SymbolType::Func_ptr || Type->Type == SymbolType::Hard_Func_ptr)
 				{
 					CMPPar.SetAsFuncPtrInfo(Type);
+				}
+				else if (Type->Type == SymbolType::UnmapedFunctor)
+				{
+					CMPPar.SetAsFunctorPtrInfo(Symbol_GetSymbol(Type->VarType).value_unchecked());
 				}
 				else
 				{
