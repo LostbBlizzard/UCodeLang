@@ -977,7 +977,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 
 		auto nametoken = body->_Signature._Name.token;
 		auto endtoken = body->EndOfFunc;
-		String_view filetext = this->_LookingAtFile->FileText;
+		String_view filetext = syb->_File->FileText;
 
 		auto& assemblyfunc = _Lib.Get_Assembly().AddGenericFunc(ScopeHelper::GetNameFromFullName(syb->FullName), syb->FullName);
 
