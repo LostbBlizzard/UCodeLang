@@ -3592,7 +3592,7 @@ StartSymbolsLoop:
 	}
 	return { };
 }
-Optional< Optional<SystematicAnalysis::Get_FuncInfo>> SystematicAnalysis::Type_FuncinferGenerics(Vector<TypeSymbol>& GenericInput, const Vector<ParInfo>& ValueTypes
+	Optional< Optional<SystematicAnalysis::Get_FuncInfo>> SystematicAnalysis::Type_FuncinferGenerics(Vector<TypeSymbol>& GenericInput, const Vector<ParInfo>& ValueTypes
 	, const UseGenericsNode* Generics
 	, Symbol* Item
 	, bool _ThisTypeIsNotNull)
@@ -3771,6 +3771,73 @@ Optional< Optional<SystematicAnalysis::Get_FuncInfo>> SystematicAnalysis::Type_F
 	else
 	{
 		isinputcountgood = GenericInput.size() == Info->_GenericData._Genericlist.size();
+	}
+	
+	if (isinputcountgood)
+	{
+		auto& list = Info->_GenericData._Genericlist;
+
+		for (size_t i = 0; i < list.size(); i++)
+		{
+			auto& FuncGeneric = list[i];
+			auto& Input = GenericInput[i];
+
+			auto sym = Symbol_GetSymbol(FuncGeneric.SybID);
+
+			bool isok = false;
+			if (sym->Type == SymbolType::UnmapedFunctor)
+			{
+				auto functor = Symbol_GetSymbol(sym->VarType).value()->Get_Info<FunctorInfo>();
+
+				auto inputsymop = Symbol_GetSymbol(Input);
+
+				if (inputsymop.has_value())
+				{
+					auto inputsym = inputsymop.value();
+
+					if (inputsym->Type == SymbolType::Func_ptr)
+					{
+						auto info = inputsym->Get_Info<FuncPtrInfo>();
+
+						if (functor->Pars.size() == info->Pars.size())
+						{
+							if (Type_AreTheSame(functor->Ret, info->Ret))
+							{
+
+								bool bad = false;
+								for (size_t i = 0; i < functor->Pars.size(); i++)
+								{
+									auto& functorpar = functor->Pars[i];
+									auto& infopar = info->Pars[i];
+
+									if (!Type_AreTheSame(functorpar, infopar))
+									{
+										bad = true;
+										break;
+									}
+
+								}
+
+								if (bad == false)
+								{
+									isok = true;
+								}
+
+							}
+						}
+					}
+				}
+			}
+			else
+			{
+				isok = true;
+			}
+
+			if (isok == false)
+			{
+				return {};
+			}
+		}
 	}
 
 	if (isinputcountgood)
