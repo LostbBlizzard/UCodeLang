@@ -104,4 +104,20 @@ $Buffer_t<T> trait export:
    for [uintptr i = 0;i < (Size() / 2);i++]:
     Swap(this[i],this[Size() - 1 - i]);
 
+  export |Find<[functor [imut T&] -> bool]Func>[this&,Func func] -> T&?: 
+   for [uintptr i = 0;i < Size();i++]:
+    if func(this[i]):
+     ret Opt(this[i]);
+   ret None;
 
+  export |Find<[functor [imut T&] -> bool]Func>[imut this&,Func func] ->  imut T&?: 
+   for [uintptr i = 0;i < Size();i++]:
+    if func(this[i]):
+     ret Opt(this[i]);
+   ret None;
+
+  export |FindIndex<[functor [imut T&] -> bool]Func>[imut this&,Func func] -> uintptr?:
+   for [uintptr i = 0;i < Size();i++]:
+    if func(this[i]):
+     ret Opt(i);
+   ret None;

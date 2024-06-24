@@ -115,3 +115,21 @@ $Span<T> export:
    if Size() == 0:
     ret None;
    ret Opt(this[Size() - 1]);
+
+  export |Find<[functor [imut T&] -> bool]Func>[this&,Func func] -> T&?: 
+   for [uintptr i = 0;i < _size;i++]:
+    if func(unsafe _data[i]):
+     ret Opt(unsafe _data[i]);
+   ret None;
+
+  export |Find<[functor [imut T&] -> bool]Func>[this&,Func func] ->  imut T&?: 
+   for [uintptr i = 0;i < _size;i++]:
+    if func(unsafe _data[i]):
+     ret Opt(unsafe _data[i]);
+   ret None;
+
+  export |FindIndex<[functor [imut T&] -> bool]Func>[imut this&,Func func] -> uintptr?:
+   for [uintptr i = 0;i < _size;i++]:
+    if func(unsafe _data[i]):
+     ret Opt(i);
+   ret None;
