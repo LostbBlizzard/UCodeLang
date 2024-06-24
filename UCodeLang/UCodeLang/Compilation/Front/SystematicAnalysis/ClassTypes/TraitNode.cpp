@@ -690,6 +690,8 @@ void SystematicAnalysis::Symbol_InheritTrait(NeverNullPtr<Symbol> Syb, ClassInfo
 			_Table.Useings.pop_back();
 		}
 
+		auto oldcurrentfile = this->_LookingAtFile;
+		_LookingAtFile = Trait->_File;
 
 		for (auto& Item : IDSyb.AddedFuncs)
 		{
@@ -737,6 +739,7 @@ void SystematicAnalysis::Symbol_InheritTrait(NeverNullPtr<Symbol> Syb, ClassInfo
 			OnFuncNode(func);
 		}
 
+		_LookingAtFile = oldcurrentfile;
 		{
 			_PassType = oldpass;
 			_ClassStack.pop();
