@@ -3773,8 +3773,9 @@ StartSymbolsLoop:
 		isinputcountgood = GenericInput.size() == Info->_GenericData._Genericlist.size();
 	}
 	
-	if (isinputcountgood)
+	if (isinputcountgood && IsParPack == false)
 	{
+		//TODO Deal with ParPack
 		auto& list = Info->_GenericData._Genericlist;
 
 		for (size_t i = 0; i < list.size(); i++)
@@ -3795,20 +3796,55 @@ StartSymbolsLoop:
 				{
 					auto inputsym = inputsymop.value();
 
+					const TypeSymbol* Ret = nullptr;
+					const Vector<ParInfo>* Pars = nullptr;
+					bool skipthis = false;
+					
 					if (inputsym->Type == SymbolType::Func_ptr)
 					{
 						auto info = inputsym->Get_Info<FuncPtrInfo>();
 
-						if (functor->Pars.size() == info->Pars.size())
+						Ret = &info->Ret;
+						Pars = &info->Pars;
+					}
+					else if (inputsym->Type == SymbolType::Type_class)
+					{
+						auto callfuncname = inputsym->FullName + ScopeHelper::_ScopeSep + Overload_Invoke_Func;
+						
+						auto funcsymop = Symbol_GetSymbol(callfuncname,SymbolType::Func);
+
+						if (funcsymop.has_value())
 						{
-							if (Type_AreTheSame(functor->Ret, info->Ret))
+							auto& func = funcsymop.value();
+
+							auto finfo = func->Get_Info<FuncInfo>();
+
+							Ret = &finfo->Ret;
+							Pars = &finfo->Pars;
+
+							skipthis = true;
+						}
+					}
+
+					if (Ret) 
+					{
+						auto& par = *Pars;
+						auto& ret = *Ret;
+						
+						size_t parcount = par.size();
+
+						if (skipthis) {parcount--;}
+
+						if (functor->Pars.size() == parcount)
+						{
+							if (Type_AreTheSame(functor->Ret, ret))
 							{
 
 								bool bad = false;
 								for (size_t i = 0; i < functor->Pars.size(); i++)
 								{
 									auto& functorpar = functor->Pars[i];
-									auto& infopar = info->Pars[i];
+									auto& infopar = par[skipthis ? i + 1 : i];
 
 									if (!Type_AreTheSame(functorpar, infopar))
 									{
