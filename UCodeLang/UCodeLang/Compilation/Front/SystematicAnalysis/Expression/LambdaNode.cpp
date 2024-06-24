@@ -74,6 +74,16 @@ void SystematicAnalysis::OnLambdaNode(const LambdaNode& node)
 					RetHint = &PtrInfo->Ret;
 				}
 			}
+
+			if (RetHint)
+			{
+
+				if (ParHint->size() != node._Pars._Parameters.size())
+				{
+					ParHint = nullptr;
+					RetHint = nullptr;
+				}
+			}
 		}
 
 		for (size_t i = 0; i < node._Pars._Parameters.size(); i++)
