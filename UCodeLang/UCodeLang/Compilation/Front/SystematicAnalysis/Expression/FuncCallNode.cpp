@@ -3314,13 +3314,29 @@ StartSymbolsLoop:
 
 						Syb.VarType = GenericInput[i];
 					}
+					
+					auto aliasscope = _Table._Scope.ThisScope;
+					_Table.RemoveScope();
+	
+					auto context = SaveAndMove_SymbolContext();
+
+					auto finfo = Item.SymFunc->Get_Info<FuncInfo>();
+
+					Set_SymbolContext(std::move(finfo->Context.value()));
+
+					_Table.AddUseing(aliasscope);
+
 					for (size_t i = 0; i < Signature->_Parameters._Parameters.size(); i++)
 					{
 						auto& Item = Signature->_Parameters._Parameters[i];
 						Type_Convert(Item._Type, _TepGeneric[i].Type);
 					}
 
-					_Table.RemoveScope();
+					_Table.Useings.pop_back();
+
+					finfo->Context =SaveAndMove_SymbolContext();
+					Set_SymbolContext(std::move(context));
+
 					CMPPar.Pars = &_TepGeneric;
 				}
 			}
