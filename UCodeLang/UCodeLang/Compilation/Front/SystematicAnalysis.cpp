@@ -1787,6 +1787,11 @@ bool SystematicAnalysis::Type_IsTypeExported(TypeSymbol type)
 			return sym->Get_NodeInfo<AliasNode>()->IsExport;
 		}
 		break;
+		case SymbolType::UnmapedFunctor:
+		{
+			return true;
+		}
+		break;
 		default:
 			UCodeLangUnreachable();
 			break;
