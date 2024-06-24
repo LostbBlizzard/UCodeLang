@@ -1727,6 +1727,8 @@ NullablePtr<Symbol> SystematicAnalysis::GetTepFuncPtrSyb(const String& TepFuncPt
 		V2->Ret = Finfo->Ret;
 		_Table.AddSymbolID(*V, VID);
 
+		V->PassState = PassType::FixedTypes;
+
 		return V.AsNullable();
 	}
 
