@@ -22,6 +22,15 @@ void ScopeHelper::ReMoveScope(String_view& ThisScope)
 		{
 			scope--;
 		}
+		else if (C == '-' && ThisScope.size() > i +1)//because of funcion_pointors [...] -> RetType
+		{
+			auto lastc = ThisScope[i + 1];
+			
+			if (lastc == '>') 
+			{
+				scope--;
+			}
+		}
 	}
 	ThisScope = "";
 }
