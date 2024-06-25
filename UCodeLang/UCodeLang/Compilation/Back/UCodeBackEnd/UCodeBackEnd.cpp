@@ -1835,31 +1835,37 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 			if (Item->Type == IRInstructionType::CleanupFuncCall)
 			{
 				auto tep = _Registers.GetInfo(RegisterID::Parameter1_Register);
-				auto val = tep.Types.value().Get<IROperator>().Pointer;
-			
-				if (val->A.Type == IROperatorType::Get_PointerOf_IRInstruction)
+				if (tep.Types.has_value())
 				{
-					auto MyInstruction = val->A.Pointer;
-
-					bool set = false;
-					for (auto& Item : _Stack.Items)
+					if (tep.Types.value().Is<IROperator>())
 					{
-						if (auto g = Item->IR.Get_If<const IRInstruction*>())
-						{
-							if (*g == MyInstruction)
-							{
-								StackOffsetPar1 = Item->Offset;
-								set = true;
-								break;
-							}
+						auto val = tep.Types.value().Get<IROperator>().Pointer;
 
+						if (val->A.Type == IROperatorType::Get_PointerOf_IRInstruction)
+						{
+							auto MyInstruction = val->A.Pointer;
+
+							bool set = false;
+							for (auto& Item : _Stack.Items)
+							{
+								if (auto g = Item->IR.Get_If<const IRInstruction*>())
+								{
+									if (*g == MyInstruction)
+									{
+										StackOffsetPar1 = Item->Offset;
+										set = true;
+										break;
+									}
+
+								}
+							}
+							SkipCleanFuncCall = !set;
+						}
+						else
+						{
+							SkipCleanFuncCall = true;
 						}
 					}
-					SkipCleanFuncCall = !set;
-				}
-				else 
-				{
-					SkipCleanFuncCall = true;
 				}
 			}
 			auto FuncInfo = _Input->GetFunc(Item->Target().identifier);
