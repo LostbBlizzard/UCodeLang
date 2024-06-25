@@ -840,9 +840,9 @@ void ParseLine(String_view& Line)
 	}
 	else if (Word1 == "test")
 	{
-		bool use01 = UCodeLang::StringHelper::Contains(Line, "-01");
-		bool use02 = UCodeLang::StringHelper::Contains(Line, "-02");
-		bool use03 = UCodeLang::StringHelper::Contains(Line, "-03");
+		bool use01 = UCodeLang::StringHelper::Contains(Line, "-o1");
+		bool use02 = UCodeLang::StringHelper::Contains(Line, "-o2");
+		bool use03 = UCodeLang::StringHelper::Contains(Line, "-o3");
 		bool usedebug = !(UCodeLang::StringHelper::Contains(Line, "-ndebug") || UCodeLang::StringHelper::Contains(Line, "-nd"));
 		bool use32mode = UCodeLang::StringHelper::Contains(Line, "-32");
 		bool use64mode = UCodeLang::StringHelper::Contains(Line, "-64");
@@ -898,6 +898,14 @@ void ParseLine(String_view& Line)
 			{
 				*(OptimizationFlags_t*)&Settings._Flags &= ~(OptimizationFlags_t)OptimizationFlags::Debug;
 			}
+			if (use03)
+			{
+				*(OptimizationFlags_t*)&Settings._Flags |= (OptimizationFlags_t)OptimizationFlags::O_3;
+			}
+			else
+			{
+				*(OptimizationFlags_t*)&Settings._Flags &= ~(OptimizationFlags_t)OptimizationFlags::O_3;
+			}
 			if (use01)
 			{
 				*(OptimizationFlags_t*)&Settings._Flags |= (OptimizationFlags_t)OptimizationFlags::O_1;
@@ -913,14 +921,6 @@ void ParseLine(String_view& Line)
 			else
 			{
 				*(OptimizationFlags_t*)&Settings._Flags &= ~(OptimizationFlags_t)OptimizationFlags::O_2;
-			}
-			if (use03)
-			{
-				*(OptimizationFlags_t*)&Settings._Flags |= (OptimizationFlags_t)OptimizationFlags::O_3;
-			}
-			else
-			{
-				*(OptimizationFlags_t*)&Settings._Flags &= ~(OptimizationFlags_t)OptimizationFlags::O_3;
 			}
 		}
 		Optional<UClib> libop;
