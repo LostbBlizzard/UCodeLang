@@ -365,7 +365,7 @@ void SystematicAnalysis::Debug_Add_SetVarableInfo(const Symbol& Syb, size_t InsI
 
 		auto irfuncname = _IR_LookingAtIRFunc ? _IR_Builder.FromID(_IR_LookingAtIRFunc->identifier) : "";
 
-		irvarname = irfuncname + scope + ScopeHelper::GetNameFromFullName(Syb.FullName);
+		irvarname = irfuncname + scope;
 	}
 	auto ID = _IR_Builder.ToID(RemoveSymboolFuncOverloadMangling(irvarname));
 	IRDebugSetVarableName V;
@@ -789,6 +789,11 @@ void SystematicAnalysis::IR_Build_FuncDropUsingFields(const ClassInfo* ClassInfo
 			obj._Object = _IR_LookingAtIRBlock->New_Member_Dereference(&_IR_LookingAtIRFunc->Pars.front(), ThisPar, i);
 
 			IR_Build_DestructorCall(obj);
+
+			if (_IR_LastExpressionField->Type == IRInstructionType::CleanupFuncCall)
+			{
+				_IR_LastExpressionField->Type = IRInstructionType::Call;
+			}
 		}
 	}
 }
@@ -1033,6 +1038,10 @@ IRidentifierID SystematicAnalysis::IR_Build_ConvertToStaticArray(const Symbol& C
 
 				IR_Build_DestructorCall(tep);
 
+				if (_IR_LastExpressionField->Type == IRInstructionType::CleanupFuncCall)
+				{
+					_IR_LastExpressionField->Type = IRInstructionType::Call;
+				}
 
 				if (i + 1 < clasinfo->Count) {
 					_IR_LookingAtIRBlock->NewStore(accumulatorPtr, _IR_LookingAtIRBlock->NewAdd(elmsizeir, accumulatorPtr));
@@ -1384,6 +1393,7 @@ void SystematicAnalysis::OnStatement(const Node& node2)
 	case NodeType::DeferStatementNode:OnDeferStatement(*DeferStatementNode::As(&node2)); break;
 	case NodeType::StatementsNode:OnStatements(*StatementsNode::As(&node2)); break;
 	case NodeType::PanicNode:OnPanicStatement(*PanicNode::As(&node2)); break;
+	case NodeType::ExtendedFuncStatement:OnExtenedFuncStatmentNode(*ExtendedFuncStatement::As(&node2)); break;
 	default:UCodeLangUnreachable(); break;
 	}
 	Pop_NodeScope();
@@ -1717,6 +1727,8 @@ NullablePtr<Symbol> SystematicAnalysis::GetTepFuncPtrSyb(const String& TepFuncPt
 		V2->Ret = Finfo->Ret;
 		_Table.AddSymbolID(*V, VID);
 
+		V->PassState = PassType::FixedTypes;
+
 		return V.AsNullable();
 	}
 
@@ -1773,6 +1785,11 @@ bool SystematicAnalysis::Type_IsTypeExported(TypeSymbol type)
 		case SymbolType::Hard_Type_alias:
 		{
 			return sym->Get_NodeInfo<AliasNode>()->IsExport;
+		}
+		break;
+		case SymbolType::UnmapedFunctor:
+		{
+			return true;
 		}
 		break;
 		default:
@@ -3394,6 +3411,7 @@ String SystematicAnalysis::ToString(SymbolType Value) const
 	case SymbolType::Generic_Tag:return "Generic Tag";
 	case SymbolType::Generic_Enum:return "Generic Enum";
 	case SymbolType::Trait_class:return "Trait Class";
+	case SymbolType::Tag_class:return "Tag Class";
 	case SymbolType::Generic_Trait:return "Generic Trait";
 	default:
 		UCodeLangUnreachable();

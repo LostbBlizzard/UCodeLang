@@ -6,7 +6,12 @@ void SystematicAnalysis::OnExpressionNode(const IndexedExpresionNode& node)
 {
 	if (_LookingForTypes.size() && _LookingForTypes.top()._Type == TypesEnum::Var)
 	{
-		TypeSymbol V; V.SetType(TypesEnum::Any);
+		auto& top = _LookingForTypes.top();
+
+		TypeSymbol V;
+		V.SetType(TypesEnum::Any);
+		V._IsAddress = top.IsAddress();
+
 		_LookingForTypes.push(V);
 	}
 	else
@@ -200,7 +205,12 @@ void SystematicAnalysis::OnExpressionNode(const IndexedExpresionNode& node)
 
 
 
-		_IndexedExpresion_Datas.AddValue(Symbol_GetSymbolID(node), V);
+		auto symid = Symbol_GetSymbolID(node);
+		
+		if (!_IndexedExpresion_Datas.HasValue(symid)) 
+		{
+			_IndexedExpresion_Datas.AddValue(symid, V);
+		}
 
 	}
 
@@ -249,6 +259,7 @@ void SystematicAnalysis::OnExpressionNode(const IndexedExpresionNode& node)
 					{
 						auto rawtype = _LastExpressionType;
 						rawtype._IsAddress = false;
+						rawtype._ValueInfo = TypeValueInfo::IsValue;
 
 						_IR_LastExpressionField = _IR_LookingAtIRBlock->NewLoad_Dereferenc(_IR_LastExpressionField
 							, IR_ConvertToIRType(rawtype));
@@ -338,6 +349,7 @@ void SystematicAnalysis::OnExpressionNode(const IndexedExpresionNode& node)
 						lookingfor.SetAsAddress();
 					}
 					lookingfor._IsAddressArray = false;
+					lookingfor._ValueInfo = TypeValueInfo::IsValue;
 					_LastExpressionType = lookingfor;
 				}
 

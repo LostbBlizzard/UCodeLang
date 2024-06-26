@@ -173,6 +173,7 @@ enum class TokenType : TokenType_t
 	KeyWord_defer,//..
 	KeyWord_compiler,//..
 	KeyWord_export,//export
+	KeyWord_functor,//export
 	//used internally
 	internal_Constant_expression,
 	internal_InlineEnumVariant,

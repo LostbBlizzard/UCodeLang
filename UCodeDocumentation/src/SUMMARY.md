@@ -5,8 +5,10 @@
 - [Syntax](./SyntaxAndSeamantics/Syntax.md)
 
 # User Guide
+
 - [Geting Started Users](./GetingStartedUsers.md)
-  - [ULangModule](./Users/ULangModule.md) 
+
+  - [ULangModule](./Users/ULangModule.md)
   - [BuildScript.uc](./Users/BuildScript.md)
 
 - [UCode Command line tool](./UCodeCL/UCodeCl.md)
@@ -32,17 +34,25 @@
     - [addmod](./UCodeCL/Commands/AddMod.md)
     - [uninstallmod](./UCodeCL/Commands/Uninstallmod.md)
     - [exits](./UCodeCL/Commands/Exits.md)
+
 # Implementer Guide
 
 - [Geting Started Implementers](./ForImplementers.md)
+
   - [Compileing Project](./ForImplementers.md)
   - [Calling C++ from UCodeLang](./ForImplementers/CallingCppfromUCodeLang.md)
   - [Automatic binding generation](./ForImplementers/Automaticbindinggeneration.md)
-  - [Modules and Standard Library](./ForImplementers/StandardLibAndModules.md)
+  - [System IO](./ForImplementers/SystemIO.md)
+  - [Standard Library and Modules](./ForImplementers/StandardLibAndModules.md)
+  - [HotReloading And Inspecting](./ForImplementers/HotReloadingAndInspecting.md)
+  - [Multi Threading](./ForImplementers/MultThreading.md)
+  - [Debug Support](./ForImplementers/DebugSupport.md)
 
 - [Library API Reference](./ForImplementers/APIReference.md)
+
   - [C API Reference](./ForImplementers/Reference/CAPI.md)
   - [Compilation](./ForImplementers/APIReference.md)
+
     - [Compiler](./ForImplementers/Reference/Compiler/Compiler.md)
     - [ModuleFile](./ForImplementers/Reference/Compiler/ModuleFile.md)
     - [UClib](./ForImplementers/Reference/Compiler/UClib.md)
@@ -65,13 +75,14 @@
     - [ReflectionString](./ForImplementers/Reference/Analysis/ReflectionString.md)
   - [Core](./ForImplementers/APIReference.md)
 
-
 # Language Guide
 
 - [Syntax and semantics](./SyntaxAndSemantics.md)
+
   - [Syntax](./SyntaxAndSeamantics/Syntax.md)
 
   - [Concepts]()
+
     - [Memory Management](./SyntaxAndSeamantics/MemoryManagement.md)
 
     - [Classes](./SyntaxAndSeamantics/Concepts/Class.md)
@@ -104,31 +115,35 @@
 
     - [NamingConvention](./SyntaxAndSeamantics/Concepts/NamingConvention.md)
 
-
 - [Standard library](./Standardlibrary/Standardlibrary.md)
+
   - [Containers](./Standardlibrary/Standardlibrary.md)
+
     - [Array\<T>](./Standardlibrary/Containers/Array.md)
     - [Vector\<T>](./Standardlibrary/Containers/Vector.md)
     - [String_t\<T>](./Standardlibrary/Containers/String_t.md)
 
   - [Alias Types](./Standardlibrary/Standardlibrary.md)
+
     - [String](./Standardlibrary/Alias/String.md)
     - [StringSpan](./Standardlibrary/Alias/StringSpan.md)
-  
+
     - [String8](./Standardlibrary/Alias/String8.md)
     - [String8Span](./Standardlibrary/Alias/String8Span.md)
-  
+
     - [String16](./Standardlibrary/Alias/String16.md)
     - [String16Span](./Standardlibrary/Alias/String16Span.md)
 
     - [String32](./Standardlibrary/Alias/String32.md)
     - [String32Span](./Standardlibrary/Alias/String32Span.md)
-  
+
   - [ReferenceTypes](./Standardlibrary/Standardlibrary.md)
+
     - [StringSpan_t\<T>](./Standardlibrary/ReferenceTypes/StringSpan.md)
     - [Span\<T>](./Standardlibrary/ReferenceTypes/Span.md)
 
-  - [Math](./Standardlibrary/Standardlibrary.md) 
+  - [Math](./Standardlibrary/Standardlibrary.md)
+
     - [Math](./Standardlibrary/Math/Math.md)
     - [Vec2](./Standardlibrary/Math/Vec2.md)
     - [Vec3](./Standardlibrary/Math/Vec3.md)
@@ -139,10 +154,12 @@
     - [Vec3_t\<T>](./Standardlibrary/Math/Vec3_t.md)
     - [Vec2i_t\<T>](./Standardlibrary/Math/Vec2i_t.md)
     - [Vec3i_t\<T>](./Standardlibrary/Math/Vec3i_t.md)
+
   - [Error Handleing](./Standardlibrary/Standardlibrary.md)
     - [Optional](./Standardlibrary/ErrorHandleing/Optional.md)
     - [Result](./Standardlibrary/ErrorHandleing/Result.md)
   - [Memory](./Standardlibrary/Standardlibrary.md)
+
     - [Unique_ptr\<T>](./Standardlibrary/Memory/Unique_ptr.md)
     - [Shared_ptr\<T>](./Standardlibrary/Memory/Shared_ptr.md)
     - [LowLevel](./Standardlibrary/Memory/LowLevel.md)
@@ -151,16 +168,21 @@
     - [Ptr\<void>](./Standardlibrary/Memory/VoidPtr.md)
 
   - [IO](./Standardlibrary/Standardlibrary.md)
+
     - [System](./Standardlibrary/Standardlibrary.md)
+
       - [Fmt](./Standardlibrary/IOSystem/Fmt.md)
 
     - [File](./Standardlibrary/Standardlibrary.md)
+
       - [File](./Standardlibrary/IOFile/File.md)
 
     - [Networking](./Standardlibrary/Standardlibrary.md)
 
     - [Serialization](./Standardlibrary/Standardlibrary.md)
+
   - [Threading](./Standardlibrary/Standardlibrary.md)
+
     - [Atomic](./Standardlibrary/Thread/Atomic.md)
     - [AtomicShared_ptr](./Standardlibrary/Thread/AtomicShared_ptr.md)
     - [Thread](./Standardlibrary/Thread/Thread.md)
@@ -177,33 +199,33 @@
     - [RangeInclusive_t\<T>](./Standardlibrary/Miscellaneous/Ranges.md)
     - [RangeToInclusive_t\<T>](./Standardlibrary/Miscellaneous/Ranges.md)
 
-
 - [KeyWords](./SyntaxAndSeamantics/Keywords.md)
+
   - [Built-in Types](./SyntaxAndSeamantics/Keywords.md)
-    - [int](./SyntaxAndSeamantics/Builtin/ints.md)
-    - [byte](./SyntaxAndSeamantics/Builtin/ints.md)
+    - [int](./SyntaxAndSeamantics/Builtin/int32.md)
+    - [byte](./SyntaxAndSeamantics/Builtin/int8.md)
     - [bool](./SyntaxAndSeamantics/Builtin/bool.md)
     - [char](./SyntaxAndSeamantics/Builtin/char.md)
-    - [utf8](./SyntaxAndSeamantics/Builtin/char.md)
-    - [utf16](./SyntaxAndSeamantics/Builtin/char.md)
-    - [utf32](./SyntaxAndSeamantics/Builtin/char.md)
+    - [utf8](./SyntaxAndSeamantics/Builtin/utf8.md)
+    - [utf16](./SyntaxAndSeamantics/Builtin/utf16.md)
+    - [utf32](./SyntaxAndSeamantics/Builtin/utf32.md)
     - [float](./SyntaxAndSeamantics/Builtin/float.md)
     - [float32](./SyntaxAndSeamantics/Builtin/float.md)
-    - [float64](./SyntaxAndSeamantics/Builtin/float.md)
-    - [uintptr](./SyntaxAndSeamantics/Builtin/ints.md)
-    - [intptr](./SyntaxAndSeamantics/Builtin/ints.md)
+    - [float64](./SyntaxAndSeamantics/Builtin/float64.md)
+    - [uintptr](./SyntaxAndSeamantics/Builtin/uintptr.md)
+    - [sintptr](./SyntaxAndSeamantics/Builtin/sintptr.md)
     - [this](./SyntaxAndSeamantics/Builtin/this.md)
     - [void](./SyntaxAndSeamantics/Builtin/void.md)
     - [typeinfo](./SyntaxAndSeamantics/Builtin/TypeInfo.md)
     - [var](./SyntaxAndSeamantics/Builtin/Var.md)
-    - [uint8](./SyntaxAndSeamantics/Builtin/ints.md)
-    - [uint16](./SyntaxAndSeamantics/Builtin/ints.md)
-    - [uint32](./SyntaxAndSeamantics/Builtin/ints.md)
-    - [uint64](./SyntaxAndSeamantics/Builtin/ints.md)
-    - [int8](./SyntaxAndSeamantics/Builtin/ints.md)
-    - [int16](./SyntaxAndSeamantics/Builtin/ints.md)
-    - [int32](./SyntaxAndSeamantics/Builtin/ints.md)
-    - [int64](./SyntaxAndSeamantics/Builtin/ints.md)
+    - [uint8](./SyntaxAndSeamantics/Builtin/uint8.md)
+    - [uint16](./SyntaxAndSeamantics/Builtin/uint16.md)
+    - [uint32](./SyntaxAndSeamantics/Builtin/uint32.md)
+    - [uint64](./SyntaxAndSeamantics/Builtin/uint64.md)
+    - [int8](./SyntaxAndSeamantics/Builtin/int8.md)
+    - [int16](./SyntaxAndSeamantics/Builtin/int16.md)
+    - [int32](./SyntaxAndSeamantics/Builtin/int32.md)
+    - [int64](./SyntaxAndSeamantics/Builtin/int64.md)
   - [Types](./SyntaxAndSeamantics/Keywords.md)
     - [enum](./SyntaxAndSeamantics/Types/Enum.md)
     - [trait](./SyntaxAndSeamantics/Types/trait.md)
@@ -221,11 +243,12 @@
     - [thread](./SyntaxAndSeamantics/VarableTypes/thread.md)
     - [eval](./SyntaxAndSeamantics/VarableTypes/eval.md)
   - [Compile Time](./SyntaxAndSeamantics/Keywords.md)
+
     - [compiler](./SyntaxAndSeamantics/CompileTime/compiler.md)
     - [invaild](./SyntaxAndSeamantics/CompileTime/invalid.md)
     - [type](./SyntaxAndSeamantics/CompileTime/type.md)
     - [valid](./SyntaxAndSeamantics/CompileTime/valid.md)
-  
+
   - [Miscellaneous](./SyntaxAndSeamantics/Keywords.md)
     - [for](./SyntaxAndSeamantics/Miscellaneous/for.md)
     - [import](./SyntaxAndSeamantics/Miscellaneous/import.md)
@@ -233,4 +256,3 @@
     - [use](./SyntaxAndSeamantics/Miscellaneous/use.md)
     - [panic](./SyntaxAndSeamantics/Miscellaneous/panic.md)
     - [defer](./SyntaxAndSeamantics/Miscellaneous/defer.md)
-

@@ -469,7 +469,7 @@ project "UCodeWebsite"
    objdir ("Output/int/%{prj.name}/" .. OutDirPath)
    kind "StaticLib" 
 
-   files { "%{prj.name}/ignoreC.c"}
+   files { "UCodeDocumentation/ignoreC.c"}
 
    includedirs{
    }
@@ -864,21 +864,24 @@ newaction {
     description = "build Docs",
     execute = function ()
 
-        if os.istarget("linux") then
-         executeorexit("cd ./UCodeDocumentation;./tools/mdbook build --dest-dir ../Output/UCodeDocumentation;cp -r ../Output/UCodeDocumentation ../UCodeWebsite/static")
+        if os.istarget("linux") or os.istarget("macosx") then
+         executeorexit("cd ./UCodeDocumentation;./tools/mdbook build --dest-dir ../Output/UCodeDocumentation;cp -r ../Output/UCodeDocumentation ../UCodeWebsite/static/doc")
         end
 
         if os.istarget("windows") then
-         executeorexit("cd UCodeDocumentation && tools\\mdbook.exe build --dest-dir ..\\Output\\UCodeDocumentation && cp -r ..\\Output\\UCodeDocumentation ..\\UCodeWebsite\\static")
+         executeorexit("cd UCodeDocumentation && tools\\mdbook.exe build --dest-dir ..\\Output\\UCodeDocumentation && xcopy /e /i /q ..\\Output\\UCodeDocumentation ..\\UCodeWebsite\\static\\doc")
         end
         
-        if os.istarget("macosx") then
-
-        end
     end
 }
-
-
+-- Website
+newaction {
+    trigger = "build_website",
+    description = "build website",
+    execute = function ()
+        
+    end
+}
 --web
 newaction {
     trigger = "web_build",

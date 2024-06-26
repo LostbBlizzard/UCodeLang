@@ -29,6 +29,26 @@ Tests:
 
   vals.Reverse();
 
-  ret true;
-  //ret vals[0] == 15 && vals[1] == 10 && vals[2] == 5; 
+  ret vals[0] == 15 && vals[1] == 10 && vals[2] == 5; 
 
+ [Test]
+ |Array_4[]:
+  int[4] vals = [5,10,15,20];
+
+  var A = vals.Find([x] => x == 5);
+
+  if Opt(A,out item):
+   ret item == 5;
+
+  ret false;
+
+ [Test]
+ |Array_5[]:
+  int[4] vals = [5,10,15,20];
+
+  var A = vals.FindIndex([x] => x == 20);
+
+  if Opt(A,out item):
+   ret item == 3;
+
+  ret false;

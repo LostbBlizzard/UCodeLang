@@ -238,7 +238,12 @@ bool SystematicAnalysis::IR_Build_ImplicitConversion(IRInstruction* Ex, const Ty
 		bool calledmoved = false;
 
 		bool ShouldCallMoveFunc = ExType._ValueInfo != TypeValueInfo::IsValue;
-		if (ShouldCallMoveFunc && HasMoveContructerHasIRFunc(ExType))
+
+		bool hasattrbutsbutaddress =
+			ExType.IsAddressArray() ||
+			ExType.IsDynamicTrait();
+
+		if (ShouldCallMoveFunc && HasMoveContructerHasIRFunc(ExType) && !hasattrbutsbutaddress)
 		{
 			auto GetSymOp = Symbol_GetSymbol(ExType);
 			if (GetSymOp.has_value())
@@ -248,9 +253,18 @@ bool SystematicAnalysis::IR_Build_ImplicitConversion(IRInstruction* Ex, const Ty
 				{
 					auto info = GetSym->Get_Info<ClassInfo>();
 
-					if (info->_ClassHasMoveConstructor)
+					if (info->_ClassHasMoveConstructor.has_value() || info->_AutoGenerateMoveConstructor.has_value())
 					{
-						auto MoveSybID = info->_ClassHasMoveConstructor.value();
+						SymbolID MoveSybID;
+						if (info->_ClassHasMoveConstructor.has_value())
+						{
+							MoveSybID = info->_ClassHasMoveConstructor.value();
+						}
+						else
+						{
+							MoveSybID = info->_AutoGenerateMoveConstructor.value();
+						}
+
 						auto Syb = Symbol_GetSymbol(MoveSybID);
 						auto irfuncid = IR_GetIRID(Syb->Get_Info<FuncInfo>());
 

@@ -384,6 +384,15 @@ private:
 	}
 	GotNodeType GetFuncCallStatementNode(FuncCallStatementNode& out);
 
+	TryGetNode GetFuncCallStatementNode2()
+	{
+		Node* V = nullptr;
+		auto r = GetFuncCallStatementNode2(V);
+		TrippedCheck(r);
+		return { r,V };
+	}
+	GotNodeType GetFuncCallStatementNode2(Node*& out);
+
 	TryGetNode GetFuncCallNode()
 	{
 		FuncCallNode* V = FuncCallNode::Gen();

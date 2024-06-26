@@ -51,7 +51,7 @@ void SystematicAnalysis::OnAssignExpressionNode(const AssignExpressionNode& node
 		auto ID = Symbol_GetSymbolID(node);
 
 		AssignExpression_Data Data;
-		Data.Op0 = ExpressionType;
+		Data.Op0 = ExpressionType;	
 		Data.Op1 = AssignType;
 		
 		_AssignExpressionDatas.AddValue(ID, Data);
@@ -64,6 +64,17 @@ void SystematicAnalysis::OnAssignExpressionNode(const AssignExpressionNode& node
 
 		Debug_Add_SetLineNumber(NeverNullptr(node._Token), _IR_LookingAtIRBlock->Instructions.size());
 
+		
+		bool check = false;
+		if (node._ReassignAddress == false && Type_CanBeImplicitConverted(AssignType.Op0,AssignType.Op1))
+		{
+			auto implicefunc = Symbol_GetAnImplicitConvertedFunc(AssignType.Op0, AssignType.Op1);
+			if (implicefunc.has_value())
+			{
+				check = true;
+				AssignType.Op0._IsAddress = true;
+			}
+		}
 		_LookingForTypes.push(AssignType.Op0);
 		OnExpressionTypeNode(node._Expression._Value.get(), GetValueMode::Read);
 		_LookingForTypes.pop();
@@ -89,8 +100,15 @@ void SystematicAnalysis::OnAssignExpressionNode(const AssignExpressionNode& node
 			domove_ctor = true;
 		}
 
-		IR_Build_ImplicitConversion(ExIR, NewvalEx, implictype);
-		ExIR = _IR_LastExpressionField;
+		if (node._ReassignAddress == false && domove_ctor == false)
+		{
+			if (check)
+			{
+				implictype._IsAddress = false;
+			}
+			IR_Build_ImplicitConversion(ExIR, NewvalEx, implictype);
+			ExIR = _IR_LastExpressionField;
+		}
 
 		auto t = AssignType.Op1;
 		if (Symbol_HasDestructor(AssignType.Op1) || domove_ctor)
@@ -108,7 +126,7 @@ void SystematicAnalysis::OnAssignExpressionNode(const AssignExpressionNode& node
 
 		auto tw = AssignType.Op1;
 		tw._IsAddress = false;
-		if (Symbol_HasDestructor(tw))
+		if (node._ReassignAddress == false && Symbol_HasDestructor(tw))
 		{
 			ObjectToDrop dropinfo;
 			dropinfo.DropType = ObjectToDropType::Operator;
@@ -119,6 +137,7 @@ void SystematicAnalysis::OnAssignExpressionNode(const AssignExpressionNode& node
 			{
 			case IROperatorType::IRInstruction:
 				obj = _IR_LastStoreField.Pointer;
+				AssignIR = _IR_LastStoreField.Pointer;
 				break;
 			case IROperatorType::DereferenceOf_IRParameter:
 				obj = _IR_LastStoreField.Parameter;
@@ -127,6 +146,8 @@ void SystematicAnalysis::OnAssignExpressionNode(const AssignExpressionNode& node
 			case IROperatorType::IRParameter:
 				obj = _IR_LastStoreField.Parameter;
 				AssignExType._IsAddress = false;
+
+				AssignIR = _IR_LookingAtIRBlock->NewLoad(_IR_LastStoreField.Parameter);
 			break;
 
 			default:
@@ -134,14 +155,15 @@ void SystematicAnalysis::OnAssignExpressionNode(const AssignExpressionNode& node
 				break;
 			}
 
-			if (domove_ctor)
+			
+			if (!AssignExType._IsAddress )
 			{
-				AssignExType._IsAddress = false;
+				//obj = _IR_LookingAtIRBlock->NewLoadPtr(obj.Pointer);
+				AssignExType._IsAddress = true;
 			}
 
 			dropinfo._Operator = obj;
 			dropinfo.Type = AssignExType;
-
 			IR_Build_DestructorCall(dropinfo);
 
 			auto& callinsir = _IR_LookingAtIRBlock->Instructions.back();
@@ -170,7 +192,16 @@ void SystematicAnalysis::OnAssignExpressionNode(const AssignExpressionNode& node
 			{
 			case SymbolType::Type_class:
 			{
-				move_ctor_sym = Symbol_GetSymbol(sym->Get_Info<ClassInfo>()->_ClassHasMoveConstructor.value()).value();
+				auto info = sym->Get_Info<ClassInfo>();
+
+				if (info->_ClassHasMoveConstructor.has_value()) 
+				{
+					move_ctor_sym = Symbol_GetSymbol(info->_ClassHasMoveConstructor.value()).value();
+				}
+				else
+				{
+					move_ctor_sym = Symbol_GetSymbol(info->_AutoGenerateMoveConstructor.value()).value();
+				}
 			}
 			break;
 			default:

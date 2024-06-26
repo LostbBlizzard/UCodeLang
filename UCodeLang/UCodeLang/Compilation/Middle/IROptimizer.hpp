@@ -111,6 +111,8 @@ private:
 		Optimization_LoopFrequencyReduction = false;
 		Optimization_StaticAndThreadRemovealAndReadOnlyToValues = false;
 		Optimization_RemoveUnneedMeallocAndFree = false;
+		Optimization_RemoveIdenticalTypes = false;
+		Optimization_StrengthReduction = false;
 		Optimization_FloatFastMath = false;
 	}
 	//Compile Flags

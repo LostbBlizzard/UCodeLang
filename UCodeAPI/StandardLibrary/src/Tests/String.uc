@@ -60,7 +60,7 @@ Tests:
  [Test]
  |StringSpan_12[]:
   String v = "Hello World";
-  //ret v.EndWith("World") == true; 
+  ret v.EndWith("World") == true; 
  
  [Test]
  |StringSpan_13[]:

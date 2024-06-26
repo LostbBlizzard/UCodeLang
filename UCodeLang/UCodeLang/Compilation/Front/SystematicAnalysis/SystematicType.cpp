@@ -27,7 +27,9 @@ bool SystematicAnalysis::Type_IsCharType(const TypeSymbol& TypeToCheck) const
 }
 bool SystematicAnalysis::Type_IsPrimitive(const TypeSymbol& TypeToCheck) const
 {
-	bool r = TypeToCheck.IsAddress() || Type_IsPrimitiveNotIncludingPointers(TypeToCheck);
+	bool r = TypeToCheck.IsAddress() 
+		|| TypeToCheck.IsAddressArray() 
+		|| Type_IsPrimitiveNotIncludingPointers(TypeToCheck);
 
 	if (!r && TypeToCheck.IsAn(TypesEnum::CustomType))
 	{
@@ -144,7 +146,7 @@ bool SystematicAnalysis::Type_IsAddessAndLValuesRulesfollowed(const TypeSymbol& 
 		|| (TypeToCheck.IsRawValue() && Type.IsRawValue())//constant expression
 		);
 }
-bool SystematicAnalysis::Symbol_HasDestructor(const TypeSymbol& TypeToCheck)
+bool SystematicAnalysis::Symbol_HasDestructor(const SymbolID& TypeToCheck)
 {
 
 	TypeSymbol Tep = TypeToCheck;
@@ -163,7 +165,7 @@ bool SystematicAnalysis::Symbol_HasDestructor(const TypeSymbol& TypeToCheck)
 	auto dropfunc = Symbol_GetSymbol(TypeDestructorFuncName, SymbolType::Func);
 	if (!dropfunc.has_value())
 	{
-		auto Sym = Symbol_GetSymbol(TypeToCheck);
+		auto Sym = Symbol_GetSymbol(Tep);
 
 		if (Sym && Sym.value()->Type == SymbolType::Type_class)
 		{
@@ -195,6 +197,22 @@ bool SystematicAnalysis::Symbol_HasDestructor(const TypeSymbol& TypeToCheck)
 
 	}
 	return dropfunc.has_value();
+}
+bool SystematicAnalysis::Symbol_HasDestructor(const TypeSymbol& TypeToCheck)
+{
+	if (TypeToCheck.IsAddress()
+		|| TypeToCheck.IsAddressArray()
+		|| TypeToCheck.IsDynamicTrait()
+		|| TypeToCheck.IsMovedType())
+	{
+		return false;
+	}
+
+	if (TypeToCheck._Type == TypesEnum::CustomType)
+	{
+		return Symbol_HasDestructor(TypeToCheck._CustomTypeSymbol);
+	}
+	return false;
 }
 
 
@@ -563,7 +581,7 @@ bool SystematicAnalysis::Type_IsCompatible(const IsCompatiblePar& FuncPar, const
 
 
 	//
-	if ((PassType_t)FuncPar.Item->PassState < (PassType_t)_PassType)
+	if ((PassType_t)FuncPar.Item->PassState < (PassType_t)_PassType && _PassType == PassType::FixedTypes)
 	{
 		if (FuncPar.Item->Type != SymbolType::Func)
 		{
@@ -891,30 +909,33 @@ bool SystematicAnalysis::Type_AreTheSameWithOutimmutable(const TypeSymbol& TypeA
 }
 bool SystematicAnalysis::Type_HasDefaultConstructorFunc(const TypeSymbol& Type) const
 {
-	if (Type.IsAddress() == false)
+	if (Type.IsAddress()
+		|| Type.IsAddressArray()
+		|| Type.IsDynamicTrait())
 	{
-		auto symOp = Symbol_GetSymbol(Type);
-		if (symOp.has_value())
+		return false;
+	}
+	auto symOp = Symbol_GetSymbol(Type);
+	if (symOp.has_value())
+	{
+		auto sym = symOp.value();
+		if (sym->Type == SymbolType::Type_class)
 		{
-			auto sym = symOp.value();
-			if (sym->Type == SymbolType::Type_class)
-			{
-				auto scopename = sym->FullName;
-				ScopeHelper::GetApendedString(scopename, ClassConstructorfunc);
+			auto scopename = sym->FullName;
+			ScopeHelper::GetApendedString(scopename, ClassConstructorfunc);
 
-				for (auto& Item : GetSymbolsWithName(scopename))
+			for (auto& Item : GetSymbolsWithName(scopename))
+			{
+				if (Item->Type == SymbolType::Func)
 				{
-					if (Item->Type == SymbolType::Func)
+					auto funcinfo = Item->Get_Info<FuncInfo>();
+					if (funcinfo->Pars.size() == 1)
 					{
-						auto funcinfo = Item->Get_Info<FuncInfo>();
-						if (funcinfo->Pars.size() == 1)
-						{
-							return true;
-						}
+						return true;
 					}
 				}
-
 			}
+
 		}
 	}
 	return false;
@@ -1667,7 +1688,7 @@ void SystematicAnalysis::Type_Convert(const TypeNode& V, TypeSymbol& Out)
 					Out.SetType(SybV->ID);
 				}
 			}
-			else if (SybV->Type == SymbolType::Unmaped_Generic_Type)
+			else if (IsSymbolUnmapedType(SybV->Type))
 			{
 				Out.SetType(SybV->ID);
 			}
@@ -1909,6 +1930,10 @@ void SystematicAnalysis::Type_Convert(const TypeNode& V, TypeSymbol& Out)
 
 							info->Fields.push_back(std::move(F));
 							EnumValue++;
+					
+							auto& FieldSyb = Symbol_AddSymbol(SymbolType::Enum_Field, valuename,
+								ScopeHelper::ApendedStrings(SymName,valuename), AccessModifierType::Public);
+
 						}
 
 						EnumVariantData Variantdata;

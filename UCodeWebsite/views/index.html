@@ -1,0 +1,14 @@
+{{ block "index" .}}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    {{ template "head.html" }}
+  </head>
+
+  <body>
+    {{ template "header.html" }}
+    <div id="pagebody">{{ .PageBody }}</div>
+  </body>
+</html>
+
+{{ end }}

@@ -210,7 +210,14 @@ struct NamespaceNode :Node
 };
 
 
+struct TypeNode;
+struct NamedParametersNode;
 
+struct FunctorNode
+{
+	Unique_ptr<NamedParametersNode> _Base;
+	Unique_ptr<TypeNode> _ReturnType;
+};
 struct GenericValueNode :Node
 {
 
@@ -227,7 +234,7 @@ struct GenericValueNode :Node
 	}
 	const Token* token = nullptr;
 	GenericType _Generictype = GenericType::Name;
-	Optional<ScopedNameNode> _BaseOrRuleScopeName;
+	Optional<Variant<ScopedNameNode,FunctorNode>> _BaseOrRuleScopeName;
 	bool IsRule = false;
 
 
@@ -254,7 +261,6 @@ struct GenericValuesNode :Node
 	}
 };
 
-struct TypeNode;
 
 struct UseGenericsNode :Node
 {
@@ -1281,6 +1287,8 @@ struct ExtendedFuncExpression : Node
 
 	AddforNode(ExtendedFuncExpression);
 
+	ExtendedFuncExpression(ExtendedFuncExpression&& source) noexcept = default;
+
 	ExtendedFuncExpression() : Node(NodeType::ExtendedFuncExpression)
 	{
 
@@ -1454,4 +1462,20 @@ struct ForTypeNode :Node
 	bool _IsExport = false;
 };
 
+struct ExtendedFuncStatement : Node
+{
+	ExtendedFuncStatement() : Node(NodeType::ExtendedFuncStatement)
+	{
+
+	}
+	ExtendedFuncStatement(ExtendedFuncExpression&& val) : Node(NodeType::ExtendedFuncStatement)
+		,_Base(std::move(val))
+	{
+
+	}
+	ExtendedFuncStatement(ExtendedFuncStatement&& Source) = default;
+
+	AddforNode(ExtendedFuncStatement);
+	ExtendedFuncExpression _Base;
+};
 UCodeLangFrontEnd

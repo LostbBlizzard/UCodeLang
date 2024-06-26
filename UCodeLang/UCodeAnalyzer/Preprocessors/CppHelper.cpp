@@ -1914,7 +1914,7 @@ String CppHelper::ToString(CppToULangState& State, const ClassType& Value, const
 	
 	if (Value.IsTrait)
 	{
-		R += " trait";
+		R += " export trait";
 	}
 	else 
 	{
@@ -2126,7 +2126,7 @@ String CppHelper::ToString(CppToULangState& State, const CPPType& Value)
 	else if (CMPStr == "int8_t" || CMPStr == "int8" || CMPStr == "Int8" || CMPStr == "sInt8"
 		|| CMPStr == "sint8" || CMPStr == "signed char")
 	{
-		R += "uint8";
+		R += "int8";
 	}
 	else if (CMPStr == "int16_t" || CMPStr == "int16" || CMPStr == "Int16" || CMPStr == "sInt16"
 		|| CMPStr == "sint8" || CMPStr == "signed short" || CMPStr == "short")
@@ -2175,6 +2175,17 @@ String CppHelper::ToString(CppToULangState& State, const CPPType& Value)
 		
 		R += "sintptr";
 	}
+	else if (CMPStr == "float"
+		|| CMPStr == "float_t")
+	{
+		
+		R += "float32";
+	}
+	else if (CMPStr == "double"
+		|| CMPStr == "double_t")
+	{	
+		R += "float64";
+	}
 	else if (CMPStr == "void")
 	{
 		R += "void";
@@ -2200,7 +2211,6 @@ String CppHelper::ToString(CppToULangState& State, const CPPType& Value)
 
 	return R;
 }
-
 String CppHelper::ToString(CppToULangState& State, const CPPExpression& Value)
 {
 	return Value.Value;

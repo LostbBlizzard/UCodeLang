@@ -195,6 +195,7 @@ private:
 	UCodeLang::RunTimeLangState _RunTimeState;
 	UCodeLang::AnyInterpreter _AnyInterpreter;
 	UCodeLang::RunTimeLib _RuntimeLib;
+	Optional<UCodeLang::ULangDebugInfo::Cach> _Cach;
 	//Windows
 
 	enum class BackEndType
@@ -239,7 +240,7 @@ private:
 		bool StripTypes = false;
 
 		UCodeLang::OptimizationFlags Flags = UCodeLang::OptimizationFlags::O_2;
-		bool InDebug = false;
+		bool InDebug = true;
 		bool ImportStandardLibrary = false;
 
 		NativeSet OldNativeCpuType = NativeSet::Native;

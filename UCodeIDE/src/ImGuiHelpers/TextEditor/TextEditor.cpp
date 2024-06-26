@@ -933,6 +933,11 @@ void TextEditor::Render()
 				auto end = ImVec2(lineStartScreenPos.x + contentSize.x + 2.0f * scrollX, lineStartScreenPos.y + mCharAdvance.y);
 				drawList->AddRectFilled(start, end, mPalette[(int)PaletteIndex::Breakpoint]);
 			}
+			if (currentdebugline.has_value()  && lineNo + 1 == currentdebugline.value())
+			{
+				auto end = ImVec2(lineStartScreenPos.x + contentSize.x + 2.0f * scrollX, lineStartScreenPos.y + mCharAdvance.y);
+				drawList->AddRectFilled(start, end, mPalette[(int)PaletteIndex::Comment]);
+			}
 
 			// Draw error markers
 			auto errorIt = mErrorMarkers.find(lineNo + 1);

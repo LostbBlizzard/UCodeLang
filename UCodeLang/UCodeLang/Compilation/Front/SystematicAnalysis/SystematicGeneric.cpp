@@ -750,30 +750,70 @@ void SystematicAnalysis::Generic_GenericAliasFixTypes(const GenericValuesNode& G
 			auto& rule = Item._BaseOrRuleScopeName.value();
 			Optional<Variant<TypeSymbol, SymbolID>> base;
 			{
-				bool istype = true;
+				if (const ScopedNameNode* scoperule = rule.Get_If<ScopedNameNode>())
 				{
-					String scope;
-					rule.GetScopedName(scope);
-					auto sym = GetSymbolsWithName(scope);
+					bool istype = true;
+					{
+						String scope;
+						scoperule->GetScopedName(scope);
+						auto sym = GetSymbolsWithName(scope);
+					}
+
+					if (istype)
+					{
+						TypeSymbol type;
+						TypeNode typenode;
+						typenode._name._ScopedName = scoperule->_ScopedName;
+						Type_Convert(typenode, type);
+
+						base = type;
+					}
+					else
+					{
+						UCodeLangUnreachable();
+					}
 				}
-
-				if (istype)
+				else if (const FunctorNode* functorule = rule.Get_If<FunctorNode>())
 				{
-					TypeSymbol type;
-					TypeNode typenode;
-					typenode._name._ScopedName = rule._ScopedName;
-					Type_Convert(typenode, type);
+					auto par = Symbol_GetSymbol(Symbol_GetSymbolID(Item));
 
-					base = type;
+					size_t parcount = functorule->_Base.get()->_Parameters.size();
+
+					auto& sym = Symbol_AddSymbol(SymbolType::Functor,"N/A","N/A",AccessModifierType::Public);
+					sym.PassState = PassType::FixedTypes;
+
+					FunctorInfo* info = new FunctorInfo();
+					sym.Info.reset(info);
+
+					info->Pars.resize(parcount);
+
+					for (size_t i = 0; i < parcount; i++)
+					{
+						auto& parin = functorule->_Base.get()->_Parameters[i]._Type;
+						auto& parout = info->Pars[i].Type;
+
+						Type_Convert(parin, parout);
+					}
+
+					Type_Convert(*functorule->_ReturnType, info->Ret);
+
+					auto symid = Symbol_GetSymbolID(functorule);
+					_Table.AddSymbolID(sym, symid);
+					auto type = TypeSymbol(symid);
+
+					OutItem.BaseOrRule = type;
+
+					par->VarType = type; 
+					par->Type = SymbolType::UnmapedFunctor;
 				}
 				else
 				{
-					UCodeLangUnreachable();
+					UCodeLangToDo();
 				}
+
+
 			}
-
 			OutItem.BaseOrRule = std::move(base);
-
 		}
 	}
 }

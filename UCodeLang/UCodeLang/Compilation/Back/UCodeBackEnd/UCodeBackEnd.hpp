@@ -435,6 +435,15 @@ private:
 
 	void MoveValueToStack(const IRInstruction* IRName, const IRType& ObjectType, RegisterID Item);
 
+	struct MemberAccessOffsetInfo
+	{
+		// Base->X.Y
+		// ^
+		const IRInstruction* BaseInstruction;
+		size_t Offset = 0;
+	};
+	MemberAccessOffsetInfo GetMemberAccessDereferenceOffset(const IRInstruction* VIns) ;
+
 	void StoreValue(const IRInstruction* Ins, const  IROperator& OutputLocationIR, const IROperator& Input);
 
 	void StoreValueInPointer(const IRType& ObjectType, RegisterID Pointer, const  IROperator& Value, IRInstruction* Ins);

@@ -1,6 +1,6 @@
 #include "UCodeLang/LangCore/LangTypes.hpp"
 #include "UCodeLang/LangCore/UCodeLangNameSpace.hpp"
-
+#include "UCodeLang/LangCore/ULangDebugInfo.hpp"
 UCodeLangStart
 
 struct StackFrames 
@@ -74,9 +74,17 @@ struct StackFrameDetails
 		return r;
 	}
 };
+struct GetDetilsCach
+{
+	Optional<ULangDebugInfo::Cach> cach;
+	void Clear()
+	{
+		cach = {};
+	}
+};
 
 class RunTimeLangState;
-void GetDetils(UAddress Input, StackFrameDetails& Out, const RunTimeLangState* State);
-void GetDetils(const StackFrames& Input, const RunTimeLangState* State, Vector<StackFrameDetails>& Out);
-Vector<StackFrameDetails> GetDetils(const StackFrames& Input, const RunTimeLangState* State);
+void GetDetils(UAddress Input, StackFrameDetails& Out, const RunTimeLangState* State,GetDetilsCach& cach);
+void GetDetils(const StackFrames& Input, const RunTimeLangState* State, Vector<StackFrameDetails>& Out,GetDetilsCach& cach);
+Vector<StackFrameDetails> GetDetils(const StackFrames& Input, const RunTimeLangState* State,GetDetilsCach& cach);
 UCodeLangEnd

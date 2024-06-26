@@ -9,7 +9,7 @@
 #include <map>
 #include <regex>
 #include "imgui.h"
-
+#include <optional>
 class TextEditor
 {
 public:
@@ -271,6 +271,7 @@ public:
 	static const Palette& GetLightPalette();
 	static const Palette& GetRetroBluePalette();
 
+	std::optional<int> currentdebugline;
 private:
 	typedef std::vector<std::pair<std::regex, PaletteIndex>> RegexList;
 

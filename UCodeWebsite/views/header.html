@@ -1,0 +1,41 @@
+{{ block "header.html" .}}
+<div class="header">
+  <a href="/static/images/favicon.png" class="logo">UCodeLang</a>
+  <nav class="header-right">
+    <a hx-get="/htmx/home" hx-target="#pagebody" hx-replace-url="/">Home</a>
+    <a hx-get="/htmx/install" hx-target="#pagebody" hx-replace-url="/install"
+      >Install</a
+    >
+    <a href="/doc" 
+      >Docs</a
+    >
+    <a hx-get="/htmx/modules" hx-target="#pagebody" hx-replace-url="/modules"
+      >Modules</a
+    >
+    <a hx-get="/htmx/community" hx-target="#pagebody" hx-replace-url="/community"
+      >Community</a
+    >
+  </nav>
+  <script>
+        function updateActiveClass() {
+            var path = window.location.pathname;
+
+            var links = document.querySelectorAll('nav a');
+            links.forEach(function(link) {
+                if (link.getAttribute('hx-replace-url') === path) {
+                    link.classList.add('active');
+                } else {
+                    link.classList.remove('active');
+                }
+            });
+        }
+
+        updateActiveClass();
+
+        document.body.addEventListener('htmx:afterSwap', function(event) {
+            updateActiveClass();
+        });
+    </script>
+  </script>
+</div>
+{{ end }}

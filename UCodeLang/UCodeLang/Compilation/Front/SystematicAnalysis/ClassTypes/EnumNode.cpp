@@ -333,7 +333,7 @@ void SystematicAnalysis::OnEnum(const EnumNode& node)
 			VClass.Base.Implementation += "\n\n";
 			VClass.IsExported = node._IsExport;
 			VClass.AccessModifier = node._Access;
-			
+			VClass.UseStatments = Generic_GetCurrentUseStatements();
 		}
 
 		bool hasdestructer = false;

@@ -627,6 +627,9 @@ void IROptimizer::UpdateOptimizationList()
 	}
 	ResetOptimizations();
 
+	#if !IsOptimizerStable
+	return;
+	#endif
 	Flag_NoExceptions = Stettings.HasArg("NoExceptions");
 	{
 		auto p = Stettings.GetArgValueFlag("FuncionsToKeep");

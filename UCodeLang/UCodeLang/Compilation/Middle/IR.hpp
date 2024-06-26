@@ -1656,25 +1656,7 @@ public:
 		return FindOrAddStaticSpanString(String_view((const char*)Buffer.data(), Buffer.size()));
 	}
 
-	StringSpanInfo FindOrAddStaticSpanString(const String_view Buffer)
-	{
-		String VKey = (String)Buffer;
-		if (ConstStaticStrings.HasValue(VKey))
-		{
-			return { ConstStaticStrings.GetValue(VKey),0 };
-		}
-		IRidentifierID identifier = ToID(".Const.SpanString:" + (String)Buffer);
-		auto V = NewStaticVarable(identifier, IRType(IRTypes::i8));
-
-		V.Pointer->IsInitialized = true;
-		V.Pointer->Bytes.resize(Buffer.size());
-		memcpy(V.Pointer->Bytes.data(), Buffer.data(), Buffer.size());
-
-		ConstStaticStrings.AddValue(VKey, identifier);
-
-		return { identifier,0 };
-	}
-
+	StringSpanInfo FindOrAddStaticSpanString(const String_view Buffer);
 
 
 	IRStruct* NewStruct(IRidentifierID identifier)

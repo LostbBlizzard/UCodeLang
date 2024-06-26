@@ -769,7 +769,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 						ObjectToDrop V;
 						V.DropType = ObjectToDropType::Operator;
 						V.ID = ParSybID;
-						V._Operator = IROperator(&d);
+						V._Operator = IROperator(_IR_LookingAtIRBlock->NewLoadPtr(&d));
 						V.Type = PackType;
 
 						_IR_StackFrames.back().OnEndStackFrame.push_back(V);
@@ -977,13 +977,14 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 
 		auto nametoken = body->_Signature._Name.token;
 		auto endtoken = body->EndOfFunc;
-		String_view filetext = this->_LookingAtFile->FileText;
+		String_view filetext = syb->_File->FileText;
 
 		auto& assemblyfunc = _Lib.Get_Assembly().AddGenericFunc(ScopeHelper::GetNameFromFullName(syb->FullName), syb->FullName);
 
 		assemblyfunc.Base.Implementation = GetImplementationFromFunc(filetext, nametoken, endtoken);
 		assemblyfunc.AccessModifier = syb->Access;
 		assemblyfunc.IsExported = node._Signature._IsExport;
+		assemblyfunc.UseStatments = Generic_GetCurrentUseStatements();
 	}
 
 	if (_PassType == PassType::FixedTypes)

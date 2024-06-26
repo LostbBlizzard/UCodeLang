@@ -2,6 +2,7 @@
 #include "IR.hpp"
 #include <fstream>
 #include <UCodeLang/LangCore/TypeNames.hpp>
+#include "UCodeLang/LangCore/StringHelper.hpp"
 UCodeLangStart
 
 
@@ -304,7 +305,35 @@ IRBuilder::IRBuilder()
 	_threaddeInit.identifier = ToID(ThreadVariablesUnLoadFunc);
 	_threaddeInit.ReturnType = IRTypes::Void;
 }
+IRBuilder::StringSpanInfo IRBuilder::FindOrAddStaticSpanString(const String_view Buffer)
+{
+	String VKey = (String)Buffer;
+	if (ConstStaticStrings.HasValue(VKey))
+	{
+		return { ConstStaticStrings.GetValue(VKey),0 };
+	}
 
+	
+	for (auto& item : ConstStaticStrings)
+	{
+		if (StringHelper::Contains(String_view(item.first), Buffer))
+		{
+			auto index = item.first.find(Buffer);
+			return { item.second,index };
+		}
+	}
+
+	IRidentifierID identifier = ToID(".Const.SpanString:" + (String)Buffer);
+	auto V = NewStaticVarable(identifier, IRType(IRTypes::i8));
+
+	V.Pointer->IsInitialized = true;
+	V.Pointer->Bytes.resize(Buffer.size());
+	memcpy(V.Pointer->Bytes.data(), Buffer.data(), Buffer.size());
+
+	ConstStaticStrings.AddValue(VKey, identifier);
+
+	return { identifier,0 };
+}
 BytesPtr IRBuilder::ToBytes() const
 {
 	BitMaker V;

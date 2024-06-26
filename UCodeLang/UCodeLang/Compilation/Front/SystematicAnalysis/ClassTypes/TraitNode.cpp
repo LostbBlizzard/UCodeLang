@@ -321,7 +321,7 @@ void SystematicAnalysis::OnTrait(const TraitNode& node)
 			VClass.Base.Implementation += "\n\n";
 			VClass.AccessModifier = Syb.Access;
 			VClass.IsExported = node._IsExport;
-
+			VClass.UseStatments = Generic_GetCurrentUseStatements();
 		}
 		else
 		{
@@ -690,6 +690,8 @@ void SystematicAnalysis::Symbol_InheritTrait(NeverNullPtr<Symbol> Syb, ClassInfo
 			_Table.Useings.pop_back();
 		}
 
+		auto oldcurrentfile = this->_LookingAtFile;
+		_LookingAtFile = Trait->_File;
 
 		for (auto& Item : IDSyb.AddedFuncs)
 		{
@@ -708,21 +710,23 @@ void SystematicAnalysis::Symbol_InheritTrait(NeverNullPtr<Symbol> Syb, ClassInfo
 
 		{
 			_Table.AddUseing(Trait->FullName);
-			for (auto& Item : Trait->Get_NodeInfo<TraitNode>()->_generic._Values)
+			const TraitInfo* info = Trait->Get_Info<TraitInfo>();
+
+			for (auto& Item : info->_GenericAlias)
 			{
 				String scope = Trait->FullName;
-				ScopeHelper::GetApendedString(scope, Item.token->Value._String);
+				ScopeHelper::GetApendedString(scope, Item.Name);
 				auto s = Symbol_GetSymbol(scope, SymbolType::Generic_Alias).value();
 				s->Access = AccessModifierType::Public;
-			}
+			}	
 			for (auto& Item : Traitinfo->_Symbols)
 			{
 				OnTraitSymbol(Item);
 			}
-			for (auto& Item : Trait->Get_NodeInfo<TraitNode>()->_generic._Values)
+			for (auto& Item : info->_GenericAlias)
 			{
 				String scope = Trait->FullName;
-				ScopeHelper::GetApendedString(scope, Item.token->Value._String);
+				ScopeHelper::GetApendedString(scope, Item.Name);
 				auto s = Symbol_GetSymbol(scope, SymbolType::Generic_Alias).value();
 				s->Access = AccessModifierType::Private;
 			}
@@ -735,6 +739,7 @@ void SystematicAnalysis::Symbol_InheritTrait(NeverNullPtr<Symbol> Syb, ClassInfo
 			OnFuncNode(func);
 		}
 
+		_LookingAtFile = oldcurrentfile;
 		{
 			_PassType = oldpass;
 			_ClassStack.pop();

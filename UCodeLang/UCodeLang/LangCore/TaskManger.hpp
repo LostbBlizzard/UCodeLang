@@ -444,7 +444,7 @@ public:
 				}, std::move(pars));
 
 				T r = (*task_promise).get_future().get();
-				tasks.Lock([newid, r = std::move(r)](UnorderedMap<TaskID, std::shared_ptr<RuningTaskInfo>>& val)
+				tasks.Lock([newid,&r](UnorderedMap<TaskID, std::shared_ptr<RuningTaskInfo>>& val)
 				{
 					auto& runtaskinfo = val.GetValue(newid);
 					runtaskinfo->SetReturn(std::move(r));
@@ -572,7 +572,7 @@ public:
 			}
 
 		}
-		return r.value();
+		return std::move(r.value());
 	}
 
 	template<typename T>
@@ -683,7 +683,7 @@ private:
 	{
 		auto& tasklist = WorkData.TaskToID;
 		Optional<std::function<void()>> r;
-		auto func = [tasklist, &r, This](UnorderedMap<TaskID, Shared_ptr<RuningTaskInfo>>& val) mutable
+		auto func = [&tasklist, &r, This](UnorderedMap<TaskID, Shared_ptr<RuningTaskInfo>>& val) mutable
 			{
 				for (size_t i = 0; i < tasklist.size(); i++)
 				{

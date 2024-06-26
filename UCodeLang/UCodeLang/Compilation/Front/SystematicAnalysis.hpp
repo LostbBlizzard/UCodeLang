@@ -773,6 +773,13 @@ private:
 			Ret = &Info->Ret;
 			this->Item = Item;
 		}
+		void SetAsFunctorPtrInfo(Symbol* Item)
+		{
+			FunctorInfo* Info = Item->Get_Info<FunctorInfo>();
+			Pars = &Info->Pars;
+			Ret = &Info->Ret;
+			this->Item = Item;
+		}
 	};
 	struct StrExELav
 	{
@@ -893,7 +900,7 @@ private:
 	String _LastIRFileName;
 	size_t _LastLineNumber = -1;
 
-	Set<SymbolID> _ConstantExpressionMap;
+	UnorderedSet<SymbolID> _ConstantExpressionMap;
 	Stack<GetValueMode> _GetExpressionMode;
 	Stack<VarableUseData> _Varable;
 	Vector<Unique_ptr<EvalFuncData>> _Eval_FuncStackFrames;
@@ -1147,6 +1154,7 @@ private:
 	void OnAliasNode(const AliasNode& node);
 	void OnUseingNode(const UsingNode& node);
 
+	CapturedUseStatements Generic_GetCurrentUseStatements();
 	void Generic_InitGenericalias(const GenericValuesNode& GenericList, bool IsgenericInstantiation, Generic& Out);
 	void Generic_GenericAliasFixTypes(const GenericValuesNode& GenericList, bool IsgenericInstantiation, Generic& Out);
 	//Because we support function overloading
@@ -1323,6 +1331,7 @@ private:
 	void OnStatements(const StatementsNode& node);
 	void OnPanicStatement(const PanicNode& node);
 	void OnForTypeNode(const ForTypeNode& node);
+	void OnExtenedFuncStatmentNode(const ExtendedFuncStatement& node);
 
 
 	struct OptionalTypeInfo
@@ -1380,7 +1389,7 @@ private:
 
 	struct ImportLibInfo
 	{
-		Set<AssemblyNode*> ClassesToAdd;
+		UnorderedSet<AssemblyNode*> ClassesToAdd;
 	};
 
 	void Assembly_LoadLibSymbols();
@@ -1614,6 +1623,7 @@ private:
 
 
 	bool Symbol_HasDestructor(const TypeSymbol& TypeToCheck);
+	bool Symbol_HasDestructor(const SymbolID& TypeToCheck);
 
 	void Symbol_Update_ClassSym_ToFixedTypes(NeverNullPtr<Symbol> Sym);
 	void Symbol_Update_FuncSym_ToFixedTypes(NeverNullPtr<Symbol> Sym);

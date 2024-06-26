@@ -72,6 +72,16 @@ struct DebugData
 class ProfilerDebuger
 {
 public:
+	struct Cach
+	{
+		Optional<ULangDebugInfo::Cach> cach;
+		void Clear()
+		{
+			cach = {};
+		}
+
+	};
+
 	using OnBreakPointCallBack = int;
 	ProfilerDebuger(){}
 	~ProfilerDebuger(){}
@@ -93,11 +103,11 @@ public:
 
 	UCodeLangAPIExport void AddRunTimeBreakPoint(UAddress Item, OnBreakPointCallBack OnHit);
 	UCodeLangAPIExport void RemoveRunTimeBreakPoint(UAddress Item);
-	UCodeLangAPIExport void UpdateDebugData(DebugData& Out);
-	DebugData GetDebugData()
+	UCodeLangAPIExport void UpdateDebugData(DebugData& Out,Cach& cach);
+	DebugData GetDebugData(Cach& cach)
 	{
 		DebugData v;
-		UpdateDebugData(v);
+		UpdateDebugData(v,cach);
 		return v;
 	}
 	
@@ -141,6 +151,10 @@ public:
 	UCodeLangAPIExport void VM_StepOver();
 	UCodeLangAPIExport void VM_StepOut();
 	
+	size_t GetLineNumber(UAddress Ins,Cach& cach);
+
+	//Note this is File identifier not the file full path.
+	Path GetFile(UAddress Ins,Cach& cach);
 private:
 	RunTimeLangState* _state = nullptr;
 	AnyInterpreterPtr _Interpreter;

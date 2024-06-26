@@ -182,6 +182,7 @@ void SystematicAnalysis::OnTag(const TagTypeNode& node)
 			VClass.Base.Implementation += "\n\n";
 			VClass.AccessModifier = Syb.Access;
 			VClass.IsExported = node._IsExport;
+			VClass.UseStatments = Generic_GetCurrentUseStatements();
 		}
 	}
 

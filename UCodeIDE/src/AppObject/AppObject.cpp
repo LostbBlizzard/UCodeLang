@@ -183,6 +183,10 @@ void AppObject::Init()
         {
             OutputWindow.Type = BackEndType::C89;
         }
+        if (UCodeLang::StringHelper::Contains(str, "//IR"))
+        {
+            OutputWindow.Type = BackEndType::IR;
+        }
         
         UpdateBackEnd();
         CompileText(GetTextEditorString());
@@ -2030,7 +2034,9 @@ void AppObject::OnDraw()
             CompileText(GetTextEditorString());
         }
         
-        if (ImGui::Button("Copy To Clip Board"))
+        auto& style = ImGui::GetStyle();
+        auto aval = ImGui::GetContentRegionAvail().x;
+        if (ImGui::Button("Copy To Clip Board", { aval * (1.0f/3.0f),ImGui::GetFrameHeight()}))
         {
             ImGui::LogToClipboard();
             ImGui::LogText(_LibInfoString.c_str());
@@ -2048,7 +2054,7 @@ void AppObject::OnDraw()
             {
                 Txt += "Open in Compiler Explorer [C/C++]";
             }
-            if (ImGui::Button(Txt.c_str()))
+            if (ImGui::Button(Txt.c_str(),{ aval * (2.0f/3.0f)- style.ItemSpacing.x,ImGui::GetFrameHeight() }))
             {
                 if (OutputWindow.Type == BackEndType::LLVM) 
                 {
@@ -2404,7 +2410,8 @@ void AppObject::ShowUCodeVMWindow()
 
 
             {
-                std::system(("node " + node_file.generic_string() + " > " + out_file.generic_string()).c_str());
+                String val = "node " + node_file.generic_string() + " > " + out_file.generic_string();
+                std::system(val.c_str());
             }
 
             std::stringstream ss_out;
@@ -2681,25 +2688,51 @@ bool DrawAnyInt64(const char* Name,UCodeLang::AnyInt64& V)
     bool updated = false;
     if (ImGui::TreeNode(Name))
     {
+        uintptr_t p = (uintptr_t )&V;
+
+        ImGui::PushID(p);
         if (ImguiHelper::Int8Field("int8", V.AsInt8))
         {
             updated = true;
         }
+        ImGui::PopID();
+
+
+        ImGui::PushID(p + 1);
         if (ImguiHelper::Int16Field("int16", V.AsInt16))
         {
             updated = true;
         }
+        ImGui::PopID();
+
+        ImGui::PushID(p + 2);
         if (ImguiHelper::Int32Field("int32", V.AsInt32))
         {
             updated = true;
         }
+        ImGui::PopID();
+        
+        ImGui::PushID(p + 3);
         if (ImguiHelper::Int64Field("int64", V.AsInt64))
         {
             updated = true;
         }
-        ImguiHelper::float32Field("float32", V.Asfloat32);
-        ImguiHelper::float64Field("float64", V.Asfloat64);
+        ImGui::PopID();
 
+
+        ImGui::PushID(p + 4);
+        if (ImguiHelper::float32Field("float32", V.Asfloat32))
+        {
+            updated = true;
+        }
+        ImGui::PopID();
+        
+        ImGui::PushID(p + 5);
+        if (ImguiHelper::float64Field("float64", V.Asfloat64))
+        {
+            updated = true;
+        }
+        ImGui::PopID();
 
 
         ImGui::TreePop();
@@ -2709,19 +2742,19 @@ bool DrawAnyInt64(const char* Name,UCodeLang::AnyInt64& V)
 
 void AppObject::ShowDebugerMenu(UCodeVMWindow& windowdata)
 {
-
-   
-
     ImGui::Separator();
 
     bool IsinFileMode = false;
-    ImVec2 Buttonsize = { 80,20 };
+    const int buttioncount = 3;
+    auto& style = ImGui::GetStyle();
+    ImVec2 Buttonsize = { ((ImGui::GetContentRegionAvail().x - style.ItemSpacing.x *2)/ buttioncount),ImGui::GetFrameHeight()};
 
     static UCodeLang::DebugData DebugInfo;
 
     bool InFunction = Debuger.IsinFunc();
 
-    ImGui::Button("Reset", Buttonsize);
+    ImGui::Button("Reset", {ImGui::GetContentRegionAvail().x,ImGui::GetFrameHeight()});
+
 
     ImguiHelper::BoolEnumField("Call Static/Thread Init On Reload", windowdata.CallStaticVarOnReload);
 
@@ -2772,19 +2805,36 @@ void AppObject::ShowDebugerMenu(UCodeVMWindow& windowdata)
     
     if (InFunction)
     {
-        Debuger.UpdateDebugData(DebugInfo);
+        UCodeLang::ProfilerDebuger::Cach cach;
+        cach.cach = std::move(_Cach);
+
+        Debuger.UpdateDebugData(DebugInfo, cach);
+
         ImGui::Text("Varables");
         auto& thisFrame = DebugInfo._StackFrames.front();
 
 
-        for (auto& Item : thisFrame._Varables) 
+        for (auto& Item : thisFrame._Varables)
         {
             ImguiHelper::UCodeObjectField(
                 Item.VarableName.c_str(),
                 Item.GetObjectPtr(),
-                Item.Type, 
+                Item.Type,
                 _RunTimeState.Get_Assembly());
         }
+
+        {
+            auto ins = Debuger.GetCurrentInstruction();
+
+            size_t linenumber = Debuger.GetLineNumber(ins,cach);
+;
+            _Editor.currentdebugline = linenumber;
+        }
+        _Cach = cach.cach;
+    }
+    else
+    {
+        _Editor.currentdebugline = {};
     }
 
     if (InFunction) 
@@ -2818,7 +2868,8 @@ void AppObject::ShowDebugerMenu(UCodeVMWindow& windowdata)
 
         auto GlobalObject = Assembly.Get_GlobalObject_Class();
 
-        ImGui::Text("Call Function:"); ImGui::SameLine();
+        ImguiHelper::ItemLabel(StringView("Call Function:"), ImguiHelper::Left);
+
         
         ImGui::PushID(&callFuncContext.current_method);
 
@@ -2931,7 +2982,9 @@ void AppObject::ShowDebugerMenu(UCodeVMWindow& windowdata)
                     ImguiHelper::BoolEnumField("Call Stack/Thread de-init", callFuncContext.CallStaticAndThreadDeInit);
 
                 }
-                if (ImGui::Button(((String)"Call:" + MethodString).c_str()))
+                ImVec2 buttionsize = { (ImGui::GetContentRegionAvail().x  / 2) , ImGui::GetFrameHeight() };
+                String tepstr = String("Call:") + MethodString;
+                if (ImGui::Button(tepstr.c_str(),buttionsize))
                 {
                     callFuncContext._LastRetType = callFuncContext.current_method->RetType;
                     callFuncContext._LastRet.Resize(Assembly.GetSize(callFuncContext._LastRetType, Is32bits).value_or(0));
@@ -2972,7 +3025,8 @@ void AppObject::ShowDebugerMenu(UCodeVMWindow& windowdata)
 
                 }
                 ImGui::SameLine();
-                if (ImGui::Button(((String)"Step Into:" + MethodString).c_str()))
+                tepstr = String("Step Into:") + MethodString;
+                if (ImGui::Button(tepstr.c_str()))
                 {
                     Debuger.Attach(&_RunTimeState);
                     callFuncContext._LastRetType = callFuncContext.current_method->RetType;
@@ -3016,7 +3070,12 @@ void AppObject::ShowDebugerMenu(UCodeVMWindow& windowdata)
                             String tep = "Panic Msg:" + PanicMsg;
                             ImGui::Text(tep.c_str());
 
-                            auto d = UCodeLang::GetDetils(error.StatckFrames, &_RunTimeState);
+                            UCodeLang::GetDetilsCach cach;
+                            cach.cach = std::move(_Cach);
+
+                            auto d = UCodeLang::GetDetils(error.StatckFrames, &_RunTimeState,cach);
+
+                            _Cach = std::move(cach.cach);
 
                             for (size_t i = 0; i < d.size(); i++)
                             {
@@ -3271,7 +3330,8 @@ void AppObject::ShowDebugerMenu(UCodeVMWindow& windowdata)
                     {
                         void* Object = (void*)((uintptr_t)Memptr + (uintptr_t)Val->offset);
 
-                        ImGui::Text(("offset:" + std::to_string(Val->offset)).c_str());
+                        String val ="offset:" + std::to_string(Val->offset);
+                        ImGui::Text(val.c_str());
                         ImGui::SameLine();
                         ImguiHelper::UCodeObjectField(Item.first.c_str(),Object, Item.second.ReflectionType, Assembly);
                     }
@@ -3291,6 +3351,7 @@ void AppObject::ShowDebugerMenu(UCodeVMWindow& windowdata)
 
 void AppObject::OnRuntimeUpdated()
 {
+    _Cach = {};
     UpdateInsData(windowdata);
 
     callFuncContext.current_method = nullptr;

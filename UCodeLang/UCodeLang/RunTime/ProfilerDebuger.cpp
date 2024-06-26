@@ -41,7 +41,7 @@ UCodeLangAPIExport void ProfilerDebuger::RemoveRunTimeBreakPoint(UAddress Item)
     return;
 }
 
-UCodeLangAPIExport void ProfilerDebuger::UpdateDebugData(DebugData& Out)
+UCodeLangAPIExport void ProfilerDebuger::UpdateDebugData(DebugData& Out,Cach& cach)
 {
 	auto stackoffset = StepedInterpreter->_CPU.Stack.StackOffSet;
 	auto ins= GetCurrentInstruction();
@@ -57,11 +57,20 @@ UCodeLangAPIExport void ProfilerDebuger::UpdateDebugData(DebugData& Out)
 	DebugStackFrame F;
 	F._Function = func;
 
+	if (!cach.cach.has_value())
+	{
+		cach.cach = DebugInfo.MakeCach();
+	}
 
 	const ClassMethod* FuncString = nullptr;
 	for (size_t i = func; i < ins; i++)
 	{
-		auto info = DebugInfo.GetForIns(i);
+		auto infoop = DebugInfo.GetForIns(i-1,cach.cach.value());
+		if (!infoop.has_value())
+		{
+			continue;
+		}
+		auto& info = *infoop.value();
 
 		for (auto& Item : info)
 		{
@@ -86,10 +95,24 @@ UCodeLangAPIExport void ProfilerDebuger::UpdateDebugData(DebugData& Out)
 					UCodeLangUnreachable();
 				}
 
-				d.VarableType = DebugVarable::VarType::Parameter;
+				d.VarableType = DebugVarable::VarType::Stack;
 				d.Type = Var.ReflectionType;
 
-				F._Varables.push_back(d);
+
+				bool wasadded = false;
+				for (auto& Item : F._Varables)
+				{
+					if (Item.VarableName == d.VarableName)
+					{
+						Item = std::move(d);
+						wasadded = true;
+						break;
+					}
+				}
+				if (wasadded == false) 
+				{
+					F._Varables.push_back(d);
+				}
 			}
 		}
 	}
@@ -100,6 +123,41 @@ UCodeLangAPIExport void ProfilerDebuger::UpdateDebugData(DebugData& Out)
 
     return;
 }
+size_t ProfilerDebuger::GetLineNumber(UAddress Ins,Cach& cach)
+{
+	auto func = GetStartofFunc(Ins);
+
+	auto& DebugInfo = StepedInterpreter->Get_State()->Get_Libs().Get_DebugInfo();
+
+	size_t liner = 0;
+
+	//this would faster if we go reverse
+	for (size_t i = func; i < Ins; i++)
+	{
+		auto infoop = DebugInfo.GetForIns(i - 1, cach.cach.value());
+		if (!infoop.has_value())
+		{
+			continue;
+		}
+		auto& info = *infoop.value();
+
+		for (auto& Item : info)
+		{
+			if (auto loc = Item->Debug.Get_If<UDebugSetLineNumber>())
+			{
+				liner = loc->LineNumber;
+			}
+		}
+	}
+
+	return liner;
+}
+Path ProfilerDebuger::GetFile(UAddress Ins,Cach& cach)
+{
+
+	return {};
+}
+
 void ProfilerDebuger::StepInto(Interpreter* Interpreter, UAddress Address)
 {
 	auto OldStackPrePars = Interpreter->_CPU.Stack.StackOffSet;

@@ -71,7 +71,9 @@ void SystematicAnalysis::OnAttributeNode(const AttributeNode& node,OptionalRef<V
 			auto FuncCalls = GetSymbolsWithName(functocall,SymbolType::Func);
 			
 			
-			if (FuncCalls.size() == 0 && node._Parameters._Nodes.size()==0)
+			if (FuncCalls.size() == 0 
+				&& node._Parameters._Nodes.size() == 0 
+				&& Tag->Type == SymbolType::Tag_class)
 			{
 				Syb.VarType = TypeSymbol(AttOp.value()->ID);
 			}
