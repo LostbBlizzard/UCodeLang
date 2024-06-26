@@ -1,5 +1,3 @@
-
-
 <div align="center" style="display:grid;place-items:center;">
 <p>
     <a target="_blank"><img width="100" src="Logo.png" alt="Logo"></a>
@@ -15,6 +13,43 @@
 A high level programming language designed to be fast to write, to compile and to run.
 
 <div align=left>
+
+# Note
+The Project is not being maintain anymore.
+Why because I want to work on other things right now and learn everything I could of learned from this project 
+I may comeback in the future to complete this Project.
+
+If i do comeback here's the task list.
+Since i plan on deleting the trello board i used during the prject.
+
+Pending (Stuff I plan doing on the current day)
+ - Fix: FindIndex Array_5 Test not working when using uclang test
+ - Add: Functor Doc
+ - Fix: Unique Test not runing in.
+
+ToDo
+  - Make && be Lazy:
+  - Add BitSet in StandardLibrary
+  - Add Random Type,Shuffle Funcion for Buffer_t in SandardLibrary_
+  - Time API
+  - Json Parser
+  - Byte Serialization
+  - Add Buffer_t filter,InReverse,Map,ForEach Funcions
+  - HotReloading
+  - Fix Export Debuging Problems
+  - Fix int types to string not working
+  - Add Range types 0..1,0..=2, .. , ..10 10..
+  - Go Bindings
+  - Zig Bindings
+  - Rust Bindings
+  - Sort,FileIO,Math funcion
+  - Update Doc/Website
+  - More test for Complex Type Ex. String[] ,String[5],intString[]
+  - ULang Muthreading
+
+<div align=left>
+ 
+# End Note
 
 UCode is a programming language designed to be embedded into existing software such as game engines while being a low-level language with modern and high-level features.
 
@@ -42,57 +77,61 @@ mainly
 
 # Supported programming Languages
 
-- [C++](https://github.com/LostbBlizzard/UCodeLang) //This Repository
-- [Rust](https://github.com/LostbBlizzard/ucodelang-rust) //rust binding,with idiomatic rust wappers and rust related tools for UCodeLang
-- [Zig](https://github.com/LostbBlizzard/ucodelang-zig) //zig binding,with idiomatic zig wappers and zig related tools for UCodeLang
-- [C](https://github.com/LostbBlizzard/UCodeLang/releases/latest) //Just Copy UCodeLangCAPI.h and the steal a static library from the [releases](https://github.com/LostbBlizzard/UCodeLang/releases/latest)
+- [x] [C++](https://github.com/LostbBlizzard/UCodeLang) //This Repository
+- [ ] [Rust](https://github.com/LostbBlizzard/ucodelang-rust) //rust binding,with idiomatic rust wappers and rust related tools for UCodeLang
+- [ ] [Zig](https://github.com/LostbBlizzard/ucodelang-zig) //zig binding,with idiomatic zig wappers and zig related tools for UCodeLang
+- [ ] [C](https://github.com/LostbBlizzard/UCodeLang/releases/latest) //Just Copy UCodeLangCAPI.h and the steal a static library from the [releases](https://github.com/LostbBlizzard/UCodeLang/releases/latest)
 
 # Features
 
 Completely focused and specialized on Game Development and Game Engines.
 
 ## Langue Features
-- [Constructors,Destructor]()
-- [Copy Constructors]()
-- [Move semantics]()
-- [rust enums]()
-- [Defer]()
-- [No implicit conversions]()
-- [Unsafe operations are behind like memory allocation are behind the unsafe keyword]()  
-- [Rust like traits(working on)]()
-- [Go like concurrency(working on)]()
-- [Easy to use binary(working on) and Json(working on) serialization in Standard Library]()
-- [No Macros]()
-- [operator overloading]()
-- [function overloading]()
-- [generics]()
-- [Attributing tag system like C#]()
-- [panic and value base errors]()
-- [good compiled time analysis]()
-- [A standard Library designed for game development]()
-- [Module System]()
+- [x] [Constructors,Destructor]()
+- [x] [Copy Constructors]()
+- [x] [Move semantics]()
+- [x] [rust enums]()
+- [x] [Defer]()
+- [x] [No implicit conversions]()
+- [x] [Unsafe operations are behind like memory allocation are behind the unsafe keyword]()  
+- [ ] [Rust like traits(working on)]()
+- [ ] [Go like concurrency(working on)]()
+- [ ] [Easy to use binary(working on) and Json(working on) serialization in Standard Library]()
+- [x] [No Macros]()
+- [x] [operator overloading]()
+- [x] [function overloading]()
+- [x] [generics]()
+- [x] [Attributing tag system like C#]()
+- [x] [panic and value base errors]()
+- [x] [good compiled time analysis]()
+- [ ] [A standard Library designed for game development]()
+- [x] [Module System]()
 
 
 And More.
 
 ## Library/Runtime Freatures
-- Optional Runtime SandBoxing
-- Flexible runtime
-  - Code can be [jited](), [interpreted]() or [precompiled to native code]() all working on the same runtime.
+- [ ] Optional Runtime SandBoxing
+- [ ] Flexible runtime
+  - Code can be 
+   - [] [jited](), 
+   - [x] [interpreted]() 
+   - [ ] [precompiled to native code]()  
+   - [x] all working on the same runtime.
   - Runtime threading model can made for any threading Style (task based, event loop,etcetera)
-- [A Wasm BackEnd]()
-- [A C11 BackEnd]()
-- [Code be compiled to Native Executables for Linux(working on),Windows(working on) and Mac(working on)]()
-- [Able to view all classes,funcions,trait after compileing]()
-- [Able to strip output unneeded classes]()
-- [Able to catch Panic if you like]()
-- [Debuging]()
-- [Module System]()
+- [x] [A Wasm BackEnd]()
+- [x] [A C11 BackEnd]()
+- [ ] [Code be compiled to Native Executables for Linux(working on),Windows(working on) and Mac(working on)]()
+- [x] [Able to view all classes,funcions,trait after compileing]()
+- [ ] [Able to strip output unneeded classes]()
+- [x] [Able to catch Panic if you like]()
+- [ ] [Debuging]()
+- [x] [Module System]()
 
 
 ## Tooling Freatures
-- [Automatic Binding Generation]()
-- [Language server(working on)]()
+- [x] [Automatic Binding Generation]()
+- [ ] [Language server]()
 
 # Why use this Programming Language.
 
