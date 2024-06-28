@@ -16,7 +16,7 @@ on:
 
 jobs:
 
-  msbuild-windows-build:
+  msbuild-windows-64bit-build:
     runs-on: windows-latest
 
     steps:
@@ -25,20 +25,35 @@ jobs:
     - name: Add MSBuild to PATH
       uses: microsoft/setup-msbuild@v1.0.2
 
-    - name: Run Premake Install
-      run: ./InstallTools.bat
+    - name: Run Premake Install Tools
+      run: ./premake.bat installtools
 
     - name: Run Premake
-      run: ./VS_2019.bat
+      run: ./premake.bat vs2022
 
     - name: Build 64 bit
       run: ./premake.bat build
 
-    - name: Build 32 bit
-      run: ./premake.bat build_32bit
-
     - name: RunTests for 64 bit
       run: ./premake.bat test
+
+  msbuild-windows-32bit-build:
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Add MSBuild to PATH
+      uses: microsoft/setup-msbuild@v1.0.2
+
+    - name: Run Premake Install Tools
+      run: ./premake.bat installtools
+
+    - name: Run Premake
+      run: ./premake.bat vs2022
+
+    - name: Build 32 bit
+      run: ./premake.bat build_32bit
 
     - name: RunTests for 32 bit
       run: ./premake.bat test_32bit
@@ -49,17 +64,12 @@ jobs:
    steps:
     - uses: actions/checkout@v3
 
-    - name: Make a scripts executable
-      run: |
-       chmod +x ./InstallTools.sh
-       chmod +x ./GNU_Make.sh
-
     - name: Run Premake Install
-      run: ./InstallTools.sh
+      run: ./premake.sh installtools
 
     - name: Run Premake
-      run: ./GNU_Make.sh
-    
+      run: ./premake.sh gmake2
+
     - name: Build 64 bit
       run: ./premake.sh build
 
@@ -72,16 +82,11 @@ jobs:
    steps:
     - uses: actions/checkout@v3
 
-    - name: Make a scripts executable
-      run: |
-       chmod +x ./InstallTools.sh
-       chmod +x ./GNU_Make.sh
-
-    - name: Run Premake Install
-      run: ./InstallTools.sh
+    - name: Run Premake Install Tools
+      run: ./premake.sh installtools
 
     - name: Run Premake
-      run: ./GNU_Make.sh
+      run: ./premake.sh gmake2
 
     - name: Build 
       run: ./premake.sh build
@@ -96,15 +101,11 @@ jobs:
    steps:
     - uses: actions/checkout@v3
 
-    - name: Make a scripts executable
-      run: |
-       chmod +x ./GNU_Make.sh
-
-    - name: Run Premake Install
+    - name: Add Emsdk to PATH
       uses: mymindstorm/setup-emsdk@v13
 
     - name: Run Premake
-      run: ./GNU_Make.sh
+      run: ./premake.sh gmake2
     
     - name: Build Wasm
       run: ./premake.sh web_build
@@ -116,34 +117,23 @@ jobs:
    steps:
     - uses: actions/checkout@v3
 
-    - name: Make a scripts executable
-      run: |
-       chmod +x ./GNU_Make.sh
-
-    - name: Run Premake Install
-      run: ./premake.sh installandroidsdk
-
-    - name: Run Premake
-      run: ./GNU_Make.sh
+    - uses: abel0b/setup-premake@v2.4
+      with:
+        version: "5.0.0-beta2"      
     
-    - name: Build (Arm64)
-      run: ./premake.sh web_build
- 
+    - name: Run Premake 
+      run: ./premake.sh gmake2
+
   clang-ios-build:
    if: 'false'
    runs-on: "macos-latest"
    steps:
     - uses: actions/checkout@v3
 
-    - name: Make a scripts executable
-      run: |
-       chmod +x ./GNU_Make.sh
+    - uses: abel0b/setup-premake@v2.4
+      with:
+        version: "5.0.0-beta2"      
 
-    - name: Run Premake Install
-      run: ./premake.sh install
+    - name: Run Premake 
+      run: ./premake.sh gmake2
 
-    - name: Run Premake
-      run: ./GNU_Make.sh
-    
-    - name: Build
-      run: ./premake.sh ios_build
