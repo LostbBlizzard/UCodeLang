@@ -1,0 +1,11 @@
+[book]
+authors = ["LostbBlizzard"]
+title = "UCodeDocumentation"
+description = "The book about UCodeLang"
+
+[output.html]
+language = "en"
+multilingual = false
+src = "/"
+git-repository-url = "https://github.com/LostbBlizzard/UCodeLang"
+edit-url-template = "https://github.com/LostbBlizzard/UCodeLang/tree/master/doc/{path}"
