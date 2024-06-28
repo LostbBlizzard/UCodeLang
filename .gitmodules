@@ -1,6 +1,0 @@
-[submodule "UCodeWebsite/themes/hugo-theme-learn"]
-	path = UCodeWebsite/themes/hugo-theme-learn
-	url = https://github.com/LostbBlizzard/hugo-theme-learn
-[submodule "UCodeWebsite/themes/ananke"]
-	path = UCodeWebsite/themes/ananke
-	url = https://github.com/theNewDynamic/gohugo-theme-ananke.git
