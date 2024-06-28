@@ -860,7 +860,7 @@ newaction {
 
 --Docs
 newaction {
-    trigger = "build_Docs",
+    trigger = "build_docs",
     description = "build Docs",
     execute = function ()
 

@@ -38,13 +38,13 @@ jobs:
          ./premake.bat updateverion
 
       - name: Run Premake Install
-        run: ./InstallTools.bat
+        run: ./premake.bat installtools
 
       - name: Run Premake Install inno
         run: ./premake.bat installinno
 
       - name: Run Premake
-        run: ./VS_2019.bat
+        run: ./premake.bat vs2022
 
       - name: Build 64 bit
         run: ./premake.bat build_published
@@ -74,28 +74,20 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Make a scripts executable
-        run: |
-          chmod +x ./InstallTools.sh
-          chmod +x ./GNU_Make.sh
-
-      - name: Run Premake Install
-        run: ./InstallTools.sh
-
       - name: Version Setup
         run: | 
          echo ${{ inputs.VersionNumber }} > ./version.txt 
          ./premake.sh updateverion 
 
       - name: Run Premake
-        run: ./GNU_Make.sh
+        run: ./premake.sh gmake2
 
       - name: Build 64 bit
         run: ./premake.sh build_published
 
       - name: Make packedfiles for unix
         run: |
-         ./premake.sh build_Docs
+         ./premake.sh build_docs
          ./premake.sh zipforunix 
 
       - name: Archive Output
@@ -116,13 +108,8 @@ jobs:
     steps:
       - uses: actions/checkout@v3
     
-      - name: Make a scripts executable
-        run: |
-         chmod +x ./InstallTools.sh
-         chmod +x ./GNU_Make.sh
-
       - name: Run Premake Install
-        run: ./InstallTools.sh
+        run: ./premake.sh installtools
 
       - name: Version Setup
         run: | 
@@ -137,7 +124,7 @@ jobs:
      
       - name: Make packedfiles for unix
         run: |
-         ./premake.sh build_Docs
+         ./premake.sh build_docs
          ./premake.sh zipforunix
      
       - name: Archive Output
