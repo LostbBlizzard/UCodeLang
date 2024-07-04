@@ -1,6 +1,3 @@
-require "vscode"
-require "export-compile-commands"
-
 workspace "UCodeLang"
    configurations { "Debug", "Release","Published" }
    platforms { "Win32", "Win64","linux32","linux64", "MacOS","Android","IOS","Web" }
