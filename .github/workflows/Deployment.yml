@@ -35,33 +35,33 @@ jobs:
       - name: Version Setup
         run: | 
          echo ${{ inputs.VersionNumber }} > ./version.txt 
-         ./premake.bat updateverion
+         premake updateverion
 
       - name: Run Premake Install
-        run: ./premake.bat installtools
+        run: premake installtools
 
       - name: Run Premake Install inno
-        run: ./premake.bat installinno
+        run: premake installinno
 
       - name: Run Premake
-        run: ./premake.bat vs2022
+        run: premake vs2022
 
       - name: Build 64 bit
-        run: ./premake.bat build_published
+        run: premake build_published
 
       - name: Build 32 bit
         if: ${{ inputs.IsPreRelease == false}}
-        run: ./premake.bat build_published_32bit
+        run: premake build_published_32bit
 
       - name: Build installer
-        run: ./premake.bat buildinstaller
+        run: premake buildinstaller
 
       - name: Archive Output
         uses: actions/upload-artifact@v4
         with:
           name: Output_Windows
           path: |
-           Output/UCodelangCL
+           Output/UCodeLangCL
            Output/UCodeLanguageSever
            Output/UCodeLang
            Output/UCodeLangSetup.exe
@@ -77,25 +77,25 @@ jobs:
       - name: Version Setup
         run: | 
          echo ${{ inputs.VersionNumber }} > ./version.txt 
-         ./premake.sh updateverion 
+         premake updateverion 
 
       - name: Run Premake
-        run: ./premake.sh gmake2
+        run: premake gmake2
 
       - name: Build 64 bit
-        run: ./premake.sh build_published
+        run: premake build_published
 
       - name: Make packedfiles for unix
         run: |
-         ./premake.sh build_docs
-         ./premake.sh zipforunix 
+         premake build_docs
+         premake zipforunix 
 
       - name: Archive Output
         uses: actions/upload-artifact@v4
         with:
           name: Output_Linux
           path: |
-           Output/UCodelangCL
+           Output/UCodeLangCL
            Output/UCodeLanguageSever
            Output/UCodeLang
            Output/ULangPacked.tar.gz 
@@ -109,30 +109,30 @@ jobs:
       - uses: actions/checkout@v3
     
       - name: Run Premake Install
-        run: ./premake.sh installtools
+        run: premake installtools
 
       - name: Version Setup
         run: | 
          echo ${{ inputs.VersionNumber }} > ./version.txt 
-         ./premake.sh updateverion 
+         premake updateverion 
 
       - name: Run Premake
-        run: ./GNU_Make.sh
+        run: premake gmake2
 
       - name: Build 
-        run: ./premake.sh build_published
+        run: premake build_published
      
       - name: Make packedfiles for unix
         run: |
-         ./premake.sh build_docs
-         ./premake.sh zipforunix
+         premake build_docs
+         premake zipforunix
      
       - name: Archive Output
         uses: actions/upload-artifact@v4
         with:
           name: Output_MacOS
           path: |
-           Output/UCodelangCL
+           Output/UCodeLangCL
            Output/UCodeLanguageSever
            Output/UCodeLang
            Output/ULangPacked.tar.gz
@@ -178,7 +178,7 @@ jobs:
       - name: Version Setup
         run: | 
          echo ${{ inputs.VersionNumber }} > ./version.txt 
-         ./premake.sh updateverion 
+         premake updateverion 
 
       - name: Download all workflow run artifacts
         uses: actions/download-artifact@v4
@@ -262,7 +262,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./Output_Windows/UCodelangCL/Win64/Published/uclang.exe
+          asset_path: ./Output_Windows/UCodeLangCL/Win64/Published/uclang.exe
           asset_name: uclang-win64.exe
           asset_content_type: application/octet-stream 
           
@@ -294,7 +294,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./Output_Windows/UCodelangCL/Win32/Published/uclang.exe
+          asset_path: ./Output_Windows/UCodeLangCL/Win32/Published/uclang.exe
           asset_name: uclang-win32.exe
           asset_content_type: application/octet-stream 
       
@@ -325,7 +325,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./Output_Linux/UCodelangCL/linux64/Published/uclang
+          asset_path: ./Output_Linux/UCodeLangCL/linux64/Published/uclang
           asset_name: uclang-linux64
           asset_content_type: application/octet-stream 
 
@@ -355,7 +355,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./Output_MacOS/UCodelangCL/MacOS/Published/uclang
+          asset_path: ./Output_MacOS/UCodeLangCL/MacOS/Published/uclang
           asset_name: uclang-macos
           asset_content_type: application/octet-stream 
 
