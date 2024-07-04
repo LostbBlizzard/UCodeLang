@@ -26,16 +26,16 @@ jobs:
       uses: microsoft/setup-msbuild@v1.0.2
 
     - name: Run Premake Install Tools
-      run: ./premake.bat installtools
+      run: premake installtools
 
     - name: Run Premake
-      run: ./premake.bat vs2022
+      run: premake vs2022
 
     - name: Build 64 bit
-      run: ./premake.bat build
+      run: premake build
 
     - name: RunTests for 64 bit
-      run: ./premake.bat test
+      run: premake test
 
   msbuild-windows-32bit-build:
     runs-on: windows-latest
@@ -47,16 +47,16 @@ jobs:
       uses: microsoft/setup-msbuild@v1.0.2
 
     - name: Run Premake Install Tools
-      run: ./premake.bat installtools
+      run: premake installtools
 
     - name: Run Premake
-      run: ./premake.bat vs2022
+      run: premake vs2022
 
     - name: Build 32 bit
-      run: ./premake.bat build_32bit
+      run: premake build_32bit
 
     - name: RunTests for 32 bit
-      run: ./premake.bat test_32bit
+      run: premake test_32bit
 
   gmake-linux-build:
    runs-on: ubuntu-latest
@@ -65,16 +65,16 @@ jobs:
     - uses: actions/checkout@v3
 
     - name: Run Premake Install
-      run: ./premake.sh installtools
+      run: premake installtools
 
     - name: Run Premake
-      run: ./premake.sh gmake2
+      run: premake gmake2
 
     - name: Build 64 bit
-      run: ./premake.sh build
+      run: premake build
 
     - name: RunTests for 64 bit
-      run: ./premake.sh test
+      run: premake test
 
   clang-macos-build:
    runs-on: macos-latest
@@ -83,16 +83,16 @@ jobs:
     - uses: actions/checkout@v3
 
     - name: Run Premake Install Tools
-      run: ./premake.sh installtools
+      run: premake installtools
 
     - name: Run Premake
-      run: ./premake.sh gmake2
+      run: premake gmake2
 
     - name: Build 
-      run: ./premake.sh build
+      run: premake build
 
     - name: RunTests
-      run: ./premake.sh test
+      run: premake test
 
   gmake-wasm-build:
    if: 'false'
@@ -105,10 +105,10 @@ jobs:
       uses: mymindstorm/setup-emsdk@v13
 
     - name: Run Premake
-      run: ./premake.sh gmake2
+      run: premake gmake2
     
     - name: Build Wasm
-      run: ./premake.sh web_build
+      run: premake web_build
  
   clang-android-build:
    if: 'false'
@@ -122,7 +122,7 @@ jobs:
         version: "5.0.0-beta2"      
     
     - name: Run Premake 
-      run: ./premake.sh gmake2
+      run: premake gmake2
 
   clang-ios-build:
    if: 'false'
@@ -135,5 +135,5 @@ jobs:
         version: "5.0.0-beta2"      
 
     - name: Run Premake 
-      run: ./premake.sh gmake2
+      run: premake gmake2
 
