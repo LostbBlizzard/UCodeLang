@@ -3831,7 +3831,7 @@ StartSymbolsLoop:
 
 						if (funcsymop.has_value())
 						{
-							auto& func = funcsymop.value();
+							auto func = funcsymop.value();
 
 							auto finfo = func->Get_Info<FuncInfo>();
 
