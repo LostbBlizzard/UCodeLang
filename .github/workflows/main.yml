@@ -31,16 +31,16 @@ jobs:
         version: "5.0.0-beta2"      
 
     - name: Run Premake Install Tools
-      run: premake installtools
+      run: premake5 installtools
 
     - name: Run Premake
-      run: premake vs2022
+      run: premake5 vs2022
 
     - name: Build 64 bit
-      run: premake build
+      run: premake5 build
 
-    - name: RunTests for 64 bit
-      run: premake test
+    - name: Run Tests
+      run: premake5 test
 
   msbuild-windows-32bit-build:
     runs-on: windows-latest
@@ -57,18 +57,18 @@ jobs:
         version: "5.0.0-beta2"      
 
     - name: Run Premake Install Tools
-      run: premake installtools
+      run: premake5 installtools
 
     - name: Run Premake
-      run: premake vs2022
+      run: premake5 vs2022
 
     - name: Build 32 bit
-      run: premake build_32bit
+      run: premake5 build_32bit
 
-    - name: RunTests for 32 bit
-      run: premake test_32bit
+    - name: Run Tests 
+      run: premake5 test_32bit
 
-  gmake-linux-build:
+  gmake-linux-64bit-build:
    runs-on: ubuntu-latest
 
    steps:
@@ -80,16 +80,39 @@ jobs:
         version: "5.0.0-beta2"      
 
     - name: Run Premake Install
-      run: premake installtools
+      run: premake5 installtools
 
     - name: Run Premake
-      run: premake gmake2
+      run: premake5 gmake2
 
-    - name: Build 64 bit
-      run: premake build
+    - name: Build
+      run: premake5 build
 
-    - name: RunTests for 64 bit
-      run: premake test
+    - name: Run Tests 
+      run: premake5 test
+
+  gmake-linux-32bit-build:
+   runs-on: ubuntu-latest
+
+   steps:
+    - uses: actions/checkout@v3
+
+    - name: Add Premake to PATH
+      uses: abel0b/setup-premake@v2.4
+      with:
+        version: "5.0.0-beta2"      
+
+    - name: Run Premake Install
+      run: premake5 installtools
+
+    - name: Run Premake
+      run: premake5 gmake2
+
+    - name: Build
+      run: premake5 build_32bit
+
+    - name: Run Tests 
+      run: premake5 test_32bit
 
   clang-macos-build:
    runs-on: macos-latest
@@ -103,16 +126,16 @@ jobs:
         version: "5.0.0-beta2"      
 
     - name: Run Premake Install Tools
-      run: premake installtools
+      run: premake5 installtools
 
     - name: Run Premake
-      run: premake gmake2
+      run: premake5 gmake2
 
     - name: Build 
-      run: premake build
+      run: premake5 build
 
-    - name: RunTests
-      run: premake test
+    - name: Run Test
+      run: premake5 test
 
   gmake-wasm-build:
    if: 'false'
@@ -130,10 +153,10 @@ jobs:
       uses: mymindstorm/setup-emsdk@v13
 
     - name: Run Premake
-      run: premake gmake2
+      run: premake5 gmake2
     
     - name: Build Wasm
-      run: premake web_build
+      run: premake5 web_build
  
   clang-android-build:
    if: 'false'
@@ -148,7 +171,7 @@ jobs:
         version: "5.0.0-beta2"      
 
     - name: Run Premake 
-      run: premake gmake2
+      run: premake5 gmake2
 
   clang-ios-build:
    if: 'false'
@@ -162,5 +185,5 @@ jobs:
         version: "5.0.0-beta2"      
 
     - name: Run Premake 
-      run: premake gmake2
+      run: premake5 gmake2
 
