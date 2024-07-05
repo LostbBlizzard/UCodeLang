@@ -42,8 +42,8 @@ jobs:
          echo ${{ inputs.VersionNumber }} > ./version.txt 
          premake5 updateverion
 
-      - name: Run Premake Install
-        run: premake5 installtools
+      - name: Run Premake Install Dependencies
+        run: premake5 installdependencies
 
       - name: Run Premake Install inno
         run: premake5 installinno
@@ -123,8 +123,8 @@ jobs:
         with:
          version: "5.0.0-beta2"      
 
-      - name: Run Premake Install
-        run: premake5 installtools
+      - name: Run Premake Install Dependencies
+        run: premake5 installdependencies
 
       - name: Version Setup
         run: | 

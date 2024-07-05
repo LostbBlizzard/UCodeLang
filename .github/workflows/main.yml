@@ -30,8 +30,8 @@ jobs:
       with:
         version: "5.0.0-beta2"      
 
-    - name: Run Premake Install Tools
-      run: premake5 installtools
+    - name: Run Premake Install Dependencies
+      run: premake5 installdependencies
 
     - name: Run Premake
       run: premake5 vs2022
@@ -56,8 +56,8 @@ jobs:
       with:
         version: "5.0.0-beta2"      
 
-    - name: Run Premake Install Tools
-      run: premake5 installtools
+    - name: Run Premake Install Dependencies
+      run: premake5 installdependencies
 
     - name: Run Premake
       run: premake5 vs2022
@@ -79,8 +79,8 @@ jobs:
       with:
         version: "5.0.0-beta2"      
 
-    - name: Run Premake Install
-      run: premake5 installtools
+    - name: Run Premake Install Dependencies
+      run: premake5 installdependencies
 
     - name: Run Premake
       run: premake5 gmake2
@@ -102,8 +102,8 @@ jobs:
       with:
         version: "5.0.0-beta2"      
 
-    - name: Run Premake Install
-      run: premake5 installtools
+    - name: Run Premake Install Dependencies
+      run: premake5 installdependencies
 
     - name: Run Premake
       run: premake5 gmake2
@@ -125,8 +125,8 @@ jobs:
       with:
         version: "5.0.0-beta2"      
 
-    - name: Run Premake Install Tools
-      run: premake5 installtools
+    - name: Run Premake Install Dependencies
+      run: premake5 installdependencies
 
     - name: Run Premake
       run: premake5 gmake2
