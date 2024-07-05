@@ -124,10 +124,10 @@ function executeorexit(str)
 end 
 
 newaction {
-    trigger = "install",
-    description = "installs compiler tool/librarys",
+    trigger = "installdependencies",
+    description = "installsdependencies",
     execute = function ()
-        print("----installing tools for " .. os.target())
+        print("----installing Dependencies for " .. os.target())
         
         if os.istarget("linux") then
 
@@ -156,66 +156,6 @@ newaction {
         end
     end
 }
-newaction {
-    trigger = "installwasm",
-    description = "installs compiler tool/librarys for wasm",
-    execute = function ()
-        print("----installing wasm tools for " .. os.target())
-        
-        if os.istarget("linux") or os.istarget("macosx") then
-
-         if true then
-           executeorexit("cd ~;git clone https://github.com/emscripten-core/emsdk.git;cd emsdk;git pull;./emsdk install latest;./emsdk activate latest;source ./emsdk_env.sh;")
-        else 
-           print("emscripten is already installed")
-         end
-        end
-
-        if os.istarget("windows") then
-
-        end
-    end
-}
-newaction {
-    trigger = "installgcc32",
-    description = "installs compiler tool/librarys for linux32",
-    execute = function ()
-        print("----installing gcc32 tools for " .. os.target())
-        
-        if os.istarget("linux") then
-          executeorexit("sudo apt-get install gcc-multilib")
-          executeorexit("sudo apt-get install g++-multilib")
-        end
-
-        if os.istarget("windows") then
-
-        end
-        
-        if os.istarget("macosx") then
-
-        end
-    end
-}
-
-newaction {
-    trigger = "installandroidsdk",
-    description = "installs compiler tool/librarys for android",
-    execute = function ()
-        print("----installing android sdk tools for " .. os.target())
-        
-        if os.istarget("linux") then
-         --executeorexit("sudo apt update && sudo apt install android-sdk")
-        end
-
-        if os.istarget("windows") then
-
-        end
-        
-        if os.istarget("macosx") then
-
-        end
-    end
-}
 
 
 newaction {
@@ -230,41 +170,6 @@ newaction {
 }
 
 ---build
-newaction {
-    trigger = "build_UCApp",
-    description = "builds the UCApp",
-    execute = function ()
-        if os.istarget("linux") then
-         executeorexit("make UCApp -j(nproc)")
-        end
-
-        if os.istarget("windows") then
-         executeorexit("msbuild UCodeLang.sln /t:Build /p:Configuration=Debug /p:Platform=Win64 -maxcpucount")
-        end
-        
-        if os.istarget("macosx") then
-         executeorexit("make UCApp -j(getconf _NPROCESSORS_ONLN)")
-        end
-    end
-}
-newaction {
-    trigger = "build_UCodelangCL",
-    description = "builds the UCodelangCL",
-    execute = function ()
-        
-        if os.istarget("linux") then
-         executeorexit("make UCodelangCL -j(nproc)")
-        end
-
-        if os.istarget("windows") then
-         executeorexit("msbuild UCodeLang.sln /t:Build /p:Configuration=Debug /p:Platform=Win64 -maxcpucount")
-        end
-        
-        if os.istarget("macosx") then
-         executeorexit("make UCodelangCL -j(getconf _NPROCESSORS_ONLN)")
-        end
-    end
-}
 newaction {
     trigger = "build",
     description = "builds the everything",
@@ -443,7 +348,6 @@ newaction {
     trigger = "web_build_published",
     description = "Builds for the Web",
     execute = function ()
-        print("installing wasm tools for " .. os.target())
         
         if os.istarget("linux") then
          executeorexit("emmake make config=published_web -j$(nproc)")
