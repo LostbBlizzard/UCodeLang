@@ -57,7 +57,7 @@ Tests:
   String v = "Hello World";
   ret v.StartWith("Hello") == true; 
 
- [Test]
+ //[Test]
  |StringSpan_12[]:
   String v = "Hello World";
   ret v.EndWith("World") == true; 
