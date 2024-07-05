@@ -40,26 +40,26 @@ jobs:
       - name: Version Setup
         run: | 
          echo ${{ inputs.VersionNumber }} > ./version.txt 
-         premake updateverion
+         premake5 updateverion
 
       - name: Run Premake Install
-        run: premake installtools
+        run: premake5 installtools
 
       - name: Run Premake Install inno
-        run: premake installinno
+        run: premake5 installinno
 
       - name: Run Premake
-        run: premake vs2022
+        run: premake5 vs2022
 
       - name: Build 64 bit
-        run: premake build_published
+        run: premake5 build_published
 
       - name: Build 32 bit
         if: ${{ inputs.IsPreRelease == false}}
-        run: premake build_published_32bit
+        run: premake5 build_published_32bit
 
       - name: Build installer
-        run: premake buildinstaller
+        run: premake5 buildinstaller
 
       - name: Archive Output
         uses: actions/upload-artifact@v4
@@ -82,7 +82,7 @@ jobs:
       - name: Version Setup
         run: | 
          echo ${{ inputs.VersionNumber }} > ./version.txt 
-         premake updateverion 
+         premake5 updateverion 
 
       - name: Add Premake to PATH
         uses: abel0b/setup-premake@v2.4
@@ -90,15 +90,15 @@ jobs:
          version: "5.0.0-beta2"      
 
       - name: Run Premake
-        run: premake gmake2
+        run: premake5 gmake2
 
       - name: Build 64 bit
-        run: premake build_published
+        run: premake5 build_published
 
       - name: Make packedfiles for unix
         run: |
-         premake build_docs
-         premake zipforunix 
+         premake5 build_docs
+         premake5 zipforunix 
 
       - name: Archive Output
         uses: actions/upload-artifact@v4
@@ -124,23 +124,23 @@ jobs:
          version: "5.0.0-beta2"      
 
       - name: Run Premake Install
-        run: premake installtools
+        run: premake5 installtools
 
       - name: Version Setup
         run: | 
          echo ${{ inputs.VersionNumber }} > ./version.txt 
-         premake updateverion 
+         premake5 updateverion 
 
       - name: Run Premake
-        run: premake gmake2
+        run: premake5 gmake2
 
       - name: Build 
-        run: premake build_published
+        run: premake5 build_published
      
       - name: Make packedfiles for unix
         run: |
-         premake build_docs
-         premake zipforunix
+         premake5 build_docs
+         premake5 zipforunix
      
       - name: Archive Output
         uses: actions/upload-artifact@v4
@@ -198,7 +198,7 @@ jobs:
       - name: Version Setup
         run: | 
          echo ${{ inputs.VersionNumber }} > ./version.txt 
-         premake updateverion 
+         premake5 updateverion 
 
       - name: Download all workflow run artifacts
         uses: actions/download-artifact@v4
