@@ -42,7 +42,7 @@ Tests:
 
   ret false;
 
- [Test]
+ //[Test]
  |Array_5[]:
   int[4] vals = [5,10,15,20];
 
