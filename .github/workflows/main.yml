@@ -98,7 +98,7 @@ jobs:
     - uses: actions/checkout@v3
 
     - name: Add Premake to PATH
-    - uses: abel0b/setup-premake@v2.4
+      uses: abel0b/setup-premake@v2.4
       with:
         version: "5.0.0-beta2"      
 
