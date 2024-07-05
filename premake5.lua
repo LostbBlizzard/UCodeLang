@@ -1,3 +1,4 @@
+toolset ("clang")
 workspace "UCodeLang"
    configurations { "Debug", "Release","Published" }
    platforms { "Win32", "Win64","linux32","linux64", "MacOS","Android","IOS","Web" }
@@ -169,6 +170,17 @@ newaction {
     end
 }
 
+newaction {
+    trigger = "installzydis",
+    description = "downloads zydis and zycore and puts in Dependencies",
+    execute = function ()
+        print("----installing zydis and zycore for " .. os.target())
+        
+        executeorexit("git clone https://github.com/LostbBlizzard/zydis Dependencies/UCodeLang/Dependencies/zydis")
+        executeorexit("git clone https://github.com/LostbBlizzard/zycore-c Dependencies/UCodeLang/Dependencies/zycore")
+        
+    end
+}
 ---build
 newaction {
     trigger = "build",
