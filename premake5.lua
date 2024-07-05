@@ -194,7 +194,7 @@ newaction {
     execute = function ()
         
         if os.istarget("linux") then
-         executeorexit("make config=debug_linux32 -j$(nproc)")
+         executeorexit("make UCApp config=debug_linux32 -j$(nproc)")
         end
 
         if os.istarget("windows") then
@@ -202,7 +202,7 @@ newaction {
         end
         
         if os.istarget("macosx") then
-         executeorexit("make -j$(getconf _NPROCESSORS_ONLN)")
+         executeorexit("make  -j$(getconf _NPROCESSORS_ONLN)")
         end
     end
 }
@@ -332,15 +332,15 @@ newaction {
     execute = function ()
 
         if os.istarget("linux") then
-         executeorexit("source ./emsdk_env.sh;emmake make config=debug_web -j$(nproc)")
+         executeorexit("emmake make UCodeLang config=debug_web -j$(nproc)")
         end
 
         if os.istarget("windows") then
-         executeorexit("emmake make config=debug_web -j(nproc)")
+         executeorexit("emmake make UCodeLang config=debug_web -j(nproc)")
         end
         
         if os.istarget("macosx") then
-         executeorexit("source ./emsdk_env.sh;emmake make config=debug_web -j$(getconf _NPROCESSORS_ONLN)")
+         executeorexit("emmake make UCodeLang config=debug_web -j$(getconf _NPROCESSORS_ONLN)")
         end
     end
 }
