@@ -37,6 +37,9 @@ UCodeIDE/UCodeIDE/intDep.data
 
 Dependencies/bin/inno
 
+UCodeLang/Dependencies/zycore
+UCodeLang/Dependencies/zydis
+
 ARM64
 /UCodeIDE/OutIR.txt
 /UCodeIDE/src/AppObject/test2.uc
