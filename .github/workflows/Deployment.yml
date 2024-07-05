@@ -48,6 +48,9 @@ jobs:
       - name: Run Premake Install inno
         run: premake5 installinno
 
+      - name: Get zydis
+        run: premake5 installzydis
+
       - name: Run Premake
         run: premake5 vs2022
 
@@ -89,6 +92,9 @@ jobs:
         with:
          version: "5.0.0-beta2"      
 
+      - name: Get zydis
+        run: premake5 installzydis
+
       - name: Run Premake
         run: premake5 gmake2
 
@@ -122,6 +128,9 @@ jobs:
         uses: abel0b/setup-premake@v2.4
         with:
          version: "5.0.0-beta2"      
+
+      - name: Get zydis
+        run: premake5 installzydis
 
       - name: Run Premake Install Dependencies
         run: premake5 installdependencies
