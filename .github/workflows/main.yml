@@ -105,6 +105,9 @@ jobs:
     - name: Run Premake Install Dependencies
       run: premake5 installdependencies
 
+    - name: Add gcc multilib to PATH
+      run: sudo apt install gcc-multilib g++-multilib
+    
     - name: Run Premake
       run: premake5 gmake2
 
@@ -138,7 +141,6 @@ jobs:
       run: premake5 test
 
   gmake-wasm-build:
-   if: 'false'
    runs-on: ubuntu-latest
 
    steps:
