@@ -2,7 +2,7 @@
 workspace "UCodeLang"
    configurations { "Debug", "Release","Published" }
    platforms { "Win32", "Win64","linux32","linux64", "MacOS","Android","IOS","Web" }
-   defines {"UCodeLangDebug","ZYCORE_STATIC_BUILD","UCodeLangExperimental"}
+   defines {"UCodeLangDebug","ZYCORE_STATIC_BUILD","ZYDIS_STATIC_BUILD","UCodeLangExperimental"}
    startproject "UCodeIDE"
    cppdialect "c++17"
 
