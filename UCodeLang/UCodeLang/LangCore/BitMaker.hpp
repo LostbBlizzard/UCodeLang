@@ -43,12 +43,12 @@ public:
 	UCodeLangForceinline auto& Get_Bytes() const { return _Bytes; }
 	UCodeLangForceinline auto data() const { return _Bytes.data(); }
 
-	void WriteBytes(const Byte* Bits, size_t size)
+	void WriteBytes(const Byte* Bits, size_t size)	
 	{
-		for (size_t i = 0; i < size; i++)
-		{
-			_Bytes.push_back(Bits[i]);
-		}
+		auto oldsize = _Bytes.size();
+		_Bytes.resize(_Bytes.size() + size);
+
+		memcpy(_Bytes.data() + oldsize, Bits, size);
 	}
 
 	template<typename T>
