@@ -25,6 +25,11 @@ jobs:
     - name: Add MSBuild to PATH
       uses: microsoft/setup-msbuild@v1.0.2
 
+    - name: Add Premake to PATH
+      uses: abel0b/setup-premake@v2.4
+      with:
+        version: "5.0.0-beta2"      
+
     - name: Run Premake Install Tools
       run: premake installtools
 
@@ -46,6 +51,11 @@ jobs:
     - name: Add MSBuild to PATH
       uses: microsoft/setup-msbuild@v1.0.2
 
+    - name: Add Premake to PATH
+      uses: abel0b/setup-premake@v2.4
+      with:
+        version: "5.0.0-beta2"      
+
     - name: Run Premake Install Tools
       run: premake installtools
 
@@ -64,6 +74,11 @@ jobs:
    steps:
     - uses: actions/checkout@v3
 
+    - name: Add Premake to PATH
+      uses: abel0b/setup-premake@v2.4
+      with:
+        version: "5.0.0-beta2"      
+
     - name: Run Premake Install
       run: premake installtools
 
@@ -81,6 +96,11 @@ jobs:
 
    steps:
     - uses: actions/checkout@v3
+
+    - name: Add Premake to PATH
+    - uses: abel0b/setup-premake@v2.4
+      with:
+        version: "5.0.0-beta2"      
 
     - name: Run Premake Install Tools
       run: premake installtools
@@ -101,6 +121,11 @@ jobs:
    steps:
     - uses: actions/checkout@v3
 
+    - name: Add Premake to PATH
+      uses: abel0b/setup-premake@v2.4
+      with:
+        version: "5.0.0-beta2"      
+
     - name: Add Emsdk to PATH
       uses: mymindstorm/setup-emsdk@v13
 
@@ -117,10 +142,11 @@ jobs:
    steps:
     - uses: actions/checkout@v3
 
-    - uses: abel0b/setup-premake@v2.4
+    - name: Add Premake to PATH
+      uses: abel0b/setup-premake@v2.4
       with:
         version: "5.0.0-beta2"      
-    
+
     - name: Run Premake 
       run: premake gmake2
 
@@ -130,7 +156,8 @@ jobs:
    steps:
     - uses: actions/checkout@v3
 
-    - uses: abel0b/setup-premake@v2.4
+    - name: Add Premake to PATH
+      uses: abel0b/setup-premake@v2.4
       with:
         version: "5.0.0-beta2"      
 

@@ -29,6 +29,11 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
+      - name: Add Premake to PATH
+        uses: abel0b/setup-premake@v2.4
+        with:
+         version: "5.0.0-beta2"      
+
       - name: Add MSBuild to PATH
         uses: microsoft/setup-msbuild@v1.0.2
 
@@ -79,6 +84,11 @@ jobs:
          echo ${{ inputs.VersionNumber }} > ./version.txt 
          premake updateverion 
 
+      - name: Add Premake to PATH
+        uses: abel0b/setup-premake@v2.4
+        with:
+         version: "5.0.0-beta2"      
+
       - name: Run Premake
         run: premake gmake2
 
@@ -108,6 +118,11 @@ jobs:
     steps:
       - uses: actions/checkout@v3
     
+      - name: Add Premake to PATH
+        uses: abel0b/setup-premake@v2.4
+        with:
+         version: "5.0.0-beta2"      
+
       - name: Run Premake Install
         run: premake installtools
 
@@ -174,6 +189,11 @@ jobs:
     environment: production
     steps:
       - uses: actions/checkout@v3
+
+      - name: Add Premake to PATH
+        uses: abel0b/setup-premake@v2.4
+        with:
+         version: "5.0.0-beta2"      
 
       - name: Version Setup
         run: | 
