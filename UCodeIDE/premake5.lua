@@ -78,7 +78,7 @@ project "UCodeIDE"
    filter { "system:Windows" }
     kind "ConsoleApp"   
     defines {"_GLFW_WIN32"}
-    libdirs { "%{prj.name}/Dependencies/GLEW/Lib"}
+    libdirs { "Dependencies/GLEW/Lib"}
 
    filter {"system:Windows","architecture:x86"}
       links {"glew32s.lib","Opengl32.lib"}
