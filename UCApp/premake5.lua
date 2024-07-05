@@ -4,8 +4,8 @@ project "UCApp"
 
    
    dependson {"UCodeLang"}
-   targetdir ("Output/%{prj.name}/" .. OutDirPath)
-   objdir ("Output/int/%{prj.name}/" .. OutDirPath)
+   targetdir ("../Output/%{prj.name}/" .. OutDirPath)
+   objdir ("../Output/int/%{prj.name}/" .. OutDirPath)
    
    files { 
      "src/**.c",
@@ -45,6 +45,6 @@ project "UCApp"
       "UCodeLang",
    }
    libdirs { 
-      "Output/UCodeLang/" .. OutDirPath,
+      "../Output/UCodeLang/" .. OutDirPath,
    }
 
