@@ -305,6 +305,7 @@ int RunTests(bool MultThread)
 				continue;
 			}
 
+			/*
 			// geting 32bit gcc is too much work.
 			if (mode == TestMode::CLang89BackEnd)
 			{
@@ -314,6 +315,7 @@ int RunTests(bool MultThread)
 					continue;
 				}
 			}
+			*/
 
 			for (size_t i = 0; i < Tests.size(); i++)
 			{
@@ -400,10 +402,8 @@ int RunTests(bool MultThread)
 		{
 			auto &MyTestInfo = StandardTestInfo[i];
 			TestMode mode = (TestMode)i;
-
-			// if (mode == TestMode::WasmBackEnd) { continue; }
-
-			// geting 32bit gcc is too much work.
+			
+			/*
 			if (mode == TestMode::CLang89BackEnd)
 			{
 				if (hasgcc == false || UCodeLang_32BitSytem)
@@ -422,6 +422,7 @@ int RunTests(bool MultThread)
 					continue;
 				}
 			}
+			*/
 
 			RunStandardLibraryTests(MyTestInfo, mode);
 		}
