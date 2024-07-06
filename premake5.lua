@@ -41,6 +41,7 @@ workspace "UCodeLang"
     flags { "MultiProcessorCompile" }
    end 
    
+   xcodebuildsettings = { ["ALWAYS_SEARCH_USER_PATHS"] = "YES" }  
 
    filter { "platforms:Win32" }
     system "Windows"
