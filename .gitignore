@@ -7,6 +7,7 @@ Output/
 
 Makefile
 *.make
+*.mk
 
 UCodeAPI/Win32/int/
 UCodeAPI/Win32/out/
@@ -43,6 +44,7 @@ UCodeLang/Dependencies/zydis
 *.pbxproj
 *.xcworkspace
 
+obj
 ARM64
 /UCodeIDE/OutIR.txt
 /UCodeIDE/src/AppObject/test2.uc

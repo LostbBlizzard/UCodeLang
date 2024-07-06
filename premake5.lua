@@ -71,6 +71,7 @@ workspace "UCodeLang"
     androidapilevel (22)
     exceptionhandling ("On")
     rtti ("On")
+    cppstl("c++")
 
    filter { "platforms:IOS" }
     system "ios"
@@ -279,6 +280,13 @@ newaction {
     end
 }
 newaction {
+    trigger = "build_android",
+    description = "builds Android",
+    execute = function ()
+        executeorexit("export PREMAKE_ANDROIDNDK_CONFIGURATIONS=\"Debug\";export NDK_PROJECT_PATH=.;export APP_BUILD_SCRIPT=UCodeLang/UCodeLang.prj.Android.mk;ndk-build UCodeLang config=Android -j$(getconf _NPROCESSORS_ONLN) NDK_APPLICATION_MK=UCodeLang.Application.mk")
+    end
+}
+newaction {
     trigger = "test_32bit",
     description = "runs test for 32bit mode",
     execute = function ()
@@ -397,25 +405,6 @@ newaction {
     end
 }
 
---android
-newaction {
-    trigger = "android_build",
-    description = "Builds for Android",
-    execute = function ()
-
-        if os.istarget("linux") then
-        
-        end
-
-        if os.istarget("windows") then
-        
-        end
-        
-        if os.istarget("macosx") then
-       
-        end
-    end
-}
 
 --ios
 newaction {

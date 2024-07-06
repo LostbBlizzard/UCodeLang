@@ -185,26 +185,40 @@ jobs:
     - name: Build Wasm
       run: premake5 web_build
  
-  clang-android-build:
-   if: 'false'
+  ndk-android-build:
    runs-on: ubuntu-latest
 
    steps:
     - uses: actions/checkout@v3
+
+    - name: Add Ndk to PATH
+      uses: nttld/setup-ndk@v1
+      with:
+      ndk-version: r26d
 
     - name: Add Premake to PATH
       uses: abel0b/setup-premake@v2.4
       with:
         version: "5.0.0-beta2"      
 
+    - name: Get premake-androidndk
+      run: git clone https://github.com/Triang3l/premake-androidndk .premake/premake-androidndk
+
     - name: Get zydis
       run: premake5 installzydis
 
+    - name: Add require to Premake 
+      run: sed -i '1s/^/require "premake-androidndk/androidndk"\n/' ./premake5.lua
+
     - name: Run Premake 
-      run: premake5 gmake2
+      run: premake5 androidndk
+
+    - name: Build
+      run: premake5 build_android
 
   xcode-ios-build:
    runs-on: "macos-latest"
+   if: 'false'
    steps:
     - uses: actions/checkout@v3
 
