@@ -366,7 +366,7 @@ static const Array<TestInfo, 164> Tests{
 
 	TestInfo("Attribute Contruct 3", "Eval/Attribute3.uc","", SuccessCondition::CompilationFail),
 	TestInfo("ForTypeConstruct", "Objects/ForTypePrimitveConstruct.uc", "main", SuccessCondition::RunTimeValue, (UCodeLang::Byte)20),
-	TestInfo("ForTypeReadThis", "Objects/ForTypeReadThis.uc", "main", SuccessCondition::RunTimeValue,int(20)),
+	TestInfo("ForTypeReadThis", "Objects/ForTypeReadThis.uc", "main", SuccessCondition::RunTimeValue,UCodeLang::Byte(20)),
 
 	TestInfo("Swap", "Objects/Swap.uc", "main", SuccessCondition::RunTimeValue,bool(true)),
 	
