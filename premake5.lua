@@ -152,6 +152,7 @@ newaction {
            print("----downloading glfw Packages")
 
            executeorexit("arch -arm64 brew install glfw")
+           executeorexit("brew install glfw")
           
            print("----installing tools completed");
         end
