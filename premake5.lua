@@ -40,8 +40,6 @@ workspace "UCodeLang"
    if _ACTION == "vs2019" or _ACTION == "vs2022" then
     flags { "MultiProcessorCompile" }
    end 
-   
-   xcodebuildsettings = { ["ALWAYS_SEARCH_USER_PATHS"] = "YES" }  
 
    filter { "platforms:Win32" }
     system "Windows"
@@ -58,6 +56,9 @@ workspace "UCodeLang"
    filter { "platforms:linux64" }
      system "linux"
      architecture "x86_64"
+
+   filter { "action:xcode*" }
+        xcodebuildsettings = { ["ALWAYS_SEARCH_USER_PATHS"] = "YES"}
 
    filter { "platforms:MacOS" }
     system "macosx"
@@ -585,5 +586,12 @@ newaction {
         executeorexit("tar -czvf ./Output/ULangPacked.tar.gz " .. files)
         
 
+    end
+}
+newaction {
+    trigger = "fixios",
+    description = "",
+    execute = function ()
+        replacetextinfile("./UCodeLang/UCodeLang.xcodeproj/project.pbxproj","ALWAYS_SEARCH_USER_PATHS = NO","ALWAYS_SEARCH_USER_PATHS = YES")
     end
 }

@@ -40,6 +40,9 @@ Dependencies/bin/inno
 UCodeLang/Dependencies/zycore
 UCodeLang/Dependencies/zydis
 
+*.pbxproj
+*.xcworkspace
+
 ARM64
 /UCodeIDE/OutIR.txt
 /UCodeIDE/src/AppObject/test2.uc

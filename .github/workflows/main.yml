@@ -223,6 +223,9 @@ jobs:
     - name: Run Premake 
       run: premake5 xcode4
 
+    - name: Fix IOS xcode file 
+      run: premake5 fixios
+
     - name: Build
       run: xcodebuild -project UCodeLang/UCodeLang.xcodeproj -configuration Debug -sdk iphoneos build
 
