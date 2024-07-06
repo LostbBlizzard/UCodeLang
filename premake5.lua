@@ -196,7 +196,8 @@ newaction {
         end
         
         if os.istarget("macosx") then
-         executeorexit("make -j$(getconf _NPROCESSORS_ONLN)")
+         executeorexit("make UCApp -j$(getconf _NPROCESSORS_ONLN)")
+         executeorexit("make StandardLibrary -j$(getconf _NPROCESSORS_ONLN)")
         end
     end
 }
