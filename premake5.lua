@@ -583,6 +583,12 @@ newaction {
         
         end
 
+        if os.istarget("macos") then
+        
+            files = files .. "./Output/UCodelangCL/MacOS/Published/uclang " .. "./Output/UCodeLanguageSever/MacOS/Published/uclanglsp "
+        
+        end
+
         executeorexit("tar -czvf ./Output/ULangPacked.tar.gz " .. files)
         
 
