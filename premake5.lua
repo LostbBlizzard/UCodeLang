@@ -71,7 +71,9 @@ workspace "UCodeLang"
     androidapilevel (22)
     exceptionhandling ("On")
     rtti ("On")
+    if cppstl ~= nil then
     cppstl("c++")
+    end
 
    filter { "platforms:IOS" }
     system "ios"
