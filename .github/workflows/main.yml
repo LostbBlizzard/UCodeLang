@@ -208,7 +208,7 @@ jobs:
       run: premake5 installzydis
 
     - name: Add require to Premake 
-      run: sed -i '1s/^/require "premake-androidndk/androidndk"\n/' ./premake5.lua
+      run: echo "require \"premake-androidndk/androidndk\"" > temp && cat premake5.lua >> temp && mv temp premake5.lua
 
     - name: Run Premake 
       run: premake5 androidndk
