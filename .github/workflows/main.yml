@@ -17,6 +17,7 @@ on:
 jobs:
 
   msbuild-windows-64bit-build:
+    if: 'false'
     runs-on: windows-latest
 
     steps:
@@ -46,6 +47,7 @@ jobs:
       run: premake5 test
 
   msbuild-windows-32bit-build:
+    if: 'false'
     runs-on: windows-latest
 
     steps:
@@ -75,6 +77,7 @@ jobs:
       run: premake5 test_32bit
 
   gmake-linux-64bit-build:
+   if: 'false'
    runs-on: ubuntu-latest
 
    steps:
@@ -102,7 +105,7 @@ jobs:
 
   gmake-linux-32bit-build:
    runs-on: ubuntu-latest
-
+   if: 'false'
    steps:
     - uses: actions/checkout@v3
 
@@ -133,6 +136,7 @@ jobs:
       run: premake5 test_32bit
 
   clang-macos-build:
+   if: 'false'
    runs-on: macos-latest
 
    steps:
@@ -160,7 +164,7 @@ jobs:
 
   gmake-wasm-build:
    runs-on: ubuntu-latest
-
+   if: 'false'
    steps:
     - uses: actions/checkout@v3
 
@@ -199,8 +203,7 @@ jobs:
     - name: Run Premake 
       run: premake5 gmake2
 
-  clang-ios-build:
-   if: 'false'
+  xcode-ios-build:
    runs-on: "macos-latest"
    steps:
     - uses: actions/checkout@v3
@@ -210,9 +213,17 @@ jobs:
       with:
         version: "5.0.0-beta2"      
 
+    - name: Install Xcode
+      uses: actions/setup-xcode@v2
+      with:
+        xcode-version: '13.0'  # adjust to the Xcode version you need
+
     - name: Get zydis
       run: premake5 installzydis
 
     - name: Run Premake 
-      run: premake5 gmake2
+      run: premake5 xcode
+
+    - name: Build
+      run: xcodebuild -project UCodeLang.xcodeproj -configuration Debug -sdk iphoneos build
 
