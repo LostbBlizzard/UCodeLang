@@ -224,5 +224,5 @@ jobs:
       run: premake5 xcode4
 
     - name: Build
-      run: xcodebuild -project UCodeLang/UCodeLang.xcodeproj/project.pbxproj -configuration Debug -sdk iphoneos build
+      run: xcodebuild -project UCodeLang/UCodeLang.xcodeproj -configuration Debug -sdk iphoneos build
 
