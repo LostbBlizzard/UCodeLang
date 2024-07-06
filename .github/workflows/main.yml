@@ -221,7 +221,7 @@ jobs:
       run: premake5 installzydis
 
     - name: Run Premake 
-      run: premake5 xcode
+      run: premake5 xcode4
 
     - name: Build
       run: xcodebuild -project UCodeLang.xcodeproj -configuration Debug -sdk iphoneos build
