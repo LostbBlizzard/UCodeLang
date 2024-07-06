@@ -152,7 +152,6 @@ newaction {
            print("----downloading glfw Packages")
 
            executeorexit("arch -arm64 brew install glfw")
-           executeorexit("brew install glfw")
           
            print("----installing tools completed");
         end
@@ -215,7 +214,8 @@ newaction {
         end
         
         if os.istarget("macosx") then
-         executeorexit("make  -j$(getconf _NPROCESSORS_ONLN)")
+         executeorexit("make UCApp -j$(getconf _NPROCESSORS_ONLN)")
+         executeorexit("make StandardLibrary -j$(getconf _NPROCESSORS_ONLN)")
         end
     end
 }
