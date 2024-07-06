@@ -194,12 +194,12 @@ jobs:
     - name: Add Ndk to PATH
       uses: nttld/setup-ndk@v1
       with:
-      ndk-version: r26d
+        ndk-version: r26d
 
     - name: Add Premake to PATH
       uses: abel0b/setup-premake@v2.4
       with:
-        version: "5.0.0-beta2"      
+        version: "5.0.0-beta2"
 
     - name: Get premake-androidndk
       run: git clone https://github.com/Triang3l/premake-androidndk .premake/premake-androidndk
