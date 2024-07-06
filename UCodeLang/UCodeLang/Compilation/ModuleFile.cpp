@@ -495,7 +495,15 @@ bool ModuleFile::DownloadModules(const ModuleIndex& Modules, Optional<LogOut> Lo
 								(*LogsOut)("trying to download " + modid + " from " + WebLink);
 							}
 
+							#if UCodeLang_Platform_IPHONE
+							ok = false;
+							if (LogsOut.has_value())
+							{
+								(*LogsOut)("c funcion 'system' is unavailable: not available on iOS");
+							}
+							#else
 							ok = system(Cmd.c_str()) == EXIT_SUCCESS;
+							#endif
 							if (ok) { break; }
 						}
 
