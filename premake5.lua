@@ -356,18 +356,13 @@ newaction {
     trigger = "web_build",
     description = "Builds for the Web",
     execute = function ()
-
-        if os.istarget("linux") then
-         executeorexit("emmake make UCodeLang config=debug_web -j$(nproc)")
-        end
-
-        if os.istarget("windows") then
-         executeorexit("emmake make UCodeLang config=debug_web -j(nproc)")
-        end
         
         if os.istarget("macosx") then
          executeorexit("emmake make UCodeLang config=debug_web -j$(getconf _NPROCESSORS_ONLN)")
+        else 
+         executeorexit("emmake make UCodeLang config=debug_web -j(nproc)")
         end
+
     end
 }
 newaction {
@@ -375,59 +370,14 @@ newaction {
     description = "Builds for the Web",
     execute = function ()
         
-        if os.istarget("linux") then
-         executeorexit("emmake make config=published_web -j$(nproc)")
+        if os.istarget("macosx") then
+         executeorexit("emmake make UCodeLang config=published_web -j$(getconf _NPROCESSORS_ONLN)")
+        else 
+         executeorexit("emmake make UCodeLang config=published_web -j(nproc)")
         end
 
-        if os.istarget("windows") then
-         executeorexit("emmake make config=published_web -j$(nproc)")
-        end
-        
-        if os.istarget("macosx") then
-         executeorexit("emmake make config=published_web -j$((getconf _NPROCESSORS_ONLN")
-        end
     end
 }
-newaction {
-    trigger = "web_build_UCodeIDE",
-    description = "Builds for the Web",
-    execute = function ()
-
-        if os.istarget("linux") then
-         executeorexit("emmake make UCodeIDE config=debug_web -j$(nproc)")
-        end
-
-        if os.istarget("windows") then
-         executeorexit("emmake make UCodeIDE config=debug_web -j$(nproc)")
-        end
-        
-        if os.istarget("macosx") then
-         executeorexit("emmake make UCodeIDE config=debug_web -j$(getconf _NPROCESSORS_ONLN)")
-        end
-    end
-}
-
-
---ios
-newaction {
-    trigger = "ios_build",
-    description = "Builds for Ios",
-    execute = function ()
-
-        if os.istarget("linux") then
-
-        end
-
-        if os.istarget("windows") then
-
-        end
-        
-        if os.istarget("macosx") then
-         executeorexit("make config=debug_ios -j(getconf _NPROCESSORS_ONLN)")
-        end
-    end
-}
-
 
 newaction {
     trigger = "buildinstaller",
