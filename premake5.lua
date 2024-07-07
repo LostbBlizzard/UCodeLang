@@ -334,11 +334,11 @@ newaction {
     execute = function ()
 
         if os.istarget("linux") or os.istarget("macosx") then
-         executeorexit("cd ./UCodeDocumentation;./tools/mdbook build --dest-dir ../Output/UCodeDocumentation;cp -r ../Output/UCodeDocumentation ../UCodeWebsite/static/doc")
+         executeorexit("cd ./doc;mdbook build --dest-dir ../Output/UCodeDocumentation;cp -r ../Output/UCodeDocumentation ../UCodeWebsite/static/doc")
         end
 
         if os.istarget("windows") then
-         executeorexit("cd UCodeDocumentation && tools\\mdbook.exe build --dest-dir ..\\Output\\UCodeDocumentation && xcopy /e /i /q ..\\Output\\UCodeDocumentation ..\\UCodeWebsite\\static\\doc")
+         executeorexit("cd doc && mdbook build --dest-dir ..\\Output\\UCodeDocumentation && xcopy /e /i /q ..\\Output\\UCodeDocumentation ..\\UCodeWebsite\\static\\doc")
         end
         
     end
@@ -360,7 +360,7 @@ newaction {
         if os.istarget("macosx") then
          executeorexit("emmake make UCodeLang config=debug_web -j$(getconf _NPROCESSORS_ONLN)")
         else 
-         executeorexit("emmake make UCodeLang config=debug_web -j(nproc)")
+         executeorexit("emmake make UCodeLang config=debug_web -j$(nproc)")
         end
 
     end
@@ -373,7 +373,7 @@ newaction {
         if os.istarget("macosx") then
          executeorexit("emmake make UCodeLang config=published_web -j$(getconf _NPROCESSORS_ONLN)")
         else 
-         executeorexit("emmake make UCodeLang config=published_web -j(nproc)")
+         executeorexit("emmake make UCodeLang config=published_web -j$(nproc)")
         end
 
     end
