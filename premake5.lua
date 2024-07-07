@@ -468,6 +468,11 @@ function keeponlyfirstnumberpart(str)
    return r
 end 
 
+function file_exists(name)
+   local f = io.open(name, "r")
+   return f ~= nil and io.close(f)
+end
+
 newaction {
     trigger = "updateverion",
     description = "updates the verion number",
@@ -522,14 +527,26 @@ newaction {
         local files = "./LICENSE.txt ./UCodeAPI ./Output/UCodeDocumentation " 
         
         if os.istarget("linux") then
+            if file_exists("./Output/UCodeLangCL/linux64/Published/uclang") then
+               files = files .. "./Output/UCodeLangCL/linux64/Published/uclang"
+            end
+
+            if file_exists("./Output/UCodeLanguageSever/linux64/Published/uclanglsp") then
+               files = files .. "./Output/UCodeLanguageSever/linux64/Published/uclanglsp"
+            end
         
-            files = files .. "./Output/UCodelangCL/linux64/Published/uclang " .. "./Output/UCodeLanguageSever/linux64/Published/uclanglsp "
-        
+            if file_exists("./Output/UCodeLanguageSever/linux32/Published/uclanglsp") then
+               files = files .. "./Output/UCodeLanguageSever/linux32/Published/uclanglsp"
+            end
+
+            if file_exists("./Output/UCodeLanguageSever/linux32/Published/uclanglsp") then
+               files = files .. "./Output/UCodeLanguageSever/linux32/Published/uclanglsp"
+            end
         end
 
         if os.istarget("macos") then
         
-            files = files .. "./Output/UCodelangCL/MacOS/Published/uclang " .. "./Output/UCodeLanguageSever/MacOS/Published/uclanglsp "
+            files = files .. "./Output/UCodeLangCL/MacOS/Published/uclang " .. "./Output/UCodeLanguageSever/MacOS/Published/uclanglsp "
         
         end
 
