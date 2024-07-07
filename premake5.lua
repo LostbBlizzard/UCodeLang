@@ -337,11 +337,11 @@ newaction {
     execute = function ()
 
         if os.istarget("linux") or os.istarget("macosx") then
-         executeorexit("cd ./doc;mdbook build --dest-dir ../Output/UCodeDocumentation;cp -r ../Output/UCodeDocumentation ../doc/static/doc")
+         executeorexit("cd ./doc;mdbook build --dest-dir ../Output/UCodeDocumentation;cp -r ../Output/UCodeDocumentation ../website/static/doc")
         end
 
         if os.istarget("windows") then
-         executeorexit("cd doc && mdbook build --dest-dir ..\\Output\\UCodeDocumentation && xcopy /e /i /q ..\\Output\\UCodeDocumentation ..\\doc\\static\\doc")
+         executeorexit("cd doc && mdbook build --dest-dir ..\\Output\\UCodeDocumentation && xcopy /e /i /q ..\\Output\\UCodeDocumentation ..\\website\\static\\doc")
         end
         
     end
