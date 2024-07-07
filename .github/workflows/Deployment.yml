@@ -23,7 +23,52 @@ on:
 
 jobs:
   
-  build-Windows:
+  build-Windows-32bit:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Add Premake to PATH
+        uses: abel0b/setup-premake@v2.4
+        with:
+         version: "5.0.0-beta2"      
+
+      - name: Add MSBuild to PATH
+        uses: microsoft/setup-msbuild@v1.0.2
+
+      - name: Get zydis
+        run: premake5 installzydis
+
+      - name: Version Setup
+        run: | 
+         echo ${{ inputs.VersionNumber }} > ./version.txt 
+         premake5 updateverion
+
+      - name: Run Premake Install Dependencies
+        run: premake5 installdependencies
+
+      - name: Get zydis
+        run: premake5 installzydis
+
+      - name: Run Premake
+        run: premake5 vs2022
+
+      - name: Build 32 bit
+        run: premake5 build_published_32bit
+     
+      - name: Archive Output
+        uses: actions/upload-artifact@v4
+        with:
+          name: Output_Windows32
+          path: |
+           Output/UCodeLangCL
+           Output/UCodeLanguageSever
+           Output/UCodeLang
+           !Output/int
+          retention-days: 1
+ 
+  build-Windows-64bit:
     runs-on: windows-latest
 
     steps:
@@ -59,15 +104,10 @@ jobs:
 
       - name: Build 64 bit
         run: premake5 build_published
-
-      - name: Build 32 bit
-        if: ${{ inputs.IsPreRelease == false}}
-        run: premake5 build_published_32bit
-
+    
       - name: Build installer
         run: premake5 buildinstaller
-
-      - name: Archive Output
+   
         uses: actions/upload-artifact@v4
         with:
           name: Output_Windows
@@ -79,7 +119,8 @@ jobs:
            !Output/int
           retention-days: 1
 
-  build-Linux:
+
+  build-Linux-64bit:
     runs-on: ubuntu-latest
     
     steps:
@@ -120,6 +161,52 @@ jobs:
            Output/ULangPacked.tar.gz 
            !Output/int
           retention-days: 1
+ 
+  build-Linux-32bit:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Add Premake to PATH
+        uses: abel0b/setup-premake@v2.4
+        with:
+         version: "5.0.0-beta2"      
+
+      - name: Add gcc multilib to PATH
+        run: sudo apt install gcc-multilib g++-multilib
+    
+      - name: Version Setup
+        run: | 
+         echo ${{ inputs.VersionNumber }} > ./version.txt 
+         premake5 updateverion 
+
+      - name: Get zydis
+        run: premake5 installzydis
+
+      - name: Run Premake
+        run: premake5 gmake2
+
+      - name: Build 32 bit
+        run: premake5 build_32bit
+
+      - name: Make packedfiles for unix
+        run: |
+         premake5 build_docs
+         premake5 zipforunix 
+
+      - name: Archive Output
+        uses: actions/upload-artifact@v4
+        with:
+          name: Output_Linux32
+          path: |
+           Output/UCodeLangCL
+           Output/UCodeLanguageSever
+           Output/UCodeLang
+           Output/ULangPacked.tar.gz 
+           !Output/int
+          retention-days: 1
+
 
   build-MacOS:
     runs-on: macos-latest
@@ -166,6 +253,85 @@ jobs:
            !Output/int 
           retention-days: 1
 
+  wasm-build-32:
+   runs-on: ubuntu-latest
+   steps:
+    - uses: actions/checkout@v3
+
+    - name: Add Premake to PATH
+      uses: abel0b/setup-premake@v2.4
+      with:
+        version: "5.0.0-beta2"      
+
+    - name: Add Emsdk to PATH
+      uses: mymindstorm/setup-emsdk@v13
+
+    - name: Get zydis
+      run: premake5 installzydis
+
+    - name: Run Premake
+      run: premake5 gmake2
+    
+    - name: Build Wasm
+      run: premake5 web_build_published
+ 
+  android-build:
+   runs-on: ubuntu-latest
+
+   steps:
+    - uses: actions/checkout@v3
+
+    - name: Add Ndk to PATH
+      uses: nttld/setup-ndk@v1
+      with:
+        ndk-version: r26d
+
+    - name: Add Premake to PATH
+      uses: abel0b/setup-premake@v2.4
+      with:
+        version: "5.0.0-beta2"
+
+    - name: Get premake-androidndk
+      run: git clone https://github.com/Triang3l/premake-androidndk .premake/premake-androidndk
+
+    - name: Get zydis
+      run: premake5 installzydis
+
+    - name: Add require to Premake 
+      run: echo "require \"premake-androidndk/androidndk\"" > temp && cat premake5.lua >> temp && mv temp premake5.lua
+
+    - name: Run Premake 
+      run: premake5 androidndk
+
+    - name: Build
+      run: premake5 build_android
+
+  ios-build:
+   runs-on: "macos-latest"
+   steps:
+    - uses: actions/checkout@v3
+
+    - name: Add Premake to PATH
+      uses: abel0b/setup-premake@v2.4
+      with:
+        version: "5.0.0-beta2"      
+
+    - uses: maxim-lobanov/setup-xcode@v1
+      with:
+        xcode-version: '14.3.1'
+
+    - name: Get zydis
+      run: premake5 installzydis
+
+    - name: Run Premake 
+      run: premake5 xcode4
+
+    - name: Fix IOS xcode file 
+      run: premake5 fixios
+
+    - name: Build
+      run: xcodebuild -project UCodeLang/UCodeLang.xcodeproj -configuration published -sdk iphoneos build
+
   build-Extensions:
     if: ${{ inputs.UploadToVSMarketPlace == true}}
     runs-on: ubuntu-latest
@@ -196,7 +362,7 @@ jobs:
         working-directory: ./UCodeLanguageSever/EditorSpecific/VSCode/ucode-language
 
   deployment-GitHub:
-    needs: [build-Windows,build-Linux,build-MacOS]
+    needs: [build-Windows-64bit,build-Windows-32bit,build-Linux-32bit,build-Linux-64bit,wasm-build-32,build-MacOS,ios-build,android-build]
     runs-on: ubuntu-latest
     environment: production
     steps:
