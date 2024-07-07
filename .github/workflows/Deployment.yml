@@ -108,7 +108,7 @@ jobs:
       - name: Build installer
         run: premake5 buildinstaller
    
-        uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4
         with:
           name: Output_Windows
           path: |
