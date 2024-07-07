@@ -48,9 +48,6 @@ jobs:
       - name: Run Premake Install Dependencies
         run: premake5 installdependencies
 
-      - name: Get zydis
-        run: premake5 installzydis
-
       - name: Run Premake
         run: premake5 vs2022
 
@@ -96,9 +93,6 @@ jobs:
       - name: Run Premake Install inno
         run: premake5 installinno
 
-      - name: Get zydis
-        run: premake5 installzydis
-
       - name: Run Premake
         run: premake5 vs2022
 
@@ -126,15 +120,15 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Version Setup
-        run: | 
-         echo ${{ inputs.VersionNumber }} > ./version.txt 
-         premake5 updateverion 
-
       - name: Add Premake to PATH
         uses: abel0b/setup-premake@v2.4
         with:
          version: "5.0.0-beta2"      
+
+      - name: Version Setup
+        run: | 
+         echo ${{ inputs.VersionNumber }} > ./version.txt 
+         premake5 updateverion 
 
       - name: Get zydis
         run: premake5 installzydis
