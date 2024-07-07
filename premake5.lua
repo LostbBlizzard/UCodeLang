@@ -203,6 +203,7 @@ newaction {
         if os.istarget("macosx") then
          executeorexit("make UCApp -j$(getconf _NPROCESSORS_ONLN)")
          executeorexit("make StandardLibrary -j$(getconf _NPROCESSORS_ONLN)")
+         executeorexit("make UCodeLanguageSever -j$(getconf _NPROCESSORS_ONLN)")
         end
     end
 }
@@ -223,6 +224,7 @@ newaction {
          -- We should do full build but macos keeps asking for glfw and i dont have a mac to fix it.
          executeorexit("make UCApp -j$(getconf _NPROCESSORS_ONLN)")
          executeorexit("make StandardLibrary -j$(getconf _NPROCESSORS_ONLN)")
+         executeorexit("make UCodeLanguageSever -j$(getconf _NPROCESSORS_ONLN)")
         end
     end
 }
@@ -243,6 +245,7 @@ newaction {
          -- We should do full build but macos keeps asking for glfw and i dont have a mac to fix it.
          executeorexit("make UCodeLang config=published_macos -j$(getconf _NPROCESSORS_ONLN)")
          executeorexit("make StandardLibrary config=published_macos -j$(getconf _NPROCESSORS_ONLN)")
+         executeorexit("make UCodeLanguageSever config=published_macos  -j$(getconf _NPROCESSORS_ONLN)")
         end
     end
 }
