@@ -487,35 +487,32 @@ jobs:
           asset_content_type: application/octet-stream 
  
       - name: Upload UCodeLangLibWindows32
-        if: ${{ inputs.IsPreRelease == false}}
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }} 
-          asset_path: ./Output_Windows/UCodeLang/Win32/Published/UCodeLang.lib
+          asset_path: ./Output_Windows32/UCodeLang/Win32/Published/UCodeLang.lib
           asset_name: UCodeLang-win32.lib
           asset_content_type: application/octet-stream 
       
       - name: Upload UCodeLangCLWindows32
-        if: ${{ inputs.IsPreRelease == false}}
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./Output_Windows/UCodeLangCL/Win32/Published/uclang.exe
+          asset_path: ./Output_Windows32/UCodeLangCL/Win32/Published/uclang.exe
           asset_name: uclang-win32.exe
           asset_content_type: application/octet-stream 
       
       - name: Upload UCodeLangSeverWindows32
-        if: ${{ inputs.IsPreRelease == false}}
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./Output_Windows/UCodeLanguageSever/Win32/Published/uclanglsp.exe
+          asset_path: ./Output_Windows32/UCodeLanguageSever/Win32/Published/uclanglsp.exe
           asset_name: uclanglsp-win32.exe
           asset_content_type: application/octet-stream 
       
@@ -539,14 +536,34 @@ jobs:
           asset_name: uclang-linux64
           asset_content_type: application/octet-stream 
 
-      - name: Upload UCodeLangSeverlinux64
+      - name: Upload UCodeLangLibLinux32
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./Output_Linux/UCodeLanguageSever/linux64/Published/uclanglsp
-          asset_name: uclanglsp-linux64
+          asset_path: ./Output_Linux32/UCodeLang/linux32/Published/libUCodeLang.a
+          asset_name: libUCodeLang-linux32.a
+          asset_content_type: application/octet-stream 
+
+      - name: Upload UCodeLangCLlinux32
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./Output_Linux/UCodeLangCL/linux32/Published/uclang
+          asset_name: uclang-linux32
+          asset_content_type: application/octet-stream 
+
+      - name: Upload UCodeLangSeverlinux32
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./Output_Linux/UCodeLanguageSever/linux32/Published/uclanglsp
+          asset_name: uclanglsp-linux32
           asset_content_type: application/octet-stream 
 
       - name: Upload UCodeLangLibMacOS
@@ -584,7 +601,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
+          upload_url: ${{ steps.create_release.outputs.upload_url }} 
           asset_path: version.txt
           asset_name: version.txt
           asset_content_type: application/octet-stream
