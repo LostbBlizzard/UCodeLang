@@ -528,19 +528,19 @@ newaction {
         
         if os.istarget("linux") then
             if file_exists("./Output/UCodeLangCL/linux64/Published/uclang") then
-               files = files .. "./Output/UCodeLangCL/linux64/Published/uclang"
+               files = files .. "./Output/UCodeLangCL/linux64/Published/uclang "
             end
 
             if file_exists("./Output/UCodeLanguageSever/linux64/Published/uclanglsp") then
-               files = files .. "./Output/UCodeLanguageSever/linux64/Published/uclanglsp"
+               files = files .. "./Output/UCodeLanguageSever/linux64/Published/uclanglsp "
             end
         
-            if file_exists("./Output/UCodeLanguageSever/linux32/Published/uclanglsp") then
-               files = files .. "./Output/UCodeLanguageSever/linux32/Published/uclanglsp"
+            if file_exists("./Output/UCodeLangCL/linux32/Published/uclang") then
+               files = files .. "./Output/UCodeLangCL/linux32/Published/uclang " 
             end
 
             if file_exists("./Output/UCodeLanguageSever/linux32/Published/uclanglsp") then
-               files = files .. "./Output/UCodeLanguageSever/linux32/Published/uclanglsp"
+               files = files .. "./Output/UCodeLanguageSever/linux32/Published/uclanglsp "
             end
         end
 
