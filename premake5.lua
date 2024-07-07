@@ -256,7 +256,8 @@ newaction {
     execute = function ()
         
         if os.istarget("linux") then
-         executeorexit("make config=published_linux32 -j$(nproc)")
+         executeorexit("make UCodeLanguageSever  config=published_linux32 -j$(nproc)")
+         executeorexit("make UCodeLangCL config=published_linux32 -j$(nproc)")
         end
 
         if os.istarget("windows") then
