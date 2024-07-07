@@ -125,6 +125,11 @@ jobs:
         with:
          version: "5.0.0-beta2"      
 
+      - name: Setup mdBook
+        uses: peaceiris/actions-mdbook@v2
+        with:
+          mdbook-version: 'latest'
+
       - name: Version Setup
         run: | 
          echo ${{ inputs.VersionNumber }} > ./version.txt 
@@ -166,6 +171,11 @@ jobs:
         uses: abel0b/setup-premake@v2.4
         with:
          version: "5.0.0-beta2"      
+
+      - name: Setup mdBook
+        uses: peaceiris/actions-mdbook@v2
+        with:
+          mdbook-version: 'latest'
 
       - name: Add gcc multilib to PATH
         run: sudo apt install gcc-multilib g++-multilib
@@ -212,6 +222,11 @@ jobs:
         uses: abel0b/setup-premake@v2.4
         with:
          version: "5.0.0-beta2"      
+
+      - name: Setup mdBook
+        uses: peaceiris/actions-mdbook@v2
+        with:
+          mdbook-version: 'latest'
 
       - name: Get zydis
         run: premake5 installzydis
