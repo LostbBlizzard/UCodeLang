@@ -135,6 +135,9 @@ jobs:
          echo ${{ inputs.VersionNumber }} > ./version.txt 
          premake5 updateverion 
 
+      - name: Run Premake Install Dependencies
+        run: premake5 installdependencies
+      
       - name: Get zydis
         run: premake5 installzydis
 
