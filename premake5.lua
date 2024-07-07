@@ -220,6 +220,7 @@ newaction {
         end
         
         if os.istarget("macosx") then
+         -- We should do full build but macos keeps asking for glfw and i dont have a mac to fix it.
          executeorexit("make UCApp -j$(getconf _NPROCESSORS_ONLN)")
          executeorexit("make StandardLibrary -j$(getconf _NPROCESSORS_ONLN)")
         end
@@ -239,7 +240,9 @@ newaction {
         end
         
         if os.istarget("macosx") then
-         executeorexit("make config=published_macos -j$(getconf _NPROCESSORS_ONLN)")
+         -- We should do full build but macos keeps asking for glfw and i dont have a mac to fix it.
+         executeorexit("make UCodeLang config=published_macos -j$(getconf _NPROCESSORS_ONLN)")
+         executeorexit("make StandardLibrary config=published_macos -j$(getconf _NPROCESSORS_ONLN)")
         end
     end
 }
@@ -334,11 +337,11 @@ newaction {
     execute = function ()
 
         if os.istarget("linux") or os.istarget("macosx") then
-         executeorexit("cd ./doc;mdbook build --dest-dir ../Output/UCodeDocumentation;cp -r ../Output/UCodeDocumentation ../UCodeWebsite/static/doc")
+         executeorexit("cd ./doc;mdbook build --dest-dir ../Output/UCodeDocumentation;cp -r ../Output/UCodeDocumentation ../doc/static/doc")
         end
 
         if os.istarget("windows") then
-         executeorexit("cd doc && mdbook build --dest-dir ..\\Output\\UCodeDocumentation && xcopy /e /i /q ..\\Output\\UCodeDocumentation ..\\UCodeWebsite\\static\\doc")
+         executeorexit("cd doc && mdbook build --dest-dir ..\\Output\\UCodeDocumentation && xcopy /e /i /q ..\\Output\\UCodeDocumentation ..\\doc\\static\\doc")
         end
         
     end
