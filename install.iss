@@ -56,7 +56,7 @@ Source: "UCodeAPI\CompilerAPI\*.ucm"; DestDir: "{app}\module\CompilerAPI"; Flags
 Source: "UCodeAPI\CompilerAPI\LICENSE.txt"; DestDir: "{app}\module\CompilerAPI"; Flags: ignoreversion
 
 
-Source: "UCodeDocumentation\src\*.md"; DestDir: "{app}\docs"; Flags: ignoreversion recursesubdirs
+Source: "doc\src\*.md"; DestDir: "{app}\docs"; Flags: ignoreversion recursesubdirs
 
 [UninstallDelete]
 Type: files; Name: "{app}\ModuleIndex.ucmi"
