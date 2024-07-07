@@ -195,7 +195,7 @@ jobs:
         run: premake5 gmake2
 
       - name: Build 32 bit
-        run: premake5 build_32bit
+        run: premake5 build_published_32bit
 
       - name: Make packedfiles for unix
         run: |
@@ -534,6 +534,16 @@ jobs:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ./Output_Linux/UCodeLangCL/linux64/Published/uclang
           asset_name: uclang-linux64
+          asset_content_type: application/octet-stream 
+
+      - name: Upload UCodeLangSeverlinux64
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./Output_Linux/UCodeLanguageSever/linux64/Published/uclanglsp
+          asset_name: uclanglsp-linux64
           asset_content_type: application/octet-stream 
 
       - name: Upload UCodeLangLibLinux32
