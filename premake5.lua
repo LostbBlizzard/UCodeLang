@@ -214,6 +214,7 @@ newaction {
         
         if os.istarget("linux") then
          executeorexit("make UCApp config=debug_linux32 -j$(nproc)")
+         executeorexit("make UCodeLanguageSever config=debug_linux32 -j$(nproc)")
         end
 
         if os.istarget("windows") then
