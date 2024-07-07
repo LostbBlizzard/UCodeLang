@@ -562,7 +562,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./Output_Linux/UCodeLangCL/linux32/Published/uclang
+          asset_path: ./Output_Linux32/UCodeLangCL/linux32/Published/uclang
           asset_name: uclang-linux32
           asset_content_type: application/octet-stream 
 
