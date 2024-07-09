@@ -42,6 +42,7 @@ All keywords that can be used to make a type.
 | [trait](./Types/trait.md)     | shareing behavior between types             |
 | [tag](./Types/tag.md)         | add information about functions and classes |
 | [dynamic](./Types/dynamic.md) | dynamically dispatched traits               |
+| [functor](./Types/Functor.md) | Funcion Pointer/Lambda Object        |
 
 ## memory keyword
 

@@ -98,6 +98,8 @@
     - [Error Handing](./SyntaxAndSeamantics/Concepts/ErrorHandleing.md)
 
     - [Lambdas](./SyntaxAndSeamantics/Concepts/Lambda.md)
+    
+    - [FunctionPointer](./SyntaxAndSeamantics/Concepts/FuncionPointer.md)
 
     - [Constructors & Destructors](./SyntaxAndSeamantics/Concepts/ConstructorsAndDestructors.md)
 
@@ -231,6 +233,7 @@
     - [trait](./SyntaxAndSeamantics/Types/trait.md)
     - [tag](./SyntaxAndSeamantics/Types/tag.md)
     - [dynamic](./SyntaxAndSeamantics/Types/dynamic.md)
+    - [functor](./SyntaxAndSeamantics/Types/Functor.md)
   - [Memory](./SyntaxAndSeamantics/Keywords.md)
     - [new](./SyntaxAndSeamantics/Memory/new.md)
     - [drop](./SyntaxAndSeamantics/Memory/drop.md)
