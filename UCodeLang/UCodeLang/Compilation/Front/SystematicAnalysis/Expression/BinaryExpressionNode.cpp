@@ -1,3 +1,4 @@
+#include "UCodeLang/Compilation/Helpers/CompilerTypes.hpp"
 #ifndef UCodeLangNoCompiler
 #include "UCodeLang/Compilation/Front/SystematicAnalysis.hpp"
 UCodeLangFrontStart
@@ -33,7 +34,8 @@ void SystematicAnalysis::OnExpressionNode(const BinaryExpressionNode& node)
 		}
 	}
 
-
+	IRInstruction* lazylogicalandret = nullptr;
+	bool islazylogicaland = node._BinaryOp->Type == TokenType::logical_and;
 	IRInstruction* Ex0 = nullptr;
 	TypeSymbol Ex0Type;
 
@@ -41,9 +43,17 @@ void SystematicAnalysis::OnExpressionNode(const BinaryExpressionNode& node)
 	TypeSymbol Ex1Type;
 	if (IsBuildFunc == false)
 	{
+		IRInstruction* lazyifjump = nullptr;
+
 		OnExpressionTypeNode(Ex0node, GetValueMode::Read);
 		Ex0 = _IR_LastExpressionField;
 		Ex0Type = _LastExpressionType;
+	
+		if (islazylogicaland)
+		{
+			lazyifjump = _IR_LookingAtIRBlock->NewConditionalFalseJump(Ex0,0).ConditionalJump;
+			lazylogicalandret = Ex0;
+		}
 
 		if (BuildCode)
 		{
@@ -53,12 +63,18 @@ void SystematicAnalysis::OnExpressionNode(const BinaryExpressionNode& node)
 		{
 			_LookingForTypes.top() = _LastExpressionType;
 		}
-		
+
 		OnExpressionTypeNode(Ex1node, GetValueMode::Read);
 		Ex1 = _IR_LastExpressionField;
 		Ex1Type = _LastExpressionType;
 
 		_LookingForTypes.pop();
+
+		if (islazylogicaland)
+		{
+			lazylogicalandret = Ex1;
+			_IR_LookingAtIRBlock->UpdateConditionaJump(lazyifjump,Ex0, _IR_LookingAtIRBlock->GetIndex());
+		}
 
 		if (_PassType == PassType::FixedTypes)
 		{
@@ -184,7 +200,7 @@ void SystematicAnalysis::OnExpressionNode(const BinaryExpressionNode& node)
 		case TokenType::less_than_or_equalto:_IR_LastExpressionField = _IR_LookingAtIRBlock->NewULessThanOrEqual(Ex0, Ex1); break; \
 		case TokenType::bitwise_LeftShift:_IR_LastExpressionField = _IR_LookingAtIRBlock->NewBitWiseShiftL(Ex0, Ex1); break; \
 		case TokenType::bitwise_RightShift:_IR_LastExpressionField = _IR_LookingAtIRBlock->NewBitWiseShiftR(Ex0, Ex1); break; \
-		case TokenType::bitwise_and:_IR_LastExpressionField = _IR_LookingAtIRBlock->NewBitWiseAnd(Ex0, Ex1); break; \
+		case TokenType::bitwise_and:_IR_LastExpressionField = lazylogicalandret; break; \
 		case TokenType::bitwise_XOr:_IR_LastExpressionField = _IR_LookingAtIRBlock->NewBitWiseXOr(Ex0, Ex1); break; \
 		case TokenType::bitwise_or:_IR_LastExpressionField = _IR_LookingAtIRBlock->NewBitWiseOr(Ex0, Ex1); break; \
 		case TokenType::modulo:_IR_LastExpressionField =  _IR_LookingAtIRBlock->NewUModulo(Ex0, Ex1); break; \
@@ -207,7 +223,7 @@ void SystematicAnalysis::OnExpressionNode(const BinaryExpressionNode& node)
 			case TokenType::less_than_or_equalto:_IR_LastExpressionField = _IR_LookingAtIRBlock->NewSLessThanOrEqual(Ex0, Ex1); break; \
 			case TokenType::bitwise_LeftShift:_IR_LastExpressionField = _IR_LookingAtIRBlock->NewBitWiseShiftL(Ex0, Ex1); break; \
 			case TokenType::bitwise_RightShift:_IR_LastExpressionField = _IR_LookingAtIRBlock->NewBitWiseShiftR(Ex0, Ex1); break; \
-			case TokenType::bitwise_and:_IR_LastExpressionField = _IR_LookingAtIRBlock->NewBitWiseAnd(Ex0, Ex1); break; \
+			case TokenType::bitwise_and:_IR_LastExpressionField = lazylogicalandret; break; \
 			case TokenType::bitwise_XOr:_IR_LastExpressionField = _IR_LookingAtIRBlock->NewBitWiseXOr(Ex0, Ex1); break; \
 			case TokenType::bitwise_or:_IR_LastExpressionField = _IR_LookingAtIRBlock->NewBitWiseOr(Ex0, Ex1); break; \
 			case TokenType::modulo:_IR_LastExpressionField =  _IR_LookingAtIRBlock->NewSModulo(Ex0, Ex1); break; \
