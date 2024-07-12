@@ -35,7 +35,7 @@ void SystematicAnalysis::OnExpressionNode(const BinaryExpressionNode& node)
 	}
 
 	IRInstruction* lazylogicalandret = nullptr;
-	bool islazylogicaland = node._BinaryOp->Type == TokenType::logical_and;
+	bool islazylogicalop = node._BinaryOp->Type == TokenType::logical_and || node._BinaryOp->Type == TokenType::logical_or;
 	IRInstruction* Ex0 = nullptr;
 	TypeSymbol Ex0Type;
 
@@ -50,7 +50,7 @@ void SystematicAnalysis::OnExpressionNode(const BinaryExpressionNode& node)
 		Ex0 = _IR_LastExpressionField;
 		Ex0Type = _LastExpressionType;
 	
-		if (islazylogicaland && BuildCode)
+		if (islazylogicalop && BuildCode)
 		{
 			lazylogicalandret =_IR_LookingAtIRBlock->NewLoad(IRTypes::Bool);
 
@@ -78,7 +78,7 @@ void SystematicAnalysis::OnExpressionNode(const BinaryExpressionNode& node)
 
 		_LookingForTypes.pop();
 
-		if (islazylogicaland && BuildCode)
+		if (islazylogicalop && BuildCode)
 		{
 			
 			_IR_LookingAtIRBlock->NewStore(lazylogicalandret,Ex1);
@@ -267,7 +267,7 @@ void SystematicAnalysis::OnExpressionNode(const BinaryExpressionNode& node)
 				case TokenType::equal_Comparison:_IR_LastExpressionField = _IR_LookingAtIRBlock->NewC_Equalto(Ex0, Ex1); break;
 				case TokenType::Notequal_Comparison:_IR_LastExpressionField = _IR_LookingAtIRBlock->NewC_NotEqualto(Ex0, Ex1); break;
 				case TokenType::logical_and:_IR_LastExpressionField = lazylogicalandret; break;
-				case TokenType::logical_or:_IR_LastExpressionField = _IR_LookingAtIRBlock->NewlogicalOr(Ex0, Ex1); break;
+				case TokenType::logical_or:_IR_LastExpressionField = lazylogicalandret; break;
 				default:
 					UCodeLangUnreachable();
 					break;

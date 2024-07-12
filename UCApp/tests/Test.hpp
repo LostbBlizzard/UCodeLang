@@ -149,7 +149,7 @@ inline String ModeType(OptimizationFlags Flags)
 	return r;
 }
 
-static const Array<TestInfo, 165> Tests{
+static const Array<TestInfo, 166> Tests{
 
 	TestInfo("main_0", "BasicTests/main.uc", "Main", SuccessCondition::Compilation),
 
@@ -385,6 +385,7 @@ static const Array<TestInfo, 165> Tests{
 	TestInfo("ArrayFindItem", "Std/FindItem.uc", "main", SuccessCondition::RunTimeValue,bool(true)),
 	
 	TestInfo("LazyLogicalAnd", "BasicTests/LazyLogicalAnd.uc", "main", SuccessCondition::RunTimeValue,int(1)),
+	TestInfo("LazyLogicalOr", "BasicTests/LazyLogicalOr.uc", "main", SuccessCondition::RunTimeValue,int(1)),
 };
 struct SkipTestRange
 {
