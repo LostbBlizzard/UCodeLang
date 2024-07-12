@@ -43,16 +43,24 @@ void SystematicAnalysis::OnExpressionNode(const BinaryExpressionNode& node)
 	TypeSymbol Ex1Type;
 	if (IsBuildFunc == false)
 	{
-		IRInstruction* lazyifjump = nullptr;
+		IRBlock::NewConditionalFalseJump_t lazyifjump = {};
+		IRInstruction* lazyjumpiftrue = nullptr;
 
 		OnExpressionTypeNode(Ex0node, GetValueMode::Read);
 		Ex0 = _IR_LastExpressionField;
 		Ex0Type = _LastExpressionType;
 	
-		if (islazylogicaland)
+		if (islazylogicaland && BuildCode)
 		{
-			lazyifjump = _IR_LookingAtIRBlock->NewConditionalFalseJump(Ex0,0).ConditionalJump;
-			lazylogicalandret = Ex0;
+			lazylogicalandret =_IR_LookingAtIRBlock->NewLoad(IRTypes::Bool);
+
+			lazyifjump = _IR_LookingAtIRBlock->NewConditionalFalseJump(Ex0,0);
+		
+			_IR_LookingAtIRBlock->NewStore(lazylogicalandret,Ex0);
+			
+			lazyjumpiftrue =_IR_LookingAtIRBlock->NewJump(0);
+
+			_IR_LookingAtIRBlock->UpdateConditionaJump(lazyifjump.ConditionalJump,lazyifjump.logicalNot, _IR_LookingAtIRBlock->GetIndex());
 		}
 
 		if (BuildCode)
@@ -70,10 +78,12 @@ void SystematicAnalysis::OnExpressionNode(const BinaryExpressionNode& node)
 
 		_LookingForTypes.pop();
 
-		if (islazylogicaland)
+		if (islazylogicaland && BuildCode)
 		{
-			lazylogicalandret = Ex1;
-			_IR_LookingAtIRBlock->UpdateConditionaJump(lazyifjump,Ex0, _IR_LookingAtIRBlock->GetIndex());
+			
+			_IR_LookingAtIRBlock->NewStore(lazylogicalandret,Ex1);
+
+			_IR_LookingAtIRBlock->UpdateJump(lazyjumpiftrue,_IR_LookingAtIRBlock->GetIndex());
 		}
 
 		if (_PassType == PassType::FixedTypes)
@@ -200,7 +210,7 @@ void SystematicAnalysis::OnExpressionNode(const BinaryExpressionNode& node)
 		case TokenType::less_than_or_equalto:_IR_LastExpressionField = _IR_LookingAtIRBlock->NewULessThanOrEqual(Ex0, Ex1); break; \
 		case TokenType::bitwise_LeftShift:_IR_LastExpressionField = _IR_LookingAtIRBlock->NewBitWiseShiftL(Ex0, Ex1); break; \
 		case TokenType::bitwise_RightShift:_IR_LastExpressionField = _IR_LookingAtIRBlock->NewBitWiseShiftR(Ex0, Ex1); break; \
-		case TokenType::bitwise_and:_IR_LastExpressionField = lazylogicalandret; break; \
+		case TokenType::bitwise_and:_IR_LastExpressionField = _IR_LookingAtIRBlock->NewBitWiseAnd(Ex0, Ex1); break; \
 		case TokenType::bitwise_XOr:_IR_LastExpressionField = _IR_LookingAtIRBlock->NewBitWiseXOr(Ex0, Ex1); break; \
 		case TokenType::bitwise_or:_IR_LastExpressionField = _IR_LookingAtIRBlock->NewBitWiseOr(Ex0, Ex1); break; \
 		case TokenType::modulo:_IR_LastExpressionField =  _IR_LookingAtIRBlock->NewUModulo(Ex0, Ex1); break; \
@@ -223,7 +233,7 @@ void SystematicAnalysis::OnExpressionNode(const BinaryExpressionNode& node)
 			case TokenType::less_than_or_equalto:_IR_LastExpressionField = _IR_LookingAtIRBlock->NewSLessThanOrEqual(Ex0, Ex1); break; \
 			case TokenType::bitwise_LeftShift:_IR_LastExpressionField = _IR_LookingAtIRBlock->NewBitWiseShiftL(Ex0, Ex1); break; \
 			case TokenType::bitwise_RightShift:_IR_LastExpressionField = _IR_LookingAtIRBlock->NewBitWiseShiftR(Ex0, Ex1); break; \
-			case TokenType::bitwise_and:_IR_LastExpressionField = lazylogicalandret; break; \
+			case TokenType::bitwise_and:_IR_LastExpressionField = _IR_LookingAtIRBlock->NewBitWiseAnd(Ex0, Ex1); break; \
 			case TokenType::bitwise_XOr:_IR_LastExpressionField = _IR_LookingAtIRBlock->NewBitWiseXOr(Ex0, Ex1); break; \
 			case TokenType::bitwise_or:_IR_LastExpressionField = _IR_LookingAtIRBlock->NewBitWiseOr(Ex0, Ex1); break; \
 			case TokenType::modulo:_IR_LastExpressionField =  _IR_LookingAtIRBlock->NewSModulo(Ex0, Ex1); break; \
@@ -256,7 +266,7 @@ void SystematicAnalysis::OnExpressionNode(const BinaryExpressionNode& node)
 				{
 				case TokenType::equal_Comparison:_IR_LastExpressionField = _IR_LookingAtIRBlock->NewC_Equalto(Ex0, Ex1); break;
 				case TokenType::Notequal_Comparison:_IR_LastExpressionField = _IR_LookingAtIRBlock->NewC_NotEqualto(Ex0, Ex1); break;
-				case TokenType::logical_and:_IR_LastExpressionField = _IR_LookingAtIRBlock->NewlogicalAnd(Ex0, Ex1); break;
+				case TokenType::logical_and:_IR_LastExpressionField = lazylogicalandret; break;
 				case TokenType::logical_or:_IR_LastExpressionField = _IR_LookingAtIRBlock->NewlogicalOr(Ex0, Ex1); break;
 				default:
 					UCodeLangUnreachable();
