@@ -384,7 +384,7 @@ static const Array<TestInfo, 165> Tests{
 
 	TestInfo("ArrayFindItem", "Std/FindItem.uc", "main", SuccessCondition::RunTimeValue,bool(true)),
 	
-	TestInfo("LazyLogicalAnd", "../tests/UCodeFiles/Files/BasicTests/LazyLogicalAnd.uc", "main", SuccessCondition::RunTimeValue,int(1)),
+	TestInfo("LazyLogicalAnd", "BasicTests/LazyLogicalAnd.uc", "main", SuccessCondition::RunTimeValue,int(1)),
 };
 struct SkipTestRange
 {
