@@ -829,7 +829,28 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 		V.IsUnsafe = Info->IsUnsafe;
 		V.IsRemoved = Info->IsRemoved;
 		V.Protection = syb->Access;
-		V.IsExport = node._Signature._IsExport;
+
+
+		bool shouldExport = node._Signature._IsExport;
+		if (shouldExport && IsgenericInstantiation)
+		{
+			if (!Type_IsTypeExported(Info->Ret))
+			{
+				shouldExport = false;
+			}
+			else
+			{
+				for (auto& Item : Info->Pars)
+				{
+					if (!Type_IsTypeExported(Item.Type))
+					{
+						shouldExport = false;
+						break;
+					}
+				}
+			}
+		}
+		V.IsExport = shouldExport;
 
 		for (size_t i = 0; i < Info->Pars.size(); i++)
 		{
@@ -1005,16 +1026,57 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 		bool ispublic = node._Signature._Access == AccessModifierType::Public;
 		if (node._Signature._IsExport && ispublic)
 		{
+			const Vector<TypeSymbol>* TypesToIgnore = nullptr;
+
+			if (IsgenericInstantiation)
+			{
+				TypesToIgnore = _Generic_GenericSymbolStack.top().GenericInput;
+			}
+
 			if (!Type_IsTypeExported(Info->Ret))
 			{
-				LogError_TypeIsNotExport(NeverNullptr(node._Signature._ReturnType._name._ScopedName.back()._token), Info->Ret, syb);
+				bool isinlist =false;
+
+				if (TypesToIgnore)
+				{
+					for (auto& Item : *TypesToIgnore)
+					{
+						if (Type_AreTheSame(Info->Ret,Item))
+						{
+							isinlist =true;
+							break;
+						}
+					}
+				}
+
+				if (isinlist ==false)
+				{
+					LogError_TypeIsNotExport(NeverNullptr(node._Signature._ReturnType._name._ScopedName.back()._token), Info->Ret, syb);
+				}
 			}
 
 			for (auto& Item : Info->Pars)
 			{
 				if (!Type_IsTypeExported(Item.Type))
 				{
-					LogError_TypeIsNotExport(NeverNullptr(node._Signature._Name.token), Item.Type, syb);
+					bool isinlist =false;
+
+					if (TypesToIgnore)
+					{
+						for (auto& TypeItem : *TypesToIgnore)
+						{
+							if (Type_AreTheSame(Item.Type,TypeItem))
+							{
+								isinlist =true;
+								break;
+							}
+						}
+					}
+
+					if (isinlist == false) 
+					{
+						LogError_TypeIsNotExport(NeverNullptr(node._Signature._Name.token), Item.Type, syb);
+					}
 				}
 			}
 		}
