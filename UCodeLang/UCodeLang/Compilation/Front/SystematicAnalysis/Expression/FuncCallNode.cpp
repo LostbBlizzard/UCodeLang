@@ -798,7 +798,7 @@ void SystematicAnalysis::IR_Build_FuncCall(Get_FuncInfo Func, const ScopedNameNo
 
 					_LookingForTypes.pop();
 
-					size_t parindex = Index;
+					size_t parindex = Context_GetCuruntFunc().value()->Pars.size() - 1;
 					for (size_t i = 0; i < info->List.size(); i++)
 					{
 						auto& packtype = info->List[i];
