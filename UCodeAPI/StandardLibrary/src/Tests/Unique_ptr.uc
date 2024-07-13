@@ -23,19 +23,19 @@ Tests:
 
  [Test]
  |Unique_ptr_4[]:
-  //var Vptr = unq Vec2(8.0,6.0);
+  var Vptr = unq Vec2(8.0,6.0);
 
-  //Vptr~>X = 5;
-  //Vptr~>Y = 8;
+  Vptr~>X = 5;
+  Vptr~>Y = 8;
 
 
-  //ret r == Vec2(5,8);
+  ret Vptr.Get() == Vec2(5.0,8.0);
 
  [Test]
  |Unique_ptr_5[]:
-  //var Vptr = unq Vec2(8,6);
-  //var Bptr = unq Vec2(6,8);
+  var Vptr = unq Vec2(8.0,6.0);
+  var Bptr = unq Vec2(6.0,8.0);
   
-  //Swap(Vptr,Bptr);
+  Swap(Vptr,Bptr);
 
-  //ret Vptr~>X == Bptr~>Y && Vptr~>Y == Bptr~>X && Bptr~>X == 6;
+  ret Vptr~>X == Bptr~>Y && Vptr~>Y == Bptr~>X && Bptr~>X == 6;
