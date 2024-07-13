@@ -511,10 +511,7 @@ void ParseLine(String_view& Line)
 
 		for (auto& Item : f._IndexedFiles)
 		{
-			if (&Item != &f._IndexedFiles.back())
-			{
-				AppPrintin(Item._ModuleFullPath.generic_string());
-			}
+			AppPrintin(Item._ModuleFullPath.generic_string());
 		}
 
 	}
