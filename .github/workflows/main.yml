@@ -124,9 +124,6 @@ jobs:
    
     - name: Build
       run: premake5 build_32bit
-
-    - name: Build
-      run: make StandardLibrary
     
     - name: Run Tests 
       run: premake5 test_32bit
