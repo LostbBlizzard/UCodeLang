@@ -207,6 +207,7 @@ newaction {
     execute = function()
         if os.istarget("linux") then
             executeorexit("make UCApp config=debug_linux32 -j$(nproc)")
+            executeorexit("make StandardLibrary config=debug_linux32 -j$(getconf _NPROCESSORS_ONLN)")
             executeorexit("make UCodeLanguageSever config=debug_linux32 -j$(nproc)")
         end
 
