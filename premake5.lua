@@ -1,12 +1,10 @@
-require "export-compile-commands"
-toolset("clang")
 
 workspace "UCodeLang"
-configurations { "Debug", "Release", "Published" }
-platforms { "Win32", "Win64", "linux32", "linux64", "MacOS", "Android", "IOS", "Web" }
-defines { "UCodeLangDebug", "ZYCORE_STATIC_BUILD", "ZYDIS_STATIC_BUILD", "UCodeLangExperimental" }
-startproject "UCodeIDE"
-cppdialect "c++17"
+    configurations { "Debug", "Release", "Published" }
+    platforms { "Win32", "Win64", "linux32", "linux64", "MacOS", "Android", "IOS", "Web" }
+    defines { "UCodeLangDebug", "ZYCORE_STATIC_BUILD", "ZYDIS_STATIC_BUILD", "UCodeLangExperimental" }
+    startproject "UCodeIDE"
+    cppdialect "c++17"
 
 if os.host() == "windows" then
     if os.is64bit() then
@@ -44,64 +42,64 @@ if _ACTION == "vs2019" or _ACTION == "vs2022" then
 end
 
 filter { "platforms:Win32" }
-system "Windows"
-architecture "x86"
+    system "Windows"
+    architecture "x86"
 
 filter { "platforms:Win64" }
-system "Windows"
-architecture "x86_64"
+    system "Windows"
+    architecture "x86_64"
 
 filter { "platforms:linux32" }
-system "linux"
-architecture "x86"
+    system "linux"
+    architecture "x86"
 
 filter { "platforms:linux64" }
-system "linux"
-architecture "x86_64"
+    system "linux"
+    architecture "x86_64"
 
 filter { "action:xcode*" }
-xcodebuildsettings = { ["ALWAYS_SEARCH_USER_PATHS"] = "YES" }
+    xcodebuildsettings = { ["ALWAYS_SEARCH_USER_PATHS"] = "YES" }
 
 filter { "platforms:MacOS" }
-system "macosx"
-architecture "universal"
-toolset "clang"
+    system "macosx"
+    architecture "universal"
+    toolset "clang"
 
 filter { "platforms:Android" }
-system "android"
-architecture "ARM"
-androidapilevel(22)
-exceptionhandling("On")
-rtti("On")
-if cppstl ~= nil then
-    cppstl("c++")
-end
+    system "android"
+    architecture "ARM"
+    androidapilevel(22)
+    exceptionhandling("On")
+    rtti("On")
+    if cppstl ~= nil then
+       cppstl("c++")
+    end
 
 filter { "platforms:IOS" }
-system "ios"
-architecture "universal"
-toolset "clang"
+    system "ios"
+    architecture "universal"
+    toolset "clang"
 
 filter { "platforms:Web" }
-system "linux"
-architecture "x86"
-defines { "ZYAN_POSIX" }
-targetextension(".html")
+    system "linux"
+    architecture "x86"
+    defines { "ZYAN_POSIX" }
+    targetextension(".html")
 
 filter { "configurations:Debug" }
-defines { "DEBUG" }
-optimize "Debug"
-symbols "On"
+    defines { "DEBUG" }
+    optimize "Debug"
+    symbols "On"
 
 filter { "configurations:Release" }
-defines { "RELASE" }
-optimize "On"
-symbols "On"
+    defines { "RELASE" }
+    optimize "On"
+    symbols "On"
 
 filter { "configurations:Published" }
-defines { "PUBLISHED", "RELASE" }
-optimize "Speed"
-symbols "off"
+    defines { "PUBLISHED", "RELASE" }
+    optimize "Speed"
+    symbols "off"
 
 
 
