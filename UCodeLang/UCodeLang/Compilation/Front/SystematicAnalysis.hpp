@@ -1,5 +1,4 @@
 #pragma once
-
 #ifndef UCodeLangNoCompiler
 #include "UCodeLang/Compilation/Front/Parser.hpp"
 
@@ -1424,7 +1423,11 @@ private:
 	}
 
 	static String Str_GetFuncAnonymousObjectFullName(const String& FullFuncName);
-	void Assembly_AddClass(const Vector<Unique_ptr<AttributeNode>>& attributes, const NeverNullPtr<Symbol> ClassSyb);
+	struct AddClassExtraInfo
+	{
+		bool IsgenericInstantiation = false;
+	};
+	void Assembly_AddClass(const Vector<Unique_ptr<AttributeNode>>& attributes, const NeverNullPtr<Symbol> ClassSyb,Optional<AddClassExtraInfo> Extra = {});
 	ReflectionTypeInfo Assembly_ConvertToType(const TypeSymbol& Type);
 
 	void Assembly_AddEnum(const NeverNullPtr<Symbol> ClassSyb);

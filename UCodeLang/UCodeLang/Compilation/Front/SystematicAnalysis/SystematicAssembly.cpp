@@ -1366,7 +1366,7 @@ void SystematicAnalysis::LoadFuncInfoFixTypes(FuncInfo* Funcinfo, const ClassMet
 	}
 }
 
-void SystematicAnalysis::Assembly_AddClass(const Vector<Unique_ptr<AttributeNode>>& attributes, const NeverNullPtr<Symbol> ClassSyb)
+void SystematicAnalysis::Assembly_AddClass(const Vector<Unique_ptr<AttributeNode>>& attributes, const NeverNullPtr<Symbol> ClassSyb,Optional<AddClassExtraInfo> Extra)
 {
 	const ClassInfo* Class = ClassSyb->Get_Info<ClassInfo>();
 	Class_Data& VClass = _Lib.Get_Assembly().AddClass((String)Class->Get_Name(), RemoveSymboolFuncOverloadMangling(Class->FullName));
@@ -1385,6 +1385,33 @@ void SystematicAnalysis::Assembly_AddClass(const Vector<Unique_ptr<AttributeNode
 	{
 		VClass.IsExported = true;//most likey generated from enum or something similar
 	}
+
+	if (VClass.IsExported && Extra.has_value())
+	{
+		auto& Ex = Extra.value();
+		if (Ex.IsgenericInstantiation) 
+		{
+			auto& GInput =  Class->_GenericAlias;
+		
+			bool isallexported =true;
+
+			for (auto& Item : GInput)
+			{
+				if (!Type_IsTypeExported(Item.Type))
+				{
+					isallexported = false;
+					break;
+				}
+			}
+
+			if (!isallexported)
+			{
+				VClass.IsExported =false;
+			}
+		}
+
+	}
+
 	for (const auto& node : Class->Fields)
 	{
 		auto& Item = VClass.Fields.emplace_back();

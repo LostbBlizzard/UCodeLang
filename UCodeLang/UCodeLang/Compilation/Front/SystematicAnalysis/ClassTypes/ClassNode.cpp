@@ -92,7 +92,11 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 		auto UseingIndex = _Table.GetUseingIndex();
 
 		if (_PassType == PassType::BuidCode) {
-			Assembly_AddClass(Node._Attributes, &Syb);
+
+			AddClassExtraInfo Info;
+			Info.IsgenericInstantiation  = IsgenericInstantiation;
+
+			Assembly_AddClass(Node._Attributes, &Syb,Info);
 		}
 
 		CaptureErrorContext errorcontext = GetErrorCaptureContext();
