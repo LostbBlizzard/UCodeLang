@@ -95,11 +95,11 @@
 #define UCode_MapType "Map"//int[String]
 #define UCode_ResultType "Result"//int!
 #define UCode_RangeFunction "Range"//0..10 Range(0,10)
+#define UCode_RangeFullFunction "RangeFull"//.. RangeFull()
+#define UCode_RangeToFunction "RangeTo"//..10 RangeTo(10)
+#define UCode_RangeFromFunction "RangeFrom"//10.. RangeFrom(1,)
 #define UCode_RangeInclusiveFunction "RangeInclusive"//0..=10 RangeInclusive(0,10)
-
-#define UCode_RangeType "Range_t"//0..10 Range_t<int>(0,10)
-#define UCode_RangeInclusiveType "RangeInclusive_t"//0..=10 RangeInclusive<int>(0,10)
-
+#define UCode_RangeToInclusiveFunction "RangeToInclusive"//..=10 RangeInclusive(10)
 
 #define UCodeLangStringType "String"
 #define UCodeLangString8Type  "String8"

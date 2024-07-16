@@ -722,7 +722,14 @@ private:
 
 	GotNodeType GetForTypeNode(ForTypeNode& out);
 
-
+	TryGetNode GetRangeExpression()
+	{
+		FuncCallNode* V = FuncCallNode::Gen();
+		auto r = GetRangeExpression(*V);
+		TrippedCheck(r);
+		return { r,V };
+	}
+	GotNodeType GetRangeExpression(FuncCallNode& out);
 };
 UCodeLangFrontEnd
 

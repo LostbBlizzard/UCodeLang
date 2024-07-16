@@ -1446,6 +1446,13 @@ TokenType_Name:
 		return V.GotNode;
 	}
 	break;
+	case TokenType::KeyWord_RangeOperator:
+	{
+		auto V = GetRangeExpression();
+		out = V.Node;
+		return V.GotNode;
+	}
+	break;
 	default:
 
 		if (TypeNode::IsType(StatementTypeToken->Type))
@@ -5445,6 +5452,60 @@ GotNodeType Parser::GetForTypeNode(ForTypeNode& out)
 	auto EndToken = TryGetToken(); TokenTypeCheck(EndToken, TokenType::EndTab);
 	NextToken();
 
+	return GotNodeType::Success;
+}
+GotNodeType Parser::GetRangeExpression(FuncCallNode& out)
+{
+	auto token = TryGetToken();
+	TokenTypeCheck(token, TokenType::KeyWord_RangeOperator);
+	NextToken();
+
+	auto nexttoken = TryGetToken();
+	if (nexttoken->Type == TokenType::Number_literal || nexttoken->Type == TokenType::Left_Parentheses)
+	{
+		Node* nod = nullptr;
+
+		GetExpressionTypeNode(nod);
+
+		out.Parameters._Nodes.push_back(Unique_ptr<Node>(nod));
+		
+		auto funcnametoken = std::make_unique<Token>();
+
+		funcnametoken->OnLine = token->OnLine;
+		funcnametoken->OnPos = token->OnPos;
+		funcnametoken->Type = TokenType::Name;
+		funcnametoken->Value._String = UCode_RangeToFunction;
+
+
+		{
+			ScopedName scope;
+			scope._token = funcnametoken.get();
+			out._FuncName._ScopedName.push_back(scope);
+		}
+		_Tree.TemporaryTokens.push_back(std::move(funcnametoken));
+
+	}
+	else
+	{
+		_TokenIndex--;
+	
+		auto funcnametoken = std::make_unique<Token>();
+
+		funcnametoken->OnLine = token->OnLine;
+		funcnametoken->OnPos = token->OnPos;
+		funcnametoken->Type = TokenType::Name;
+		funcnametoken->Value._String = UCode_RangeFullFunction;
+
+
+		{
+			ScopedName scope;
+			scope._token = funcnametoken.get();
+			out._FuncName._ScopedName.push_back(scope);
+		}
+		_Tree.TemporaryTokens.push_back(std::move(funcnametoken));
+
+		NextToken();
+	}
 	return GotNodeType::Success;
 }
 UCodeLangFrontEnd
