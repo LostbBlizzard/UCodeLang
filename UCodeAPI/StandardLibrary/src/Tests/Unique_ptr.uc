@@ -38,4 +38,4 @@ Tests:
   
   Swap(Vptr,Bptr);
 
-  ret Vptr~>X == Bptr~>Y && Vptr~>Y == Bptr~>X && Bptr~>X == 6;
+  ret Vptr~>X == Bptr~>Y && Vptr~>Y == Bptr~>X && Bptr~>X == 8;
