@@ -149,7 +149,7 @@ inline String ModeType(OptimizationFlags Flags)
 	return r;
 }
 
-static const Array<TestInfo, 171> Tests{
+static const Array<TestInfo, 172> Tests{
 
 	TestInfo("main_0", "BasicTests/main.uc", "Main", SuccessCondition::Compilation),
 
@@ -393,6 +393,8 @@ static const Array<TestInfo, 171> Tests{
 	TestInfo("ExportGeneric", "BasicTests/ExportGeneric.uc", "main", SuccessCondition::Compilation),
 	TestInfo("Export", "BasicTests/Export.uc", "main", SuccessCondition::CompilationFail),
 	TestInfo("Export2", "BasicTests/Export2.uc", "main", SuccessCondition::Compilation),
+
+	TestInfo("Range2", "Syntax/Range2.uc", "main", SuccessCondition::RunTimeValue,bool(true)),
 };
 struct SkipTestRange
 {
