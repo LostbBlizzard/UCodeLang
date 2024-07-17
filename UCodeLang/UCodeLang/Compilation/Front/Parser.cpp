@@ -1699,7 +1699,8 @@ GotNodeType Parser::GetExpressionTypeNode(Node*& out)
 		if (Extoken->Type == TokenType::Number_literal 
 			|| Extoken->Type == TokenType::Name
 			|| Extoken->Type == TokenType::Left_Parentheses
-			|| funcname == UCode_RangeInclusiveFunction)
+			|| funcname == UCode_RangeInclusiveFunction
+			|| TypeNode::IsType(Extoken->Type))
 		{
 			Node* Other = nullptr;
 			auto Ex2 = GetExpressionTypeNode(Other);
@@ -5507,6 +5508,7 @@ GotNodeType Parser::GetRangeExpression(FuncCallNode& out)
 	if (nexttoken->Type == TokenType::Number_literal 
 		|| nexttoken->Type == TokenType::Left_Parentheses
 		|| nexttoken->Type == TokenType::Name
+		|| TypeNode::IsType(token->Type)
 		|| nexttoken->Type == TokenType::equal)
 	{
 
