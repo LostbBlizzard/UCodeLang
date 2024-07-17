@@ -15,3 +15,11 @@ int someval = 0;
   int unused = 0;
 
  ret someval;
+
+
+|main2[] -> bool:
+
+ if false || func2():
+  int unused = 0;
+
+ ret someval == 1;

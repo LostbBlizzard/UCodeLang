@@ -54,7 +54,12 @@ void SystematicAnalysis::OnExpressionNode(const BinaryExpressionNode& node)
 		{
 			lazylogicalandret =_IR_LookingAtIRBlock->NewLoad(IRTypes::Bool);
 
-			lazyifjump = _IR_LookingAtIRBlock->NewConditionalFalseJump(Ex0,0);
+			auto ExVal = Ex0;
+			if (node._BinaryOp->Type == TokenType::logical_and)
+			{
+				ExVal = _IR_LookingAtIRBlock->NewlogicalNot(ExVal);
+			}
+			lazyifjump = _IR_LookingAtIRBlock->NewConditionalFalseJump(ExVal,0);
 		
 			_IR_LookingAtIRBlock->NewStore(lazylogicalandret,Ex0);
 			

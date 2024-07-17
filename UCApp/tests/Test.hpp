@@ -149,7 +149,7 @@ inline String ModeType(OptimizationFlags Flags)
 	return r;
 }
 
-static const Array<TestInfo, 169> Tests{
+static const Array<TestInfo, 171> Tests{
 
 	TestInfo("main_0", "BasicTests/main.uc", "Main", SuccessCondition::Compilation),
 
@@ -384,8 +384,11 @@ static const Array<TestInfo, 169> Tests{
 
 	TestInfo("ArrayFindItem", "Std/FindItem.uc", "main", SuccessCondition::RunTimeValue,bool(true)),
 	
-	TestInfo("LazyLogicalAnd", "BasicTests/LazyLogicalAnd.uc", "main", SuccessCondition::RunTimeValue,int(1)),
+	TestInfo("LazyLogicalAnd", "BasicTests/LazyLogicalAnd.uc", "main", SuccessCondition::RunTimeValue,int(2)),
 	TestInfo("LazyLogicalOr", "BasicTests/LazyLogicalOr.uc", "main", SuccessCondition::RunTimeValue,int(1)),
+
+	TestInfo("LazyLogicalAnd2", "BasicTests/LazyLogicalAnd.uc", "main2", SuccessCondition::RunTimeValue,bool(true)),
+	TestInfo("LazyLogicalOr2", "BasicTests/LazyLogicalOr.uc", "main2", SuccessCondition::RunTimeValue,bool(true)),
 	
 	TestInfo("ExportGeneric", "BasicTests/ExportGeneric.uc", "main", SuccessCondition::Compilation),
 	TestInfo("Export", "BasicTests/Export.uc", "main", SuccessCondition::CompilationFail),
