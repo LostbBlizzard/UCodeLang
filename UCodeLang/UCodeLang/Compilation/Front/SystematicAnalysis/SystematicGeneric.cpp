@@ -764,7 +764,7 @@ void SystematicAnalysis::Generic_GenericAliasFixTypes(const GenericValuesNode& G
 						TypeSymbol type;
 						TypeNode typenode;
 						typenode._name._ScopedName = scoperule->_ScopedName;
-						Type_Convert(typenode, type);
+						Type_Convert(typenode, type,true);
 
 						base = type;
 					}

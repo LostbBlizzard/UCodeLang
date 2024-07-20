@@ -1523,7 +1523,7 @@ TypeSymbolID SystematicAnalysis::Type_GetTypeID(TypesEnum Type, SymbolID SymbolI
 	}
 	return R;
 }
-void SystematicAnalysis::Type_Convert(const TypeNode& V, TypeSymbol& Out)
+void SystematicAnalysis::Type_Convert(const TypeNode& V, TypeSymbol& Out,bool allowtraitasself)
 {
 	switch (V._name._ScopedName.back()._token->Type)
 	{
@@ -1676,7 +1676,7 @@ void SystematicAnalysis::Type_Convert(const TypeNode& V, TypeSymbol& Out)
 			}
 			else if (SybV->Type == SymbolType::Trait_class)
 			{
-				if (!V._IsDynamic)
+				if (!V._IsDynamic && allowtraitasself == false)
 				{
 					auto Token = V._name._ScopedName.back()._token;
 					LogError_TraitCantBeAlone(NeverNullptr(Token));
@@ -2271,6 +2271,29 @@ bool SystematicAnalysis::Type_IsUnMapType(const Symbol& Syb) const
 	return Syb.Type == SymbolType::Unmaped_Generic_Type;
 }
 
+bool SystematicAnalysis::TypeHasTrait(const TypeSymbol& Type,SymbolID id)
+{
+	auto SybOp = Symbol_GetSymbol(Type);
+	if (SybOp.has_value())
+	{
+		auto Syb = SybOp.value();
+	
+		if (Syb->Type == SymbolType::Type_class)
+		{
+			auto info = Syb->Get_Info<ClassInfo>();
+
+			for (auto& Item : info->_InheritedTypes)
+			{
+				if (Item.Syb->ID == id)
+				{
+					return true;
+				}
+			}
+		}
+
+	}
+	return false;
+}
 UCodeLangFrontEnd
 
 #endif

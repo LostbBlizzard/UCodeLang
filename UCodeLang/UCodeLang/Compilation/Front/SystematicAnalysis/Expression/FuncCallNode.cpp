@@ -3880,6 +3880,24 @@ StartSymbolsLoop:
 					}
 				}
 			}
+			else if (FuncGeneric.BaseOrRule.has_value())
+			{
+				auto& baseorrule = FuncGeneric.BaseOrRule.value();
+
+				if (auto base = baseorrule.Get_If<TypeSymbol>())
+				{
+					auto sym = Symbol_GetSymbol(base->_CustomTypeSymbol);
+					
+					if (sym->Type == SymbolType::Trait_class)
+					{
+						bool typehastrait = TypeHasTrait(Input,base->_CustomTypeSymbol);
+						if (typehastrait)
+						{
+							isok = true;
+						}
+					}
+				}
+			}
 			else
 			{
 				isok = true;

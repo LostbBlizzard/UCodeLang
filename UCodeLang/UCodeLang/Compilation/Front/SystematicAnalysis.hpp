@@ -1474,7 +1474,7 @@ private:
 
 
 
-	void Type_Convert(const TypeNode& V, TypeSymbol& Out);
+	void Type_Convert(const TypeNode& V, TypeSymbol& Out,bool allowtraitasself = false);
 
 	NullablePtr<Symbol> Generic_InstantiateOrFindGenericSymbol(const NeverNullPtr<Token> Token, const UseGenericsNode& GenericsVals, const String_view& Name);
 
@@ -1734,6 +1734,7 @@ private:
 	void Generic_TypeInstantiate_Tag(const NeverNullPtr<Symbol> Trait, const Vector<TypeSymbol>& Type);
 	void Generic_TypeInstantiate_ForType(const NeverNullPtr<Symbol> ForType, const Vector<TypeSymbol>& Type);
 
+	bool TypeHasTrait(const TypeSymbol& Type,SymbolID id);
 
 	EvaluatedEx Eval_MakeEx(const TypeSymbol& Type);
 	RawEvaluatedObject Eval_MakeExr(const TypeSymbol& Type);
