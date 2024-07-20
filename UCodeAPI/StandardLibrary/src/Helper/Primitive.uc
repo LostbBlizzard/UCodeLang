@@ -148,6 +148,8 @@ $for uint8 export:
  export |ToString[imut this&,String& Out]:UIntToString<uint8>(uint8(this),Out); 
  export |Parse[imut StringSpan str] -> uint8?: ret ParseUIntToString<uint8>(str); 
  export |Parse[imut String& str]: ret Parse(str.Str());
+ export |MaxValue[] -> uint8: ret 255;
+ export |MinValue[] -> uint8: ret 0;
 
 $for uint16 export:
  export |ToString[imut this&] -> String:
@@ -158,6 +160,8 @@ $for uint16 export:
  export |ToString[imut this&,String& Out]:UIntToString<uint16>(uint16(this),Out); 
  export |Parse[imut StringSpan str] -> uint16?: ret ParseUIntToString<uint16>(str); 
  export |Parse[imut String& str]: ret Parse(str.Str());
+ export |MaxValue[] -> uint16: ret 65535;
+ export |MinValue[] -> uint16: ret 0;
 
 $for uint32 export:
  export |ToString[imut this&] -> String:
@@ -168,6 +172,8 @@ $for uint32 export:
  export |ToString[imut this&,String& Out]:UIntToString<uint32>(uint32(this),Out); 
  export |Parse[imut StringSpan str] -> uint32?: ret ParseUIntToString<uint32>(str); 
  export |Parse[imut String& str]: ret Parse(str.Str());
+ export |MaxValue[] -> uint32: ret 4294967295;
+ export |MinValue[] -> uint32: ret 0;
 
 $for uint64 export:
  export |ToString[imut this&] -> String:
@@ -178,7 +184,8 @@ $for uint64 export:
  export |ToString[imut this&,String& Out]:UIntToString<uint64>(uint64(this),Out); 
  export |Parse[imut StringSpan str] -> uint64?: ret ParseUIntToString<uint64>(str); 
  export |Parse[imut String& str]: ret Parse(str.Str());
-
+ export |MaxValue[] -> uint64: ret 18446744073709551615;
+ export |MinValue[] -> uint64: ret 0;
  
 $for int8 export:
  export |ToString[imut this&] -> String:
@@ -189,6 +196,8 @@ $for int8 export:
  export |ToString[imut this&,String& Out]:SIntToString<int8>(int8(this),Out); 
  export |Parse[imut StringSpan str] -> int8?: ret ParseUIntToString<int8>(str); 
  export |Parse[imut String& str]: ret Parse(str.Str());
+ export |MaxValue[] -> int8: ret 127;
+ export |MinValue[] -> int8: ret -128;
 
 $for int16 export:
  export |ToString[imut this&] -> String:
@@ -199,6 +208,8 @@ $for int16 export:
  export |ToString[imut this&,String& Out]:SIntToString<int16>(int16(this),Out); 
  export |Parse[imut StringSpan str] -> int16?: ret ParseSIntToString<int16>(str); 
  export |Parse[imut String& str]: ret Parse(str.Str());
+ export |MaxValue[] -> int16: ret 32767;
+ export |MinValue[] -> int16: ret -32768;
 
 $for int32 export:
  export |ToString[imut this&] -> String:
@@ -209,6 +220,8 @@ $for int32 export:
  export |ToString[imut this&,String& Out]: SIntToString<int32>(int32(this),Out); 
  export |Parse[imut StringSpan str] -> int32?: ret ParseSIntToString<int32>(str); 
  export |Parse[imut String& str]: ret Parse(str.Str());
+ export |MaxValue[] -> int32: ret 2147483647;
+ export |MinValue[] -> int32: ret -2147483648;
 
 $for int64 export:
  export |ToString[imut this&] -> String:
@@ -219,6 +232,8 @@ $for int64 export:
  export |ToString[imut this&,String& Out]:SIntToString<int64>(int64(this),Out); 
  export |Parse[imut StringSpan str] -> int64?: ret ParseSIntToString<int64>(str); 
  export |Parse[imut String& str]: ret Parse(str.Str());
+ export |MaxValue[] -> int64: ret 9223372036854775807;
+ export |MinValue[] -> int64: ret -9223372036854775808;
 
 $for uintptr export:
  export |ToString[imut this&] -> String:
@@ -235,6 +250,12 @@ $for uintptr export:
  export |Parse[imut StringSpan str] -> uintptr?:ret ParseUIntToString<uintptr>(str); 
  export |Parse[imut String& str]: ret Parse(str.Str());
 
+ export |MaxValue[] -> uintptr:
+   $if sizeof(uintptr) == sizeof(uint32):
+    ret 4294967295;
+   $else:
+    ret 18446744073709551615;
+ export |MinValue[] -> uintptr: ret 0;
 
 $for sintptr export:
  export |ToString[imut this&] -> String:
@@ -250,3 +271,14 @@ $for sintptr export:
 
  export |Parse[imut StringSpan str] -> sintptr?:ret ParseSIntToString<sintptr>(str); 
  export |Parse[imut String& str]: ret Parse(str.Str());
+
+ export |MaxValue[] -> sintptr:
+   $if sizeof(sintptr) == sizeof(int32):
+    ret 2147483647;
+   $else:
+    ret 9223372036854775807;
+ export |MinValue[] -> sintptr:
+   $if sizeof(sintptr) == sizeof(int32):
+    ret -2147483648;
+   $else:
+    ret -9223372036854775808;
