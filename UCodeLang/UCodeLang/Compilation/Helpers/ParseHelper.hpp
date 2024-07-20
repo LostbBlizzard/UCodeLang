@@ -3,6 +3,7 @@
 
 #include "UCodeLang/LangCore/LangTypes.hpp"
 #include "UCodeLang/LangCore/UCodeLangNameSpace.hpp"
+#include <sstream>
 UCodeLangStart
 class ParseHelper
 {
@@ -10,12 +11,24 @@ public:
 #define ParseHelpertoIntSet(x) \
 	static bool ParseStringToInt##x(String_view string, Int##x& out) \
 	{ \
-		out = std::stoi((String)string); \
+		String tep = String(string); \
+		std::istringstream iss(tep); \
+		iss >> out; \
+		if (string != std::to_string(out)) \
+		{ \
+			return false; \
+		} \
 		return true; \
 	} \
 		static bool ParseStringToUInt##x(String_view string, UInt##x& out) \
 	{ \
-		out = std::stoi((String)string); \
+		String tep = String(string); \
+		std::istringstream iss(tep); \
+		iss >> out; \
+		if (string != std::to_string(out)) \
+		{ \
+			return false; \
+		} \
 		return true; \
 	} \
 
