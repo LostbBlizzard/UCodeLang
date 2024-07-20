@@ -3655,6 +3655,11 @@ void UCodeBackEndObject::BuildUIntToIntCast(const IRInstruction* Ins, const IROp
 
 	size_t ItemSize = GetSize(GetType(Op));
 
+	if (ItemSize == IntSize)
+	{
+		//cast Sint to Uint
+		LoadOpToReg(Ins, Op, V);
+	}
 	while (ItemSize != IntSize)
 	{
 		if (ItemSize > IntSize) // cast down
@@ -3723,6 +3728,11 @@ void UCodeBackEndObject::BuildSIntToIntCast(const IRInstruction* Ins, const IROp
 
 	size_t ItemSize = GetSize(GetType(Op));
 
+	if (ItemSize == IntSize)
+	{
+		//cast Uint to Sint 
+		LoadOpToReg(Ins, Op, V);
+	}
 	while (ItemSize != IntSize)
 	{
 		if (ItemSize > IntSize) // cast down
