@@ -1500,6 +1500,8 @@ int Operator_precedenceBinary(TokenType type)
 		return 8;
 
 
+	case TokenType::bitwise_XOr:
+		return 9;
 	case TokenType::logical_and:
 		return 11;
 	default:
