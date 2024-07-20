@@ -134,6 +134,21 @@ void SystematicAnalysis::Symbol_Update_EvalSym_ToFixedTypes(NeverNullPtr<Symbol>
 		Set_SymbolContext(std::move(OldContext));
 	}
 }
+
+void SystematicAnalysis::Symbol_Update_ClassField_ToFixedTypes(NeverNullPtr<Symbol> Sym)
+{
+	if (Sym->PassState == PassType::GetTypes)
+	{
+		DeclareVariableInfo* info = Sym->Get_Info<DeclareVariableInfo>();
+
+		auto OldContext = SaveAndMove_SymbolContext();
+		Set_SymbolContext(info->Context.value());
+
+		OnDeclareVariablenode(*Sym->Get_NodeInfo<DeclareVariableNode>(),DeclareStaticVariableNode_t::ClassField);
+
+		Set_SymbolContext(std::move(OldContext));
+	}
+}
 void SystematicAnalysis::Symbol_Update_ThreadAndStatic_ToFixedTypes(NeverNullPtr<Symbol> Sym)
 {
 	if (Sym->PassState == PassType::GetTypes)
@@ -173,8 +188,6 @@ void SystematicAnalysis::Symbol_Update_Sym_ToFixedTypes(NeverNullPtr<Symbol> Sym
 		Symbol_Update_ClassSym_ToFixedTypes(Sym);
 		break;
 
-
-
 	case SymbolType::Hard_Type_alias:
 	case SymbolType::Type_alias:
 	case SymbolType::Func_ptr:
@@ -207,6 +220,9 @@ void SystematicAnalysis::Symbol_Update_Sym_ToFixedTypes(NeverNullPtr<Symbol> Sym
 		Symbol_Update_FuncSym_ToFixedTypes(Sym);
 		break;
 
+	case SymbolType::Class_Field:
+		Symbol_Update_ClassField_ToFixedTypes(Sym);
+		break;
 	case SymbolType::StaticVarable:
 	case SymbolType::ThreadVarable:
 		Symbol_Update_ThreadAndStatic_ToFixedTypes(Sym);

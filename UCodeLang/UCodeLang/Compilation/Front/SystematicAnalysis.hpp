@@ -1637,7 +1637,8 @@ private:
 	void Symbol_Update_EvalSym_ToFixedTypes(NeverNullPtr<Symbol> Sym);
 	void Symbol_Update_ThreadAndStatic_ToFixedTypes(NeverNullPtr<Symbol> Sym);
 	void Symbol_Update_ForType_ToFixedTypes(NeverNullPtr<Symbol> Sym);
-
+	void Symbol_Update_ClassField_ToFixedTypes(NeverNullPtr<Symbol> Sym);
+	
 	void Symbol_Update_Sym_ToFixedTypes(NeverNullPtr<Symbol> Sym);
 
 	Optional<size_t> Type_GetSize(const TypeSymbol& Type)
