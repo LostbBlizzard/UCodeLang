@@ -14,25 +14,46 @@ public:
 		String tep = String(string); \
 		std::istringstream iss(tep); \
 		iss >> out; \
-		if (string != std::to_string(out)) \
-		{ \
-			return false; \
-		} \
-		return true; \
+		return !iss.fail() && iss.eof(); \
 	} \
 		static bool ParseStringToUInt##x(String_view string, UInt##x& out) \
 	{ \
 		String tep = String(string); \
 		std::istringstream iss(tep); \
 		iss >> out; \
-		if (string != std::to_string(out)) \
-		{ \
-			return false; \
-		} \
-		return true; \
+		return !iss.fail() && iss.eof(); \
 	} \
 
-	ParseHelpertoIntSet(8);
+	static bool ParseStringToInt8(String_view string, Int8& out) 
+	{ 
+		int val = 0;
+		if (!ParseStringToInt32(string,val))
+		{
+			return false;
+		}
+
+		if (val < std::numeric_limits<Int8>::min() || val > std::numeric_limits<Int8>::max())
+		{
+			return false;
+		}
+		out = val;
+		return true;
+	} 
+	static bool ParseStringToUInt8(String_view string, UInt8& out) 
+	{ 
+		int val = 0;
+		if (!ParseStringToInt32(string,val))
+		{
+			return false;
+		}
+
+		if (val < std::numeric_limits<UInt8>::min() || val > std::numeric_limits<UInt8>::max())
+		{
+			return false;
+		}
+		out = val;
+		return true;
+	} 
 	ParseHelpertoIntSet(16);
 	ParseHelpertoIntSet(32);
 	ParseHelpertoIntSet(64);
