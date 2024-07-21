@@ -398,7 +398,8 @@ static const Array<TestInfo, 175> Tests{
 	
 	TestInfo("TraitTypeBind", "Generics/TraitTypeBind.uc", "main", SuccessCondition::RunTimeValue,bool(true)),
 	TestInfo("TraitTypeBind2","Generics/TraitTypeBind2.uc", "main", SuccessCondition::CompilationFail),
-	TestInfo("TraitTypeBind2","OutofOrder/ClassFields.uc", "main", SuccessCondition::RunTimeValue,int(50)),
+	TestInfo("ClassFields","OutofOrder/ClassFields.uc", "main", SuccessCondition::RunTimeValue,bool(true)),
+	
 };
 struct SkipTestRange
 {
