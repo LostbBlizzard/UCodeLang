@@ -1,3 +1,5 @@
+#include "UCodeLang/Compilation/Middle/Symbol.hpp"
+#include <cstdint>
 #ifndef UCodeLangNoCompiler
 #include "UCodeLang/Compilation/Front/SystematicAnalysis.hpp"
 UCodeLangFrontStart
@@ -1794,6 +1796,41 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 									}
 								}
 							}
+						}
+						else 
+						{
+							//Deals with Func<T>[T val,T other]
+							// Func<uintptr>(10,0) to Func<uintptr>(uintptr(10),uintptr(0))
+							// and not Func<uintptr>(int(10),int(0))
+
+							auto& _generic = Name._ScopedName.back()._generic;
+
+							for (auto& Item : Info->Pars)
+							{
+								if (Item.Type._Type == TypesEnum::CustomType)
+								{
+									auto sym =Item.Type._CustomTypeSymbol;
+								
+									for (uintptr_t i = 0; i < Info->_GenericData._Genericlist.size(); i++) 
+									{
+										auto& GItem = Info->_GenericData._Genericlist[i];
+									
+										if (i >= _generic->_Values.size()) { break; }
+
+										if (sym == GItem.SybID)
+										{
+											if (!typemap.HasValue(GItem.SybID))
+											{
+												TypeSymbol ty;
+												Type_Convert(_generic->_Values[i],ty);
+												typemap.AddValue(GItem.SybID, ty);
+											}
+										}
+									}
+								}
+							}
+
+							int a= 0;
 						}
 
 						for (auto& Item : Pars)
