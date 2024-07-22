@@ -149,7 +149,7 @@ inline String ModeType(OptimizationFlags Flags)
 	return r;
 }
 
-static const Array<TestInfo, 176> Tests{
+static const Array<TestInfo, 177> Tests{
 
 	TestInfo("main_0", "BasicTests/main.uc", "Main", SuccessCondition::Compilation),
 
@@ -400,6 +400,7 @@ static const Array<TestInfo, 176> Tests{
 	TestInfo("TraitTypeBind2","Generics/TraitTypeBind2.uc", "main", SuccessCondition::CompilationFail),
 	TestInfo("ClassFields","OutofOrder/ClassFields.uc", "main", SuccessCondition::RunTimeValue,bool(true)),
 	TestInfo("InvaildNumberLiteral","BasicTests/InvaildNumberLiteral.uc", "main", SuccessCondition::CompilationFail),
+	TestInfo("InferParametr","Generics/inferParameter.uc", "main", SuccessCondition::RunTimeValue,uintptr_t(7)),
 };
 struct SkipTestRange
 {
