@@ -25,6 +25,120 @@ void SystematicAnalysis::OnNumberliteralNode(const NumberliteralNode* num)
 			ParseHelper::ParseStringToInt##x(Str, V); \
 			_IR_LastExpressionField = _IR_LookingAtIRBlock->NewLoad(V);\
 
+#define Check_NumberliteralNodeU(x) \
+			UInt##x V; \
+			validliteral = ParseHelper::ParseStringToUInt##x(Str, V); \
+
+#define Check_NumberliteralNodeS(x) \
+			Int##x V; \
+			validliteral = ParseHelper::ParseStringToInt##x(Str, V); \
+
+
+	if (_PassType == PassType::FixedTypes)
+	{
+		auto& Str = num->token->Value._String;
+		
+		bool validliteral = false;
+		switch (NewEx)
+		{
+		case TypesEnum::uInt8:
+		{
+			Check_NumberliteralNodeU(8);
+		};
+		break;
+		case TypesEnum::uInt16:
+		{
+			Check_NumberliteralNodeU(16);
+		};
+		break;
+		case TypesEnum::uInt32:
+		{
+			Check_NumberliteralNodeU(32);
+		};
+		break;
+		case TypesEnum::uInt64:
+		{
+			Check_NumberliteralNodeU(64);
+		};
+		break;
+		case TypesEnum::sInt8:
+		{
+			Check_NumberliteralNodeS(8);
+		};
+		break;
+		case TypesEnum::sInt16:
+		{
+			Check_NumberliteralNodeS(16);
+		};
+		break;
+		case TypesEnum::sInt32:
+		{
+			Check_NumberliteralNodeS(32);
+		};
+		break;
+		case TypesEnum::sInt64:
+		{
+			Check_NumberliteralNodeS(64);
+		};
+		break;
+		case TypesEnum::sIntPtr:
+		{
+			if (_Settings->PtrSize == IntSizes::Int64) 
+			{
+				Int64 V;
+				validliteral = ParseHelper::ParseStringToInt64(Str, V);
+			}
+			else 
+			{
+				Int32 V;
+				validliteral = ParseHelper::ParseStringToInt32(Str, V);
+			}
+			break;
+		};
+		case TypesEnum::uIntPtr:
+		{
+			UInt64 V;
+			if (_Settings->PtrSize == IntSizes::Int64) 
+			{
+				UInt64 V;
+				validliteral = ParseHelper::ParseStringToUInt64(Str, V);
+			}
+			else 
+			{
+				UInt32 V;
+				validliteral = ParseHelper::ParseStringToUInt32(Str, V);
+			}
+		};
+		break;
+		case TypesEnum::float32:
+		{
+			Int32 V;
+			validliteral = ParseHelper::ParseStringToInt32(Str, V);
+			break;
+		};
+		case TypesEnum::float64:
+		{
+			Int64 V;
+			validliteral = ParseHelper::ParseStringToInt64(Str, V);
+			break;
+		};
+		default:
+			UCodeLangUnreachable();
+			break;
+		};
+
+		if (!validliteral) 
+		{
+			String msg ="Unable convert '";
+			msg += num->token->Value._String;
+			msg += "'";
+
+			msg += " to ";
+			msg += ToString(TypeSymbol(NewEx));
+
+			LogError(ErrorCodes::InValidType,num->token->OnLine,num->token->OnPos, msg);
+		}
+	}
 	if (_PassType == PassType::BuidCode)
 	{
 		auto& Str = num->token->Value._String;

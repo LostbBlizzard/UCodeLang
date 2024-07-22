@@ -1,3 +1,4 @@
+#include "UCodeLang/Compilation/Helpers/CompilerTypes.hpp"
 #ifndef UCodeLangNoCompiler
 
 #include "Lexer.hpp"
@@ -809,7 +810,7 @@ void Lexer::NameAndKeyWords(ReadingNameState& ReadingState, Token& _Token)
 					}
 					else
 					{
-						NameBuffer = String_view(NameBuffer.data(), TextIndex - NexIndex + 1);
+						NameBuffer = String_view(NameBuffer.data(), NameBuffer.size());
 						Type = TokenType::Number_literal;
 						TextIndex = NexIndex;
 					}
