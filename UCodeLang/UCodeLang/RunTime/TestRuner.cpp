@@ -57,7 +57,13 @@ TestRuner::TestsResult TestRuner::RunTests(UClib& lib, InterpreterType Type, Opt
 
 			Interpreter.Call(TestFunc);
 
-			if (TestFunc->RetType._Type == ReflectionTypes::Bool)
+			auto panic = Interpreter.CheckForIntperpreterError();
+			if (panic.has_value())
+			{
+				passed = false;
+			}
+
+			if (passed == true && TestFunc->RetType._Type == ReflectionTypes::Bool)
 			{
 				passed = Interpreter.Get_Return<bool>();
 			}
