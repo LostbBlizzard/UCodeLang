@@ -1803,34 +1803,40 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 							// Func<uintptr>(10,0) to Func<uintptr>(uintptr(10),uintptr(0))
 							// and not Func<uintptr>(int(10),int(0))
 
-							auto& _generic = Name._ScopedName.back()._generic;
-
-							for (auto& Item : Info->Pars)
+							
+							if (Name._ScopedName.back()._generic)
 							{
-								if (Item.Type._Type == TypesEnum::CustomType)
-								{
-									auto sym =Item.Type._CustomTypeSymbol;
-								
-									for (uintptr_t i = 0; i < Info->_GenericData._Genericlist.size(); i++) 
-									{
-										auto& GItem = Info->_GenericData._Genericlist[i];
-									
-										if (i >= _generic->_Values.size()) { break; }
+								auto _generic = Name._ScopedName.back()._generic.get();
 
-										if (sym == GItem.SybID)
+								for (auto& Item : Info->Pars)
+								{
+								
+									if (Item.Type._Type == TypesEnum::CustomType)
+									{
+										auto sym =Item.Type._CustomTypeSymbol;
+									
+										for (uintptr_t i = 0; i < Info->_GenericData._Genericlist.size(); i++) 
 										{
-											if (!typemap.HasValue(GItem.SybID))
+											auto& GItem = Info->_GenericData._Genericlist[i];
+										
+											if (i >= _generic->_Values.size()) { break; }
+
+											if (sym == GItem.SybID)
 											{
-												TypeSymbol ty;
-												Type_Convert(_generic->_Values[i],ty);
-												typemap.AddValue(GItem.SybID, ty);
+												if (!typemap.HasValue(GItem.SybID))
+												{
+													TypeSymbol ty;
+													Type_Convert(_generic->_Values[i],ty);
+													typemap.AddValue(GItem.SybID, ty);
+												}
 											}
 										}
 									}
 								}
 							}
 
-							int a= 0;
+
+
 						}
 
 						for (auto& Item : Pars)
