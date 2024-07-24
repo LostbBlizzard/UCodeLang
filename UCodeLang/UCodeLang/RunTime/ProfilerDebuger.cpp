@@ -84,34 +84,37 @@ UCodeLangAPIExport void ProfilerDebuger::UpdateDebugData(DebugData& Out,Cach& ca
 				DebugVarable d;
 				d.VarableName = ScopeHelper::GetNameFromFullName(loc->VarableFullName);
 
-				const VarableInfo& Var = DebugInfo.VarablesInfo.GetValue(loc->VarableFullName);
-
-				if (auto v = loc->Type.Get_If<RegisterID>())
+				if (DebugInfo.VarablesInfo.HasValue(loc->VarableFullName)) 
 				{
-					d.Object = &StepedInterpreter->Get_Register(*v).Value;
-				}
-				else
-				{
-					UCodeLangUnreachable();
-				}
+					const VarableInfo& Var = DebugInfo.VarablesInfo.GetValue(loc->VarableFullName);
 
-				d.VarableType = DebugVarable::VarType::Stack;
-				d.Type = Var.ReflectionType;
-
-
-				bool wasadded = false;
-				for (auto& Item : F._Varables)
-				{
-					if (Item.VarableName == d.VarableName)
+					if (auto v = loc->Type.Get_If<RegisterID>())
 					{
-						Item = std::move(d);
-						wasadded = true;
-						break;
+						d.Object = &StepedInterpreter->Get_Register(*v).Value;
 					}
-				}
-				if (wasadded == false) 
-				{
-					F._Varables.push_back(d);
+					else
+					{
+						UCodeLangUnreachable();
+					}
+
+					d.VarableType = DebugVarable::VarType::Stack;
+					d.Type = Var.ReflectionType;
+
+
+					bool wasadded = false;
+					for (auto& Item : F._Varables)
+					{
+						if (Item.VarableName == d.VarableName)
+						{
+							Item = std::move(d);
+							wasadded = true;
+							break;
+						}
+					}
+					if (wasadded == false) 
+					{
+						F._Varables.push_back(d);
+					}
 				}
 			}
 		}
@@ -288,12 +291,15 @@ void ProfilerDebuger::VM_StepOver()
 void ProfilerDebuger::VM_StepOut()
 {
 	auto ThisStackFrame = StepedInterpreter->GetStackOffset();
-	while (StepedInterpreter->Get_State()->GetInst(GetCurrentInstruction()).OpCode != InstructionSet::Return
-		|| ThisStackFrame != StepedInterpreter->GetStackOffset())
+	while (true)
 	{
+		if (ThisStackFrame > StepedInterpreter->GetStackOffset())
+		{
+			break;
+		}
+
 		VM_StepIn();
 	}
-	VM_StepIn();
 }
 
 void ProfilerDebuger::OnFuncStart(AnyInterpreterPtr Ptr)
