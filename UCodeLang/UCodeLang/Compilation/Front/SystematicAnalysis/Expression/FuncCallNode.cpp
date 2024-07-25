@@ -539,7 +539,6 @@ void SystematicAnalysis::IR_Build_FuncCall(Get_FuncInfo Func, const ScopedNameNo
 
 							if (IsDebug) 
 							{
-
 								String_view errormsg =String_view("Reached Unreachable");
 								IRBuilder::StringSpanInfo Span;
 								Span = _IR_Builder.FindOrAddStaticSpanString(errormsg);
@@ -556,6 +555,48 @@ void SystematicAnalysis::IR_Build_FuncCall(Get_FuncInfo Func, const ScopedNameNo
 							else 
 							{
 								_IR_LookingAtIRBlock->NewUnreachable();
+							}
+							_IR_LastExpressionField = nullptr;
+							foundfunc = true;
+						}
+						else if (nametoken->Value._String == "Assume")
+						{
+							bool IsDebug =	(OptimizationFlags_t)_Settings->_Flags & (OptimizationFlags_t)OptimizationFlags::Debug;
+
+							auto& Item = Pars._Nodes[0];
+							auto partype = TypeSymbol(TypesEnum::Bool);
+
+
+							_LookingForTypes.push(partype);
+							OnExpressionTypeNode(Item.get(), GetValueMode::Read);
+							IR_Build_ImplicitConversion(_IR_LastExpressionField, _LastExpressionType,partype);
+							_LookingForTypes.pop();
+							
+							auto boolthattrue = _IR_LastExpressionField;	
+
+							if (IsDebug) 
+							{
+								auto jumpif = _IR_LookingAtIRBlock->NewConditionalJump(boolthattrue,0);
+								{
+									String_view errormsg = String_view("Assume was False");
+									IRBuilder::StringSpanInfo Span;
+									Span = _IR_Builder.FindOrAddStaticSpanString(errormsg);
+								
+									auto irpointer = _IR_LookingAtIRBlock->NewLoadPtr(Span.StaticVar);
+									if (Span.Offset)
+									{
+										irpointer = _IR_LookingAtIRBlock->NewAdd(IR_Load_UIntptr(Span.Offset), irpointer);
+									}
+
+									IRInstruction* size = IR_Load_UIntptr(errormsg.size());
+									_IR_LookingAtIRBlock->ThrowException(irpointer,size);
+								}
+							
+								_IR_LookingAtIRBlock->UpdateConditionaJump(jumpif,boolthattrue,_IR_LookingAtIRBlock->GetIndex());
+							}
+							else 
+							{
+								_IR_LookingAtIRBlock->NewAssume(boolthattrue);
 							}
 							_IR_LastExpressionField = nullptr;
 							foundfunc = true;
@@ -2514,6 +2555,16 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 					return R;
 				}
 				if (functocall == "Unreachable" && ValueTypes.size() == 0)
+				{
+					Systematic_BuiltInFunctions::Func F;
+					F.RetType = TypeSymbol(TypesEnum::Void);
+
+					Get_FuncInfo R;
+					R.ThisPar = ThisParType;
+					R._BuiltFunc = std::move(F);
+					return R;
+				}
+				if (functocall == "Assume" && ValueTypes.size() == 1)
 				{
 					Systematic_BuiltInFunctions::Func F;
 					F.RetType = TypeSymbol(TypesEnum::Void);
