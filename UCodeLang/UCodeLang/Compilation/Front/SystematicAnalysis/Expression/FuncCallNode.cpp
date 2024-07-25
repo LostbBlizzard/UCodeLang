@@ -525,9 +525,51 @@ void SystematicAnalysis::IR_Build_FuncCall(Get_FuncInfo Func, const ScopedNameNo
 					_IR_LastExpressionField = LoadEvaluatedEx(EvalObject, Value.RetType);
 				}
 			}
+			else if (Name._ScopedName.size() >= 2)
+			{
+				bool foundfunc =false;
+				if (Name._ScopedName[0]._token->Type == TokenType::KeyWord_compiler)
+				{
+					auto nametoken =Name._ScopedName[1]._token;
+					if (nametoken->Type == TokenType::Name)
+					{
+						if (nametoken->Value._String == "Unreachable")
+						{
+							bool IsDebug =	(OptimizationFlags_t)_Settings->_Flags & (OptimizationFlags_t)OptimizationFlags::Debug;
+
+							if (IsDebug) 
+							{
+
+								String_view errormsg =String_view("Reached Unreachable");
+								IRBuilder::StringSpanInfo Span;
+								Span = _IR_Builder.FindOrAddStaticSpanString(errormsg);
+							
+								auto irpointer = _IR_LookingAtIRBlock->NewLoadPtr(Span.StaticVar);
+								if (Span.Offset)
+								{
+									irpointer = _IR_LookingAtIRBlock->NewAdd(IR_Load_UIntptr(Span.Offset), irpointer);
+								}
+
+								IRInstruction* size = IR_Load_UIntptr(errormsg.size());
+								_IR_LookingAtIRBlock->ThrowException(irpointer,size);
+							}
+							else 
+							{
+								_IR_LookingAtIRBlock->NewUnreachable();
+							}
+							_IR_LastExpressionField = nullptr;
+							foundfunc = true;
+						}
+					}
+				}
+
+				if (foundfunc == false)
+				{
+					UCodeLangUnreachable();
+				}
+			}
 			else
 			{
-
 				UCodeLangUnreachable();
 			}
 
@@ -2471,7 +2513,16 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 					R._BuiltFunc = std::move(F);
 					return R;
 				}
+				if (functocall == "Unreachable" && ValueTypes.size() == 0)
+				{
+					Systematic_BuiltInFunctions::Func F;
+					F.RetType = TypeSymbol(TypesEnum::Void);
 
+					Get_FuncInfo R;
+					R.ThisPar = ThisParType;
+					R._BuiltFunc = std::move(F);
+					return R;
+				}
 			}
 		}
 	}
