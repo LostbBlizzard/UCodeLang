@@ -19,7 +19,7 @@ $SkipedTest tag export;
    if !val: 
      panic("Assert Failed");
  $else:
-  //TODO add Compiler hint that val is aways going to be true.
+  compiler::Assume(val);
 
 |AssertDebug[bool val,StringSpan panicmsg]:
  
@@ -27,5 +27,5 @@ $SkipedTest tag export;
    if !val: 
      panic("Assert Failed");
  $else:
-  //TODO add Compiler hint that val is aways going to be true.
+  compiler::Assume(val);
 
