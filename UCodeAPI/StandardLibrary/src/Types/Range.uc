@@ -34,7 +34,7 @@ $RangeTo_t<T> export:
  public:
   |new[this&,T to]:
    _to = to;
-  |To[this&] => _to;
+  export |To[this&] => _to;
 
 $RangeFrom_t<T> export:
  private: 
@@ -43,7 +43,7 @@ $RangeFrom_t<T> export:
   |new[this&,T from]:
    _from = from;
 
-  |From[this&] => _from;
+  export |From[this&] => _from;
 
 $RangeToInclusive_t<T> export:
  private: 
@@ -51,7 +51,7 @@ $RangeToInclusive_t<T> export:
  public:
   |new[this&,T to]:
    _to = to;
-  |To[this&] => _to;
+  export |To[this&] => _to;
 
 // Map from 1..10
 export |Range<T>[T start,T end] -> Range_t<T>:
