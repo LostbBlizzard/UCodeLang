@@ -40,7 +40,7 @@ void SystematicAnalysis::OnExpressionNode(const IndexedExpresionNode& node)
 		bool IsSrcStaticArray = Type_IsStaticArray(SourcType);
 
 		//This is mostly only here for the range types.
-		Optional<String_view> TypeHint;
+		Optional<String> TypeHint;
 		{
 			auto ex = node._IndexExpression._Value.get();
 	
@@ -99,7 +99,7 @@ void SystematicAnalysis::OnExpressionNode(const IndexedExpresionNode& node)
 				
 					if (TypeHint.has_value())
 					{
-						auto typehint = TypeHint.value();
+						auto& typehint = TypeHint.value();
 
 						for (auto& Item : V)
 						{
