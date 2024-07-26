@@ -97,6 +97,15 @@ $Buffer_t<T> trait export:
   export |[][this&,Range_t<uintptr> Range] -> T[:]:ret AsSpan()[Range]; 
   export |[][imut this&,Range_t<uintptr> Range] -> imut T[:]:ret AsSpan()[Range];
 
+  export |[][this&,RangeFull_t Range] -> T[:]:ret AsSpan(); 
+  export |[][imut this&,RangeFull_t Range] -> imut T[:]:ret AsSpan();
+  
+  export |[][this&,RangeTo_t<uintptr> Range] -> T[:]:ret AsSpan()[Range]; 
+  export |[][imut this&,RangeTo_t<uintptr> Range] -> imut T[:]:ret AsSpan()[Range];
+  
+  export |[][this&,RangeFrom_t<uintptr> Range] -> T[:]:ret AsSpan()[Range]; 
+  export |[][imut this&,RangeFrom_t<uintptr> Range] -> imut T[:]:ret AsSpan()[Range];
+ 
   export |AsSpan[this&] -> T[:]:ret unsafe [Data(),Size()];
   export |AsSpan[imut this&] -> imut T[:]:ret unsafe [Data(),Size()];
   
