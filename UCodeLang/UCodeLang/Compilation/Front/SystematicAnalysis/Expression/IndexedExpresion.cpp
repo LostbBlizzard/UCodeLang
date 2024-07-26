@@ -39,9 +39,49 @@ void SystematicAnalysis::OnExpressionNode(const IndexedExpresionNode& node)
 		bool IsSrcAddress = SourcType.IsAddressArray();
 		bool IsSrcStaticArray = Type_IsStaticArray(SourcType);
 
+		//This is mostly only here for the range types.
+		Optional<String_view> TypeHint;
+		{
+			auto ex = node._IndexExpression._Value.get();
+	
+			if (ex->Get_Type() == NodeType::ValueExpressionNode)
+			{
+				auto valex = ValueExpressionNode::As(ex)->_Value.get();
+
+				if (valex->Get_Type() == NodeType::FuncCallNode)
+				{
+					auto Funccall = FuncCallNode::As(valex);
+
+					String scopename;
+					Funccall->_FuncName.GetScopedName(scopename);
+
+
+					auto symbols = GetSymbolsWithName(scopename);
+
+					for (auto Item : symbols)
+					{
+						if (Item->Type == SymbolType::Func || Item->Type == SymbolType::GenericFunc)
+						{
+							auto funcnode = Item->Get_NodeInfo<FuncNode>();
+						
+							if (funcnode != nullptr)
+							{
+								auto& retnode = funcnode->_Signature._ReturnType;
+
+								String str;
+								retnode._name.GetScopedName(str);
+								
+								TypeHint = std::move(str);
+							}
+						}
+
+					}
+			}
+			}	
+		}
+
 		if (IsSrcAddress || IsSrcStaticArray)
 		{
-
 			gesstype.SetType(TypesEnum::uIntPtr);
 		}
 		else
@@ -52,21 +92,38 @@ void SystematicAnalysis::OnExpressionNode(const IndexedExpresionNode& node)
 				auto Syb = SybOp.value();
 				if (Syb->Type == SymbolType::Type_class)
 				{
-					/*
 					String funcName = Syb->FullName;
 					ScopeHelper::GetApendedString(funcName, Overload_Index_Func);
 
 					auto V = GetSymbolsWithName(funcName, SymbolType::Func);
-
-					for (auto& Item : V)
+				
+					if (TypeHint.has_value())
 					{
-						if (V.size() == 2) {
+						auto typehint = TypeHint.value();
+
+						for (auto& Item : V)
+						{
 							FuncInfo* func = Item->Get_Info<FuncInfo>();
-							gesstype = func->Pars[1].Type;
+
+							if (func->Pars.size() == 2) 
+							{
+								Symbol_Update_FuncSym_ToFixedTypes(Item);
+
+								auto parstring = ToString(func->Pars[1]);
+
+								if (StringHelper::Contains(parstring,typehint))
+								{
+									gesstype = func->Pars[1].Type;
+									break;
+								}
+							}
 						}
 					}
-					*/
-					gesstype.SetType(TypesEnum::uIntPtr);
+				
+					if (gesstype._Type == TypesEnum::Any)
+					{
+						gesstype.SetType(TypesEnum::uIntPtr);
+					}
 				}
 			}
 		}
