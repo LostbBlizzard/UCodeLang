@@ -2330,9 +2330,9 @@ Parser::GetNameCheck_ret2 Parser::GetNameCheck2(ScopedNameNode& out, bool CanHav
 
 			if (LookingAtT == NameCheck_t::MemberAccess && V._generic.get()->_Values.size())
 			{
-				auto Token = out._ScopedName[0]._token;
-				_ErrorsOutput->AddError(ErrorCodes::ExpectingSequence, Token->OnLine, Token->OnPos,
-					"generic can't be with a Memberaccess operator '" + (String)TokenStringHelper::ToString(Token->Type) + "'");
+				//auto Token = out._ScopedName[0]._token;
+				//_ErrorsOutput->AddError(ErrorCodes::ExpectingSequence, Token->OnLine, Token->OnPos,
+					//"generic can't be with a Memberaccess operator '" + (String)TokenStringHelper::ToString(Token->Type) + "'");
 			}
 		}
 		if (MemAccess)
