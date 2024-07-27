@@ -4,16 +4,16 @@ $Test tag export;
 $SkipedTest tag export;
 
 
-|Assert[bool val]:
+export  |Assert[bool val]:
  if !val: 
   panic("Assert Failed");
 
-|Assert[bool val,StringSpan panicmsg]:
+export |Assert[bool val,imut StringSpan panicmsg]:
  if !val: 
   panic(panicmsg);
 
 
-|AssertDebug[bool val]:
+export |AssertDebug[bool val]:
  
  $if compiler::IsDebug():
    if !val: 
@@ -21,7 +21,7 @@ $SkipedTest tag export;
  $else:
   compiler::Assume(val);
 
-|AssertDebug[bool val,StringSpan panicmsg]:
+export |AssertDebug[bool val,imut StringSpan panicmsg]:
  
  $if compiler::IsDebug():
    if !val: 

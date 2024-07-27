@@ -6,13 +6,13 @@ RandomAlgorithm:
     private:
      uint32 state;
     public:
-     |new[this&]: state = 1;
-     |new[this&,uint32 state]: this.state = state;
+     export |new[this&]: state = 1;
+     export |new[this&,uint32 state]: this.state = state;
      
-     |SetState[this&,uint32 val]: state = val;
-     |GetState[imut this&] => state;
+     export |SetState[this&,uint32 val]: state = val;
+     export |GetState[imut this&] => state;
 
-     |NextState[this&] -> uint32:
+     export |NextState[this&] -> uint32:
       var x = state;
       x = x ^ (x << 13);
       x = x ^ (x >> 17);
