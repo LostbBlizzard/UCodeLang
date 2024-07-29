@@ -1225,12 +1225,30 @@ IRType SystematicAnalysis::IR_ConvertToIRType(const TypeSymbol& Value)
 				IRType r = IRType(IRid);
 				auto tep = _IR_Builder.NewFuncPtr(_IR_Builder.ToID(syb.FullName), IR_ConvertToIRType(V->Ret));
 
-				tep->Pars.resize(V->Pars.size());
+				tep->Pars.reserve(V->Pars.size());
 
 				for (size_t i = 0; i < tep->Pars.size(); i++)
 				{
-					auto& Item = tep->Pars[i];
-					Item = IR_ConvertToIRType(V->Pars[i]);
+					auto& Par = V->Pars[i];
+
+					auto symop = Symbol_GetSymbol(Par.Type);
+					if (symop.has_value())
+					{
+						auto sym = symop.value();
+						
+						if (sym->Type == SymbolType::Type_Pack)
+						{
+							auto packinfo = sym->Get_Info<TypePackInfo>();
+
+							for (auto& Item : packinfo->List)
+							{
+								tep->Pars.push_back(IR_ConvertToIRType(Item));
+							}
+							break;
+						}
+					}
+
+					tep->Pars.push_back(IR_ConvertToIRType(V->Pars[i]));
 				}
 				tep->Ret = IR_ConvertToIRType(V->Ret);
 
