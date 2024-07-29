@@ -4885,13 +4885,45 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IRInstructi
 
 				size_t FieldOffset = Field.Offset.value();
 
-				auto RegOut = GetRegisterForTep();
-				CompilerRet.Info = RegOut;
-				CompilerRet.ObjectType = Field.Type;
+				auto objectfieldsize = GetSize(Field.Type);
+				if (objectfieldsize <= sizeof(AnyInt64))
+				{
+					auto RegOut = GetRegisterForTep();
+					CompilerRet.Info = RegOut;
+					CompilerRet.ObjectType = Field.Type;
+					
+					ReadValueFromPointer(LoadOp(Ins, Ins->Target()), FieldOffset, CompilerRet);
+					return CompilerRet;
+				}
+				else 
+				{
+					auto pointer = LoadOp(Ins, Ins->Target());
 
-				ReadValueFromPointer(LoadOp(Ins, Ins->Target()), FieldOffset, CompilerRet);
+					CompilerRet.Info = IRlocData_StackPost(_Stack.AddWithSize(Ins, GetSize(Ins))->Offset);
+					CompilerRet.ObjectType = Field.Type;
+				
+					auto RegOut = GetRegisterForTep();
+					RegToReg(IRTypes::pointer, pointer,RegOut, false);
+					
+					size_t FieldOffsetLeft = Field.Offset.value();
+					while (FieldOffsetLeft != 0)
+					{
+						size_t offsettoshift =  std::min<size_t>(UINT8_MAX, FieldOffsetLeft);
 
-				return CompilerRet;
+						InstructionBuilder::LoadEffectiveAddressA(_Ins, RegOut, offsettoshift, RegOut);
+						PushIns();
+
+						FieldOffsetLeft -= offsettoshift;
+					}
+					
+ 
+					IRlocData PointerLoc;
+					PointerLoc.Info = RegOut;
+					PointerLoc.ObjectType = Field.Type;
+				
+					CopyValues(PointerLoc,CompilerRet,true,false);
+					return CompilerRet;
+				}
 			}
 		}
 		else if (Ins->Type == IRInstructionType::Member_Access)
