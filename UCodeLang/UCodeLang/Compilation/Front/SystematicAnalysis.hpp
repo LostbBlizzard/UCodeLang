@@ -1848,7 +1848,18 @@ private:
 	using TypeInstantiateFunc = void(SystematicAnalysis::*)(const NeverNullPtr<Symbol> Symbol, const Vector<TypeSymbol>& GenericInput);
 	NullablePtr<Symbol> Generic_InstantiateOrFindGenericSymbol(const NeverNullPtr<Token> Name, const NeverNullPtr<Symbol> Symbol, const GenericValuesNode& SymbolGenericValues, const Generic& GenericData, const UseGenericsNode& UseNode, TypeInstantiateFunc Instantiate)
 	{
-		if (GenericData._Genericlist.size() != UseNode._Values.size())
+		bool hasbadgenericcount = false;
+		if (GenericData.IsPack())
+		{
+			auto mingenericcount = GenericData._Genericlist.size() - 1;
+			hasbadgenericcount = mingenericcount < UseNode._Values.size(); 
+		}
+		else 
+		{
+			hasbadgenericcount = GenericData._Genericlist.size() != UseNode._Values.size(); 
+		}
+		
+		if (hasbadgenericcount)
 		{
 			LogError_CanIncorrectGenericCount(Name, Name->Value._String, UseNode._Values.size(), GenericData._Genericlist.size());
 			return nullptr;
