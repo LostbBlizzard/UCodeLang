@@ -176,11 +176,36 @@ void SystematicAnalysis::OnAliasNode(const AliasNode& node)
 			{
 				auto& V = _Lib.Get_Assembly().AddFuncPtr((String)ClassName, RemoveSymboolFuncOverloadMangling(_Table._Scope.ThisScope));
 				const FuncPtrInfo* nodeinfo_ = Syb.Get_Info<FuncPtrInfo>();
-				V.ParsType.resize(nodeinfo_->Pars.size());
+				V.ParsType.reserve(nodeinfo_->Pars.size());
+
 				for (size_t i = 0; i < nodeinfo_->Pars.size(); i++)
 				{
-					V.ParsType[i].IsOutPar = nodeinfo_->Pars[i].IsOutPar;
-					V.ParsType[i].Type = Assembly_ConvertToType(nodeinfo_->Pars[i].Type);
+					auto& nodeinfopar = nodeinfo_->Pars[i];
+
+					auto Symop = Symbol_GetSymbol(nodeinfopar.Type);
+					if (Symop.has_value())
+					{
+						auto sym = Symop.value();
+
+						if (sym->Type == SymbolType::Type_Pack)
+						{
+							auto parpack = sym->Get_Info<TypePackInfo>();
+
+							for (auto& Iner : parpack->List)
+							{
+								ClassMethod::Par tep;
+								tep.Type = Assembly_ConvertToType(Iner);
+								tep.IsOutPar = false;
+								V.ParsType.push_back(tep);
+							}
+							break;
+						}
+					}
+
+					ClassMethod::Par tep;
+					tep.Type = Assembly_ConvertToType(nodeinfopar.Type);
+					tep.IsOutPar = nodeinfopar.IsOutPar;
+					V.ParsType.push_back(tep);
 				}
 				V.RetType = Assembly_ConvertToType(nodeinfo_->Ret);
 				V.AccessModifier = Syb.Access;
