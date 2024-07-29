@@ -546,30 +546,37 @@ String UAssembly::ToString(const UClib* Lib, Optional<Path> SourceFiles, bool Sh
 								}
 								else
 								{
+									Path filepath = Path(SourceFiles.value() / Path(OnFile).native());
 									std::ifstream file;
 
-									file.open(Path(SourceFiles.value() / Path(OnFile).native()));
-									if (file.is_open())
+
+									bool openedfile = false;
+									if (std::filesystem::is_regular_file(filepath))
 									{
-										std::string str;
-										Vector<String> Lines;
-										while (std::getline(file, str))
+										file.open(filepath);
+										if (file.is_open())
 										{
-											Lines.push_back(std::move(str));
-										}
-										OpenedSourceFilesLines.AddValue(OnFile, std::move(Lines));
+											std::string str;
+											Vector<String> Lines;
+											while (std::getline(file, str))
+											{
+												Lines.push_back(std::move(str));
+											}
+											OpenedSourceFilesLines.AddValue(OnFile, std::move(Lines));
 
-										auto& Item = OpenedSourceFilesLines.GetValue(OnFile);
+											auto& Item = OpenedSourceFilesLines.GetValue(OnFile);
 
-										if (Val->LineNumber - 1 < Item.size()) {
-											ItemValue = &Item[Val->LineNumber - 1];
+											if (Val->LineNumber - 1 < Item.size()) {
+												ItemValue = &Item[Val->LineNumber - 1];
+											}
+											openedfile = true;
 										}
 									}
-									else
+
+									if (!openedfile)
 									{
 										OpenedSourceFilesLines.AddValue(OnFile, {});
 									}
-
 								}
 
 
