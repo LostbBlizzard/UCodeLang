@@ -666,16 +666,25 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 			auto& ParNodes = node._Signature._Parameters._Parameters;
 
 			bool IsPackParLast = false;
-			if (IsgenericInstantiation && ParNodes.size())
+			if (ParNodes.size())
 			{
-				auto& TopGenericSymbolStack = _Generic_GenericSymbolStack.top();
-				if (TopGenericSymbolStack.Pack.has_value())
+				auto& LastPar = ParNodes[ParNodes.size() - 1];
+			
+				auto ParSybID = Symbol_GetSymbolID(LastPar);
+				auto& V = *Symbol_GetSymbol(ParSybID);
+				
+
+				auto symop = Symbol_GetSymbol(V.VarType);
+				if (symop.has_value())
 				{
-					if (Info->Pars.back().Type._CustomTypeSymbol == TopGenericSymbolStack.Pack.value())
+					auto sym = symop.value();
+
+					if (sym->Type == SymbolType::Type_Pack)
 					{
 						IsPackParLast = true;
 					}
 				}
+
 			}
 
 			size_t ParNodeSize = ParNodes.size();
