@@ -3813,7 +3813,7 @@ void UCodeBackEndObject::StoreValueInPointer(RegisterID Pointer, size_t Pointero
 			}
 			ObjectSize -= 8;
 			Offset += 8;
-		}
+	}
 		else if (ObjectSize >= 4)
 		{
 			if (Offset == 0)
@@ -4378,8 +4378,6 @@ void UCodeBackEndObject::StoreValue(const IRInstruction* Ins, const IROperator& 
 			auto Val = GetMemberAccessDereferenceOffset(Item);
 			//Not using Offset in Val is most likely a bug
 
-			auto& VIns = Val.BaseInstruction;
-
 			auto Type = VIns->ObjectType;
 
 			const IRStruct* VStruct = _Input->GetSymbol(Type._symbol)->Get_ExAs<IRStruct>();
@@ -4387,7 +4385,23 @@ void UCodeBackEndObject::StoreValue(const IRInstruction* Ins, const IROperator& 
 			auto Reg = LoadOp(VIns, VIns->Target());
 			size_t FieldOffset = _Input->GetOffset(VStruct, Item->Input().Value.AsUIntNative);
 
-			StoreValueInPointer(Reg, FieldOffset, GetIRLocData(Ins, Input));
+			auto tep = GetIRLocData(Ins, Input);
+			auto objectsize = GetSize(tep.ObjectType);
+
+			if (objectsize <= 8) 
+			{
+				StoreValueInPointer(Reg, FieldOffset, tep);
+			}
+			else 
+			{
+				auto Src = GetIRLocData(Ins, Input);
+
+				IRlocData Out;
+				Out.Info = Reg;
+				Out.ObjectType = GetType(VIns);
+				CopyValues(Src, Out,false,true);
+			}
+
 			return;
 		}
 	}
