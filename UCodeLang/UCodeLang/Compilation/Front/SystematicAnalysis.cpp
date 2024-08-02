@@ -876,11 +876,28 @@ void SystematicAnalysis::OnStatementsWithSetableRet(const StatementsNode& node, 
 
 bool SystematicAnalysis::Type_IsStructPassByRef(const NeverNullPtr<Symbol> syb) const
 {
-	auto r = !(Type_IsPrimitive(syb->VarType) || syb->VarType.IsAddress());
-	if (r == false && syb->VarType._Type == TypesEnum::CustomType)
+	auto varabletype = syb->VarType;
+
+	auto r = !(Type_IsPrimitive(varabletype) || varabletype.IsAddress());
+	if (r == false && varabletype._Type == TypesEnum::CustomType) 
 	{
-		auto V = Symbol_GetSymbol(syb->VarType);
+		auto V = Symbol_GetSymbol(varabletype);
 		r = V.value()->Type == SymbolType::Type_StaticArray;
+	}
+
+
+	if (r == true)
+	{
+		if (varabletype._Type == TypesEnum::CustomType)
+		{
+			auto V = Symbol_GetSymbol(varabletype).value();
+			if (V->Type == SymbolType::Enum)
+			{
+				auto info = syb->Get_Info<EnumInfo>();
+
+				r = !info->VariantData.has_value();
+			}
+		}
 	}
 	return r;
 }
