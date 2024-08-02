@@ -1212,7 +1212,7 @@ IRType SystematicAnalysis::IR_ConvertToIRType(const TypeSymbol& Value)
 			else
 			{
 				FuncPtrInfo* V = syb.Get_Info<FuncPtrInfo>();
-				IRidentifierID IRid = _IR_Builder.ToID(syb.FullName);
+				IRidentifierID IRid = _IR_Builder.ToID(String("FuncPointer_t") + syb.FullName);
 				for (auto& Item : _IR_Builder._Symbols)
 				{
 					if (Item->identifier == IRid)
@@ -1223,11 +1223,11 @@ IRType SystematicAnalysis::IR_ConvertToIRType(const TypeSymbol& Value)
 					}
 				}
 				IRType r = IRType(IRid);
-				auto tep = _IR_Builder.NewFuncPtr(_IR_Builder.ToID(syb.FullName), IR_ConvertToIRType(V->Ret));
+				auto tep = _IR_Builder.NewFuncPtr(IRid, IR_ConvertToIRType(V->Ret));
 
 				tep->Pars.reserve(V->Pars.size());
 
-				for (size_t i = 0; i < tep->Pars.size(); i++)
+				for (size_t i = 0; i < V->Pars.size(); i++)
 				{
 					auto& Par = V->Pars[i];
 

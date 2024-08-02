@@ -836,6 +836,10 @@ void SystematicAnalysis::IR_Build_FuncCall(Get_FuncInfo Func, const ScopedNameNo
 				auto* typepack = Syb->Get_Info<TypePackInfo>();
 				size_t NewIndex = Index - (Pars.size() - 1);
 
+				if (typepack->List.size() == 0)
+				{
+					break;
+				}
 
 				FuncParInfoPtr.Type = typepack->List[NewIndex];
 			}
@@ -3388,16 +3392,14 @@ StartSymbolsLoop:
 	}
 	else
 	{
-
-
-
-
 		Optional<int> MinScore;
 		Get_FuncInfo* Ret = nullptr;
 		for (auto& Item : OkFunctions)
 		{
 			Vector<ParInfo> _TepGeneric;
 			IsCompatiblePar CMPPar;
+
+			bool addthispush = false;
 			if (Item.SymFunc->Type == SymbolType::Func)
 			{
 				CMPPar.SetAsFuncInfo(Item.SymFunc);
@@ -3425,6 +3427,14 @@ StartSymbolsLoop:
 			}
 			else if (Item.SymFunc->Type == SymbolType::GenericFunc)
 			{
+				 addthispush = Item.SymFunc->Get_Info<FuncInfo>()->_FuncType == FuncInfo::FuncType::New;
+				
+				if (addthispush)
+				{
+					auto info = Item.SymFunc->Get_Info<FuncInfo>();
+					ValueTypes.push_back(info->Pars.front());
+				}
+
 				CMPPar.SetAsFuncInfo(Item.SymFunc);
 
 				//Get Par type like it was instantiated
@@ -3492,6 +3502,12 @@ StartSymbolsLoop:
 
 
 			int Score = Type_GetCompatibleScore(CMPPar, ValueTypes);
+			
+			if (addthispush)
+			{
+				ValueTypes.pop_back();
+			}
+		
 			if (!MinScore.has_value() || Score > MinScore.value())
 			{
 				MinScore = Score;
@@ -3881,7 +3897,7 @@ StartSymbolsLoop:
 
 				if (addinput)
 				{
-					auto removed = InputType;
+	 				auto removed = InputType;
 					Type_RemoveTypeattributes(removed);
 					if (i2 >= HasBenAdded.size())
 					{
@@ -3993,18 +4009,21 @@ StartSymbolsLoop:
 						auto& ret = *Ret;
 						
 						size_t parcount = par.size();
+						auto functorparcount = GetParCountResolveTypePack(functor->Pars);
 
 						if (skipthis) {parcount--;}
 
-						if (functor->Pars.size() == parcount)
+						if (functorparcount == parcount)
 						{
 							if (Type_AreTheSame(functor->Ret, ret))
 							{
 
+								auto _functortypepack = GetTypePackFromInputPar(functor->Pars);
+								
 								bool bad = false;
-								for (size_t i = 0; i < functor->Pars.size(); i++)
+								for (size_t i = 0; i < functorparcount; i++)
 								{
-									auto& functorpar = functor->Pars[i];
+									ParInfo functorpar = GetParInfoResolveTypePack(i, functor->Pars, _functortypepack);
 									auto& infopar = par[skipthis ? i + 1 : i];
 
 									if (!Type_AreTheSame(functorpar, infopar))

@@ -1690,6 +1690,10 @@ private:
 
 	bool Type_IsCompatible(const IsCompatiblePar& FuncPar, const Vector<ParInfo>& ValueTypes, bool _ThisTypeIsNotNull, const NeverNullPtr<Token> Token);
 
+	const OptionalRef<Vector<TypeSymbol>> GetTypePackFromInputPar(const Vector<ParInfo>& Pars);
+	ParInfo GetParInfoResolveTypePack(size_t i, const Vector<ParInfo>& Pars, const OptionalRef<Vector<TypeSymbol>> TypePack);
+	size_t SystematicAnalysis::GetParCountResolveTypePack(const Vector<ParInfo>& Pars);
+	
 	int Type_GetCompatibleScore(const ParInfo& ParFunc, const ParInfo& Value);
 	int Type_GetCompatibleScore(const IsCompatiblePar& Func, const Vector<ParInfo>& ValueTypes);
 
@@ -1851,7 +1855,7 @@ private:
 		bool hasbadgenericcount = false;
 		if (GenericData.IsPack())
 		{
-			auto mingenericcount = GenericData._Genericlist.size() - 1;
+			auto mingenericcount = GenericData._Genericlist.size();
 			hasbadgenericcount = mingenericcount < UseNode._Values.size(); 
 		}
 		else 

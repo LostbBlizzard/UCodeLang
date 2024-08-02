@@ -545,15 +545,61 @@ bool SystematicAnalysis::Type_IsSIntType(const TypeSymbol& TypeToCheck) const
 		TypeToCheck._Type == TypesEnum::sIntPtr;
 }
 
-bool SystematicAnalysis::Type_IsCompatible(const IsCompatiblePar& FuncPar, const Vector<ParInfo>& ValueTypes, bool _ThisTypeIsNotNull, const NeverNullPtr<Token> Token)
+const OptionalRef<Vector<TypeSymbol>> SystematicAnalysis::GetTypePackFromInputPar(const Vector<ParInfo>& Pars)
 {
-	size_t valcount = ValueTypes.size();
-
-	bool unpackparpack = true;
-	bool typepack = false;
-	if (ValueTypes.size())
+	OptionalRef<Vector<TypeSymbol>> r;
+	if (Pars.size())
 	{
-		auto& lastpartype = ValueTypes.back().Type;
+		auto lastpar = Pars.back();
+
+		auto symop = Symbol_GetSymbol(lastpar.Type);
+
+		if (symop.has_value())
+		{
+			auto sym = symop.value();
+
+			if (sym->Type == SymbolType::Type_Pack)
+			{
+				r = Optionalref(sym->Get_Info<TypePackInfo>()->List);
+			}
+
+		}
+	}
+	return r;
+}
+ParInfo SystematicAnalysis::GetParInfoResolveTypePack(size_t i, const Vector<ParInfo>& Pars, const OptionalRef<Vector<TypeSymbol>> TypePack)
+{
+	ParInfo r;
+
+	if (TypePack.has_value())
+	{
+		if (i >= Pars.size() - 1)
+		{
+			auto newindex = i - (Pars.size() - 1);
+
+			r.IsOutPar = false;
+
+			auto& typepack = TypePack.value();
+			r.Type = typepack[newindex];
+		}
+		else
+		{
+			r = Pars[i];
+		}
+	}
+	else
+	{
+		r = Pars[i];
+	}
+
+	return r;
+}
+size_t SystematicAnalysis::GetParCountResolveTypePack(const Vector<ParInfo>& Pars)
+{
+	size_t r = Pars.size();
+	if (Pars.size())
+	{
+		auto& lastpartype = Pars.back().Type;
 		auto symop = Symbol_GetSymbol(lastpartype);
 		if (symop.has_value())
 		{
@@ -561,20 +607,20 @@ bool SystematicAnalysis::Type_IsCompatible(const IsCompatiblePar& FuncPar, const
 
 			if (val->Type == SymbolType::Type_Pack)
 			{
-				if (unpackparpack)
-				{
-					auto typelist = val->Get_Info<TypePackInfo>();
-					valcount -= 1;
-					valcount += typelist->List.size();
-
-					typepack = true;
-				}
+				auto typelist = val->Get_Info<TypePackInfo>();
+				r -= 1;
+				r += typelist->List.size();
 			}
 		}
-
 	}
+	return r;
+}
+bool SystematicAnalysis::Type_IsCompatible(const IsCompatiblePar& FuncPar, const Vector<ParInfo>& ValueTypes, bool _ThisTypeIsNotNull, const NeverNullPtr<Token> Token)
+{
+	size_t valcount = GetParCountResolveTypePack(ValueTypes);
+	size_t ParsCount = GetParCountResolveTypePack(*FuncPar.Pars);
 
-	if (FuncPar.Pars->size() != valcount)
+	if (ParsCount != valcount)
 	{
 		return false;
 	}
@@ -622,50 +668,25 @@ bool SystematicAnalysis::Type_IsCompatible(const IsCompatiblePar& FuncPar, const
 	}
 	//
 
-	OptionalRef<Vector<TypeSymbol>> _TypePack;
-	if (unpackparpack && typepack)
-	{
-		auto& lastpartype = ValueTypes.back().Type;
-		_TypePack = Optionalref(Symbol_GetSymbol(lastpartype).value()->Get_Info<TypePackInfo>()->List);
-	}
-	for (size_t i = _ThisTypeIsNotNull ? 1 : 0; i < FuncPar.Pars->size(); i++)
-	{
-		auto& Item = (*FuncPar.Pars)[i];
+	OptionalRef<Vector<TypeSymbol>> _TypePack = GetTypePackFromInputPar(ValueTypes);
+	OptionalRef<Vector<TypeSymbol>> _TypePackFuncPack = GetTypePackFromInputPar(*FuncPar.Pars);
 
-		bool Item2IsOutpar = false;
-		const TypeSymbol* Item2ptr = nullptr;
-		if (_TypePack.has_value())
-		{
-			if (i >= ValueTypes.size() - 1)
-			{
-				Item2IsOutpar = false;
-				auto newindex = i - (ValueTypes.size() - 1);
-				Item2ptr = &_TypePack.value()[newindex];
-			}
-			else
-			{
-				Item2ptr = &ValueTypes[i].Type;
-				Item2IsOutpar = ValueTypes[i].IsOutPar;
-			}
-		}
-		else
-		{
-			Item2ptr = &ValueTypes[i].Type;
-			Item2IsOutpar = ValueTypes[i].IsOutPar;
-		}
+	for (size_t i = _ThisTypeIsNotNull ? 1 : 0; i < ParsCount; i++)
+	{
+		ParInfo Item = GetParInfoResolveTypePack(i, *FuncPar.Pars, _TypePackFuncPack);
+		ParInfo Item2 = GetParInfoResolveTypePack(i, ValueTypes, _TypePack);
 
-		auto& Item2 = *Item2ptr;
-		if (Item.IsOutPar != Item2IsOutpar)
+		if (Item.IsOutPar != Item2.IsOutPar)
 		{
 			return false;
 		}
-		else if (Item2IsOutpar && Item2.IsAn(TypesEnum::Var))
+		else if (Item2.IsOutPar && Item2.Type.IsAn(TypesEnum::Var))
 		{
 			//is ok
 			continue;
 		}
 
-		if (!Type_CanBeImplicitConverted(Item2, Item.Type, true))
+		if (!Type_CanBeImplicitConverted(Item2.Type, Item.Type, true))
 		{
 			return false;
 		}
@@ -754,12 +775,20 @@ int SystematicAnalysis::Type_GetCompatibleScore(const IsCompatiblePar& Func, con
 	}
 
 	OptionalRef<Vector<TypeSymbol>> _TypePack;
+
+	size_t parcount = Pars.size();
+
 	if (unpackparpack && typepack)
 	{
 		auto& lastpartype = ValueTypes.back().Type;
 		_TypePack = Optionalref(Symbol_GetSymbol(lastpartype).value()->Get_Info<TypePackInfo>()->List);
+
+		if (_TypePack.value().size() == 0)
+		{
+			parcount -= 1;
+		}
 	}
-	for (size_t i = StartIndex; i < (Pars).size(); i++)
+	for (size_t i = StartIndex; i < parcount; i++)
 	{
 		size_t ValueTypesIndex = StartIndex == 1 ? i - 1 : i;
 
@@ -835,8 +864,7 @@ bool  SystematicAnalysis::Type_AreTheSameWithOutMoveAndimmutable(const TypeSymbo
 		return false;
 	}
 
-	if (TypeA._Type == TypesEnum::CustomType
-		&& TypeB._Type == TypesEnum::CustomType)
+	if (TypeA._Type == TypesEnum::CustomType && TypeB._Type == TypesEnum::CustomType)
 	{
 		if (TypeA._CustomTypeSymbol == TypeB._CustomTypeSymbol)
 		{
@@ -849,25 +877,36 @@ bool  SystematicAnalysis::Type_AreTheSameWithOutMoveAndimmutable(const TypeSymbo
 		{
 			FuncPtrInfo* F1 = TypeOne.Get_Info<FuncPtrInfo>();
 			FuncPtrInfo* F2 = TypeTwo.Get_Info<FuncPtrInfo>();
-			if (F1->Pars.size() != F2->Pars.size())
-			{
-				return false;
-			}
 			if (!Type_AreTheSameWithOutimmutable(F1->Ret, F2->Ret))
 			{
 				return false;
 			}
 
+			size_t F1Count = GetParCountResolveTypePack(F1->Pars);
+			size_t F2Count = GetParCountResolveTypePack(F2->Pars);
 
-			for (size_t i = 0; i < F1->Pars.size(); i++)
+			if (F1Count != F2Count) 
 			{
-				auto& Item1 = F1->Pars[i];
-				auto& Item2 = F2->Pars[i];
+				return false;
+			}
+
+			OptionalRef<Vector<TypeSymbol>> _F1TypeFuncPack = GetTypePackFromInputPar(F1->Pars);
+			OptionalRef<Vector<TypeSymbol>> _F2TypeFuncPack = GetTypePackFromInputPar(F2->Pars);
+			
+			for (size_t i = 0; i < F1Count; i++)
+			{
+				auto Item1 = GetParInfoResolveTypePack(i,F1->Pars,_F1TypeFuncPack);
+				auto Item2 = GetParInfoResolveTypePack(i,F2->Pars,_F2TypeFuncPack);
+
 				if (!Type_AreTheSameWithOutimmutable(Item1.Type, Item2.Type) || Item1.IsOutPar != Item2.IsOutPar)
 				{
 					return false;
 				}
 			}
+			return true;
+		}
+		if (TypeOne.Type == SymbolType::UnmapedFunctor && TypeTwo.Type == SymbolType::Func_ptr)
+		{
 			return true;
 		}
 		if (TypeOne.Type == SymbolType::Type_StaticArray && TypeTwo.Type == SymbolType::Type_StaticArray)
