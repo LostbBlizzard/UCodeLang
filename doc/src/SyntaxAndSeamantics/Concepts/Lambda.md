@@ -56,7 +56,7 @@ int b = 10;
 
 //b is captured by value
 //a is captured reference.
-var LambdaObject = |[](&a) => a * b;
+var LambdaObject = |[][&a] => a * b;
     
 
 a = 0;
@@ -73,9 +73,9 @@ also note you can put expressions in the capture list.
 int a = 10;
 int b = 10;
 
-var LambdaObject = |[](&a) => a * b;
+var LambdaObject = |[][&a] => a * b;
 
-var LambdaObject2 = |[](int& a = a) => a * b;
+var LambdaObject2 = |[][int& a = a] => a * b;
                                 
 //both mean the same thing.
     
@@ -86,11 +86,11 @@ var LambdaObject2 = |[](int& a = a) => a * b;
 int a = 10;//outer scope 'a'
 int b = 10;
 
-var LambdaObject2 = |[](int& a = a) => a * b;
-                                 ^ this 'a' is for capture
+var LambdaObject2 = |[][int& a = a] => a * b;
+                             ^ this 'a' is for capture
 
-var LambdaObject2 = |[](int& a = a) => a * b;
-                                     ^ is referring to the outer scope.
+var LambdaObject2 = |[][int& a = a] => a * b;
+                                 ^ is referring to the outer scope.
                                      
 ``` 
 

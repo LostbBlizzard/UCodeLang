@@ -4196,13 +4196,13 @@ GotNodeType Parser::GetLambdaNode(LambdaNode& out)
 	auto RightBracket = TryGetToken(); TokenTypeCheck(RightBracket, TokenType::Right_Bracket); NextToken();
 	//
 	auto ParToken = TryGetToken();
-	if (ParToken->Type == TokenType::Left_Parentheses)
+	if (ParToken->Type == TokenType::Left_Brace)
 	{
 		NextToken();
 		LambdaCapturesData Captures;
 
 		out._Capture = Opt(std::move(Captures));
-		auto OtherPar = TryGetToken(); TokenTypeCheck(OtherPar, TokenType::Right_Parentheses); NextToken();
+		auto OtherPar = TryGetToken(); TokenTypeCheck(OtherPar, TokenType::Right_Bracket); NextToken();
 	}
 
 
