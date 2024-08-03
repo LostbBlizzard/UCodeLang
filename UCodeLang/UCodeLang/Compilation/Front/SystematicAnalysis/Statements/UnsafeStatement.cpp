@@ -4,10 +4,8 @@ UCodeLangFrontStart
 
 void SystematicAnalysis::OnUnsafeStatement(const UnsafeStatementsNode& node)
 {
-	size_t ScopeCounter = 0;
-	const String ScopeName = std::to_string((uintptr_t)&node);
-
-	_Table.AddScope(ScopeName + std::to_string(ScopeCounter));
+	const String ScopeName = GetScopeLabelName(&node);
+	_Table.AddScope(ScopeName);
 
 	auto& block = _FuncStack.front().BlockContexts.front();
 	auto oldblock = block.IsUnSafeBlock;

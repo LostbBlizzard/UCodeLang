@@ -9,7 +9,7 @@ void SystematicAnalysis::OnMatchStatement(const MatchStatement& node)
 		OnExpressionTypeNode(node._Expression, GetValueMode::Read);
 
 		size_t ScopeCounter = 0;
-		const String ScopeName = std::to_string((uintptr_t)&node);
+		const String ScopeName = GetScopeLabelName(&node);
 
 		for (auto& Item : node._Arms)
 		{
@@ -48,7 +48,7 @@ void SystematicAnalysis::OnMatchStatement(const MatchStatement& node)
 
 		auto ToMatchType = _LastExpressionType;
 
-		const String ScopeName = std::to_string((uintptr_t)&node);
+		const String ScopeName = GetScopeLabelName(&node);
 
 
 		MatchStatementData V;
@@ -101,7 +101,7 @@ void SystematicAnalysis::OnMatchStatement(const MatchStatement& node)
 	else if (_PassType == PassType::BuidCode)
 	{
 		size_t ScopeCounter = 0;
-		const String ScopeName = std::to_string((uintptr_t)&node);
+		const String ScopeName = GetScopeLabelName(&node);
 
 		OnExpressionTypeNode(node._Expression, GetValueMode::Read);
 
@@ -714,7 +714,7 @@ void SystematicAnalysis::OnMatchExpression(const MatchExpression& node)
 		OnExpressionTypeNode(node._Expression, GetValueMode::Read);
 
 		size_t ScopeCounter = 0;
-		const String ScopeName = std::to_string((uintptr_t)&node);
+		const String ScopeName = GetScopeLabelName(&node);
 
 		for (auto& Item : node._Arms)
 		{
@@ -747,7 +747,7 @@ void SystematicAnalysis::OnMatchExpression(const MatchExpression& node)
 		auto ToMatchType = _LastExpressionType;
 
 		auto MatchAssignmentType = _LookingForTypes.top();
-		const String ScopeName = std::to_string((uintptr_t)&node);
+		const String ScopeName = GetScopeLabelName(&node);
 
 
 		MatchExpressionData V;
@@ -827,7 +827,7 @@ void SystematicAnalysis::OnMatchExpression(const MatchExpression& node)
 	else if (_PassType == PassType::BuidCode)
 	{
 		size_t ScopeCounter = 0;
-		const String ScopeName = std::to_string((uintptr_t)&node);
+		const String ScopeName = GetScopeLabelName(&node);
 
 		OnExpressionTypeNode(node._Expression, GetValueMode::Read);
 

@@ -10,7 +10,7 @@ void SystematicAnalysis::OnForNode(const ForNode& node)
 
 	Symbol* syb;
 
-	String ScopeName = std::to_string((size_t)&node);
+	String ScopeName = GetScopeLabelName(&node);
 
 	Push_NewStackFrame();
 	_Table.AddScope(ScopeName);

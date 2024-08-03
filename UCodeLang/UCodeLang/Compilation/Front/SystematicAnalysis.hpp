@@ -277,6 +277,48 @@ public:
 	static Optional<Func> GetFunction(const String_view Name, const Vector<FunctionPar>& Pars, SystematicAnalysis& This);
 };
 
+struct ScopeGenerator
+{
+	inline String GetScopeLabelName(const String& currentscope, const void* node)
+	{
+		constexpr const char* ScopePrefix = "_";
+
+		if (!_Data.HasValue(currentscope))
+		{
+			auto newlist = CurrentScopeInfo();
+
+			_Data.AddValue(currentscope, std::move(newlist));
+		}
+
+
+		auto& list = _Data.GetValue(currentscope);
+		if (list.NodeToIndex.HasValue(node))
+		{
+			auto index = list.NodeToIndex.GetValue(node);
+			return String(ScopePrefix) + std::to_string(index);
+		}
+		else
+		{
+			auto index = list.GetNextIndex();
+			list.NodeToIndex.AddValue(node, index);
+			return String(ScopePrefix) + std::to_string(index);
+		}
+	}
+	void Clear()
+	{
+		_Data.clear();
+	}
+private:
+	struct CurrentScopeInfo
+	{
+		UnorderedMap<const void*, size_t> NodeToIndex;
+		size_t GetNextIndex()
+		{
+			return NodeToIndex.size() + 1;
+		}
+	};
+	UnorderedMap<String, CurrentScopeInfo> _Data;
+};
 
 
 class SystematicAnalysis
@@ -829,6 +871,7 @@ private:
 
 	UnorderedMap<String, UnorderedMap<const void*, SymbolID>> _SybIdMap;
 	uintptr_t _IDIndex = 0;
+	ScopeGenerator ScopeGenerator;
 	//Args
 	bool _ForceImportArgWasPassed = false;
 	bool _ImmutabilityIsForced = false;
@@ -1586,6 +1629,8 @@ private:
 		return false;
 	}
 
+
+	String GetScopeLabelName(const void* node);
 
 	void Symbol_RedefinitionCheck(const NeverNullPtr<Symbol> Syb, const NeverNullPtr<Token> Value);
 	void Symbol_RedefinitionCheck(const String_view FullName, SymbolType Type, const NeverNullPtr<Token> Value);

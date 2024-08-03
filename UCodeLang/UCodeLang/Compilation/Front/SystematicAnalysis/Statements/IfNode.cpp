@@ -8,7 +8,7 @@ void SystematicAnalysis::OnIfNode(const IfNode& node)
 
 	TypeSymbol BoolType(TypesEnum::Bool);
 
-	String ScopeName = std::to_string((size_t)&node);
+	String ScopeName = GetScopeLabelName(&node);
 
 	Push_NewStackFrame();
 	_Table.AddScope(ScopeName);

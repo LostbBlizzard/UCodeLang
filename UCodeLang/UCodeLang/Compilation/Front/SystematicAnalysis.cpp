@@ -1435,7 +1435,7 @@ void SystematicAnalysis::OnStatement(const Node& node2)
 }
 void SystematicAnalysis::OnStatements(const StatementsNode& node)
 {
-	String ScopeName = std::to_string((size_t)&node);
+	String ScopeName = GetScopeLabelName(&node);
 
 	Push_NewStackFrame();
 	_Table.AddScope(ScopeName);
@@ -1448,6 +1448,13 @@ void SystematicAnalysis::OnStatements(const StatementsNode& node)
 	Pop_StackFrame();
 	_Table.RemoveScope();
 }
+
+String SystematicAnalysis::GetScopeLabelName(const void* node)
+{
+	auto& currentscope = _Table._Scope.ThisScope;
+	return ScopeGenerator.GetScopeLabelName(currentscope, node);
+}
+
 void SystematicAnalysis::OnRetStatement(const RetStatementNode& node)
 {
 
