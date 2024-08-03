@@ -1,5 +1,6 @@
 |IsFuncionPointer<T>[] -> bool:
-  ret false;
+  ret type(T).GetFuncionPointerInfo(out typeinfo FuncTypeValue);
+
 |main[]:
  $FuncOther = |[] -> int;
  ret IsFuncionPointer<int>() == false && IsFuncionPointer<FuncOther>() == true;
