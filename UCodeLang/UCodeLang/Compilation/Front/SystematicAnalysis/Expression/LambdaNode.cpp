@@ -322,6 +322,14 @@ void SystematicAnalysis::OnLambdaNode(const LambdaNode& node)
 				}
 			}
 
+			{
+				auto& lastfield = Classinfo->Fields.back();
+				Classinfo->Size = Type_GetOffset(*Classinfo, &lastfield).value();
+				Classinfo->Size += Type_GetSize(lastfield.Type).value();
+
+				Classinfo->SizeInitialized = true;
+			}
+
 			if (HasDropCall)
 			{
 				auto Sym = Symbol_MakeNewDropFuncSymbol(Classinfo, TypeSymbol(ClassSymID));

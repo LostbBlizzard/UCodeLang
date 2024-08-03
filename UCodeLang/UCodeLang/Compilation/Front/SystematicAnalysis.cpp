@@ -754,7 +754,7 @@ void SystematicAnalysis::LogError_MissingFunctionforTrait(const String_view& Fun
 NeverNullPtr<Symbol> SystematicAnalysis::Symbol_MakeNewDropFuncSymbol(ClassInfo* ClassInfo, const TypeSymbol& ClassAsType)
 {
 
-	String FullName = ClassInfo->FullName;
+	String FullName = RemoveSymboolFuncOverloadMangling(ClassInfo->FullName);
 	ScopeHelper::GetApendedString(FullName, (String)ClassDestructorFunc);
 
 	auto DropFunc = &Symbol_AddSymbol(SymbolType::Func, ClassDestructorFunc, FullName, AccessModifierType::Public);

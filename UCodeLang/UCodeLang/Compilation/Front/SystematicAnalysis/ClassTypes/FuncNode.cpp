@@ -649,6 +649,9 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 	}
 
 
+	IRFunc* OldIRFunc = nullptr;
+	IRBlock* OldIRBlock = nullptr;
+
 	if (buidCode && !ignoreBody)
 	{
 		bool IsBuildingIR = igorebecausedisable == false;
@@ -656,7 +659,9 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 
 		if (IsBuildingIR)
 		{
-
+			OldIRFunc = _IR_LookingAtIRFunc;
+			OldIRBlock = _IR_LookingAtIRBlock;
+		
 			_IR_LookingAtIRFunc = _IR_Builder.NewFunc(IR_GetIRID(Info), {});
 			_IR_LookingAtIRBlock = _IR_LookingAtIRFunc->NewBlock("");
 			Push_NewStackFrame();
@@ -690,11 +695,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 			size_t ParNodeSize = ParNodes.size();
 			if (IsPackParLast)
 			{
-				size_t ParsCount = ParNodes.size() - 1;
-
-				const TypePackInfo* PackPar = Symbol_GetSymbol(_Generic_GenericSymbolStack.top().Pack.value())->Get_Info<TypePackInfo>();
-				ParsCount += PackPar->List.size();
-				_IR_LookingAtIRFunc->Pars.resize(ParsCount);
+				_IR_LookingAtIRFunc->Pars.resize(GetParCountResolveTypePack(Info->Pars));
 
 				ParNodeSize -= 1;
 			}
@@ -744,7 +745,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 
 			if (IsPackParLast)
 			{
-				const TypePackInfo* PackPar = Symbol_GetSymbol(_Generic_GenericSymbolStack.top().Pack.value())->Get_Info<TypePackInfo>();
+				const TypePackInfo* PackPar = Symbol_GetSymbol(Info->Pars.back().Type).value()->Get_Info<TypePackInfo>();
 
 				size_t V = ParNodeSize;
 
@@ -999,6 +1000,8 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 			_IR_Builder.EntryPoint = Opt<IRidentifierID>(_IR_LookingAtIRFunc->identifier);
 		}
 
+		_IR_LookingAtIRBlock = OldIRBlock;
+		_IR_LookingAtIRFunc = OldIRFunc;
 	}
 
 	if (syb->Type == SymbolType::GenericFunc && _PassType == PassType::BuidCode)

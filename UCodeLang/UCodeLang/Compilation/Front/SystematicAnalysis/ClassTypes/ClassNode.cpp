@@ -878,7 +878,7 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 			if (needstoexportgenricaliases)
 			{
 				this->_ClassStack.push({});//the push and pop is dumb fix
-				Class_Data* Ptr = Assembly_GetAssemblyClass(ScopeHelper::ApendedStrings(Syb.FullName, "n/a"));
+				Class_Data* Ptr = Assembly_GetAssemblyClass(RemoveSymboolFuncOverloadMangling(ScopeHelper::ApendedStrings(Syb.FullName, "n/a")));
 				this->_ClassStack.pop();
 
 				Ptr->GenericAlias.reserve(ClassInf->_GenericAlias.size());
