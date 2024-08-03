@@ -2032,6 +2032,35 @@ Optional<Systematic_BuiltInFunctions::Func> Systematic_BuiltInFunctions::GetFunc
 				}
 				return _Func;
 			}
+			else if (FuncName == "GetFuncionPointerInfo")
+			{
+				const auto Sym = This.Symbol_GetSymbol(Type.Type);
+				bool IsFuncPointer = Sym.has_value() ? Sym.value()->Type == SymbolType::Func_ptr : false;
+
+				Func _Func;
+				_Func.RetType = TypesEnum::Bool;
+				auto Ex = This.Eval_MakeEx(_Func.RetType);
+				This.Eval_Set_ObjectAs(Ex, IsFuncPointer);
+
+				_Func.EvalObject = std::move(Ex.EvaluatedObject);
+
+				{
+					Func::OutParData Par;
+					if (IsFuncPointer)
+					{
+						Par.Type = Type.Type;
+						Par.Type._IsAddress = false;//If Pass as Ref
+						Par.Type._TypeInfo = TypeInfoPrimitive::FuncPtrInfo;
+
+						auto Ex = This.Eval_MakeEx(Par.Type);
+						This.Eval_Set_ObjectAs(Ex, Par.Type);
+
+						Par.EvalObject = std::move(Ex.EvaluatedObject);
+					}
+					_Func._OutPars.push_back(std::move(Par));
+				}
+				return _Func;
+			}
 		}
 
 	}
