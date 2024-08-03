@@ -22,9 +22,17 @@ $Unique_ptr<T> export:
    unsafe r._ptr =: unsafe new T(pars);
    ret r;
 
-
-  export |Get[this&] -> T&:ret _ptr;
-  export |Get[imut this&] -> imut T&:ret _ptr;
+  |NullCheck[this&]:
+   uintptr ptr = unsafe bitcast<uintptr>(_ptr);
+   if ptr == uintptr(0):
+    panic("Unique Pointer Is Null");
+  
+  export |Get[this&] -> T&: 
+   NullCheck();
+   ret _ptr;
+  export |Get[imut this&] -> imut T&:
+   NullCheck();
+   ret _ptr;
    
   export |~>[this&] -> T&:ret Get();
   export |~>[imut this&] -> imut T&:ret Get();
