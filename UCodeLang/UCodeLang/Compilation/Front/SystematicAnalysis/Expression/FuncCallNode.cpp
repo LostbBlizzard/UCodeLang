@@ -1484,10 +1484,6 @@ Vector<Symbol*> SystematicAnalysis::Type_FindForTypeFuncions(const TypeSymbol& T
 
 SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedNameNode& Name, const ValueParametersNode& Pars, TypeSymbol Ret)
 {
-
-
-
-
 	TypeSymbol _ThisType;
 	Get_FuncInfo::ThisPar_t ThisParType = Get_FuncInfo::ThisPar_t::NoThisPar;
 	String ScopedName;
@@ -3901,12 +3897,46 @@ StartSymbolsLoop:
 					Type_RemoveTypeattributes(removed);
 					if (i2 >= HasBenAdded.size())
 					{
+						auto sybop = Symbol_GetSymbol(removed);
+						if (sybop.has_value())
+						{
+							auto syb = sybop.value();
+
+							if (syb->Type == SymbolType::Type_Pack)
+							{
+								Added = true;
+								auto info = syb->Get_Info<TypePackInfo>();
+
+								for (auto& Item : info->List)
+								{
+									GenericInput.push_back(Item);
+								}
+								continue;
+							}
+						}
 						GenericInput.push_back(removed);
 						Added = true;
 						continue;
 					}
 					else if (HasBenAdded[i2] == false)
 					{
+						auto sybop = Symbol_GetSymbol(removed);
+						if (sybop.has_value())
+						{
+							auto syb = sybop.value();
+
+							if (syb->Type == SymbolType::Type_Pack)
+							{
+								Added = true;
+								auto info = syb->Get_Info<TypePackInfo>();
+
+								for (auto& Item : info->List)
+								{
+									GenericInput.push_back(Item);
+								}
+								continue;
+							}
+						}
 						GenericInput.push_back(removed);
 						HasBenAdded[i2] = true;
 						Added = true;
@@ -4185,10 +4215,11 @@ StartSymbolsLoop:
 			{
 				return {};
 			}
+			auto typepack = GetTypePackFromInputPar(ValueTypes);
 			for (size_t i = 0; i < fpars.size(); i++)
 			{
 				auto& Item = fpars[i];
-				auto& Par = ValueTypes[i].Type;
+				auto Par = GetParInfoResolveTypePack(i,ValueTypes,typepack).Type;
 				auto sym = lazyattemp(Item._Type);
 
 				if (sym.has_value())

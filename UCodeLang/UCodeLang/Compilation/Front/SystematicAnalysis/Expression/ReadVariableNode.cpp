@@ -1208,6 +1208,13 @@ bool SystematicAnalysis::Symbol_StepGetMemberTypeSymbolFromVar(const ScopedNameN
 		else if (Out._Symbol->Type == SymbolType::Class_Field)
 		{
 			String ClassSym = ScopeHelper::GetReMoveScope(Out._Symbol->FullName);
+
+			if (StringHelper::Contains(ClassSym, GenericTestStr))
+			{
+					Out._Symbol = nullptr;
+					Out.Type = Type_GetUnMapType();
+					return false;
+            }
 			auto LamdbSym = GetSymbolsWithName(ClassSym).front();
 
 			if (IsSymbolLambdaObjectClass(NeverNullptr(LamdbSym)))
