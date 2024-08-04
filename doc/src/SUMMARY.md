@@ -194,12 +194,12 @@
     - [Any](./Standardlibrary/Miscellaneous/Any.md)
     - [Buffer_t](./Standardlibrary/Miscellaneous/Buffer_t.md)
     - [StringBuffer_t](./Standardlibrary/Miscellaneous/StringBuffer_t.md)
-    - [Range_t\<T>](./Standardlibrary/Miscellaneous/Ranges.md)
-    - [RangeFrom_t\<T>](./Standardlibrary/Miscellaneous/Ranges.md)
-    - [RangeTo_t\<T>](./Standardlibrary/Miscellaneous/Ranges.md)
-    - [RangeFull_t\<T>](./Standardlibrary/Miscellaneous/Ranges.md)
-    - [RangeInclusive_t\<T>](./Standardlibrary/Miscellaneous/Ranges.md)
-    - [RangeToInclusive_t\<T>](./Standardlibrary/Miscellaneous/Ranges.md)
+    - [Range_t\<T>](./Standardlibrary/Miscellaneous/Range_t.md)
+    - [RangeFrom_t\<T>](./Standardlibrary/Miscellaneous/RangeFrom_t.md)
+    - [RangeTo_t\<T>](./Standardlibrary/Miscellaneous/RangeTo_t.md)
+    - [RangeFull_t](./Standardlibrary/Miscellaneous/RangeFull_t.md)
+    - [RangeInclusive_t\<T>](./Standardlibrary/Miscellaneous/RangeInclusive_t.md)
+    - [RangeToInclusive_t\<T>](./Standardlibrary/Miscellaneous/RangeToInclusive_t.md)
 
 - [KeyWords](./SyntaxAndSeamantics/Keywords.md)
 
