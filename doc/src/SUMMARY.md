@@ -200,6 +200,9 @@
     - [RangeFull_t](./Standardlibrary/Miscellaneous/RangeFull_t.md)
     - [RangeInclusive_t\<T>](./Standardlibrary/Miscellaneous/RangeInclusive_t.md)
     - [RangeToInclusive_t\<T>](./Standardlibrary/Miscellaneous/RangeToInclusive_t.md)
+    - [Random_t](./Standardlibrary/Miscellaneous/Random_t.md)
+    - [Random](./Standardlibrary/Miscellaneous/Random.md)
+    - [RandomXorshift32](./Standardlibrary/Miscellaneous/RandomXorshift32.md)
 
 - [KeyWords](./SyntaxAndSeamantics/Keywords.md)
 

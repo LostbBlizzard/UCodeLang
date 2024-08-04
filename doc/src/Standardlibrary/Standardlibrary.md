@@ -94,7 +94,9 @@ import UCodeLang::StandardLibarary[0:0:0];
 [RangeFull](./Miscellaneous/RangeFull_t.md) | Class | Represents a Full Range
 [RangeInclusive_t\<T>](./Miscellaneous/RangeInclusive_t.md) | Generic Class | Represents an Inclusive Range with a to and from a value 
 [RangeToInclusive_t\<T>](./Miscellaneous/RangeToIncnusive_t.md) | Generic Class | Represents an Inclusive Range to a value 
-
+[Random_t\<T>](./Miscellaneous/Random_t.md) | Trait | Represents an Random Function and State.
+[Random](./Miscellaneous/Random.md) | alias | An ailas to [RandomXorshift32](./Miscellaneous/RandomXorshift32.md)
+[RandomXorshift32](./Miscellaneous/RandomXorshift32.md) | Class | A Random Number Generator.
 
 ## Notes
 
