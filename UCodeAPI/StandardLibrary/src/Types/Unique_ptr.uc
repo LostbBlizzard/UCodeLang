@@ -2,6 +2,10 @@
 $Unique_ptr<T> export:
  private:
   T& _ptr;
+  |NullCheck[this&]:
+   uintptr ptr = unsafe bitcast<uintptr>(_ptr);
+   if ptr == uintptr(0):
+    panic("Unique Pointer Is Null");
  public:
   export |new[this&] -> void:
    unsafe _ptr =: unsafe bitcast<T&>(0);
@@ -22,10 +26,6 @@ $Unique_ptr<T> export:
    unsafe r._ptr =: unsafe new T(pars);
    ret r;
 
-  |NullCheck[this&]:
-   uintptr ptr = unsafe bitcast<uintptr>(_ptr);
-   if ptr == uintptr(0):
-    panic("Unique Pointer Is Null");
   
   export |Get[this&] -> T&: 
    NullCheck();
