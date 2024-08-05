@@ -76,7 +76,7 @@ void X86_64UNativeBackEnd::Build(const IRBuilder* Input)
 
 		for (auto& Item : Funcoffsets)
 		{
-			_OutLayer->_NameToPtr.AddValue(_Input->_Map.HasValue(Item.first) ?
+			_OutLayer->_NameToPtr.AddValue(_Input->_FlipedMap.HasValue(Item.first) ?
 				"native-" + _Input->FromID(Item.first)
 				: newidnames.GetValue(Item.first).substr(4)//remove cpp-
 				, Item.second);
