@@ -1317,6 +1317,7 @@ void UAssembly::ToString(String& r, ClassMethod& Item2, const UClib* Lib)
 	if (Item2.Attributes.Attributes.size())
 	{
 		r += '\n';
+		r += ' ';
 	}
 	if (Item2.IsExport)
 	{
