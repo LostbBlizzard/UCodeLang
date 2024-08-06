@@ -989,13 +989,9 @@ void C11Backend::ToString(UCodeLang::String& r, const IRFunc* Item, UCodeLang::C
 							r += "*(";
 							r += ToString(par.type);
 							r += "*)&";
-							r += State.PointerToName.GetValue(Item->Target().Pointer);
-						}
-						else
-						{
-							r += State.PointerToName.GetValue(Item->Target().Pointer);
 						}
 
+						r += State.PointerToName.GetValue(Item->Target().Pointer);
 						if (&Item != &State.TepPushedParameters.back())
 						{
 							r += ",";
@@ -1016,8 +1012,19 @@ void C11Backend::ToString(UCodeLang::String& r, const IRFunc* Item, UCodeLang::C
 						r += " = ";
 					}
 					r += ToString(State, *I, I->Target()) + "(";
-					for (auto& Item : State.TepPushedParameters)
+					
+					auto func = _Input->GetSymbol(tep._symbol)->Get_ExAs<IRFuncPtr>();
+					for (size_t i = 0; i < State.TepPushedParameters.size(); i++)
 					{
+						auto& Item = State.TepPushedParameters[i];
+						auto& par = func->Pars[i];
+
+						if (_Input->GetType(Item) != par)
+						{
+							r += "*(";
+							r += ToString(par);
+							r += "*)&";
+						}
 						r += State.PointerToName.GetValue(Item->Target().Pointer);
 						if (&Item != &State.TepPushedParameters.back())
 						{
