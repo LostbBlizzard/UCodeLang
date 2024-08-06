@@ -3793,7 +3793,29 @@ void UCodeBackEndObject::StoreValueInPointer(RegisterID Pointer, size_t Pointero
 	size_t ObjectSize = GetSize(Value.ObjectType);
 	size_t Offset = Pointerofset;
 
+
+	bool ispointercouldbeover = false;
+	{
+		auto& Item = _Registers.Registers[(size_t)Pointer];
+		if (!Item.Types.has_value()) {
+			ispointercouldbeover = true;
+		}
+	}
+	
+	RegistersManager::RegisterInfo OldRegItem;
+	if (ispointercouldbeover)
+	{
+		OldRegItem = _Registers.Registers[(size_t)Pointer];
+		_Registers.SetRegister(Pointer, nullptr);
+	}
+	
 	RegisterID Reg = MakeIntoRegister(Value);
+
+	if (ispointercouldbeover)
+	{
+		 _Registers.Registers[(size_t)Pointer] = OldRegItem;
+	}
+	//UCodeLangAssert(Reg != Pointer);
 
 	while (ObjectSize != 0)
 	{
@@ -4328,69 +4350,65 @@ RegisterID UCodeBackEndObject::LoadOp(const IRInstruction* Ins, const IROperator
 	UCodeLangUnreachable();
 }
 
-UCodeBackEndObject::MemberAccessOffsetInfo UCodeBackEndObject::GetMemberAccessDereferenceOffset(const IRInstruction* VIns) 
+Optional<UCodeBackEndObject::MemberAccessOffsetInfo> UCodeBackEndObject::GetMemberAccessDereferenceOffset(const IRInstruction* VIns)
 {
+	auto copy = VIns;
 	size_t Offset = 0;
-	while (VIns->Type == IRInstructionType::Member_Access)
+	while (copy->Type == IRInstructionType::Member_Access)
 	{
-		auto V = _Input->GetOffset(
-			_Input->GetSymbol(GetType(VIns->Target())._symbol)->Get_ExAs<IRStruct>(), VIns->Input().Value.AsUIntNative);
+		auto V = _Input->GetOffset(_Input->GetSymbol(GetType(copy->Target())._symbol)->Get_ExAs<IRStruct>(), copy->Input().Value.AsUIntNative);
 
 		Offset += V;
-		auto Tar = VIns->Target();
+		auto Tar = copy->Target();
 		if (Tar.Type == IROperatorType::IRInstruction)
 		{
-			VIns = Tar.Pointer;
+			copy = Tar.Pointer;
 		}
 		else
 		{
 			break;
 		}
 	}
+	
+	if (copy->Type == IRInstructionType::Member_Access_Dereference)
+	{
+		{
+			auto V = _Input->GetOffset(_Input->GetSymbol(GetType(copy->Target())._symbol)->Get_ExAs<IRStruct>(), copy->Input().Value.AsUIntNative);
+			Offset += V;
+		}
 
-	UCodeBackEndObject::MemberAccessOffsetInfo r;
-	r.Offset = Offset;
-	r.BaseInstruction = VIns;
-	return r;
+
+		UCodeBackEndObject::MemberAccessOffsetInfo r = {};
+
+		r.FieldType = GetType(VIns);
+		r.Offset = Offset;
+		r.Base = copy->Target();
+
+		return { r };
+	}
+
+	return {};
 }
 void UCodeBackEndObject::StoreValue(const IRInstruction* Ins, const IROperator& OutputLocationIR, const IROperator& Input)
 {
 	if (OutputLocationIR.Type == IROperatorType::IRInstruction)
 	{
 		auto& Item = OutputLocationIR.Pointer;
-		const IRInstruction* VIns = Item;
+		auto value = GetMemberAccessDereferenceOffset(Item);
 
-		while (VIns->Type == IRInstructionType::Member_Access)
+
+		if (value.has_value()) 
 		{
-			auto Tar = VIns->Target();
-			if (Tar.Type == IROperatorType::IRInstruction)
-			{
-				VIns = Tar.Pointer;
-			}
-			else
-			{
-				break;
-			}
-		}
+			auto definfo = value.value();
 
-		if (VIns->Type == IRInstructionType::Member_Access_Dereference)
-		{
-			auto Val = GetMemberAccessDereferenceOffset(Item);
-			//Not using Offset in Val is most likely a bug
-
-			auto Type = VIns->ObjectType;
-
-			const IRStruct* VStruct = _Input->GetSymbol(Type._symbol)->Get_ExAs<IRStruct>();
-
-			auto Reg = LoadOp(VIns, VIns->Target());
-			size_t FieldOffset = _Input->GetOffset(VStruct, Item->Input().Value.AsUIntNative);
-
+			auto Reg = MakeIntoRegister(GetIRLocData(definfo.Base));
+			
 			auto tep = GetIRLocData(Ins, Input);
 			auto objectsize = GetSize(tep.ObjectType);
 
 			if (objectsize <= 8) 
 			{
-				StoreValueInPointer(Reg, FieldOffset, tep);
+				StoreValueInPointer(Reg, definfo.Offset, tep);
 			}
 			else 
 			{
@@ -4398,7 +4416,7 @@ void UCodeBackEndObject::StoreValue(const IRInstruction* Ins, const IROperator& 
 
 				IRlocData Out;
 				Out.Info = Reg;
-				Out.ObjectType = GetType(VIns);
+				Out.ObjectType = definfo.FieldType;
 				CopyValues(Src, Out,false,true);
 			}
 
@@ -5023,6 +5041,107 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IRInstructi
 	}
 	UCodeLangUnreachable();
 }
+
+UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(MemberAccessOffsetInfo info, bool GetAddress)
+{
+	auto baselocinfo = GetIRLocData(info.Base);
+
+	if (GetAddress)
+	{
+		const size_t FieldOffset = info.Offset;
+		if (FieldOffset == 0)
+		{
+			auto objptr = baselocinfo;
+			objptr.ObjectType = IRTypes::pointer;
+			return objptr;
+		}
+		else
+		{
+			if (FieldOffset < 256)
+			{
+				auto pointer = MakeIntoRegister(baselocinfo);
+				RegisterID out = GetRegisterForTep();
+				InstructionBuilder::LoadEffectiveAddressA(_Ins, pointer, FieldOffset, out);
+				PushIns();
+
+				auto objptr = baselocinfo;
+				objptr.Info = out;
+				objptr.ObjectType = IRTypes::pointer;
+				return objptr;
+			}
+			else
+			{
+				RegisterID out = GetRegisterForTep();
+				auto pointer = MakeIntoRegister(baselocinfo);
+				auto offsetsetleft = FieldOffset;
+
+				RegToReg(IRTypes::pointer, pointer, out, false);
+
+				while (offsetsetleft != 0)
+				{
+					auto off = std::min<size_t>(UINT8_MAX, offsetsetleft);
+					
+
+					InstructionBuilder::LoadEffectiveAddressA(_Ins, out, off, out);
+					PushIns();
+
+					offsetsetleft -= off;
+				}
+
+				UCodeBackEndObject::IRlocData CompilerRet;
+				CompilerRet.Info = out;
+				CompilerRet.ObjectType = IRTypes::pointer;
+				return CompilerRet;
+			}
+		}
+	}
+	else
+	{
+		IRlocData CompilerRet;
+		CompilerRet.ObjectType = info.FieldType;
+
+		auto objectfieldsize = GetSize(CompilerRet.ObjectType);
+
+		if (objectfieldsize <= sizeof(AnyInt64))
+		{
+			auto RegOut = GetRegisterForTep();
+			CompilerRet.Info = RegOut;
+
+			ReadValueFromPointer(MakeIntoRegister(baselocinfo), info.Offset, CompilerRet);
+			return CompilerRet;
+		}
+		else
+		{
+			auto pointer = MakeIntoRegister(baselocinfo);
+
+			CompilerRet.Info = IRlocData_StackPost(_Stack.AddWithSize(nullptr, GetSize(info.FieldType))->Offset);
+			CompilerRet.ObjectType = info.FieldType;
+
+			auto RegOut = GetRegisterForTep();
+			RegToReg(IRTypes::pointer, pointer, RegOut, false);
+
+			size_t FieldOffsetLeft = info.Offset;
+			while (FieldOffsetLeft != 0)
+			{
+				size_t offsettoshift = std::min<size_t>(UINT8_MAX, FieldOffsetLeft);
+
+				InstructionBuilder::LoadEffectiveAddressA(_Ins, RegOut, offsettoshift, RegOut);
+				PushIns();
+
+				FieldOffsetLeft -= offsettoshift;
+			}
+
+
+			IRlocData PointerLoc;
+			PointerLoc.Info = RegOut;
+			PointerLoc.ObjectType = info.FieldType;
+
+			CopyValues(PointerLoc, CompilerRet, true, false);
+			return CompilerRet;
+		}
+	}
+	
+}
 UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IRInstruction* Ins, const IROperator& Op, bool GetAddress)
 {
 	bool IsPrimitive = _Input->IsPrimitive(GetType(Ins, Op));
@@ -5050,6 +5169,13 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IRInstructi
 				}
 				else if (Item->Type == IRInstructionType::Member_Access)
 				{
+					auto derefinfo = GetMemberAccessDereferenceOffset(Item);
+
+					if (derefinfo.has_value())
+					{
+						return GetIRLocData(derefinfo.value(),GetAddress);
+					}
+
 					auto Pos = GetIRLocData(Item->Target());
 					const IRStruct* VStruct = _Input->GetSymbol(Pos.ObjectType._symbol)->Get_ExAs<IRStruct>();
 					size_t FieldIndex = Item->Input().Value.AsUIntNative;
@@ -5222,6 +5348,13 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IRInstructi
 					}
 					else if (Item->Type == IRInstructionType::Member_Access)
 					{
+						auto derefinfo = GetMemberAccessDereferenceOffset(Ins);
+
+						if (derefinfo.has_value())
+						{
+							return GetIRLocData(derefinfo.value(),GetAddress);
+						}
+
 						auto Pos = GetIRLocData(Item->Target());
 						const IRStruct* VStruct = _Input->GetSymbol(Pos.ObjectType._symbol)->Get_ExAs<IRStruct>();
 						size_t FieldIndex = Item->Input().Value.AsUIntNative;

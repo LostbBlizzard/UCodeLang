@@ -439,10 +439,13 @@ private:
 	{
 		// Base->X.Y
 		// ^
-		const IRInstruction* BaseInstruction;
+		IROperator Base;
 		size_t Offset = 0;
+		IRType FieldType;
 	};
-	MemberAccessOffsetInfo GetMemberAccessDereferenceOffset(const IRInstruction* VIns) ;
+	Optional<MemberAccessOffsetInfo> GetMemberAccessDereferenceOffset(const IRInstruction* VIns);
+
+	IRlocData GetIRLocData(MemberAccessOffsetInfo info, bool GetAddress);
 
 	void StoreValue(const IRInstruction* Ins, const  IROperator& OutputLocationIR, const IROperator& Input);
 
