@@ -9,18 +9,21 @@ void SystematicAnalysis::Symbol_SetOutExpression(const OutExpression* Ex, const 
 	String FullName = _Table._Scope.ThisScope;
 	ScopeHelper::GetApendedString(FullName, Str);
 
-	auto Syb = &Symbol_AddSymbol(SymbolType::StackVarable, (String)Str, FullName, AccessModifierType::Public);
-
-	_LookingForTypes.push(TypeToSet);
-	Syb->VarType = Type_ConvertAndValidateType(Ex->_Type, NodeSyb_t::Variable);
-	_LookingForTypes.pop();
-
-	Type_DeclareVariableTypeCheck(Syb->VarType, TypeToSet, NeverNullptr(Ex->_Name.token));
-	_Table.AddSymbolID(*Syb, Symbol_GetSymbolID(*Ex));
-
-	if (TypeToSet.IsAddress() && Ex->_Type._name._ScopedName.front()._token->Type == TokenType::KeyWorld_var)
+	if (GetSymbolsWithName(FullName, SymbolType::Any).empty())
 	{
-		Syb->VarType._IsAddress = true;
+		auto Syb = &Symbol_AddSymbol(SymbolType::StackVarable, (String)Str, FullName, AccessModifierType::Public);
+
+		_LookingForTypes.push(TypeToSet);
+		Syb->VarType = Type_ConvertAndValidateType(Ex->_Type, NodeSyb_t::Variable);
+		_LookingForTypes.pop();
+
+		Type_DeclareVariableTypeCheck(Syb->VarType, TypeToSet, NeverNullptr(Ex->_Name.token));
+		_Table.AddSymbolID(*Syb, Symbol_GetSymbolID(*Ex));
+
+		if (TypeToSet.IsAddress() && Ex->_Type._name._ScopedName.front()._token->Type == TokenType::KeyWorld_var)
+		{
+			Syb->VarType._IsAddress = true;
+		}
 	}
 }
 NeverNullPtr<Symbol> SystematicAnalysis::Symbol_GetSymbolFromExpression(const NeverNullPtr<OutExpression> Ex)
@@ -35,19 +38,22 @@ void SystematicAnalysis::Eval_SetOutExpressionEval(const OutExpression* Ex, cons
 	String FullName = _Table._Scope.ThisScope;
 	ScopeHelper::GetApendedString(FullName, Str);
 
-	auto Syb = &Symbol_AddSymbol(SymbolType::ConstantExpression, (String)Str, FullName, AccessModifierType::Public);
+	if (GetSymbolsWithName(FullName,SymbolType::Any).empty()) 
+	{
+		auto Syb = &Symbol_AddSymbol(SymbolType::ConstantExpression, (String)Str, FullName, AccessModifierType::Public);
 
-	_LookingForTypes.push(ObjectToSet.Type);
-	Syb->VarType = Type_ConvertAndValidateType(Ex->_Type, NodeSyb_t::Variable);
-	_LookingForTypes.pop();
+		_LookingForTypes.push(ObjectToSet.Type);
+		Syb->VarType = Type_ConvertAndValidateType(Ex->_Type, NodeSyb_t::Variable);
+		_LookingForTypes.pop();
 
-	Type_DeclareVariableTypeCheck(Syb->VarType, ObjectToSet.Type, NeverNullptr(Ex->_Name.token));
-	_Table.AddSymbolID(*Syb, Symbol_GetSymbolID(*Ex));
+		Type_DeclareVariableTypeCheck(Syb->VarType, ObjectToSet.Type, NeverNullptr(Ex->_Name.token));
+		_Table.AddSymbolID(*Syb, Symbol_GetSymbolID(*Ex));
 
-	ConstantExpressionInfo* Info = new ConstantExpressionInfo();
-	Syb->Info.reset(Info);
+		ConstantExpressionInfo* Info = new ConstantExpressionInfo();
+		Syb->Info.reset(Info);
 
-	Info->Ex = ObjectToSet.EvaluatedObject;
+		Info->Ex = ObjectToSet.EvaluatedObject;
+	}
 }
 
 UCodeLangFrontEnd
