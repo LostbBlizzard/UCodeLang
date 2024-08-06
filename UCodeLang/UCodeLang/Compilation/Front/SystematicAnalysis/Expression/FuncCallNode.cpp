@@ -474,8 +474,18 @@ void SystematicAnalysis::IR_Build_FuncCall(Get_FuncInfo Func, const ScopedNameNo
 									auto& FuncParInfo = EnumVariantFieldData.Types[i];
 
 
+									bool pushlookaddress = false;
+									if (FuncParInfo.IsDynamicTrait())
+									{
+										  pushlookaddress = true;
+									}
 
 									_LookingForTypes.push(FuncParInfo);
+
+									if (pushlookaddress) 
+									{
+										_LookingForTypes.top()._IsAddress = true;
+									}
 
 									OnExpressionTypeNode(Item.get(), GetValueMode::Read);
 									IR_Build_ImplicitConversion(_IR_LastExpressionField, _LastExpressionType, FuncParInfo);
