@@ -49,7 +49,7 @@ Optional<SeverPacket> SeverPacket::Stream(StreamState& State, char Char)
 			{
 				if (!IsNum)
 				{
-					State.PacketSize = std::stoi(State.NumberBuffer) -3;//the \n,\r,\n,\r. and this char
+					State.PacketSize = std::stoi(State.NumberBuffer) -1;//the \n,\r,\n,\r. and this char
 					State.Buffer.clear();
 					State.NumberBuffer.clear();
 
@@ -158,6 +158,7 @@ struct LanguageSeverFuncMap
 	};
 	inline static const std::unordered_map<String, NotificationFunc> NotificationFuncs
 	{
+		{"initialized",&LSPSever::Sever_initialized},
 		{"exit",&LSPSever::Sever_Exit},
 		{"textDocument/didOpen",&LSPSever::textDocument_didOpen},
 		{"textDocument/didClose",&LSPSever::textDocument_didClose},
@@ -477,15 +478,20 @@ void LSPSever::Sever_initialize(integer requestid, const json& Params)
 	InitializeResult V;
 	V.capabilities.positionEncoding = PositionEncodingkind::PositionEncodingKind8;
 	V.capabilities.hoverProvider = true;
-	V.capabilities.textDocumentSync = TextDocumentSyncKind::Incremental;
-
+	V.capabilities.textDocumentSync = TextDocumentSyncKind::Full;
 	
 	
 	SendResponseMessageToClient(requestid,V);
-	window_logMessage(MessageType::Log, "Hello World Sever Side");
 
+	LspDebugLog("Sever_initialize");
+}
+
+void LSPSever::Sever_initialized(const json& params)
+{
 	IsInitialized = true;
 
 	BaseSever.init();
+	
+	LspDebugLog("Sever_initialized");
 }
 UCodeLanguageSeverEnd

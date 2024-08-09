@@ -3,6 +3,7 @@
 #include "LSPSever.hpp"
 #include <iostream>
 #include <string>
+#include <string_view>
 #include <thread>
 #include <fstream>
 #include <condition_variable>
@@ -78,13 +79,10 @@ int ReadNumber(UCodeLang::String_view View, UCodeLang::String_view& ToUpdate)
 	return Value;
 }
 
-std::mutex Lock = {};
+std::ofstream File("uclanglsplogs.txt");
 void LogMSG(const UCodeLang::String& Str)
 {
-	Lock.lock();
-	std::cerr << Str << std::endl;
-	//File << Str << std::endl;
-	Lock.unlock();
+	File << Str << std::endl;
 }
 
 //Args
@@ -132,6 +130,15 @@ void RunArg(UCodeLang::String_view View)
 				std::thread SeverThread([&count2,&count,&cv,&severm,&outcv]()
 					{
 						UCodeLanguageSever::LSPSever Sever;
+						Sever.LspDebugLogCallback = [](std::string_view msg)
+						{
+							std::string str = "LspSever Log[";
+							str += msg;
+							str += "]";
+								
+							LogMSG(str);
+						};
+
 						SeverPtr = &Sever;
 						size_t mycount = 0;
 						size_t oldsize = Sever.PacketCount();
@@ -195,7 +202,7 @@ void RunArg(UCodeLang::String_view View)
 
 
 						#if UCodeLangDebug
-						LogMSG("Got Packet:" + p._Data);
+						LogMSG("Got Packet:" + p._Data + "\n");
 						#endif
 
 						SeverPtr->AddPacket(std::move(p));
@@ -245,10 +252,6 @@ int main(int argc, char* argv[])
 	LogMSG("Sever main");
 	for (size_t i = 1; i < argc; i++)
 	{
-		while (true)
-		{
-
-		}
 		char* Arg = argv[i];
 		RunArg(UCodeLang::String_view(Arg));
 	}

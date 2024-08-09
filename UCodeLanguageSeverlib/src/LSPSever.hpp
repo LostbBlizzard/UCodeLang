@@ -1,10 +1,12 @@
 #pragma once
 
+#include <functional>
 #include <mutex>
 #include "LanguageSeverNameSpace.h"
 #include "JSONstructures.hpp"
 #include "JSONstructureSerialization.hpp"
 #include "UCodeAnalyzer/LanguageServer.hpp"
+#include "UCodeLang/LangCore/LangTypes.hpp"
 
 UCodeLanguageSeverStart
 struct SeverPacket
@@ -304,6 +306,7 @@ public:
     {
         Runing = false;
     }
+    Optional<std::function<void(StringView Msg)>> LspDebugLogCallback;
     int ProcessExitCode = 2;
 private:
     bool Runing = true;
@@ -318,6 +321,13 @@ private:
     Vector<ClientPacket> _ClientPacketsToRun;
     void OnReceivedPacket(const ClientPacket& params);
 
+    void LspDebugLog(StringView Msg)
+    {
+        if (LspDebugLogCallback.has_value())
+        {
+            LspDebugLogCallback.value()(Msg);
+        }
+    }
 
     // ResponseMessage
     template<typename T>
@@ -353,6 +363,9 @@ private:
     //https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#exit
     void Sever_Exit(const json& params);
 
+    //https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#initialize
+    void Sever_initialized(const json& params);
+    
     void textDocument_didOpen(const json& params);
     void textDocument_didClose(const json& params);
     void textDocument_didChange(const json& params);
