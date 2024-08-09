@@ -29,6 +29,10 @@ struct SeverPacket
         String Buffer;
         String NumberBuffer;
         size_t PacketSize = 0;
+
+
+        //We use Bracket because its uses utf-8
+        size_t BracketCount = 0;
     };
 
     
@@ -369,6 +373,7 @@ private:
     void textDocument_didOpen(const json& params);
     void textDocument_didClose(const json& params);
     void textDocument_didChange(const json& params);
+    void textDocument_didSave(const json& params);
 
     void textDocument_definition(integer requestid, const json& params);
    

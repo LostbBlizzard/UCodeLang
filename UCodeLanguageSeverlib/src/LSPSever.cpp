@@ -44,16 +44,20 @@ Optional<SeverPacket> SeverPacket::Stream(StreamState& State, char Char)
 		}
 		else
 		{
-			bool IsNum = IsInNameCharList(Char);
+			bool IsNum = std::isdigit(Char);
 			if (State.NumberBuffer.size())
 			{
 				if (!IsNum)
 				{
-					State.PacketSize = std::stoi(State.NumberBuffer) -1;//the \n,\r,\n,\r. and this char
+					State.PacketSize = std::stoi(State.NumberBuffer);
 					State.Buffer.clear();
 					State.NumberBuffer.clear();
 
+					State.PacketSize--;
 					State.Buffer += Char;
+
+
+					State.BracketCount++;
 				}
 				else
 				{
@@ -73,8 +77,17 @@ Optional<SeverPacket> SeverPacket::Stream(StreamState& State, char Char)
 	}
 	else
 	{
+		if (Char == '{')
+		{
+			State.BracketCount++;
+		}
+		if (Char == '}')
+		{
+			State.BracketCount--;
+		}
+
 		State.PacketSize--;
-		if (State.PacketSize == 0)
+		if (State.BracketCount == 0)
 		{
 
 			UCodeLanguageSever::SeverPacket p;
@@ -83,7 +96,6 @@ Optional<SeverPacket> SeverPacket::Stream(StreamState& State, char Char)
 			State = StreamState();
 			return p;
 		}
-
 	}
 	return {};
 }
@@ -162,7 +174,8 @@ struct LanguageSeverFuncMap
 		{"exit",&LSPSever::Sever_Exit},
 		{"textDocument/didOpen",&LSPSever::textDocument_didOpen},
 		{"textDocument/didClose",&LSPSever::textDocument_didClose},
-		{"textDocument/didChange",&LSPSever::textDocument_didChange}
+		{"textDocument/didChange",&LSPSever::textDocument_didChange},
+		{"textDocument/didSave",&LSPSever::textDocument_didSave}
 	};
 };
 
@@ -272,8 +285,7 @@ void LSPSever::textDocument_didOpen(const json& Params)
 	DidOpenTextDocumentParams params;
 	UCodeLanguageSever::from_json(Params,params);
 
-
-	if (params.textDocument.languageId == UCodeLangLanguageId) {
+	//if (params.textDocument.languageId == UCodeLangLanguageId) {
 		UA::UCFile newfile;
 		newfile._Fileidentifier = CastToFileId(params.textDocument.uri);
 		newfile.FileName = params.textDocument.uri;
@@ -281,7 +293,7 @@ void LSPSever::textDocument_didOpen(const json& Params)
 		newfile.oldfile = newfile.filetext;
 
 		BaseSever.AddFile(std::move(newfile));
-	}
+	//}
 }
 void LSPSever::textDocument_didClose(const json& Params)
 {
@@ -310,6 +322,9 @@ void LSPSever::textDocument_didChange(const json& Params)
 		}
 	}	
 	Ufile.UpdatedFileText();
+}
+void LSPSever::textDocument_didSave(const json& Params)
+{
 }
 void LSPSever::textDocument_definition(integer  requestid,const json& Params)
 {

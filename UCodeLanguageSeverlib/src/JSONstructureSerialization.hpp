@@ -106,10 +106,29 @@ using json = nlohmann::json;
 	{
 		
 	}
+	inline void to_json(json& Json, const UCL::TextDocumentSyncKind& Object)
+	{
+		switch (Object)
+		{
+		case UCL::TextDocumentSyncKind::None:
+			Json = 0;
+			break;
+		case UCL::TextDocumentSyncKind::Full:
+			Json = 1;
+			break;
+		case UCL::TextDocumentSyncKind::Incremental:
+			Json = 2;
+			break;
+		default:
+			UCodeLangUnreachable();
+			break;
+		}
+	}
 	inline void to_json(json& Json, const UCL::ServerCapabilities& Object)
 	{
 		to_jsonOp(Object.positionEncoding, "positionEncoding", Json);
 		to_jsonOp(Object.hoverProvider, "hoverProvider", Json);
+		to_json(Json["textDocumentSync"],Object.textDocumentSync.Get<TextDocumentSyncKind>());
 	}
 
 
@@ -360,6 +379,7 @@ using json = nlohmann::json;
 			Json = "Hint";
 			break;
 		default:
+			UCodeLangUnreachable();
 			break;
 		}
 	}
@@ -425,4 +445,6 @@ using json = nlohmann::json;
 
 		to_json(Json["diagnostics"], Object.diagnostics);
 	}
+
+
 UCodeLanguageSeverEnd
