@@ -871,7 +871,7 @@ private:
 
 	UnorderedMap<String, UnorderedMap<const void*, SymbolID>> _SybIdMap;
 	uintptr_t _IDIndex = 0;
-	ScopeGenerator ScopeGenerator;
+	ScopeGenerator _ScopeGenerator;
 	//Args
 	bool _ForceImportArgWasPassed = false;
 	bool _ImmutabilityIsForced = false;
@@ -1737,7 +1737,7 @@ private:
 
 	const OptionalRef<Vector<TypeSymbol>> GetTypePackFromInputPar(const Vector<ParInfo>& Pars);
 	ParInfo GetParInfoResolveTypePack(size_t i, const Vector<ParInfo>& Pars, const OptionalRef<Vector<TypeSymbol>> TypePack);
-	size_t SystematicAnalysis::GetParCountResolveTypePack(const Vector<ParInfo>& Pars);
+	size_t GetParCountResolveTypePack(const Vector<ParInfo>& Pars);
 	
 	int Type_GetCompatibleScore(const ParInfo& ParFunc, const ParInfo& Value);
 	int Type_GetCompatibleScore(const IsCompatiblePar& Func, const Vector<ParInfo>& ValueTypes);

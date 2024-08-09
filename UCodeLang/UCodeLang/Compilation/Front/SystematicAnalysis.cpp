@@ -1452,7 +1452,7 @@ void SystematicAnalysis::OnStatements(const StatementsNode& node)
 String SystematicAnalysis::GetScopeLabelName(const void* node)
 {
 	auto& currentscope = _Table._Scope.ThisScope;
-	return ScopeGenerator.GetScopeLabelName(currentscope, node);
+	return _ScopeGenerator.GetScopeLabelName(currentscope, node);
 }
 
 void SystematicAnalysis::OnRetStatement(const RetStatementNode& node)
