@@ -127,7 +127,7 @@ enum class GotNodeType :UInt8
 template<typename T> struct TryGetNode_
 {
 	GotNodeType GotNode = GotNodeType::Null;
-	T* Node =nullptr;
+	Unique_ptr<T> Node =nullptr;
 };
 using TryGetNode = TryGetNode_<Node>;
 
@@ -137,7 +137,7 @@ using TryGetNode = TryGetNode_<Node>;
 static constexpr NodeType Node_t = NodeType:: Type;\
 Node* As(){return (Node*)this;}\
 const Node* As() const {return (const Node*)this;}\
-static Type* Gen(){return new Type();} \
+static Unique_ptr<Type> Gen(){return Unique_ptr<Type>(new Type());} \
 static UCodeLangForceinline Node* As(Type* Value) {return (Node*)Value;} \
 static UCodeLangForceinline const Node* As(const Type* Value) {return (const Node*)Value; } \
 \
