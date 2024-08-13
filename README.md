@@ -1,5 +1,3 @@
-
-
 <div align="center" style="display:grid;place-items:center;">
 <p>
     <a target="_blank"><img width="100" src="Logo.png" alt="Logo"></a>
@@ -43,8 +41,6 @@ mainly
 # Supported programming Languages
 
 - [C++](https://github.com/LostbBlizzard/UCodeLang) //This Repository
-- [Rust](https://github.com/LostbBlizzard/ucodelang-rust) //rust binding,with idiomatic rust wappers and rust related tools for UCodeLang
-- [Zig](https://github.com/LostbBlizzard/ucodelang-zig) //zig binding,with idiomatic zig wappers and zig related tools for UCodeLang
 - [C](https://github.com/LostbBlizzard/UCodeLang/releases/latest) //Just Copy UCodeLangCAPI.h and the steal a static library from the [releases](https://github.com/LostbBlizzard/UCodeLang/releases/latest)
 
 # Features
@@ -55,7 +51,7 @@ Completely focused and specialized on Game Development and Game Engines.
 - [Constructors,Destructor]()
 - [Copy Constructors]()
 - [Move semantics]()
-- [rust enums]()
+- [Rust enums]()
 - [Defer]()
 - [No implicit conversions]()
 - [Unsafe operations are behind like memory allocation are behind the unsafe keyword]()  
@@ -69,7 +65,7 @@ Completely focused and specialized on Game Development and Game Engines.
 - [Attributing tag system like C#]()
 - [panic and value base errors]()
 - [good compiled time analysis]()
-- [A standard Library designed for game development]()
+- [A Standard Library designed for game development]()
 - [Module System]()
 
 
@@ -310,61 +306,12 @@ git clone https://github.com/LostbBlizzard/UCodeLang.git
 cd ./UCodeLang
 ```
 
-
-After geting the Project Files Run.
-- The InstallTools.bat file(If Your On Windows)
 ```
-InstallTools.bat
+use [premake](https://premake.github.io/) to generate Visual Studio solution,Makefiles+[CompileCommands](https://github.com/tarruda/premake-export-compile-commands),Xcode projects.
 ```
-
-- The InstallTools.sh file(If Your On Linux or MacOS)
-```
-./InstallTools.sh
-```
-the Last Step is uneeded if you dont need to build UCodeIDE.
-
-
-
-
-Next Run.
-
-- The VS_2019.bat file(If you use VS 2019) to build vs project files and open the project in visual studio.
-```
-./VS_2019.bat
-```
-
-- The VS_2022.bat file(If you use VS 2022) to build vs project files and open the project in visual studio.
-```
-./VS_2022.bat
-```
-
-- The GNU_Make.bat file(If you use GCC on windows) and run "make" to build it.
-```
-./GNU_Make.sh
-```
-```
-make
-```
-
-- The GNU_Make.sh file(If you use GCC on linux or Mac) and run "make" to build it. or run
-```
-./GNU_Make.sh
-```
-```
-make
-```
-
-- The XCode.sh file(If you use XCode) and and open the project in XCode.
-```
-./XCode.sh
-```
-
 
 
 The file Project Structure is lad out like this
-
-- /Dependencies
-  - "Contains the premake executable"
 
 - /UC 
   - "Is the command line tool" 
@@ -412,16 +359,14 @@ The file Project Structure is lad out like this
   - /src
     - "the code"
 
-- /UCodeDocumentation
+- /doc
    - "Were UCodeDocumentation is"
-   - /Standardlibrary
-     - "Generated from /UCodeAPI/UCodeDocumentation"
 
 - /UCodeIDE
    - "Its use is for testing things that would be hard to test using a debugger"
    - "it's called the UCodeIDE but it really just an internal testing tool"
 
-- /UCodeWebsite
+- /website
    - "Were the UCodeWebsite is im not a web dev so it's probably just the bare minimum"
  
 
