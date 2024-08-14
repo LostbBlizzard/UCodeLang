@@ -48,25 +48,24 @@ mainly
 Completely focused and specialized on Game Development and Game Engines.
 
 ## Langue Features
-- [Constructors,Destructor]()
-- [Copy Constructors]()
-- [Move semantics]()
-- [Rust enums]()
-- [Defer]()
-- [No implicit conversions]()
+- No implicit conversions
+- No Macros
+- [Panic and value base errors](https://lostbblizzard.github.io/UCodeLang/Standardlibrary/ErrorHandleing/Result.html?highlight=result#resultstandardlibraryerrorhandleing)
+- [Attributing tag system like C#](https://lostbblizzard.github.io/UCodeLang/SyntaxAndSeamantics/Types/tag.html)
+- [Constructors,Destructor](https://lostbblizzard.github.io/UCodeLang/SyntaxAndSeamantics/Concepts/ConstructorsAndDestructors.html?highlight=construct#constructors-and-destructors)
+- [Copy Constructors(missing docs)]()
+- [Move semantics(missing docs)]()
+- [Defer](https://lostbblizzard.github.io/UCodeLang/SyntaxAndSeamantics/Miscellaneous/defer.html?highlight=defer#deferkeyword)
 - [Unsafe operations are behind like memory allocation are behind the unsafe keyword]()  
-- [Rust like traits(working on)]()
+- [Rust like traits(working on)](https://lostbblizzard.github.io/UCodeLang/SyntaxAndSeamantics/Concepts/traits.html?highlight=trait#traits)
 - [Go like concurrency(working on)]()
 - [Easy to use binary(working on) and Json(working on) serialization in Standard Library]()
-- [No Macros]()
-- [operator overloading]()
-- [function overloading]()
-- [generics]()
-- [Attributing tag system like C#]()
-- [panic and value base errors]()
-- [good compiled time analysis]()
-- [A Standard Library designed for game development]()
-- [Module System]()
+- [Operator overloading(missing docs)]()
+- [Function overloading(missing docs)]()
+- [Generics(missing docs)]()
+- [Good compiled time analysis](https://lostbblizzard.github.io/UCodeLang/SyntaxAndSeamantics/Builtin/TypeInfo.html?highlight=typeinfo#typeinfo)
+- [A Standard Library designed for game development](https://lostbblizzard.github.io/UCodeLang/Standardlibrary/Standardlibrary.html)
+- [Module System](https://lostbblizzard.github.io/UCodeLang/ForImplementers/StandardLibAndModules.html)
 
 
 And More.
@@ -74,20 +73,20 @@ And More.
 ## Library/Runtime Freatures
 - Optional Runtime SandBoxing
 - Flexible runtime
-  - Code can be [jited](), [interpreted]() or [precompiled to native code]() all working on the same runtime.
+  - Code can be [jited](https://lostbblizzard.github.io/UCodeLang/ForImplementers/Reference/RunTime/JitInterpreter.html), [interpreted](https://lostbblizzard.github.io/UCodeLang/ForImplementers/Reference/RunTime/Interpreter.html) or [precompiled to native code](https://lostbblizzard.github.io/UCodeLang/ForImplementers/Reference/RunTime/NativeInterpreter.html) all working on the same runtime.
   - Runtime threading model can made for any threading Style (task based, event loop,etcetera)
-- [A Wasm BackEnd]()
-- [A C11 BackEnd]()
+- [A Wasm BackEnd](https://lostbblizzard.github.io/UCodeLang/ForImplementers/Reference/BackEnds/WasmBackEnd.html?highlight=wasmba#definition)
+- [A C11 BackEnd](https://lostbblizzard.github.io/UCodeLang/ForImplementers/Reference/BackEnds/C11BackEnd.html?highlight=c11#definition)
 - [Code be compiled to Native Executables for Linux(working on),Windows(working on) and Mac(working on)]()
-- [Able to view all classes,funcions,trait after compileing]()
-- [Able to strip output unneeded classes]()
-- [Able to catch Panic if you like]()
-- [Debuging]()
+- [Able to view all classes,funcions,trait after compileing(missing docs)]()
+- [Able to strip output unneeded classes(missing docs)]()
+- [Able to catch Panic if you like(missing docs and buggy)]()
+- [Debuging(working on)]()
 - [Module System]()
 
 
 ## Tooling Freatures
-- [Automatic Binding Generation]()
+- [Automatic Binding Generation](https://lostbblizzard.github.io/UCodeLang/ForImplementers/Automaticbindinggeneration.html?highlight=aut#automatic-binding-generation)
 - [Language server(working on)]()
 
 # Why use this Programming Language.
