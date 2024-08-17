@@ -1575,9 +1575,10 @@ GotNodeType Parser::GetExpressionTypeNode(Unique_ptr<Node>& out)
 		bool isnumberliteral = false;
 		if (Ex == GotNodeType::Success)
 		{
-			if (tokenu->Type == TokenType::minus
-				|| tokenu->Type == TokenType::plus
-				|| r_out->Get_Type() == NodeType::ValueExpressionNode)
+			if (
+				(tokenu->Type == TokenType::minus || tokenu->Type == TokenType::plus)
+				&& r_out->Get_Type() == NodeType::ValueExpressionNode
+			   )
 			{
 				auto valueex = ValueExpressionNode::As(r_out.get());
 
