@@ -2091,8 +2091,6 @@ UAssembly::StripFuncs UAssembly::StripFunc(UClib& lib, const StripFuncSettings& 
 			}),list.end());
 
 		} while (count != list.size());
-
-		int a = 0;
 	}
 
 	lib.Get_Assembly().Remove_NullFunc();

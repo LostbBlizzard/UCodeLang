@@ -64,7 +64,6 @@ void SystematicAnalysis::OnDeferStatement(const DeferStatementNode& node)
 				Info->_CapturedVarables.push_back(std::move(NewValue));
 			}
 
-			int a = 10;
 		}
 	}
 	else if (_PassType == PassType::BuidCode)

@@ -412,7 +412,6 @@ bool CppHelper::ParseCppfileAndOutULangDir(const Path& CppDir, const Path& CppLi
 				CppLinkText += '\n';
 			}
 
-			int a = 0;
 
 		}
 

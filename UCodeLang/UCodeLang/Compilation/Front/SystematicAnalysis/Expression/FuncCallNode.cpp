@@ -87,10 +87,6 @@ void SystematicAnalysis::OnFuncCallNode(const FuncCallNode& node)
 			_IR_LastExpressionField = _IR_LookingAtIRBlock->NewLoad_Dereferenc(ir, IR_ConvertToIRType(typetoget));
 		}
 
-		if (_GetExpressionMode.size() && IsWrite(_GetExpressionMode.top()))
-		{
-			int a = 0;
-		}
 	}
 }
 void SystematicAnalysis::IR_Build_EnumOut(NeverNullPtr<Symbol> EnumSymbol, IRInstruction* ThisEnum, size_t EnumIndex, const ValueParametersNode& Pars, size_t StartIndex)
@@ -4427,7 +4423,6 @@ void SystematicAnalysis::IR_Build_DestructorCall(const ObjectToDrop& Object)
 
 		if (Object.Type.IsAn(TypesEnum::CustomType))
 		{
-			int a = 0;
 
 			TypeSymbol tep = Object.Type;
 

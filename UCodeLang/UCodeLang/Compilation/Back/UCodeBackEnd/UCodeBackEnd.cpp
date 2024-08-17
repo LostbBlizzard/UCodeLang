@@ -1255,6 +1255,7 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 
 			if (ReservedforReturn == false)
 			{
+				bool isdone = false;
 				for (size_t i = 0; i < IR->Instructions.size(); i++)
 				{
 					auto& Item_ = IR->Instructions[i];
@@ -1267,13 +1268,14 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 							if (Item2_->Type != IRInstructionType::Return && Item2_->Type != IRInstructionType::None)
 							{
 								ReservedforReturn = true;
-								goto Done;
+								isdone = true;
+								break;
 							}
 						}
 					}
+
+					if (isdone) { break; }
 				}
-			Done:
-				int a = 0;
 			}
 			
 		}
