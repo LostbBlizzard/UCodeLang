@@ -202,6 +202,11 @@ void SystematicAnalysis::Assembly_LoadLibSymbols(const UClib& lib, ImportLibInfo
 			Assembly_LoadSymbol(Item->Get_ForType(), Mode);
 		}
 		break;
+		case ClassType::FuncPtr:
+		{
+			Assembly_LoadFuncPtrSymbol(Item->Get_FuncPtr(),FullName,Scope, Mode);
+		}
+		break;
 		case ClassType::StaticArray:
 		case ClassType::GenericFunction:
 		case ClassType::GenericClass:
@@ -828,6 +833,54 @@ void SystematicAnalysis::Assembly_LoadAliasSymbol(const Alias_Data& Item, const 
 	}
 
 	_Table._Scope = std::move(TepScope);
+}
+void SystematicAnalysis::Assembly_LoadFuncPtrSymbol(const FuncPtr_Data& Item, const String& FullName, const String& Scope, SystematicAnalysis::LoadLibMode Mode)
+{
+	if (!Assembly_IsExport(Item.IsExported, Item.TypeID))
+	{
+		return;
+	}
+
+	auto TepScope = std::move(_Table._Scope);
+
+	_Table._Scope = {};
+	_Table._Scope.ThisScope = Scope;
+
+	if (Mode == LoadLibMode::GetTypes)
+	{
+		auto Name = ScopeHelper::GetNameFromFullName(FullName);
+		auto& Syb = Symbol_AddSymbol(SymbolType::Func_ptr , Name, FullName, Item.AccessModifier);
+		_Table.AddSymbolID(Syb, Symbol_GetSymbolID(&Item));
+
+		Syb.PassState = PassType::BuidCode;
+		Syb.OutputIR = false;
+
+		Syb.VarType = TypeSymbol();
+
+		auto enumInfo = new FuncPtrInfo();
+
+		enumInfo->Pars.resize(Item.ParsType.size());
+		Syb.Info.reset(enumInfo);
+	}
+	else if (Mode == LoadLibMode::FixTypes)
+	{
+		auto& Syb = _Table.GetSymbol(Symbol_GetSymbolID(&Item));
+		auto info = Syb.Get_Info<FuncPtrInfo>();
+		
+		Assembly_LoadType(Item.RetType,info->Ret);
+		
+		for (size_t i = 0; i < Item.ParsType.size(); i++)
+		{
+			auto& ParIn = Item.ParsType[i];
+			auto& ParOut = info->Pars[i];
+
+			ParOut.IsOutPar = ParIn.IsOutPar;
+			Assembly_LoadType(ParIn.Type,ParOut.Type);
+		}
+	}
+
+	_Table._Scope = std::move(TepScope);
+
 }
 void SystematicAnalysis::Assembly_LoadTagSymbol(const Tag_Data& Item, const String& FullName, const String& Scope, SystematicAnalysis::LoadLibMode Mode)
 {
