@@ -1122,10 +1122,6 @@ void UCodeBackEndObject::OnFunc(const IRFunc* IR)
 		BuildLink(FuncName, IR->Linkage);
 	}
 
-	if (FuncName == "main")
-	{
-		int a = 0;
-	}
 
 	if (IR->Blocks.size())
 	{
@@ -1292,10 +1288,6 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 
 	for (size_t i = 0; i < IR->Instructions.size(); i++)
 	{
-		if (i == 10)
-		{
-			int a = 0;
-		}
 
 		auto& Item_ = IR->Instructions[i];
 		auto Item = Item_.get();
@@ -3794,28 +3786,28 @@ void UCodeBackEndObject::StoreValueInPointer(RegisterID Pointer, size_t Pointero
 	size_t Offset = Pointerofset;
 
 
-	bool ispointercouldbeover = false;
+	bool ispointercouldbeoverwriten = false;
 	{
-		auto& Item = _Registers.Registers[(size_t)Pointer];
+		auto& Item = _Registers.GetInfo(Pointer);
 		if (!Item.Types.has_value()) {
-			ispointercouldbeover = true;
+			ispointercouldbeoverwriten = true;
 		}
 	}
 	
 	RegistersManager::RegisterInfo OldRegItem;
-	if (ispointercouldbeover)
+	if (ispointercouldbeoverwriten)
 	{
-		OldRegItem = _Registers.Registers[(size_t)Pointer];
+		OldRegItem = _Registers.GetInfo(Pointer);
 		_Registers.SetRegister(Pointer, nullptr);
 	}
 	
 	RegisterID Reg = MakeIntoRegister(Value);
 
-	if (ispointercouldbeover)
+	if (ispointercouldbeoverwriten)
 	{
-		 _Registers.Registers[(size_t)Pointer] = OldRegItem;
+		 _Registers.GetInfo(Pointer) = OldRegItem;
 	}
-	//UCodeLangAssert(Reg != Pointer);
+	UCodeLangAssert(Reg != Pointer);
 
 	while (ObjectSize != 0)
 	{
@@ -4893,7 +4885,7 @@ UCodeBackEndObject::IRlocData UCodeBackEndObject::GetIRLocData(const IRInstructi
 						while (offsetsetleft != 0)
 						{
 							auto off = std::min<size_t>(UINT8_MAX, offsetsetleft);
-							;
+							
 
 							InstructionBuilder::LoadEffectiveAddressA(_Ins, out, off, out);
 							PushIns();
@@ -6157,6 +6149,13 @@ RegisterID UCodeBackEndObject::GetRegisterForTep()
 				if (auto IR = ItemValue.Get_If<const IRInstruction*>())
 				{
 					auto& IRV = *IR;
+
+					//This is set null for a reson
+					if (*IR == nullptr)
+					{
+						continue;
+					}
+
 					if (!IsReferencedAfterThisIndex(IRV))
 					{
 						return Register;
