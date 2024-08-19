@@ -899,7 +899,7 @@ private:
 
 	UnorderedMap<SymbolID, VarableMemberData> _VarableMemberDatas;//Var.$Item
 	UnorderedMap<AssemblyNode*, Symbol*> LibGenericSymbolLoad;
-	UnorderedMap<SymbolID, TypeSymbol> DelareVarableImplicit;	
+	UnorderedMap<SymbolID, TypeSymbol> DelareVarableImplicit;
 	UnorderedMap<TypeSymbol*, String> GenericOutputs;
 	struct Test
 	{
@@ -972,8 +972,44 @@ private:
 
 	Vector<Unique_ptr<FileNode>> NodesFromLoadLib;
 	Vector<Unique_ptr<Vector<Token>>> TokensFromLoadLib;
+	Set<ReflectionCustomTypeID> IndirectExports;
+	Set<String> IndirectExportsStr;
 
+	struct FuncGenericIndirectInfo
+	{
+		String FuncionName;
+		Vector<ReflectionCustomTypeID> IndirectOutput;
+		Vector<String> IndirectOutputStr;
 
+		void AddIndirect(ReflectionCustomTypeID id)
+		{
+			for (auto& Item : IndirectOutput)
+			{
+				if (Item == id)
+				{
+					return;
+				}
+			}
+
+			IndirectOutput.push_back(id);
+		}
+		void AddIndirect(const String& id)
+		{
+			for (auto& Item : IndirectOutputStr)
+			{
+				if (Item == id)
+				{
+					return;
+				}
+			}
+
+			IndirectOutputStr.push_back(id);
+		}
+	};
+	Stack<FuncGenericIndirectInfo> _FuncStackGenericIndirect;
+	void TryAddIndirectExport(TypeSymbol type);
+	void TryAddIndirectExport(const Symbol& type);
+	bool IsExported(SymbolID type);
 	//Funcs
 	bool IsInUnSafeBlock()
 	{
@@ -1440,6 +1476,8 @@ private:
 	void Assembly_LoadTraitAliases(const String& FullName, const Vector<TraitAlias>& GenericAlias);
 	void Assembly_LoadTraitAliases_FixTypes(const Vector<TraitAlias>& GenericAlias);
 
+	bool Assembly_IsExport(bool IsNodeExport, ReflectionCustomTypeID id);
+	bool Assembly_IsExport(bool IsNodeExport, const String& id);
 	void Assembly_LoadClassSymbol(const Class_Data& Item, const String& FullName, const String& Scope, SystematicAnalysis::LoadLibMode Mode);
 	void Assembly_LoadEnumSymbol(const Enum_Data& Item, const String& FullName, const String& Scope, SystematicAnalysis::LoadLibMode Mode);
 	void Assembly_LoadAliasSymbol(const Alias_Data& Item, const String& FullName, const String& Scope, SystematicAnalysis::LoadLibMode Mode);

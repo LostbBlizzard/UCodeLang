@@ -87,6 +87,32 @@ void SystematicAnalysis::Assembly_LoadLibSymbols()
 
 						_Lib._Assembly.Classes.push_back(Unique_ptr<AssemblyNode>(LibNode.get())); // make ref
 					}
+
+					{
+						if (LibNode->Get_Type() == ClassType::GenericFunction)
+						{
+							auto& genericfunc = LibNode->Get_GenericFunctionData();
+
+							if (genericfunc.IsExported)
+							{
+								for (auto& Item : genericfunc.InderctExports)
+								{
+									if (!IndirectExports.HasValue(Item))
+									{
+										IndirectExports.AddValue(Item);
+									}
+								}
+							
+								for (auto& Item : genericfunc.InderctExportStrs)
+								{
+									if (!IndirectExportsStr.HasValue(Item))
+									{
+										IndirectExportsStr.AddValue(Item);
+									}
+								}
+							}
+						}
+					}
 				}
 
 				Importinfo.AddValue(&FileNode, std::move(V));
@@ -558,12 +584,38 @@ void SystematicAnalysis::Assembly_LoadTraitAliases_FixTypes(const Vector<TraitAl
 		}
 	}
 }
+bool SystematicAnalysis::Assembly_IsExport(bool IsNodeExport, ReflectionCustomTypeID id)
+{
+	if (IsNodeExport)
+	{
+		return true;
+	}
+	else 
+	{
+		return IndirectExports.HasValue(id);
+	}
+}
+bool SystematicAnalysis::Assembly_IsExport(bool IsNodeExport, const String& id) 
+{
+	if (IsNodeExport)
+	{
+		return true;
+	}
+	else 
+	{
+		return IndirectExportsStr.HasValue(id);
+	}
+}
 void SystematicAnalysis::Assembly_LoadClassSymbol(const Class_Data& Item, const String& FullName, const String& Scope, SystematicAnalysis::LoadLibMode Mode)
 {
 	bool isexpot = Item.IsExported;
 	if (FullName == "")
 	{
 		isexpot = true;
+	}
+	else
+	{
+		isexpot = Assembly_IsExport(Item.IsExported, Item.TypeID);
 	}
 	if (!isexpot)
 	{
@@ -1276,7 +1328,7 @@ void SystematicAnalysis::Assembly_LoadSymbol(const NameSpace_Data& Item, const S
 }
 void SystematicAnalysis::Assembly_LoadSymbol(const ClassMethod& Item, SystematicAnalysis::LoadLibMode Mode)
 {
-	if (!Item.IsExport)
+	if (!Assembly_IsExport(Item.IsExport, Item.DecorationName))
 	{
 		return;
 	}

@@ -338,10 +338,10 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 	}
 	for (auto& item : node._Signature._Parameters._Parameters)
 	{
-		if (item._Type._IsAddess){t += "&";}
-		if (item._Type._Isimmutable){t += "imut";}
-		if (item._Type._IsTypedMoved){t += "mov";}
-		if (item._Type._IsDynamic){t += "dyn";}
+		if (item._Type._IsAddess) { t += "&"; }
+		if (item._Type._Isimmutable) { t += "imut"; }
+		if (item._Type._IsTypedMoved) { t += "mov"; }
+		if (item._Type._IsDynamic) { t += "dyn"; }
 		t += item._Type.AsString();
 		if (&item != &node._Signature._Parameters._Parameters.back())
 		{
@@ -361,6 +361,16 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 	_Table.AddScope(t);
 
 
+	bool isusingfuncstackgenericindirect = node._Signature._IsExport && Isgeneric_t;
+	if (_PassType == PassType::FixedTypes)
+	{
+		if (isusingfuncstackgenericindirect)
+		{
+			FuncGenericIndirectInfo info;
+			info.FuncionName = _Table._Scope.ThisScope;
+			_FuncStackGenericIndirect.push(std::move(info));
+		}
+	}
 
 
 	Symbol* syb;
@@ -478,7 +488,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 	}
 
 	FuncInfo* Info = syb->Get_Info<FuncInfo>();
-	OnAttributesNode(node._Attributes,Optionalref(Info->Attributes));
+	OnAttributesNode(node._Attributes, Optionalref(Info->Attributes));
 
 	if (_PassType == PassType::FixedTypes && Isgeneric_t)
 	{
@@ -491,7 +501,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 	Optional<bool> IsEnabled;
 	for (auto& Item : Info->Attributes)
 	{
-		if (!Item->VarType.IsBadType()) 
+		if (!Item->VarType.IsBadType())
 		{
 			auto& sym = *Symbol_GetSymbol(Item->VarType).value().value();
 			if (IsEnableAttribute(sym))
@@ -544,9 +554,9 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 		}
 		else
 		{
-			if (!node._Signature._IsRemoved) 
+			if (!node._Signature._IsRemoved)
 			{
-				Type_ConvertAndValidateType(node._Signature._ReturnType,Info->Ret, NodeSyb_t::Ret);
+				Type_ConvertAndValidateType(node._Signature._ReturnType, Info->Ret, NodeSyb_t::Ret);
 				syb->VarType = Info->Ret;
 			}
 		}
@@ -625,14 +635,21 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 				}
 			}
 		}
-		
+
 	}
 
 
 
 
 	bool buidCode = _PassType == PassType::BuidCode && Info->IsRemoved == false;
-	bool ignoreBody = !IsgenericInstantiation && IsGenericS;
+	bool ignoreBody = (!IsgenericInstantiation && IsGenericS);
+	if (ignoreBody == true)
+	{
+		if (IsgenericInstantiation == false && IsGenericS && _PassType != PassType::BuidCode) 
+		{
+			ignoreBody = false;
+		}
+	}
 	bool igorebecausedisable = false;
 	if (ignoreBody == false)
 	{
@@ -1015,10 +1032,20 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 		assemblyfunc.AccessModifier = syb->Access;
 		assemblyfunc.IsExported = node._Signature._IsExport;
 		assemblyfunc.UseStatments = Generic_GetCurrentUseStatements();
+		assemblyfunc.InderctExports = std::move(Info->_GenericData._IndirectExport);
+		assemblyfunc.InderctExportStrs = std::move(Info->_GenericData._IndirectExportStr);
 	}
 
 	if (_PassType == PassType::FixedTypes)
 	{
+		if (isusingfuncstackgenericindirect)
+		{
+			auto val = std::move(_FuncStackGenericIndirect.top());
+			_FuncStackGenericIndirect.pop();
+			
+			Info->_GenericData._IndirectExport = std::move(val.IndirectOutput);
+			Info->_GenericData._IndirectExportStr = std::move(val.IndirectOutputStr);
+		}
 		if (!node._Body.has_value() && syb->VarType._Type == TypesEnum::Var)
 		{
 			auto Token = NeverNullptr(node._Signature._Name.token);
@@ -1197,6 +1224,80 @@ IRidentifierID SystematicAnalysis::IR_GetIRID(const FuncInfo* Func)
 	return _IR_Builder.ToID(FuncName);
 }
 
+void SystematicAnalysis::TryAddIndirectExport(TypeSymbol type)
+{
+	if (type._Type == TypesEnum::CustomType)
+	{
+		if (_FuncStackGenericIndirect.size() && _FuncStack.size())
+		{
+			auto& top = _FuncStackGenericIndirect.top();
+			auto& funciontop = _FuncStack.back();
+
+			if (top.FuncionName == funciontop.Pointer->FullName)
+			{
+				if (!Type_IsTypeExported(type._CustomTypeSymbol)) {
+					top.AddIndirect(Type_GetTypeID(TypesEnum::CustomType, type._CustomTypeSymbol));
+				}
+			}
+		}
+	}
+}
+void SystematicAnalysis::TryAddIndirectExport(const Symbol& type)
+{
+	if (type.Type == SymbolType::Func || type.Type == SymbolType::GenericFunc)
+	{
+		if (_FuncStackGenericIndirect.size() && _FuncStack.size())
+		{
+			auto& top = _FuncStackGenericIndirect.top();
+			auto& funciontop = _FuncStack.back();
+
+			if (top.FuncionName == funciontop.Pointer->FullName)
+			{
+				bool isok = false;
+				if (funciontop.Pointer->IsObjectCall())
+				{
+					auto par = *funciontop.Pointer->GetObjectForCall();
+
+					auto symop = Symbol_GetSymbol(par);
+					if (symop.has_value())
+					{
+						auto sym = symop.value();
+						if (sym->Type == SymbolType::Type_class)
+						{
+							if (!StringHelper::EndWith(sym->FullName, TraitClassEnd))
+							{
+								isok = true;
+							}
+						}
+					}
+				}
+				else
+				{
+					isok = true;
+				}
+
+				if (!isok) { return; }
+
+				bool isexported = false;
+				auto node = type.NodePtr;
+				if (node)
+				{
+					isexported = type.Get_NodeInfo<FuncNode>()->_Signature._IsExport;
+				}
+				else
+				{
+					isexported = true;
+				}
+
+
+				if (!isexported) {
+					auto DecName = IR_MangleName(type.Get_Info<FuncInfo>());
+					top.AddIndirect(RemoveSymboolFuncOverloadMangling(DecName));
+				}
+			}
+		}
+	}
+}
 UCodeLangFrontEnd
 
 #endif

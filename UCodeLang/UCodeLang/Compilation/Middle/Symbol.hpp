@@ -322,6 +322,8 @@ struct GenericData
 struct Generic
 {
 	Vector<GenericData> _Genericlist;
+	Vector<ReflectionCustomTypeID> _IndirectExport;
+	Vector<String> _IndirectExportStr;
 
 
 	inline bool IsGeneric() const

@@ -49,6 +49,7 @@ void SystematicAnalysis::OnFuncCallNode(const FuncCallNode& node)
 
 			if (Info.SymFunc)
 			{
+				TryAddIndirectExport(*Info.SymFunc);
 				FileDependency_AddDependencyToCurrentFile(Info.SymFunc);
 			}
 

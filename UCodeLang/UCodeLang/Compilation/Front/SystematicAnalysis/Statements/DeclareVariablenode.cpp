@@ -136,6 +136,8 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node, 
 			auto Token = NeverNullptr(node._Name.token);
 			LogError_CantUseTypeVoidHere(Token);
 		}
+		
+		TryAddIndirectExport(syb->VarType);
 	}
 	_LookingForTypes.push(syb->VarType);
 

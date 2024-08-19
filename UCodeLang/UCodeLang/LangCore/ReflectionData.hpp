@@ -504,6 +504,10 @@ struct GenericFunction_Data
 	AccessModifierType AccessModifier = AccessModifierType::Default;
 	bool IsExported = false;
 	CapturedUseStatements UseStatments;
+	//Some Generic Funcions may use none exported type.
+	Vector<ReflectionCustomTypeID> InderctExports;
+	Vector<String> InderctExportStrs;
+;
 };
 struct GenericEnum_Data
 {
