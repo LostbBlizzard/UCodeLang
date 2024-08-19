@@ -5926,18 +5926,31 @@ void UCodeBackEndObject::ReadValueFromPointer(RegisterID Pointer, size_t Pointer
 void UCodeBackEndObject::CopyValues(const IRlocData& Src, const IRlocData& Out, bool DerefSrc, bool DerefOut)
 {
 	auto Size = GetSize(Src.ObjectType);
+
+	RegistersManager::RegisterInfo oldreg;
+	if (auto reg = Src.Info.Get_If<RegisterID>())
+	{
+		oldreg = std::move(_Registers.GetInfo(*reg));
+		_Registers.SetRegister(*reg,nullptr);
+	}
+
 	size_t Offset = 0;
-	auto Tep = GetRegisterForTep(Src);
+
+	auto Tep = GetRegisterForTep();
+	RegWillBeUsed(Tep);
+	_Registers.SetRegister(Tep,nullptr);
 
 	RegisterID SrcPointer = RegisterID::A;
 	RegisterID OutPointer = RegisterID::A;
 	if (DerefSrc)
 	{
 		SrcPointer = MakeIntoRegister(Src);
+		UCodeLangAssert(Tep != SrcPointer);
 	}
 	if (DerefOut)
 	{
 		OutPointer = MakeIntoRegister(Out);
+		UCodeLangAssert(Tep != OutPointer);
 	}
 	while (Size != 0)
 	{
@@ -6087,6 +6100,10 @@ void UCodeBackEndObject::CopyValues(const IRlocData& Src, const IRlocData& Out, 
 		}
 	}
 
+	if (auto reg = Src.Info.Get_If<RegisterID>())
+	{
+		_Registers.GetInfo(*reg) = std::move(oldreg);
+	}
 	_Registers.FreeRegister(Tep);
 }
 
