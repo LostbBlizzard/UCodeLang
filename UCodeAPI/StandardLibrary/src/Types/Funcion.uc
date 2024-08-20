@@ -21,8 +21,7 @@ $Funcion<R,Pars...>:
       F _func;
       |new[this&,F f]: _func = f;
       |Invoke[this&,Pars pars] -> R:
-        var p = _func;
-        ret p(pars);
+        ret _func(pars);
       |drop[this&] -> void;
      
      var& object = unsafe new MyDynObject(func);

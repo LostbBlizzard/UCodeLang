@@ -2130,7 +2130,7 @@ void SystematicAnalysis::Type_SetFuncRetAsLastEx(const Get_FuncInfo& Info)
 	//This Funcion may be redundant
 	if (Info.Func)
 	{
-		if (Symbol_IsVarableType(Info.SymFunc->Type))
+		if (Symbol_IsVarableType(Info.SymFunc->Type) || Info.SymFunc->Type == SymbolType::Class_Field)
 		{
 			_LastExpressionType = ((FuncPtrInfo*)Info.Func)->Ret;
 		}

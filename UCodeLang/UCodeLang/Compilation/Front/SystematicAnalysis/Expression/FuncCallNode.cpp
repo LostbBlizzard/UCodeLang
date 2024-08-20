@@ -918,6 +918,13 @@ void SystematicAnalysis::IR_Build_FuncCall(Get_FuncInfo Func, const ScopedNameNo
 	FileDependency_AddDependencyToCurrentFile(Syb);
 
 	//
+	IRInstruction* classfeildfunccall = nullptr;
+	if (Syb->Type == SymbolType::Class_Field)
+	{
+		GetMemberTypeSymbolFromVar_t V;
+		Symbol_MemberTypeSymbolFromVar(0, Name._ScopedName.size(), Name, V);
+		classfeildfunccall = IR_Build_Member_GetValue(V);
+	}
 
 	if (Func.ThisPar != Get_FuncInfo::ThisPar_t::PushFromScopedNameDynamicTrait)
 	{
@@ -978,6 +985,10 @@ void SystematicAnalysis::IR_Build_FuncCall(Get_FuncInfo Func, const ScopedNameNo
 	else if (Syb->Type == SymbolType::ParameterVarable)
 	{
 		_IR_LastExpressionField = _IR_LookingAtIRBlock->NewCallFuncPtr(Syb->IR_Par);
+	}
+	else if (Syb->Type == SymbolType::Class_Field)
+	{
+		_IR_LastExpressionField = _IR_LookingAtIRBlock->NewCallFuncPtr(classfeildfunccall);
 	}
 	else
 	{
@@ -2852,8 +2863,16 @@ StartSymbolsLoop:
 				}
 			}
 		}
-		else if (Symbol_IsVarableType(Item->Type))
+		else if (Symbol_IsVarableType(Item->Type) || Item->Type == SymbolType::Class_Field)
 		{
+			if (Item->Type == SymbolType::Class_Field)
+			{
+				GetMemberTypeSymbolFromVar_t V;
+				if (!Symbol_MemberTypeSymbolFromVar(0, Name._ScopedName.size(), Name, V))
+				{
+					return { };
+				}
+			}
 			Symbol* Type = Symbol_GetSymbol(Item->VarType).value_unchecked();
 			if (Type)
 			{
@@ -3407,7 +3426,7 @@ StartSymbolsLoop:
 			{
 				CMPPar.SetAsFuncInfo(Item.SymFunc);
 			}
-			else if (Symbol_IsVarableType(Item.SymFunc->Type))
+			else if (Symbol_IsVarableType(Item.SymFunc->Type) || Item.SymFunc->Type == SymbolType::Class_Field)
 			{
 				Symbol* Type = Symbol_GetSymbol(Item.SymFunc->VarType).value_unchecked();
 				if (Type == nullptr)

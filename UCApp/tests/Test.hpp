@@ -149,7 +149,7 @@ inline String ModeType(OptimizationFlags Flags)
 	return r;
 }
 
-static const Array<TestInfo, 178> Tests{
+static const Array<TestInfo, 179> Tests{
 
 	TestInfo("main_0", "BasicTests/main.uc", "Main", SuccessCondition::Compilation),
 
@@ -403,6 +403,8 @@ static const Array<TestInfo, 178> Tests{
 	TestInfo("InferParametr","Generics/inferParameter.uc", "main", SuccessCondition::RunTimeValue,uintptr_t(7)),
 
 	TestInfo("IsTypeFuncionPointer","Eval/IsTypeFuncionPointer.uc", "main", SuccessCondition::RunTimeValue,bool(true)),
+
+	TestInfo("ClassFieldFuncionPointer","BasicTests/ClassFieldFuncionPointer.uc", "main", SuccessCondition::RunTimeValue,bool(true)),
 };
 struct SkipTestRange
 {
