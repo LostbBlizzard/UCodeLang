@@ -199,6 +199,10 @@ void RunStandardLibraryTests(StandardLibraryTestInfo &Out, TestMode mode)
 			auto staticdeinittocall = dlsym(lib, staticdeinitname.c_str());
 			auto threaddeinittocall = dlsym(lib, threaddeinitname.c_str());
 #endif
+			using InitCalls = void(*)();
+
+			((InitCalls)staticinittocall)();
+			((InitCalls)threadinittocall)();
 			for (auto &Item : tests)
 			{
 				auto functocallStr = C11Backend::UpdateToCindentifier(Item->DecorationName);
@@ -229,6 +233,9 @@ void RunStandardLibraryTests(StandardLibraryTestInfo &Out, TestMode mode)
 					std::cout << "Test :" << Item->FullName << " Fail\n";
 				}
 			}
+			
+			((InitCalls)staticdeinittocall)();
+			((InitCalls)threaddeinittocall)();
 
 			int passnumber;
 			if (info.TestPassedCount)
