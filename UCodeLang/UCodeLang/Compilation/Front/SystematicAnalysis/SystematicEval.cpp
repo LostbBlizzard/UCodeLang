@@ -2066,6 +2066,21 @@ Optional<Systematic_BuiltInFunctions::Func> Systematic_BuiltInFunctions::GetFunc
 	}
 
 
+	if (Pars.size() == 1 && FuncName == "IsDynmaicTrait")
+	{
+		auto& Type = Pars.front();
+		const auto Sym = This.Symbol_GetSymbol(Type.Type);
+		bool IsDynTrait = Type.Type.IsDynamicTrait();
+
+		Func _Func;
+		_Func.RetType = TypesEnum::Bool;
+		auto Ex = This.Eval_MakeEx(_Func.RetType);
+		This.Eval_Set_ObjectAs(Ex, IsDynTrait);
+
+		_Func.EvalObject = std::move(Ex.EvaluatedObject);
+
+		return _Func;
+	}
 	if (FuncName == "Fields" && Pars.size() == 1)
 	{
 		auto& Type = Pars.front();

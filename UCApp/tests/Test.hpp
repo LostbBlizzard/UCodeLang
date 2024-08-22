@@ -149,7 +149,7 @@ inline String ModeType(OptimizationFlags Flags)
 	return r;
 }
 
-static const Array<TestInfo, 179> Tests{
+static const Array<TestInfo, 180> Tests{
 
 	TestInfo("main_0", "BasicTests/main.uc", "Main", SuccessCondition::Compilation),
 
@@ -405,6 +405,8 @@ static const Array<TestInfo, 179> Tests{
 	TestInfo("IsTypeFuncionPointer","Eval/IsTypeFuncionPointer.uc", "main", SuccessCondition::RunTimeValue,bool(true)),
 
 	TestInfo("ClassFieldFuncionPointer","BasicTests/ClassFieldFuncionPointer.uc", "main", SuccessCondition::RunTimeValue,bool(true)),
+	
+	TestInfo("IsDynmaicTrait","Eval/IsDynmaicTrait.uc", "main", SuccessCondition::RunTimeValue,bool(true)),
 };
 struct SkipTestRange
 {
