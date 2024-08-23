@@ -601,6 +601,7 @@ void Parser::ClassTypeAccessModifierInerScope(Vector<Unique_ptr<Node>>& Out)
 		case TokenType::KeyWord_Thread:V = GetDeclareThreadVariable(); break;
 		case TokenType::KeyWord_imut:V = GetimutVariableDeclare(); break;
 		case TokenType::KeyWord_eval:V = GetEvalDeclare(); break;
+		case TokenType::KeyWord_ClassIf:V = GetCompileTimeIf(false); break;
 		default:V = GetDeclareVariable();
 		}
 		if (T->Type != TokenType::Left_Bracket)
@@ -4824,6 +4825,10 @@ GotNodeType Parser::GetCompileTimeIf(CompileTimeIfNode& out, bool IsInFunc)
 		{
 			auto T = TryGetToken();
 			TryGetNode V;
+			if (T->Type == TokenType::EndTab)
+			{
+				break;
+			}
 
 			switch (T->Type)
 			{
@@ -4838,6 +4843,7 @@ GotNodeType Parser::GetCompileTimeIf(CompileTimeIfNode& out, bool IsInFunc)
 			case TokenType::Left_Bracket:V = GetAttribute(); break;
 			case TokenType::KeyWord_ClassFor:V = GetForTypeNode(); break;
 			default:
+				UCodeLangUnreachable();
 				break;
 			}
 

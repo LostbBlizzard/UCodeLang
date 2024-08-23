@@ -934,6 +934,15 @@ bool SystematicAnalysis::Eval_CanEvalutateFuncCheck(const Get_FuncInfo& Func)
 bool SystematicAnalysis::Eval_Evaluate(EvaluatedEx& Out, const TypeSymbol& MustBeType, const ExpressionNodeType& node)
 {
 	OnExpressionTypeNode(node._Value.get(), GetValueMode::Read);//check
+
+	if (Type_IsUnMapType(_LastExpressionType))
+	{
+		int a = 0;
+		//Out = Eval_MakeEx(MustBeType);
+		//Eval_EvaluateDefaultConstructor(Out);
+		//return true;
+	}
+
 	if (!Type_CanBeImplicitConverted(_LastExpressionType, MustBeType, false))
 	{
 		LogError_CantCastImplicitTypes(_LastLookedAtToken.value(), _LastExpressionType, MustBeType, false);

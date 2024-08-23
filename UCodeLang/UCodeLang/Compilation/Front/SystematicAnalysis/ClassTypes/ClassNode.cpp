@@ -117,6 +117,7 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 			case NodeType::DeclareEvalVariableNode:OnDeclareEvalVariableNode(*DeclareEvalVariableNode::As(node.get())); break;
 			case NodeType::TraitNode:OnTrait(*TraitNode::As(node.get())); break;
 			case NodeType::TagTypeNode:OnTag(*TagTypeNode::As(node.get())); break;
+			case NodeType::CompileTimeIfNode: OnCompileTimeIfNode(*CompileTimeIfNode::As(node.get())); break;
 			default:break;
 			}
 			Pop_NodeScope();

@@ -454,6 +454,10 @@ bool SystematicAnalysis::Symbol_MemberTypeSymbolFromVar(size_t Start, size_t End
 				auto StrFunc = GetTepFuncPtrName(funcinfo);
 				Out.Type = TypeSymbol(GetTepFuncPtrSyb(StrFunc, funcinfo).value()->ID);
 			}
+			else if (SymbolVar->Type == SymbolType::Unmaped_Varable)
+			{
+				Out.Type = Type_GetUnMapType();
+			}
 
 			if (SymbolVar->Type == SymbolType::Class_Field)
 			{
