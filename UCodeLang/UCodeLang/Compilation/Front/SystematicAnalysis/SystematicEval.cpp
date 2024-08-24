@@ -64,8 +64,8 @@ SystematicAnalysis::EvaluatedEx SystematicAnalysis::Eval_MakeEx(const TypeSymbol
 }
 RawEvaluatedObject SystematicAnalysis::Eval_MakeExr(const TypeSymbol& Type)
 {
-	UCodeLangUnreachable();
-	return RawEvaluatedObject();
+	auto val = Eval_MakeEx(Type);
+	return val.EvaluatedObject;
 }
 
 bool SystematicAnalysis::Eval_EvaluateDefaultConstructor(EvaluatedEx& Out)
@@ -518,15 +518,81 @@ bool SystematicAnalysis::Eval_Evaluate(EvaluatedEx& Out, const ReadVariableNode&
 	return Eval_EvalutateScopedName(Out, nod._VariableName, V);
 }
 
-struct DoBinaryOpContext
+bool SystematicAnalysis::Eval_Evaluate(EvaluatedEx& Out, const MatchExpression& nod,bool runmatchcheck)
 {
-	RawEvaluatedObject* Op1 = nullptr;
-	RawEvaluatedObject* Op2 = nullptr;
-	TokenType type;
-	RawEvaluatedObject* OpOut = nullptr;
-};
+	if (runmatchcheck)
+	{
+		//To do added run time check.
+		UCodeLangAssert(false);
+	}
+
+	auto& matchinfo = _MatchExpressionDatas.GetValue(Symbol_GetSymbolID(nod));
+
+	auto matchtype = TypesEnum::Bool;
+
+	_LookingForTypes.push(matchtype);
+	auto matchval = Eval_Evaluate(matchtype,nod._Expression);
+	_LookingForTypes.pop();
+	
+	auto ToMatchType = matchtype;
+
+	if (!matchval.has_value()) { return false; }
+
+	auto& matchcmptype = matchval.value();
+
+	size_t ScopeCounter = 0;
+	const String ScopeName = GetScopeLabelName(&nod);
+	{
+
+		for (size_t i = 0; i < nod._Arms.size(); i++)
+		{
+			auto& Item = nod._Arms[i];
+			auto& VItem = matchinfo.ArmData.Arms[i];
+
+			_Table.AddScope(ScopeName + std::to_string(ScopeCounter));
+			UCodeLangDefer(_Table.RemoveScope(); );
+			{
+				if (Eval_MatchArm(ToMatchType, matchcmptype, VItem, Item._Expression))
+				{
+					EvaluatedEx ArmType = Eval_MakeEx(matchinfo._MatchAssignmentType);
+					auto matchval = Eval_Evaluate(matchinfo._MatchAssignmentType, Item._AssignmentExpression);
+					
+					if (matchval.has_value()) {
+						Out = std::move(matchval.value());
+					}
+					return matchval.has_value();
+				}
+			}
+			ScopeCounter++;
+		}
+	}
+	if (nod._InvaidCase)
+	{
+		auto matchval = Eval_Evaluate(matchinfo._MatchAssignmentType, nod._InvaidCase.value());
+
+		_Table.AddScope(ScopeName + std::to_string(ScopeCounter));
+		if (matchval.has_value()) 
+		{
+			Out = std::move(matchval.value());
+		}
+		_Table.RemoveScope();
+		
+		return matchval.has_value();
+	}
+	else 
+	{
+		auto val = matchval.value();
+		LogError(ErrorCodes::ExpectingSequence
+			, "None of match arms was true for '" + ToString(val.Type,val.EvaluatedObject) + "'"
+			,NeverNullptr(nod._Token));
+	}
+	
+
+	return false;
+}
+
 template<typename T>
-static void DoBinaryIntOp(DoBinaryOpContext context)
+static void DoBinaryIntOp(const SystematicAnalysis::DoBinaryOpContext& context)
 {
 	T& op1 = *(T*)context.Op1->Object_AsPointer.get();
 	T& op2 = *(T*)context.Op2->Object_AsPointer.get();
@@ -593,6 +659,110 @@ static void DoBinaryIntOp(DoBinaryOpContext context)
 		break;
 	}
 }
+void SystematicAnalysis::DoBinaryOpContextWith(TypeSymbol type,const SystematicAnalysis::DoBinaryOpContext& context)
+{
+	if (type._Type == TypesEnum::Bool)
+	{
+		bool& val0 = *(bool*)context.Op1->Object_AsPointer.get();
+		bool& val1 = *(bool*)context.Op2->Object_AsPointer.get();
+
+		auto outex = Eval_MakeExr(TypesEnum::Bool);
+
+		bool& outval = *(bool*)outex.Object_AsPointer.get();
+		switch (context.type)
+		{
+		case TokenType::equal_Comparison:outval = val0 == val1; break;
+		case TokenType::Notequal_Comparison:outval = val0 != val1; break;
+		default:
+			UCodeLangUnreachable();
+			break;
+		}
+
+		*context.OpOut = std::move(outex);
+		return;
+	}
+	else if (Type_IsIntType(type))
+	{
+		TypeSymbol maintype = type;
+		if (maintype._Type == TypesEnum::uIntPtr)
+		{
+			maintype = Type_GetSize(TypesEnum::uIntPtr).value() == 8
+				? TypeSymbol(TypesEnum::uInt64) : TypeSymbol(TypesEnum::uInt32);
+		}
+		else if (maintype._Type == TypesEnum::sIntPtr)
+		{
+			maintype = Type_GetSize(TypesEnum::sIntPtr).value() == 8
+				? TypeSymbol(TypesEnum::sInt64) : TypeSymbol(TypesEnum::sInt32);
+		}
+
+		switch (maintype._Type)
+		{
+		case TypesEnum::sInt8:DoBinaryIntOp<Int8>(context); break;
+		case TypesEnum::sInt16:DoBinaryIntOp<Int16>(context); break;
+		case TypesEnum::sInt32:DoBinaryIntOp<Int32>(context); break;
+		case TypesEnum::sInt64:DoBinaryIntOp<Int64>(context); break;
+
+		case TypesEnum::uInt8:DoBinaryIntOp<UInt8>(context); break;
+		case TypesEnum::uInt16:DoBinaryIntOp<UInt16>(context); break;
+		case TypesEnum::uInt32:DoBinaryIntOp<UInt32>(context); break;
+		case TypesEnum::uInt64:DoBinaryIntOp<UInt64>(context); break;
+
+
+		default:
+			UCodeLangUnreachable();
+			break;
+		}
+		return;
+	}
+	UCodeLangUnreachable();
+}
+bool SystematicAnalysis::Eval_MatchArm(const TypeSymbol& MatchItem,const EvaluatedEx& Item, MatchArm& Arm, const ExpressionNodeType& ArmEx)
+{
+	bool IsJust =
+		MatchItem._IsAddressArray == false
+		&& MatchItem._IsDynamic == false
+		&& MatchItem._TypeInfo == TypeInfoPrimitive::Null;
+	
+	if (IsJust)
+	{
+		if (Type_IsIntType(MatchItem) ||
+			Type_IsfloatType(MatchItem._Type) ||
+			Type_IsCharType(MatchItem._Type) ||
+			MatchItem._Type == TypesEnum::Bool)
+		{
+
+			if (ArmEx._Value.get()->Get_Type() == NodeType::ValueExpressionNode)
+			{
+				_LookingForTypes.push(MatchItem);
+				auto val = Eval_Evaluate(MatchItem,ArmEx);
+				_LookingForTypes.pop();
+
+				if (val.has_value())
+				{
+					auto& eval = val.value();
+
+					DoBinaryOpContext context;
+					context.Op1 = &eval.EvaluatedObject;
+					context.Op2 = &Item.EvaluatedObject;
+					context.type = TokenType::equal_Comparison;
+
+
+					EvaluatedEx returnedeval = Eval_MakeEx(TypesEnum::Bool);
+					context.OpOut = &returnedeval.EvaluatedObject;
+					DoBinaryOpContextWith(MatchItem,context);
+
+					return *Eval_Get_ObjectAs<bool>(returnedeval);
+				}
+				return false;
+			}
+			else
+			{
+				UCodeLangUnreachable();
+			}
+		}
+	}
+	return false;
+}
 bool SystematicAnalysis::Eval_Evaluate(EvaluatedEx& Out, const BinaryExpressionNode& node)
 {
 	auto Ex0node = node._Value0._Value.get();
@@ -600,8 +770,13 @@ bool SystematicAnalysis::Eval_Evaluate(EvaluatedEx& Out, const BinaryExpressionN
 
 	OnExpressionTypeNode(Ex0node, GetValueMode::Read);//check
 	TypeSymbol Ex0Type = _LastExpressionType;
+
+	_LookingForTypes.push(Ex0Type);
+
 	OnExpressionTypeNode(Ex1node, GetValueMode::Read);//check
 	TypeSymbol Ex1Type = _LastExpressionType;
+	
+	_LookingForTypes.pop();
 
 	auto overload = Type_HasBinaryOverLoadWith(Ex0Type, node._BinaryOp->Type, Ex1Type);
 
@@ -610,9 +785,12 @@ bool SystematicAnalysis::Eval_Evaluate(EvaluatedEx& Out, const BinaryExpressionN
 	}
 
 	auto ex0 = Eval_Evaluate(Ex0Type, node._Value0);
+	
+	_LookingForTypes.push(Ex0Type);
 	auto ex1 = Eval_Evaluate(Ex1Type, node._Value1);
+	_LookingForTypes.pop();
 
-	if (!ex0.has_value() && ex1.has_value())
+	if (!ex0.has_value() || !ex1.has_value())
 	{
 		return false;
 	}
@@ -626,63 +804,13 @@ bool SystematicAnalysis::Eval_Evaluate(EvaluatedEx& Out, const BinaryExpressionN
 
 	if (sametype)
 	{
-		if (extype0._Type == TypesEnum::Bool)
-		{
-			bool& val0 = *(bool*)exval0.Object_AsPointer.get();
-			bool& val1 = *(bool*)exval1.Object_AsPointer.get();
-
-			auto outex = Eval_MakeExr(TypesEnum::Bool);
-
-			bool& outval = *(bool*)outex.Object_AsPointer.get();
-			switch (node._BinaryOp->Type)
-			{
-			case TokenType::equal:outval = val0 == val1; break;
-			case TokenType::Notequal_Comparison:outval = val0 != val1; break;
-			default:
-				UCodeLangUnreachable();
-				break;
-			}
-
-			Out.EvaluatedObject = std::move(outex);
-		}
-		else if (Type_IsIntType(extype0))
-		{
-			DoBinaryOpContext context;
-			context.Op1 = &exval0;
-			context.Op2 = &exval1;
-			context.OpOut = &Out.EvaluatedObject;
-			context.type = node._BinaryOp->Type;
-			TypeSymbol maintype = extype0;
-			if (maintype._Type == TypesEnum::uIntPtr)
-			{
-				maintype = Type_GetSize(TypesEnum::uIntPtr).value() == 8
-					? TypeSymbol(TypesEnum::uInt64) : TypeSymbol(TypesEnum::uInt32);
-			}
-			else if (maintype._Type == TypesEnum::sIntPtr)
-			{
-				maintype = Type_GetSize(TypesEnum::sIntPtr).value() == 8
-					? TypeSymbol(TypesEnum::sInt64) : TypeSymbol(TypesEnum::sInt32);
-			}
-
-			switch (maintype._Type)
-			{
-			case TypesEnum::sInt8:DoBinaryIntOp<Int8>(context); break;
-			case TypesEnum::sInt16:DoBinaryIntOp<Int16>(context); break;
-			case TypesEnum::sInt32:DoBinaryIntOp<Int32>(context); break;
-			case TypesEnum::sInt64:DoBinaryIntOp<Int64>(context); break;
-
-			case TypesEnum::uInt8:DoBinaryIntOp<UInt8>(context); break;
-			case TypesEnum::uInt16:DoBinaryIntOp<UInt16>(context); break;
-			case TypesEnum::uInt32:DoBinaryIntOp<UInt32>(context); break;
-			case TypesEnum::uInt64:DoBinaryIntOp<UInt64>(context); break;
-
-
-			default:
-				UCodeLangUnreachable();
-				break;
-			}
-			return true;
-		}
+		DoBinaryOpContext context;
+		context.Op1 = &exval0;
+		context.Op2 = &exval1;
+		context.OpOut = &Out.EvaluatedObject;
+		context.type = node._BinaryOp->Type;
+		DoBinaryOpContextWith(extype0,context);
+		return true;
 	}
 
 	return false;
@@ -898,7 +1026,7 @@ bool SystematicAnalysis::Eval_CanEvaluateImplicitConversionConstant(const TypeSy
 
 bool SystematicAnalysis::Eval_EvaluateImplicitConversion(EvaluatedEx& In, const TypeSymbol& ToType, EvaluatedEx& out)
 {
-	if (Type_AreTheSame(In.Type, ToType))
+	if (Type_AreTheSame(In.Type, ToType) || (In.Type.IsTypeInfo() && ToType.IsTypeInfo()))
 	{
 		out.Type = In.Type;
 		out.EvaluatedObject = In.EvaluatedObject;
@@ -943,12 +1071,12 @@ bool SystematicAnalysis::Eval_Evaluate(EvaluatedEx& Out, const TypeSymbol& MustB
 		//return true;
 	}
 
-	if (!Type_CanBeImplicitConverted(_LastExpressionType, MustBeType, false))
+	if (!Type_CanBeImplicitConverted(_LastExpressionType, MustBeType, false) && !(_LastExpressionType.IsTypeInfo() && MustBeType.IsTypeInfo()))
 	{
 		LogError_CantCastImplicitTypes(_LastLookedAtToken.value(), _LastExpressionType, MustBeType, false);
 		return false;
 	}
-	if (!Eval_CanEvaluateImplicitConversionConstant(_LastExpressionType, MustBeType))
+	if (!Eval_CanEvaluateImplicitConversionConstant(_LastExpressionType, MustBeType) && !(_LastExpressionType.IsTypeInfo() && MustBeType.IsTypeInfo()))
 	{
 		LogError_Eval_CantCastImplicitTypes(_LastLookedAtToken.value(), _LastExpressionType, MustBeType);
 		return false;

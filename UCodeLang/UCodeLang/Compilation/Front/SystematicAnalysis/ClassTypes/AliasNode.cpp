@@ -65,6 +65,18 @@ void SystematicAnalysis::OnAliasNode(const AliasNode& node)
 
 				V->Context = Save_SymbolContextRemoveOneScopeName();
 			}
+			else if (node._AliasType == AliasType::Match)
+			{
+				const MatchExpression* ex = MatchExpression::As(node._Node.get());
+
+				_LookingForTypes.push(TypesEnum::Var);
+				_GetExpressionMode.push(GetValueMode::Read);
+				
+				OnMatchExpression(*ex);
+
+				_GetExpressionMode.pop();
+				_LookingForTypes.pop();
+			}
 			else
 			{
 
@@ -103,10 +115,53 @@ void SystematicAnalysis::OnAliasNode(const AliasNode& node)
 	{
 		if (!Isgeneric_t)
 		{
-			if (node._AliasType == AliasType::Type)
+			if (node._AliasType == AliasType::Type || node._AliasType == AliasType::Match)
 			{
 				Syb.PassState = PassType::FixedTypes;
-				Type_ConvertAndValidateType(node._Type, Syb.VarType, NodeSyb_t::Any);
+			
+				if (node._AliasType == AliasType::Type) 
+				{
+					Type_ConvertAndValidateType(node._Type, Syb.VarType, NodeSyb_t::Any);
+				}
+				else
+				{
+					const MatchExpression* ex = MatchExpression::As(node._Node.get());
+
+					_LookingForTypes.push(TypesEnum::Var);
+					_GetExpressionMode.push(GetValueMode::Read);
+
+					OnMatchExpression(*ex);
+
+					_GetExpressionMode.pop();
+					_LookingForTypes.pop();
+
+					auto outputtype = _LastExpressionType;
+					if (!outputtype.IsTypeInfo() && !outputtype.IsNull())
+					{
+						LogError(ErrorCodes::InValidType, "Match must return 'typeinfo' type", NeverNullptr(ex->_Token));
+					}
+
+					if (outputtype.IsTypeInfo()) 
+					{
+						EvaluatedEx evalout = Eval_MakeEx(outputtype);
+						bool itworked = Eval_Evaluate(evalout, *ex, false);
+
+						if (itworked)
+						{
+							const TypeSymbol* EvalTypeSymbol = Eval_Get_ObjectAs<TypeSymbol>(evalout);
+
+							TypeSymbol val = *EvalTypeSymbol;
+							val._TypeInfo = TypeInfoPrimitive::Null;
+
+							Syb.VarType = val;
+						}
+						else 
+						{
+							Syb.VarType = TypesEnum::Null;
+						}
+					}
+
+				}
 
 				bool ispublic = node._Access == AccessModifierType::Public;
 				if (node.IsExport && ispublic)
@@ -119,7 +174,7 @@ void SystematicAnalysis::OnAliasNode(const AliasNode& node)
 			}
 			else
 			{
-				AliasNode_Func* node_ = (AliasNode_Func*)node._Node.get();
+				const AliasNode_Func* node_ = (AliasNode_Func*)node._Node.get();
 				FuncPtrInfo* nodeinfo_ = (FuncPtrInfo*)Syb.Info.get();
 
 				auto& GenericList = node.Generic;
@@ -158,7 +213,7 @@ void SystematicAnalysis::OnAliasNode(const AliasNode& node)
 	{
 		if (!Isgeneric_t)
 		{
-			if (node._AliasType == AliasType::Type)
+			if (node._AliasType == AliasType::Type || node._AliasType == AliasType::Match)
 			{
 				auto& V = _Lib.Get_Assembly().AddAlias((String)ClassName, RemoveSymboolFuncOverloadMangling(_Table._Scope.ThisScope));
 				V.Type = Assembly_ConvertToType(Syb.VarType);

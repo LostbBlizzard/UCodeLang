@@ -131,7 +131,10 @@ void SystematicAnalysis::OnExpressionNode(const BinaryExpressionNode& node)
 
 
 			
-			_BinaryExpressionNode_Datas.AddValue(Symbol_GetSymbolID(node), V);
+			if (!_BinaryExpressionNode_Datas.HasValue(Symbol_GetSymbolID(node)))
+			{
+				_BinaryExpressionNode_Datas.AddValue(Symbol_GetSymbolID(node), V);
+			}
 
 
 		}

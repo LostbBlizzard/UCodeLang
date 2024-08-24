@@ -752,6 +752,7 @@ void SystematicAnalysis::OnMatchExpression(const MatchExpression& node)
 
 		MatchExpressionData V;
 
+		bool haserror = false;
 		for (auto& Item : node._Arms)
 		{
 			_Table.AddScope(ScopeName + std::to_string(ScopeCounter));
@@ -774,10 +775,25 @@ void SystematicAnalysis::OnMatchExpression(const MatchExpression& node)
 			
 			if (!Type_CanBeImplicitConverted(AssignmentType, MatchAssignmentType))
 			{
-				const NeverNullPtr<Token> token = _LastLookedAtToken.value();
-				LogError_CantCastImplicitTypes(token, MatchAssignmentType, AssignmentType, false);
+				bool next = true;
+				//TODO make sure this only happens in an AlasNode.
+				if (MatchAssignmentType.IsTypeInfo() && AssignmentType.IsTypeInfo())
+				{
+					next = false;
+				}
+
+				if (next) 
+				{
+					const NeverNullPtr<Token> token = _LastLookedAtToken.value();
+					LogError_CantCastImplicitTypes(token, MatchAssignmentType, AssignmentType, false);
+					haserror = true;
+				}
 			}
 
+			if (AssignmentType.IsNull())
+			{
+				haserror = true;
+			}
 
 			_Table.RemoveScope();
 
@@ -822,7 +838,14 @@ void SystematicAnalysis::OnMatchExpression(const MatchExpression& node)
 		V._MatchAssignmentType = MatchAssignmentType;
 		_MatchExpressionDatas.AddValue(Symbol_GetSymbolID(node), std::move(V));
 
-		_LastExpressionType = MatchAssignmentType;
+		if (haserror)
+		{
+			_LastExpressionType = TypesEnum::Null;
+		}
+		else 
+		{
+			_LastExpressionType = MatchAssignmentType;
+		}
 	}
 	else if (_PassType == PassType::BuidCode)
 	{

@@ -856,6 +856,13 @@ private:
 		size_t errcount = 0;
 	};
 
+	struct DoBinaryOpContext
+	{
+		const RawEvaluatedObject* Op1 = nullptr;
+		const RawEvaluatedObject* Op2 = nullptr;
+		TokenType type = TokenType::Null;
+		RawEvaluatedObject* OpOut = nullptr;
+	};
 	//Members
 	CompilationErrors* _ErrorsOutput = nullptr;
 	CompilationSettings* _Settings = nullptr;
@@ -2093,6 +2100,9 @@ private:
 	bool Eval_Evaluate(EvaluatedEx& Out, const BinaryExpressionNode& node);
 	bool Eval_Evaluate(EvaluatedEx& Out, const CastNode& node);
 	bool Eval_Evaluate(EvaluatedEx& Out, const ReadVariableNode& nod);
+	bool Eval_Evaluate(EvaluatedEx& Out, const MatchExpression& nod,bool runmatchcheck = true);
+	bool Eval_MatchArm(const TypeSymbol& MatchItem, const EvaluatedEx& Item, MatchArm& Arm, const ExpressionNodeType& ArmEx);
+	void DoBinaryOpContextWith(TypeSymbol type,const DoBinaryOpContext& context);
 	bool Eval_Evaluate_t(EvaluatedEx& Out, const Node* node, GetValueMode Mode);
 	bool Eval_Evaluate(EvaluatedEx& Out, const ExpressionNodeType& node, GetValueMode Mode);
 	bool Eval_EvaluatePostfixOperator(EvaluatedEx& Out, TokenType Op);

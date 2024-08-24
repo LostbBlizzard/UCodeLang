@@ -306,6 +306,13 @@ GotNodeType Parser::GetAlias(const Token* AliasName, GenericValuesNode&& AliasGe
 
 		r = GetType(Func->_ReturnType);
 	}
+	else if (FirtToken->Type == TokenType::KeyWord_match)
+	{
+		out._AliasType = AliasType::Match;
+		auto ex = new MatchExpression();
+		out._Node.reset(ex);
+		r = GetMatchExpression(*ex);
+	}
 	else
 	{
 		r = GetType(out._Type, false, false);
