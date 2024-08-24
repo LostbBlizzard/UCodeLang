@@ -1261,7 +1261,7 @@ private:
 	void OnEnum(const EnumNode& node);
 	void OnNamespace(const NamespaceNode& node);
 	void OnAttributeNode(const AttributeNode& node, OptionalRef<Vector<Symbol*>> Out = {});
-	void OnAttributesNode(const Vector<Unique_ptr<AttributeNode>>& nodes,OptionalRef<Vector<Symbol*>> Out = {});
+	void OnAttributesNode(const Vector<Unique_ptr<AttributeNode>>& nodes, OptionalRef<Vector<Symbol*>> Out = {});
 	void OnDeclareVariablenode(const DeclareVariableNode& node, DeclareStaticVariableNode_t type);
 
 	bool IsEnableAttribute(const Symbol& symbol);
@@ -1516,7 +1516,7 @@ private:
 	{
 		bool IsgenericInstantiation = false;
 	};
-	void Assembly_AddClass(const Vector<Unique_ptr<AttributeNode>>& attributes, const NeverNullPtr<Symbol> ClassSyb,Optional<AddClassExtraInfo> Extra = {});
+	void Assembly_AddClass(const Vector<Unique_ptr<AttributeNode>>& attributes, const NeverNullPtr<Symbol> ClassSyb, Optional<AddClassExtraInfo> Extra = {});
 	ReflectionTypeInfo Assembly_ConvertToType(const TypeSymbol& Type);
 
 	void Assembly_AddEnum(const NeverNullPtr<Symbol> ClassSyb);
@@ -1563,7 +1563,7 @@ private:
 
 
 
-	void Type_Convert(const TypeNode& V, TypeSymbol& Out,bool allowtraitasself = false);
+	void Type_Convert(const TypeNode& V, TypeSymbol& Out, bool allowtraitasself = false);
 
 	NullablePtr<Symbol> Generic_InstantiateOrFindGenericSymbol(const NeverNullPtr<Token> Token, const UseGenericsNode& GenericsVals, const String_view& Name);
 
@@ -1729,7 +1729,7 @@ private:
 	void Symbol_Update_ThreadAndStatic_ToFixedTypes(NeverNullPtr<Symbol> Sym);
 	void Symbol_Update_ForType_ToFixedTypes(NeverNullPtr<Symbol> Sym);
 	void Symbol_Update_ClassField_ToFixedTypes(NeverNullPtr<Symbol> Sym);
-	
+
 	void Symbol_Update_Sym_ToFixedTypes(NeverNullPtr<Symbol> Sym);
 
 	Optional<size_t> Type_GetSize(const TypeSymbol& Type)
@@ -1757,7 +1757,7 @@ private:
 
 	Vector<Symbol*> Type_FindForTypeFuncions(const TypeSymbol& ThisType);
 	Vector<Symbol*> Type_FindForTypeFuncions(const TypeSymbol& ThisType, const String& FuncionName);
-	Get_FuncInfo Type_GetFunc(const TypeSymbol& Name, const ValueParametersNode& Pars,const NeverNullPtr<Token> token);
+	Get_FuncInfo Type_GetFunc(const TypeSymbol& Name, const ValueParametersNode& Pars, const NeverNullPtr<Token> token);
 	Get_FuncInfo Type_GetFunc(const ScopedNameNode& Name, const ValueParametersNode& Pars, TypeSymbol Ret);
 
 	Optional<Optional<Get_FuncInfo>> Type_FuncinferGenerics(Vector<TypeSymbol>& GenericInput, const Vector<ParInfo>& ValueTypes
@@ -1784,7 +1784,7 @@ private:
 	const OptionalRef<Vector<TypeSymbol>> GetTypePackFromInputPar(const Vector<ParInfo>& Pars);
 	ParInfo GetParInfoResolveTypePack(size_t i, const Vector<ParInfo>& Pars, const OptionalRef<Vector<TypeSymbol>> TypePack);
 	size_t GetParCountResolveTypePack(const Vector<ParInfo>& Pars);
-	
+
 	int Type_GetCompatibleScore(const ParInfo& ParFunc, const ParInfo& Value);
 	int Type_GetCompatibleScore(const IsCompatiblePar& Func, const Vector<ParInfo>& ValueTypes);
 
@@ -1830,7 +1830,7 @@ private:
 	void Generic_TypeInstantiate_Tag(const NeverNullPtr<Symbol> Trait, const Vector<TypeSymbol>& Type);
 	void Generic_TypeInstantiate_ForType(const NeverNullPtr<Symbol> ForType, const Vector<TypeSymbol>& Type);
 
-	bool TypeHasTrait(const TypeSymbol& Type,SymbolID id);
+	bool TypeHasTrait(const TypeSymbol& Type, SymbolID id);
 
 	EvaluatedEx Eval_MakeEx(const TypeSymbol& Type);
 	RawEvaluatedObject Eval_MakeExr(const TypeSymbol& Type);
@@ -1947,13 +1947,13 @@ private:
 		if (GenericData.IsPack())
 		{
 			auto mingenericcount = GenericData._Genericlist.size();
-			hasbadgenericcount = mingenericcount < UseNode._Values.size(); 
+			hasbadgenericcount = mingenericcount < UseNode._Values.size();
 		}
-		else 
+		else
 		{
-			hasbadgenericcount = GenericData._Genericlist.size() != UseNode._Values.size(); 
+			hasbadgenericcount = GenericData._Genericlist.size() != UseNode._Values.size();
 		}
-		
+
 		if (hasbadgenericcount)
 		{
 			LogError_CanIncorrectGenericCount(Name, Name->Value._String, UseNode._Values.size(), GenericData._Genericlist.size());
@@ -2100,9 +2100,79 @@ private:
 	bool Eval_Evaluate(EvaluatedEx& Out, const BinaryExpressionNode& node);
 	bool Eval_Evaluate(EvaluatedEx& Out, const CastNode& node);
 	bool Eval_Evaluate(EvaluatedEx& Out, const ReadVariableNode& nod);
-	bool Eval_Evaluate(EvaluatedEx& Out, const MatchExpression& nod,bool runmatchcheck = true);
+	bool Eval_Evaluate(EvaluatedEx& Out, const MatchExpression& nod, bool runmatchcheck = true);
 	bool Eval_MatchArm(const TypeSymbol& MatchItem, const EvaluatedEx& Item, MatchArm& Arm, const ExpressionNodeType& ArmEx);
-	void DoBinaryOpContextWith(TypeSymbol type,const DoBinaryOpContext& context);
+	void DoBinaryOpContextWith(TypeSymbol type, const DoBinaryOpContext& context);
+
+	template<typename T>
+	static void DoBinaryIntOp(const SystematicAnalysis::DoBinaryOpContext& context)
+	{
+		T& op1 = *(T*)context.Op1->Object_AsPointer.get();
+		T& op2 = *(T*)context.Op2->Object_AsPointer.get();
+		T& out = *(T*)context.OpOut->Object_AsPointer.get();
+		bool& outequal = *(bool*)context.OpOut->Object_AsPointer.get();
+
+		switch (context.type)
+		{
+		case TokenType::plus:
+			out = op1 + op2;
+			break;
+		case TokenType::minus:
+			out = op1 + op2;
+			break;
+		case TokenType::star:
+			out = op1 * op2;
+			break;
+		case TokenType::forwardslash:
+			out = op1 / op2;
+			break;
+		case TokenType::modulo:
+			out = op1 % op2;
+			break;
+
+		case TokenType::equal_Comparison:
+			outequal = op1 == op2;
+			break;
+		case TokenType::Notequal_Comparison:
+			outequal = op1 != op2;
+			break;
+		case TokenType::logical_and:
+			outequal = op1 && op2;
+			break;
+		case TokenType::logical_or:
+			outequal = op1 || op2;
+			break;
+		case TokenType::greater_than_or_equalto:
+			outequal = op1 >= op2;
+			break;
+		case TokenType::less_than_or_equalto:
+			outequal = op1 <= op2;
+			break;
+		case TokenType::greaterthan:
+			outequal = op1 > op2;
+			break;
+		case TokenType::lessthan:
+			outequal = op1 < op2;
+			break;
+
+		case TokenType::bitwise_LeftShift:
+			out = op1 << op2;
+			break;
+		case TokenType::bitwise_RightShift:
+			out = op1 >> op2;
+			break;
+		case TokenType::bitwise_and:
+			out = op1 && op2;
+			break;
+		case TokenType::bitwise_or:
+			out = op1 || op2;
+			break;
+		default:
+			UCodeLangUnreachable();
+			break;
+		}
+	}
+
 	bool Eval_Evaluate_t(EvaluatedEx& Out, const Node* node, GetValueMode Mode);
 	bool Eval_Evaluate(EvaluatedEx& Out, const ExpressionNodeType& node, GetValueMode Mode);
 	bool Eval_EvaluatePostfixOperator(EvaluatedEx& Out, TokenType Op);
