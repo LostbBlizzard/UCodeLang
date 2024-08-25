@@ -3543,6 +3543,7 @@ void SystematicAnalysis::LogError_CantUseMoveTypeHere(const NeverNullPtr<Token> 
 }
 void SystematicAnalysis::LogError_DynamicMustBeRrait(const TypeNode& V, const TypeSymbol& Out)
 {
+	if (Out.IsBadType()) { return; }
 	auto token = V._name._ScopedName.back()._token;
 	LogError(ErrorCodes::InValidType, token->OnLine, token->OnPos, "using a Dynamic type on a none trait the type found '" + ToString(Out) + "'");
 }
