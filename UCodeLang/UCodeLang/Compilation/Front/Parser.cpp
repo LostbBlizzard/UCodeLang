@@ -139,7 +139,7 @@ void Parser::TokenTypeCheck(const Token* Value, TokenType Type)
 	{
 		if (!_HasTripped)
 		{
-			auto& Error = _ErrorsOutput->AddError(ErrorCodes::ExpectingToken, Value->OnLine, Value->OnPos);
+     		auto& Error = _ErrorsOutput->AddError(ErrorCodes::ExpectingToken, Value->OnLine, Value->OnPos);
 
 			if (Value->Type == TokenType::Name) {
 
@@ -2182,7 +2182,7 @@ GotNodeType Parser::TryGetGeneric(UseGenericsNode& out)
 			else
 			{
 				TypeNode Item;
-				GetType(Item);
+				GetType(Item,false,false);
 				out._Values.push_back(std::move(Item));
 			}
 			auto Token = TryGetToken();
@@ -2496,6 +2496,9 @@ GotNodeType Parser::GetType(TypeNode*& out, bool ignoreRighthandOFtype, bool ign
 	GotNodeType r = GotNodeType::Success;
 	auto Token = TryGetToken();
 	bool Isasync = false;
+	bool addeddynmaiccloseing = false;
+	bool hadsdynamic = false;
+	
 	if (!ignoreleftHandType)
 	{
 		if (Token->Type == TokenType::KeyWord_imut)
@@ -2546,6 +2549,7 @@ GotNodeType Parser::GetType(TypeNode*& out, bool ignoreRighthandOFtype, bool ign
 
 		if (Token->Type == TokenType::KeyWord_dynamic)
 		{
+			hadsdynamic = true;
 			out->SetDynamic();
 			NextToken();
 			Token = TryGetToken();
@@ -2553,7 +2557,7 @@ GotNodeType Parser::GetType(TypeNode*& out, bool ignoreRighthandOFtype, bool ign
 			TokenTypeCheck(Token, TokenType::lessthan);
 			NextToken();
 
-			Token = TryGetToken();
+			Token = TryGetToken();	
 		}
 	}
 	else
@@ -2597,7 +2601,21 @@ GotNodeType Parser::GetType(TypeNode*& out, bool ignoreRighthandOFtype, bool ign
 	{
 		TokenTypeCheck(Token, TokenType::Name);
 	}
+	
+	if (hadsdynamic && addeddynmaiccloseing == false && TryGetToken()->Type == TokenType::greaterthan)
+	{
+		addeddynmaiccloseing = true;
+		NextToken();
+	}
 
+	auto ChangeTypeNodes = [](TypeNode* New,TypeNode* out)
+		{
+			New->_Isimmutable = out->_Isimmutable;
+			out->_Isimmutable = false;
+
+			New->_IsDynamic = out->_IsDynamic;
+			out->_IsDynamic  = false;
+		};
 
 	auto Token2 = TryGetToken();
 	while (!ignoreRighthandOFtype && Token2)
@@ -2614,7 +2632,15 @@ GotNodeType Parser::GetType(TypeNode*& out, bool ignoreRighthandOFtype, bool ign
 			bool Break = false;
 			NextToken();
 			Token2 = TryGetToken();
-			if (Token2->Type == TokenType::bitwise_and)//int[&]
+			if (addeddynmaiccloseing == false 
+				&& out->_IsDynamic
+				&& Token2->Type == TokenType::greaterthan)
+			{
+				addeddynmaiccloseing = true;
+				NextToken();
+				Token = TryGetToken();
+			}
+			else if (Token2->Type == TokenType::bitwise_and)//int[&]
 			{
 				NextToken();
 
@@ -2666,10 +2692,8 @@ GotNodeType Parser::GetType(TypeNode*& out, bool ignoreRighthandOFtype, bool ign
 			{
 				//NextToken();
 				TypeNode* New = new TypeNode();
-
-				New->_Isimmutable = out->_Isimmutable;
-				out->_Isimmutable = false;
-
+				
+				ChangeTypeNodes(New, out);
 
 				auto NameToken = new UCodeLang::Token();
 				NameToken->OnLine = Token2->OnLine;
@@ -2692,8 +2716,7 @@ GotNodeType Parser::GetType(TypeNode*& out, bool ignoreRighthandOFtype, bool ign
 				NextToken();
 				TypeNode* New = new TypeNode();
 
-				New->_Isimmutable = out->_Isimmutable;
-				out->_Isimmutable = false;
+				ChangeTypeNodes(New, out);
 
 				auto NameToken = new UCodeLang::Token();
 				NameToken->OnLine = Token2->OnLine;
@@ -2716,9 +2739,8 @@ GotNodeType Parser::GetType(TypeNode*& out, bool ignoreRighthandOFtype, bool ign
 				NextToken();
 				TypeNode* New = new TypeNode();
 
-				New->_Isimmutable = out->_Isimmutable;
-				out->_Isimmutable = false;
-
+				ChangeTypeNodes(New, out);
+				
 				auto NameToken = new UCodeLang::Token();
 				NameToken->OnLine = Token2->OnLine;
 				NameToken->OnPos = Token2->OnPos;
@@ -2746,9 +2768,8 @@ GotNodeType Parser::GetType(TypeNode*& out, bool ignoreRighthandOFtype, bool ign
 				{
 					TypeNode* New = new TypeNode();
 					{
-						New->_Isimmutable = out->_Isimmutable;
-						out->_Isimmutable = false;
-
+						ChangeTypeNodes(New, out);
+						
 						auto NameToken = new UCodeLang::Token();
 						NameToken->OnLine = Token2->OnLine;
 						NameToken->OnPos = Token2->OnPos;
@@ -2793,9 +2814,8 @@ GotNodeType Parser::GetType(TypeNode*& out, bool ignoreRighthandOFtype, bool ign
 					GetType(keytype);
 
 					{
-						New->_Isimmutable = out->_Isimmutable;
-						out->_Isimmutable = false;
-
+						ChangeTypeNodes(New, out);
+					
 						auto NameToken = new UCodeLang::Token();
 						NameToken->OnLine = Token2->OnLine;
 						NameToken->OnPos = Token2->OnPos;
@@ -2846,10 +2866,8 @@ GotNodeType Parser::GetType(TypeNode*& out, bool ignoreRighthandOFtype, bool ign
 			NextToken();
 			TypeNode* New = new TypeNode();
 
-			New->_Isimmutable = out->_Isimmutable;
-			out->_Isimmutable = false;
-
-
+			ChangeTypeNodes(New, out);
+			
 			auto NameToken = new UCodeLang::Token();
 			NameToken->OnLine = Token2->OnLine;
 			NameToken->OnPos = Token2->OnPos;
@@ -2873,8 +2891,7 @@ GotNodeType Parser::GetType(TypeNode*& out, bool ignoreRighthandOFtype, bool ign
 			NextToken();
 			TypeNode* New = new TypeNode();
 
-			New->_Isimmutable = out->_Isimmutable;
-			out->_Isimmutable = false;
+			ChangeTypeNodes(New, out);
 
 			auto NameToken = new UCodeLang::Token();
 			NameToken->OnLine = Token2->OnLine;
@@ -2899,9 +2916,8 @@ GotNodeType Parser::GetType(TypeNode*& out, bool ignoreRighthandOFtype, bool ign
 			NextToken();
 			TypeNode* New = new TypeNode();
 
-			New->_Isimmutable = out->_Isimmutable;
-			out->_Isimmutable = false;
-
+			ChangeTypeNodes(New, out);
+			
 			auto NameToken = new UCodeLang::Token();
 			NameToken->OnLine = Token2->OnLine;
 			NameToken->OnPos = Token2->OnPos;
@@ -2938,9 +2954,8 @@ GotNodeType Parser::GetType(TypeNode*& out, bool ignoreRighthandOFtype, bool ign
 			}
 			TypeNode* New = new TypeNode();
 
-			New->_Isimmutable = out->_Isimmutable;
-			out->_Isimmutable = false;
-
+			ChangeTypeNodes(New, out);
+			
 			auto NameToken = new UCodeLang::Token();
 			NameToken->OnLine = Token2->OnLine;
 			NameToken->OnPos = Token2->OnPos;
@@ -3027,7 +3042,7 @@ GotNodeType Parser::GetType(TypeNode*& out, bool ignoreRighthandOFtype, bool ign
 	}
 
 
-	if (out->_IsDynamic)
+	if (addeddynmaiccloseing == false && hadsdynamic)
 	{
 		TokenTypeCheck(TryGetToken(), TokenType::greaterthan);
 		NextToken();
