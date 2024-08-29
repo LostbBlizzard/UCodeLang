@@ -129,9 +129,11 @@ void SystematicAnalysis::OnAliasNode(const AliasNode& node)
 
 					_LookingForTypes.push(TypesEnum::Var);
 					_GetExpressionMode.push(GetValueMode::Read);
+					_NodeTypeStack.push_back(NodeType::InturnalEvalTypeCheck);
 
 					OnMatchExpression(*ex);
 
+					_NodeTypeStack.pop_back();
 					_GetExpressionMode.pop();
 					_LookingForTypes.pop();
 

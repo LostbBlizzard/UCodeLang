@@ -91,6 +91,9 @@ enum class NodeType :UInt8
 	UnaryExpressionNode,
 	ForTypeNode,
 	ExtendedFuncStatement,
+
+	//Inturnal used in SystematicAnalyis
+	InturnalEvalTypeCheck,
 };
 
 

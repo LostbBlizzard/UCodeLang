@@ -2208,12 +2208,22 @@ void SystematicAnalysis::OnTypeToValueNode(const TypeToValueNode& node)
 
 	if (_PassType == PassType::FixedTypes)
 	{
+		if (TypesBeingCheckedForEval())// This check is here becuase we dont want instantiate generics on match as may not be seclected.
+		{
+			TypeSymbol Type = TypesEnum::Any;
+			Type.SetAsTypeInfo();
 
-		auto Type = Type_ConvertAndValidateType(node.TypeOp, NodeSyb_t::Any);
-		Type.SetAsTypeInfo();
+
+			_LastExpressionType = Type;
+		}
+		else 
+		{
+			auto Type = Type_ConvertAndValidateType(node.TypeOp, NodeSyb_t::Any);
+			Type.SetAsTypeInfo();
 
 
-		_LastExpressionType = Type;
+			_LastExpressionType = Type;
+		}
 	}
 	else if (_PassType == PassType::BuidCode)
 	{

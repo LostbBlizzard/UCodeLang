@@ -2221,6 +2221,17 @@ Optional<Systematic_BuiltInFunctions::Func> Systematic_BuiltInFunctions::GetFunc
 	return {};
 }
 
+bool SystematicAnalysis::TypesBeingCheckedForEval()
+{
+	for (auto& Item : _NodeTypeStack)
+	{
+		if (Item == NodeType::InturnalEvalTypeCheck)
+		{
+			return true;
+		}
+	}
+	return false;
+}
 UCodeLangFrontEnd
 
 #endif
