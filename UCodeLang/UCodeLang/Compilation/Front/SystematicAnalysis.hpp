@@ -525,7 +525,6 @@ private:
 
 		WritePointerReassment,
 	};
-
 	struct Get_FuncInfo
 	{
 		enum class ThisPar_t : UInt8
@@ -1982,7 +1981,7 @@ private:
 			Type_ConvertAndValidateType(Tnode, Type, NodeSyb_t::Any);
 			_LookingForTypes.pop();
 
-			if (Type_IsUnMapType(Type))
+			if (Type_IsUnMapType(Type) || Type.IsNull())
 			{
 				return nullptr;
 			}
@@ -2222,6 +2221,8 @@ private:
 	IRInstruction* IR_RawObjectDataToCString(const RawEvaluatedObject& EvalObject);
 
 	bool EvalStore(EvalFuncData& State, const ExpressionNodeType& Storenode, EvaluatedEx& In);
+	
+	bool TypesBeingCheckedForEval();
 	//IR
 	void IR_Build_FuncCall(Get_FuncInfo Func, const ScopedNameNode& Name, const ValueParametersNode& Pars);
 	void IR_Build_FuncCall(const TypeSymbol& Type, const Get_FuncInfo& Func, const ValueParametersNode& ValuePars);
