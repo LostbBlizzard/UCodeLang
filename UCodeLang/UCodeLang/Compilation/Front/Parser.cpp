@@ -842,7 +842,7 @@ GotNodeType Parser::GetStatement(Unique_ptr<Node>& out)
 		{
 
 			auto TokenV = TryGetToken();
-			if (TokenV->Type == TokenType::KeyWord_bind)
+			if (TokenV->Type == TokenType::KeyWord_bind || TokenV->Type == TokenType::KeyWord_dynamic)
 			{
 				StatemeType = MyEnum::DeclareVar;
 				break;
@@ -2612,9 +2612,6 @@ GotNodeType Parser::GetType(TypeNode*& out, bool ignoreRighthandOFtype, bool ign
 		{
 			New->_Isimmutable = out->_Isimmutable;
 			out->_Isimmutable = false;
-
-			New->_IsDynamic = out->_IsDynamic;
-			out->_IsDynamic  = false;
 		};
 
 	auto Token2 = TryGetToken();
@@ -5191,7 +5188,7 @@ GotNodeType Parser::GetUnqExpresionNode(Unique_ptr<Node>& out)
 	NextToken();
 
 	TypeNode TypeNode;
-	GetType(TypeNode, true);
+	auto gottype = GetType(TypeNode, true);
 
 	auto ParToken = TryGetToken();
 	if (ParToken->Type == FuncCallStart) {
@@ -5233,8 +5230,9 @@ GotNodeType Parser::GetUnqExpresionNode(Unique_ptr<Node>& out)
 	else
 	{
 		TokenTypeCheck(ParToken, FuncCallStart);
+		return GotNodeType::Error;
 	}
-	return GotNodeType::Success;
+	return gottype;
 }
 void Parser::SmartPointerNewArray(TypeNode& TypeNode, const Token* Token, Unique_ptr<FuncCallNode>& OutNode,Unique_ptr<Node>& ArrayCountexpression, String_view SmartPointerName, String_view SmartPoinerMakeFunc)
 {
