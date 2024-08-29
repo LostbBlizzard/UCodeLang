@@ -1581,7 +1581,14 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 						}
 						else
 						{
-							ScopedName = Syb.value()->FullName;
+							if (Syb.value()->Type == SymbolType::Type_alias)
+							{
+								ScopedName = ToString(Syb.value()->VarType);
+							}
+							else 
+							{
+								ScopedName = Syb.value()->FullName;
+							}
 						}
 					}
 					if (Item._operator != ScopedName::Operator_t::Null)
