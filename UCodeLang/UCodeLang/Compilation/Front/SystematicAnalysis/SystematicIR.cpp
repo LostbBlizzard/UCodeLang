@@ -389,7 +389,11 @@ bool SystematicAnalysis::IR_Build_ImplicitConversion(IRInstruction* Ex, const Ty
 						}
 					}
 				}
-				else if (Item2->Type == SymbolType::GenericFunc)
+			}
+
+			for (auto& Item2 : ConstructorSymbols)
+			{
+				if (Item2->Type == SymbolType::GenericFunc)
 				{
 					FuncInfo* funcinfo = Item2->Get_Info<FuncInfo>();
 					if (funcinfo->Pars.size() == 2)
@@ -404,9 +408,21 @@ bool SystematicAnalysis::IR_Build_ImplicitConversion(IRInstruction* Ex, const Ty
 
 						auto v = Type_FuncinferGenerics(InputGeneric, ValueTypes, &usegeneric, Item2, true);
 
-
-						if (InputGeneric.size() == funcgenericdata._Genericlist.size())
+						if (InputGeneric.size() == funcgenericdata._Genericlist.size() && !funcgenericdata.IsPack())
 						{
+							{
+								bool exit = false;
+								for (auto& Item : InputGeneric)
+								{
+									if (Type_IsUnMapType(Item))
+									{
+										exit = true;
+										break;
+									}
+								}
+								if (exit) { break; }
+							}
+							
 							String NewName = Generic_SymbolGenericFullName(Item2, InputGeneric);
 							auto FuncIsMade = Symbol_GetSymbol(NewName, SymbolType::Func);
 							
@@ -440,7 +456,6 @@ bool SystematicAnalysis::IR_Build_ImplicitConversion(IRInstruction* Ex, const Ty
 						}
 					}
 				}
-
 			}
 		}
 	}

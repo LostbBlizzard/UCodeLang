@@ -2256,8 +2256,19 @@ NullablePtr<FuncInfo> SystematicAnalysis::Symbol_GetAnImplicitConvertedFunc(cons
 						auto v = Type_FuncinferGenerics(InputGeneric, ValueTypes, &usegeneric, Item2, true);
 
 
-						if (InputGeneric.size() == funcgenericdata._Genericlist.size())
+						if (InputGeneric.size() == funcgenericdata._Genericlist.size() && !funcgenericdata.IsPack())
 						{
+							bool exit = false;
+							for (auto& Item : InputGeneric)
+							{
+								if (Type_IsUnMapType(Item))
+								{
+									exit = true;
+									break;
+								}
+							}
+							if (exit) { break; } 
+							
 							auto& val = v.value();
 							if (val.has_value())
 							{
