@@ -389,6 +389,57 @@ bool SystematicAnalysis::IR_Build_ImplicitConversion(IRInstruction* Ex, const Ty
 						}
 					}
 				}
+				else if (Item2->Type == SymbolType::GenericFunc)
+				{
+					FuncInfo* funcinfo = Item2->Get_Info<FuncInfo>();
+					if (funcinfo->Pars.size() == 2)
+					{
+						auto funcnode = Item2->Get_NodeInfo<FuncNode>();
+						auto& funcgenericdata = funcinfo->_GenericData;
+
+						Vector<TypeSymbol> InputGeneric;
+						Vector<ParInfo> ValueTypes = { funcinfo->Pars[0],ParInfo{false,ExType} };
+
+						UseGenericsNode usegeneric;
+
+						auto v = Type_FuncinferGenerics(InputGeneric, ValueTypes, &usegeneric, Item2, true);
+
+
+						if (InputGeneric.size() == funcgenericdata._Genericlist.size())
+						{
+							String NewName = Generic_SymbolGenericFullName(Item2, InputGeneric);
+							auto FuncIsMade = Symbol_GetSymbol(NewName, SymbolType::Func);
+							
+							if (FuncIsMade.has_value())
+							{
+								auto func = FuncIsMade.value()->Get_Info<FuncInfo>();
+
+								auto v = func->Pars[0].Type;
+								v._IsAddress = false;
+								IRInstruction* ret = _IR_LookingAtIRBlock->NewLoad(IR_ConvertToIRType(v));
+
+								_IR_LookingAtIRBlock->NewPushParameter(_IR_LookingAtIRBlock->NewLoadPtr(ret));
+
+								auto& Par = func->Pars[1];
+								if (!ExType.IsAddress() && (Par.Type.IsAddress() || Par.Type.IsMovedType()))
+								{
+									Ex = _IR_LookingAtIRBlock->NewLoadPtr(Ex);
+								}
+
+								_IR_LookingAtIRBlock->NewPushParameter(Ex);
+							
+								_IR_LookingAtIRBlock->NewCall(IR_GetIRID(func));
+								_IR_LastExpressionField = ret;
+								return true;
+							}
+							else
+							{
+								//Should be made already.
+								UCodeLangUnreachable();
+							}
+						}
+					}
+				}
 
 			}
 		}

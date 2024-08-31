@@ -2228,14 +2228,66 @@ NullablePtr<FuncInfo> SystematicAnalysis::Symbol_GetAnImplicitConvertedFunc(cons
 						{
 							par._Isimmutable = false;
 						}
-							
+
 						if (Type_AreTheSame(par, ToType))
 						{
 							return Nullableptr(funcinfo);
 						}
 					}
 				}
+			}
 
+			//Prefer Func over generic Func
+			for (auto& Item2 : ConstructorSymbols)
+			{
+				if (Item2->Type == SymbolType::GenericFunc)
+				{
+					FuncInfo* funcinfo = Item2->Get_Info<FuncInfo>();
+					if (funcinfo->Pars.size() == 2)
+					{
+						auto funcnode = Item2->Get_NodeInfo<FuncNode>();
+						auto& funcgenericdata = funcinfo->_GenericData;
+
+						Vector<TypeSymbol> InputGeneric;
+						Vector<ParInfo> ValueTypes = { funcinfo->Pars[0],ParInfo{false,ToType} };
+
+						UseGenericsNode usegeneric;
+
+						auto v = Type_FuncinferGenerics(InputGeneric, ValueTypes, &usegeneric, Item2, true);
+
+
+						if (InputGeneric.size() == funcgenericdata._Genericlist.size())
+						{
+							auto& val = v.value();
+							if (val.has_value())
+							{
+								return Nullableptr(val.value().Func);
+							}
+							else
+							{
+								String NewName = Generic_SymbolGenericFullName(Item2, InputGeneric);
+								auto FuncIsMade = Symbol_GetSymbol(NewName, SymbolType::Func);
+
+								if (FuncIsMade)
+								{
+									return FuncIsMade.value()->Get_Info<FuncInfo>();
+								}
+								else 
+								{
+									auto Pointer = std::make_unique<Vector<TypeSymbol>>(std::move(InputGeneric));
+									//pointer must be unique so it can't be on the stack
+
+									Generic_GenericFuncInstantiate(Item2, *Pointer);
+
+									_TepFuncs.push_back({ std::move(Pointer) });//keep pointer 
+
+									return Symbol_GetSymbol(NewName, SymbolType::Func).value().value()->Get_Info<FuncInfo>();
+								}
+							}
+						}
+					}
+
+				}
 			}
 		}
 	}
