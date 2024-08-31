@@ -39,3 +39,20 @@ Tests:
   Swap(Vptr,Bptr);
 
   ret Vptr~>X == Bptr~>Y && Vptr~>Y == Bptr~>X && Bptr~>X == 8;
+ 
+ [Test]
+ |Unique_ptr_6[]:
+  $Item trait export:
+   dynamic |SomeFunc[this&] -> int;
+  
+  $SomeType[Item] export: 
+    int somevalue = 0;
+    |new[this&,int value]:
+     somevalue = value;
+     
+    |SomeFunc[this&] -> int:ret somevalue;
+
+  dynamic<Item>^ ptr = unq SomeType(10);
+
+  
+  //ret ptr~>SomeFunc() == 10;
