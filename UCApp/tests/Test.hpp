@@ -149,7 +149,7 @@ inline String ModeType(OptimizationFlags Flags)
 	return r;
 }
 
-static const Array<TestInfo, 182> Tests{
+static const Array<TestInfo, 184> Tests{
 
 	TestInfo("main_0", "BasicTests/main.uc", "Main", SuccessCondition::Compilation),
 
@@ -409,6 +409,9 @@ static const Array<TestInfo, 182> Tests{
 	TestInfo("IsDynmaicTrait","Eval/IsDynmaicTrait.uc", "main", SuccessCondition::RunTimeValue,bool(true)),
 	TestInfo("IsEvalOnClassField","Eval/EvalOnClassField.uc", "main", SuccessCondition::RunTimeValue,bool(true)),
 	TestInfo("MatchAlias","Eval/MatchAlias.uc", "main", SuccessCondition::RunTimeValue,bool(true)),
+	
+	TestInfo("GenericContructor","Objects/GenericContructer.uc", "main", SuccessCondition::RunTimeValue,bool(true)),
+	TestInfo("GenericContructor2","Objects/GenericContructer2.uc", "main", SuccessCondition::RunTimeValue,bool(true)),
 };
 struct SkipTestRange
 {
