@@ -359,7 +359,7 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node, 
 			auto& VarType = syb->VarType;
 
 
-			auto& Ex = _LastExpressionType;
+			auto Ex = _LastExpressionType;
 			auto Token = NeverNullptr(node._Type._name._ScopedName.back()._token);
 			Type_DeclareVariableTypeCheck(VarType, Ex, Token);
 
