@@ -96,6 +96,8 @@ bool SystematicAnalysis::Analyze(const Vector<NeverNullPtr<FileNode>>& Files, co
 			Lib_BuildLibs(false);//Because of generics the ClassAssembly may need them.
 			Lib_BuildLibs(true);//Because of Enums  may need them.
 
+			UpdateIndirectExport();
+
 			BuildCode();
 		}
 	};
@@ -3650,6 +3652,161 @@ void SystematicAnalysis::LogError(ErrorCodes Err, size_t Line, size_t Pos, const
 
 
 	_ErrorsOutput->AddError(Err, Line, Pos, Str);
+}
+void SystematicAnalysis::UpdateIndirectExport()
+{
+	size_t oldsymbolschanged = 0;
+	size_t tepsymbolschanged = 0;
+
+	do {
+		size_t currentsymbolschanged = tepsymbolschanged;
+
+		auto onfunc = [this,&currentsymbolschanged](Symbol& sym) {
+			if (!IsExported(sym.ID)) 
+			{
+				switch (sym.Type) 
+				{
+					case SymbolType::Type_class:
+					{
+						auto info = sym.Get_Info<ClassInfo>();
+						info->_IsIndirectExport = true;
+						currentsymbolschanged++;
+					}
+					break;
+					case SymbolType::Enum:
+					{
+						auto info = sym.Get_Info<EnumInfo>();
+						info->_IsIndirectExport = true;
+						currentsymbolschanged++;
+					}
+					break;
+					case SymbolType::Func_ptr:
+					{
+						auto info = sym.Get_Info<FuncPtrInfo>();
+						info->_IsIndirectExport = true;
+						currentsymbolschanged++;
+					}
+					break;
+					default:
+						break;
+				}
+
+			}
+		};
+
+		auto ontype = [this,onfunc](TypeSymbol& sym) {
+			auto val = Symbol_GetSymbol(sym);
+			if (val.has_value())
+			{
+				auto va = val.value();
+
+				onfunc(*va);
+			}
+
+		};
+		for (auto& Item : _Table.Symbols) 
+		{
+			switch (Item->Type) 
+			{
+				case SymbolType::Type_class:
+				{
+					auto info = Item->Get_Info<ClassInfo>();
+				
+					bool isexport = false;
+				
+					if (Item->NodePtr)
+					{
+						isexport = Item->Get_NodeInfo<ClassNode>()->_IsExport;
+					}
+					else 
+					{
+						isexport = true;
+					}
+
+					if (isexport || info->_IsIndirectExport )
+					{
+						continue;
+					}
+				
+					for (auto& type : info->_InheritedTypes) 
+					{
+						onfunc(*type.Syb);
+					}
+					for (auto& field : info->Fields) 
+					{
+						ontype(field.Type);
+					}
+				}
+				case SymbolType::Enum:
+				{
+					auto info = Item->Get_Info<EnumInfo>();
+					
+					bool isexport = false;
+				
+					if (Item->NodePtr)
+					{
+						isexport = Item->Get_NodeInfo<EnumNode>()->_IsExport;
+					}
+					else 
+					{
+						isexport = true;
+					}
+
+					if (isexport || info->_IsIndirectExport)
+					{
+						continue;
+					}
+
+
+					ontype(info->Basetype);
+
+					if (info->VariantData.has_value())
+					{
+						auto& variant = info->VariantData.value();
+
+						for (auto& var : variant.Variants)
+						{
+							for (auto& typ : var.Types)
+							{
+								ontype(typ);
+							}
+						}
+					}
+				}
+				break;
+				case SymbolType::Func_ptr:
+				//{
+				//	auto info = Item->Get_Info<FuncPtrInfo>();
+				//	
+				//	bool isexport = false;
+				//
+				//	if (Item->NodePtr)
+				//	{
+				//		isexport = Item->Get_NodeInfo<FunctorNode>()->_IsExport;
+				//	}
+				//	else 
+				//	{
+				//		isexport = true;
+				//	}
+
+				//	if (isexport || info->_IsIndirectExport)
+				//	{
+				//		continue;
+				//	}
+
+				//}
+				
+
+				break;
+					
+				default:
+					break;
+			}
+		
+		}
+		
+		tepsymbolschanged = oldsymbolschanged;
+	 } while (tepsymbolschanged == oldsymbolschanged);
 }
 
 UCodeLangFrontEnd

@@ -506,7 +506,7 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 					V2.IsExternC = Funcinfo->IsExternC;
 					V2.IsUnsafe = Funcinfo->IsUnsafe;
 					V2.IsRemoved = Funcinfo->IsRemoved;
-					V2.IsExport = Node._IsExport;
+					V2.IsExport = Node._IsExport ? ExportType::Exported : ExportType::NotExported;
 
 					for (size_t i = 0; i < Funcinfo->Pars.size(); i++)
 					{
@@ -574,7 +574,7 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 					V2.IsExternC = Funcinfo->IsExternC;
 					V2.IsUnsafe = Funcinfo->IsUnsafe;
 					V2.IsRemoved = Funcinfo->IsRemoved;
-					V2.IsExport = Node._IsExport;
+					V2.IsExport = Node._IsExport ? ExportType::Exported : ExportType::NotExported;
 
 					for (size_t i = 0; i < Funcinfo->Pars.size(); i++)
 					{
@@ -651,7 +651,7 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 					V2.IsExternC = V.IsExternC;
 					V2.IsUnsafe = V.IsUnsafe;
 					V2.IsRemoved = V.IsRemoved;
-					V2.IsExport = Node._IsExport;
+					V2.IsExport = Node._IsExport ? ExportType::Exported : ExportType::NotExported;
 
 					for (size_t i = 0; i < V.Pars.size(); i++)
 					{
@@ -684,7 +684,7 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 				V2.DecorationName = funcName;
 				V2.RetType = ReflectionTypes::Void;
 				V2.IsThisFunction = true;
-				V2.IsExport = Node._IsExport;
+				V2.IsExport = Node._IsExport ? ExportType::NotExported : ExportType::Exported;
 
 				ClassMethod::Par p;
 				p.Type = Assembly_ConvertToType(TypeSymbol(Syb.ID));
@@ -761,7 +761,7 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 					V2.IsExternC = Funcinfo->IsExternC;
 					V2.IsUnsafe = Funcinfo->IsUnsafe;
 					V2.IsRemoved = Funcinfo->IsRemoved;
-					V2.IsExport = Node._IsExport;
+					V2.IsExport = Node._IsExport ? ExportType::NotExported : ExportType::Exported;
 
 					for (size_t i = 0; i < Funcinfo->Pars.size(); i++)
 					{
@@ -846,7 +846,7 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 					V2.IsExternC = Funcinfo->IsExternC;
 					V2.IsUnsafe = Funcinfo->IsUnsafe;
 					V2.IsRemoved = Funcinfo->IsRemoved;
-					V2.IsExport = Node._IsExport;
+					V2.IsExport = Node._IsExport ? ExportType::NotExported : ExportType::Exported;
 
 					for (size_t i = 0; i < Funcinfo->Pars.size(); i++)
 					{
@@ -928,7 +928,7 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 			VClass.Base.Implementation = ClassStr + String(ClassBody);
 			VClass.Base.Implementation += "\n\n";
 			VClass.AccessModifier = Syb.Access;
-			VClass.IsExported = Node._IsExport;
+			VClass.IsExported = Node._IsExport ? ExportType::NotExported : ExportType::Exported;
 			VClass.UseStatments = Generic_GetCurrentUseStatements();
 		}
 	}

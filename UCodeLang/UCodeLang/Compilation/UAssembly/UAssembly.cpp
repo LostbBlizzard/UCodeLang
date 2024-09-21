@@ -186,7 +186,7 @@ String UAssembly::ToString(const UClib* Lib, Optional<Path> SourceFiles, bool Sh
 
 					r += "]";
 				}
-				if (Class.IsExported)
+				if (Class.IsExported == ExportType::Exported)
 				{
 					r += " export";
 				}
@@ -238,7 +238,7 @@ String UAssembly::ToString(const UClib* Lib, Optional<Path> SourceFiles, bool Sh
 			auto& Class = Item->Get_AliasData();
 			r += "$" + Item->FullName;
 
-			if (Class.IsExported)
+			if (Class.IsExported == ExportType::Exported)
 			{
 				r += " export";
 			}
@@ -256,7 +256,7 @@ String UAssembly::ToString(const UClib* Lib, Optional<Path> SourceFiles, bool Sh
 			auto& Enum = Item->Get_EnumData();
 			r += "$" + Item->FullName + " enum[" + ToString(Enum.BaseType,Assembly) + "]";
 
-			if (Enum.IsExported)
+			if (Enum.IsExported == ExportType::Exported)
 			{
 				r += " export";
 			}
@@ -305,7 +305,7 @@ String UAssembly::ToString(const UClib* Lib, Optional<Path> SourceFiles, bool Sh
 
 			r += "$" + Item->FullName;
 			
-			if (FuncPtr.IsExported)
+			if (FuncPtr.IsExported == ExportType::Exported)
 			{
 				r += " export";
 			}
@@ -332,7 +332,7 @@ String UAssembly::ToString(const UClib* Lib, Optional<Path> SourceFiles, bool Sh
 			auto& TagData = Item->Get_TagData();
 			bool hasany = TagData.Fields.size() || TagData.Fields.size();
 			
-			if (TagData.IsExported)
+			if (TagData.IsExported == ExportType::Exported)
 			{
 				r += " export";
 			}
@@ -393,7 +393,7 @@ String UAssembly::ToString(const UClib* Lib, Optional<Path> SourceFiles, bool Sh
 			r += "$" + Item->FullName + " trait";
 			auto& TraitData = Item->Get_TraitData();
 
-			if (TraitData.IsExported)
+			if (TraitData.IsExported == ExportType::Exported)
 			{
 				r += " export";
 			}
@@ -454,7 +454,7 @@ String UAssembly::ToString(const UClib* Lib, Optional<Path> SourceFiles, bool Sh
 		case ClassType::Eval:
 		{
 			auto& TraitData = Item->Get_EvalData();
-			if (TraitData.IsExported)
+			if (TraitData.IsExported == ExportType::Exported)
 			{
 				r += " export ";
 			}
@@ -1319,7 +1319,7 @@ void UAssembly::ToString(String& r, ClassMethod& Item2, const UClib* Lib)
 		r += '\n';
 		r += ' ';
 	}
-	if (Item2.IsExport)
+	if (Item2.IsExport == ExportType::Exported)
 	{
 		r += "export ";
 	}

@@ -320,7 +320,7 @@ void SystematicAnalysis::OnTrait(const TraitNode& node)
 			VClass.Base.Implementation = ClassStr + String(ClassBody);
 			VClass.Base.Implementation += "\n\n";
 			VClass.AccessModifier = Syb.Access;
-			VClass.IsExported = node._IsExport;
+			VClass.IsExported = node._IsExport ? ExportType::Exported : ExportType::NotExported;
 			VClass.UseStatments = Generic_GetCurrentUseStatements();
 		}
 		else
@@ -364,7 +364,7 @@ void SystematicAnalysis::OnTrait(const TraitNode& node)
 			Trait_Data& TraitData = _Lib.Get_Assembly().AddTrait(ScopeHelper::GetNameFromFullName(Syb.FullName), RemoveSymboolFuncOverloadMangling(Syb.FullName));
 			TraitData.TypeID = Type_GetTypeID(TypesEnum::CustomType, Syb.ID);
 			TraitData.AccessModifier = Syb.Access;
-			TraitData.IsExported = node._IsExport;
+			TraitData.IsExported = node._IsExport ? ExportType::Exported : ExportType::NotExported;
 
 			TraitData.Fields.reserve(info->_Vars.size());
 			for (auto& Item : info->_Vars)
@@ -401,7 +401,7 @@ void SystematicAnalysis::OnTrait(const TraitNode& node)
 					isexport = Item.Syb->Get_NodeInfo<FuncNode>()->_Signature._IsExport;
 				}
 
-				method.method.IsExport = isexport;
+				method.method.IsExport = isexport ? ExportType::Exported : ExportType::NotExported;
 				method.method.ParsType.resize(funcinfo->Pars.size());
 				for (size_t i = 0; i < funcinfo->Pars.size(); i++)
 				{

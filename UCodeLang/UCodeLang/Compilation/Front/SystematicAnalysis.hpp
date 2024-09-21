@@ -978,8 +978,6 @@ private:
 
 	Vector<Unique_ptr<FileNode>> NodesFromLoadLib;
 	Vector<Unique_ptr<Vector<Token>>> TokensFromLoadLib;
-	Set<ReflectionCustomTypeID> IndirectExports;
-	Set<String> IndirectExportsStr;
 
 	struct FuncGenericIndirectInfo
 	{
@@ -1016,6 +1014,7 @@ private:
 	void TryAddIndirectExport(TypeSymbol type);
 	void TryAddIndirectExport(const Symbol& type);
 	bool IsExported(SymbolID type);
+
 	//Funcs
 	bool IsInUnSafeBlock()
 	{
@@ -1233,6 +1232,7 @@ private:
 	Symbol& Symbol_AddSymbol(SymbolType type, const String& Name, const String& FullName, AccessModifierType Access);
 	bool Symbol_IsVarableType(SymbolType type) const;
 	void Pass();
+	void UpdateIndirectExport();
 	void OnFileNode(const FileNode& File);
 	void OnClassNode(const ClassNode& node);
 	void OnAliasNode(const AliasNode& node);
@@ -1482,8 +1482,8 @@ private:
 	void Assembly_LoadTraitAliases(const String& FullName, const Vector<TraitAlias>& GenericAlias);
 	void Assembly_LoadTraitAliases_FixTypes(const Vector<TraitAlias>& GenericAlias);
 
-	bool Assembly_IsExport(bool IsNodeExport, ReflectionCustomTypeID id);
-	bool Assembly_IsExport(bool IsNodeExport, const String& id);
+	bool Assembly_IsExport(ExportType IsNodeExport, ReflectionCustomTypeID id);
+	bool Assembly_IsExport(ExportType IsNodeExport, const String& id);
 	void Assembly_LoadClassSymbol(const Class_Data& Item, const String& FullName, const String& Scope, SystematicAnalysis::LoadLibMode Mode);
 	void Assembly_LoadEnumSymbol(const Enum_Data& Item, const String& FullName, const String& Scope, SystematicAnalysis::LoadLibMode Mode);
 	void Assembly_LoadAliasSymbol(const Alias_Data& Item, const String& FullName, const String& Scope, SystematicAnalysis::LoadLibMode Mode);

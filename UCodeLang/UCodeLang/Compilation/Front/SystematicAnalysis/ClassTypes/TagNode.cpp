@@ -148,7 +148,7 @@ void SystematicAnalysis::OnTag(const TagTypeNode& node)
 
 			TagData.Fields.resize(info->Fields.size());
 			TagData.AccessModifier = Syb.Access;
-			TagData.IsExported = node._IsExport;
+			TagData.IsExported = node._IsExport ? ExportType::Exported : ExportType::NotExported;
 		
 			size_t offset = 0;
 			for (size_t i = 0; i < info->Fields.size(); i++)
@@ -181,7 +181,7 @@ void SystematicAnalysis::OnTag(const TagTypeNode& node)
 			VClass.Base.Implementation = ClassStr + String(ClassBody);
 			VClass.Base.Implementation += "\n\n";
 			VClass.AccessModifier = Syb.Access;
-			VClass.IsExported = node._IsExport;
+			VClass.IsExported = node._IsExport ? ExportType::Exported : ExportType::NotExported;
 			VClass.UseStatments = Generic_GetCurrentUseStatements();
 		}
 	}

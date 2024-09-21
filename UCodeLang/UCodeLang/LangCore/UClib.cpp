@@ -260,7 +260,7 @@ void UClib::ToBytes(BitMaker& Output, const Trait_Data& TraitData)
 {
 	Output.WriteType(TraitData.TypeID);
 	Output.WriteType((AccessModifierType_t)TraitData.AccessModifier);
-	Output.WriteType(TraitData.IsExported);
+	Output.WriteType((ExportType_t)TraitData.IsExported);
 
 	Output.WriteType((Size_tAsBits)TraitData.Fields.size());
 	for (auto& Item2 : TraitData.Fields)
@@ -290,7 +290,7 @@ void UClib::ToBytes(BitMaker& Output, const TraitSymbol& TraitData)
 {
 	Output.WriteType(TraitData.Implementation);
 	Output.WriteType((AccessModifierType_t)TraitData.AccessModifier);
-	Output.WriteType(TraitData.IsExported);
+	Output.WriteType((ExportType_t)TraitData.IsExported);
 }
 void UClib::ToBytes(BitMaker& Output, const TraitAlias& TraitData)
 {
@@ -364,7 +364,7 @@ void UClib::ToBytes(BitMaker& Output, const Enum_Data& EnumData)
 		Output.WriteType(EnumData.CopyFuncFullName.value());
 	}
 	Output.WriteType((AccessModifierType_t)EnumData.AccessModifier);
-	Output.WriteType(EnumData.IsExported);
+	Output.WriteType((ExportType_t)EnumData.IsExported);
 }
 void UClib::ToBytes(BitMaker& Output, const Alias_Data& Alias)
 {
@@ -375,14 +375,14 @@ void UClib::ToBytes(BitMaker& Output, const Alias_Data& Alias)
 	}
 	ToBytes(Output, Alias.Type);
 	Output.WriteType((AccessModifierType_t)Alias.AccessModifier);
-	Output.WriteType(Alias.IsExported);
+	Output.WriteType((ExportType_t)Alias.IsExported);
 }
 void UClib::ToBytes(BitMaker& Output, const Class_Data& ClassData)
 {
 	Output.WriteType(ClassData.TypeID);
 	Output.WriteType((Size_tAsBits)ClassData.Size);
 	Output.WriteType((AccessModifierType_t)ClassData.AccessModifier);
-	Output.WriteType(ClassData.IsExported);
+	Output.WriteType((ExportType_t)ClassData.IsExported);
 
 	ToBytes(Output, ClassData.Attributes);
 
@@ -429,7 +429,7 @@ void UClib::ToBytes(BitMaker& Output, const Tag_Data& Data)
 {
 	Output.WriteType(Data.TypeID);
 	Output.WriteType((AccessModifierType_t)Data.AccessModifier);
-	Output.WriteType(Data.IsExported);
+	Output.WriteType((ExportType_t)Data.IsExported);
 
 	Output.WriteType((Size_tAsBits)Data.Fields.size());
 	for (auto& Item2 : Data.Fields)
@@ -463,7 +463,7 @@ void UClib::ToBytes(BitMaker& Output, const ClassMethod& Data)
 	Output.WriteType(Data.IsUnsafe);
 	Output.WriteType(Data.IsExternC);
 	Output.WriteType(Data.IsRemoved);
-	Output.WriteType(Data.IsExport);
+	Output.WriteType((ExportType_t)Data.IsExport);
 	Output.WriteType(Data.IsTraitDynamicDispatch);
 	Output.WriteType((AccessModifierType_t)Data.Protection);
 
@@ -521,32 +521,22 @@ void UClib::ToBytes(BitMaker& Output, const FuncPtr_Data& FuncPtrData)
 		ToBytes(Output, Item);
 	}
 	Output.WriteType((AccessModifierType_t)FuncPtrData.AccessModifier);
-	Output.WriteType(FuncPtrData.IsExported);
+	Output.WriteType((ExportType_t)FuncPtrData.IsExported);
 }
 void UClib::ToBytes(BitMaker& Output, const GenericClass_Data& FuncPtrData)
 {
 	ToBytes(Output, FuncPtrData.Base);
 	Output.WriteType((AccessModifierType_t)FuncPtrData.AccessModifier);
-	Output.WriteType(FuncPtrData.IsExported);
+	Output.WriteType((ExportType_t)FuncPtrData.IsExported);
 	ToBytes(Output,FuncPtrData.UseStatments);
 }
 void UClib::ToBytes(BitMaker& Output, const GenericFunction_Data& FuncPtrData)
 {
 	ToBytes(Output, FuncPtrData.Base);
 	Output.WriteType((AccessModifierType_t)FuncPtrData.AccessModifier);
-	Output.WriteType(FuncPtrData.IsExported);
+	Output.WriteType((ExportType_t)FuncPtrData.IsExported);
 	ToBytes(Output,FuncPtrData.UseStatments);
 	
-	Output.WriteType((BitMaker::SizeAsBits)FuncPtrData.InderctExports.size());
-	for (auto& Item : FuncPtrData.InderctExports)
-	{
-		Output.WriteType(Item);
-	}
-	Output.WriteType((BitMaker::SizeAsBits)FuncPtrData.InderctExportStrs.size());
-	for (auto& Item : FuncPtrData.InderctExportStrs)
-	{
-		Output.WriteType(Item);
-	}
 }
 void UClib::ToBytes(BitMaker& Output, const StaticArray_Data& FuncPtrData)
 {
@@ -563,7 +553,7 @@ void UClib::ToBytes(BitMaker& Output, const ForType_Data& FuncPtrData)
 	ToBytes(Output,FuncPtrData._TargetType);	
 	Output.WriteType(FuncPtrData._Scope);
 	Output.WriteType((AccessModifierType_t)FuncPtrData.AccessModifier);
-	Output.WriteType(FuncPtrData.IsExported);
+	Output.WriteType((ExportType_t)FuncPtrData.IsExported);
 
 	Output.WriteType((BitMaker::SizeAsBits)FuncPtrData._AddedMethods.size());
 	for (auto& Item : FuncPtrData._AddedMethods)
@@ -575,7 +565,7 @@ void UClib::ToBytes(BitMaker& Output, const Eval_Data& FuncPtrData)
 {
 	ToBytes(Output, FuncPtrData.Value);
 	Output.WriteType((AccessModifierType_t)FuncPtrData.AccessModifier);
-	Output.WriteType(FuncPtrData.IsExported);
+	Output.WriteType((ExportType_t)FuncPtrData.IsExported);
 }
 void UClib::ToBytes(BitMaker& Output, const GenericBase_Data& FuncPtrData)
 {
@@ -1063,7 +1053,7 @@ void UClib::FromBytes(BitReader& reader, Enum_Data& Enum)
 		Enum.CopyFuncFullName = tep;
 	}	
 	reader.ReadType(*(AccessModifierType_t*)&Enum.AccessModifier,*(AccessModifierType_t*)&Enum.AccessModifier);
-	reader.ReadType(Enum.IsExported, Enum.IsExported);
+	reader.ReadType(*(ExportType_t*)&Enum.IsExported,*(ExportType_t*)&Enum.IsExported);
 }
 void UClib::FromBytes(BitReader& Input, Optional<ReflectionTypeInfo>& Data)
 {
@@ -1085,7 +1075,7 @@ void UClib::FromBytes(BitReader& reader, Class_Data& Class)
 	Class.Size = _Classbits;
 	
 	reader.ReadType(*(AccessModifierType_t*)&Class.AccessModifier,*(AccessModifierType_t*)&Class.AccessModifier);
-	reader.ReadType(Class.IsExported, Class.IsExported);
+	reader.ReadType(*(ExportType_t*)&Class.IsExported, *(ExportType_t*)&Class.IsExported);
 	
 
 	FromBytes(reader, Class.Attributes);
@@ -1166,7 +1156,7 @@ void UClib::FromBytes(BitReader& Input, Trait_Data& Data)
 {
 	Input.ReadType(Data.TypeID, Data.TypeID);
 	Input.ReadType(*(AccessModifierType_t*)&Data.AccessModifier,*(AccessModifierType_t*)&Data.AccessModifier);
-	Input.ReadType(Data.IsExported, Data.IsExported);
+	Input.ReadType(*(ExportType_t*)&Data.IsExported,*(ExportType_t*)&Data.IsExported);
 	{
 
 		Size_tAsBits  Feld_Sizebits = 0;
@@ -1248,7 +1238,7 @@ void UClib::FromBytes(BitReader& reader, FuncPtr_Data& Ptr)
 		FromBytes(reader, Ptr.ParsType[i]);
 	}
 	reader.ReadType(*(AccessModifierType_t*)&Ptr.AccessModifier, *(AccessModifierType_t*)&Ptr.AccessModifier);
-	reader.ReadType(Ptr.IsExported, Ptr.IsExported);
+	reader.ReadType(*(ExportType_t*)&Ptr.IsExported, *(ExportType_t*)&Ptr.IsExported);
 }
 void UClib::FromBytes(BitReader& Input, ClassMethod::Par& Data)
 {
@@ -1264,41 +1254,16 @@ void UClib::FromBytes(BitReader& reader, GenericClass_Data& Ptr)
 {
 	FromBytes(reader, Ptr.Base);
 	reader.ReadType(*(AccessModifierType_t*)&Ptr.AccessModifier,*(AccessModifierType_t*)&Ptr.AccessModifier);
-	reader.ReadType(Ptr.IsExported, Ptr.IsExported);
+	reader.ReadType(*(ExportType_t*)&Ptr.IsExported, *(ExportType_t*)&Ptr.IsExported);
 	FromBytes(reader, Ptr.UseStatments);
 }
 void UClib::FromBytes(BitReader& reader, GenericFunction_Data& Ptr)
 {
 	FromBytes(reader, Ptr.Base);
 	reader.ReadType(*(AccessModifierType_t*)&Ptr.AccessModifier, *(AccessModifierType_t*)&Ptr.AccessModifier);
-	reader.ReadType(Ptr.IsExported, Ptr.IsExported);
+	reader.ReadType(*(ExportType_t*)&Ptr.IsExported, *(ExportType_t*)&Ptr.IsExported);
 	FromBytes(reader, Ptr.UseStatments);
 
-
-	{
-		Size_tAsBits Size = 0;
-		reader.ReadType(Size, Size);
-
-		Ptr.InderctExports.resize(Size);
-		for (size_t i = 0; i < Size; i++)
-		{
-			auto& Out = Ptr.InderctExports[i];
-			reader.ReadType(Out);
-		}
-	}
-
-	
-	{
-		Size_tAsBits Size = 0;
-		reader.ReadType(Size, Size);
-
-		Ptr.InderctExportStrs.resize(Size);
-		for (size_t i = 0; i < Size; i++)
-		{
-			auto& Out = Ptr.InderctExportStrs[i];
-			reader.ReadType(Out);
-		}
-	}
 }
 void UClib::FromBytes(BitReader& Input, GenericBase_Data& Data)
 {
@@ -1355,7 +1320,7 @@ void UClib::FromBytes(BitReader& Input, Eval_Data& Data)
 {
 	FromBytes(Input,Data.Value);
 	Input.ReadType(*(AccessModifierType_t*)&Data.AccessModifier, *(AccessModifierType_t*)&Data.AccessModifier);
-	Input.ReadType(Data.IsExported, Data.IsExported);
+	Input.ReadType(*(ExportType_t*)Data.IsExported,*(ExportType_t*)Data.IsExported);
 }
 void UClib::FromBytes(BitReader& reader, Vector<UsedTagValueData>& Attributes)
 {
@@ -1400,13 +1365,13 @@ void UClib::FromBytes(BitReader& reader, Alias_Data& Alias)
 	}
 	FromBytes(reader, Alias.Type);
 	reader.ReadType(*(AccessModifierType_t*)&Alias.AccessModifier,*(AccessModifierType_t*)&Alias.AccessModifier);
-	reader.ReadType(Alias.IsExported, Alias.IsExported);
+	reader.ReadType(*(ExportType_t*)&Alias.IsExported, *(ExportType_t*)&Alias.IsExported);
 }
 void UClib::FromBytes(BitReader& Input, Tag_Data& Data)
 {
 	Input.ReadType(Data.TypeID, Data.TypeID);
 	Input.ReadType(*(AccessModifierType_t*)&Data.AccessModifier,*(AccessModifierType_t*)&Data.AccessModifier);
-	Input.ReadType(Data.IsExported, Data.IsExported);
+	Input.ReadType(*(ExportType_t*)&Data.IsExported, *(ExportType_t*)&Data.IsExported);
 	{
 
 		Size_tAsBits  Feld_Sizebits = 0;
@@ -1472,7 +1437,7 @@ void UClib::FromBytes(BitReader& Input, ClassMethod& Data)
 	Input.ReadType(Data.IsUnsafe);
 	Input.ReadType(Data.IsExternC);
 	Input.ReadType(Data.IsRemoved);
-	Input.ReadType(Data.IsExport);
+	Input.ReadType(*(ExportType_t*)&Data.IsExport);
 	Input.ReadType(Data.IsTraitDynamicDispatch);
 	Input.ReadType(*(AccessModifierType_t*)&Data.Protection);
 

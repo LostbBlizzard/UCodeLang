@@ -93,24 +93,6 @@ void SystematicAnalysis::Assembly_LoadLibSymbols()
 						{
 							auto& genericfunc = LibNode->Get_GenericFunctionData();
 
-							if (genericfunc.IsExported)
-							{
-								for (auto& Item : genericfunc.InderctExports)
-								{
-									if (!IndirectExports.HasValue(Item))
-									{
-										IndirectExports.AddValue(Item);
-									}
-								}
-							
-								for (auto& Item : genericfunc.InderctExportStrs)
-								{
-									if (!IndirectExportsStr.HasValue(Item))
-									{
-										IndirectExportsStr.AddValue(Item);
-									}
-								}
-							}
 						}
 					}
 				}
@@ -261,7 +243,7 @@ void SystematicAnalysis::Assembly_LoadLibSymbols(const UClib& lib, ImportLibInfo
 		{
 			Optional<String_view> TextOp;
 			AccessModifierType Access = AccessModifierType::Default;
-			bool IsExport = false;
+			ExportType IsExport = ExportType::NotExported;
 			CapturedUseStatements* Uses = nullptr;
 			if (Item->Get_Type() == ClassType::GenericClass)
 			{
@@ -280,7 +262,9 @@ void SystematicAnalysis::Assembly_LoadLibSymbols(const UClib& lib, ImportLibInfo
 				Uses = &data.UseStatments;
 			}
 
-			if (TextOp.has_value() && IsExport)
+			if (TextOp.has_value() && 
+				(IsExport == ExportType::Exported || IsExport == ExportType::NotExported)
+			)
 			{
 				StringsFromLoadLib.push_back(std::make_unique<String>(TextOp.value()));
 				String_view Text = *StringsFromLoadLib.back().get();
@@ -421,7 +405,7 @@ void SystematicAnalysis::Assembly_LoadLibSymbols(const UClib& lib, ImportLibInfo
 		{
 			if (Item->Get_Type() == ClassType::GenericClass || Item->Get_Type() == ClassType::GenericFunction)
 			{
-				bool Export;
+				ExportType Export;
 				CapturedUseStatements* Uses = nullptr;
 				if (Item->Get_Type() == ClassType::GenericClass)
 				{
@@ -435,7 +419,7 @@ void SystematicAnalysis::Assembly_LoadLibSymbols(const UClib& lib, ImportLibInfo
 					Export = Data.IsExported;
 					Uses = &Data.UseStatments;
 				}
-				if (!Export) { continue; }
+				if (!(Export == ExportType::Exported || Export == ExportType::IndrectExported)) { continue; }
 				if (!LibGenericSymbolLoad.HasValue(Item)) { continue; }
 
 
@@ -584,31 +568,17 @@ void SystematicAnalysis::Assembly_LoadTraitAliases_FixTypes(const Vector<TraitAl
 		}
 	}
 }
-bool SystematicAnalysis::Assembly_IsExport(bool IsNodeExport, ReflectionCustomTypeID id)
+bool SystematicAnalysis::Assembly_IsExport(ExportType IsNodeExport, ReflectionCustomTypeID id)
 {
-	if (IsNodeExport)
-	{
-		return true;
-	}
-	else 
-	{
-		return IndirectExports.HasValue(id);
-	}
+	return  IsNodeExport == ExportType::Exported || IsNodeExport == ExportType::IndrectExported;
 }
-bool SystematicAnalysis::Assembly_IsExport(bool IsNodeExport, const String& id) 
+bool SystematicAnalysis::Assembly_IsExport(ExportType IsNodeExport, const String& id) 
 {
-	if (IsNodeExport)
-	{
-		return true;
-	}
-	else 
-	{
-		return IndirectExportsStr.HasValue(id);
-	}
+	return  IsNodeExport == ExportType::Exported || IsNodeExport == ExportType::IndrectExported;
 }
 void SystematicAnalysis::Assembly_LoadClassSymbol(const Class_Data& Item, const String& FullName, const String& Scope, SystematicAnalysis::LoadLibMode Mode)
 {
-	bool isexpot = Item.IsExported;
+	bool isexpot = Item.IsExported == ExportType::Exported || Item.IsExported == ExportType::IndrectExported;
 	if (FullName == "")
 	{
 		isexpot = true;
@@ -694,7 +664,9 @@ void SystematicAnalysis::Assembly_LoadClassSymbol(const Class_Data& Item, const 
 		auto nextsymindex = _Table.Symbols.size();
 		Assembly_LoadSymbol(Item, Mode);
 
-		if (Mode == LoadLibMode::GetTypes && Item.IsExport) 
+		if (Mode == LoadLibMode::GetTypes 
+			&& (Item.IsExport == ExportType::Exported || Item.IsExport == ExportType::IndrectExported)
+		) 
 		{
 			auto& sym = _Table.Symbols[nextsymindex];
 			auto finfo = sym->Get_Info<FuncInfo>();
@@ -732,7 +704,7 @@ void SystematicAnalysis::Assembly_LoadClassSymbol(const Class_Data& Item, const 
 }
 void SystematicAnalysis::Assembly_LoadEnumSymbol(const Enum_Data& Item, const String& FullName, const String& Scope, SystematicAnalysis::LoadLibMode Mode)
 {
-	if (!Item.IsExported)
+	if (!(Item.IsExported== ExportType::Exported || Item.IsExported == ExportType::IndrectExported))
 	{
 		return;
 	}
@@ -849,7 +821,7 @@ void SystematicAnalysis::Assembly_LoadEnumSymbol(const Enum_Data& Item, const St
 }
 void SystematicAnalysis::Assembly_LoadAliasSymbol(const Alias_Data& Item, const String& FullName, const String& Scope, SystematicAnalysis::LoadLibMode Mode)
 {
-	if (!Item.IsExported)
+	if (!(Item.IsExported == ExportType::Exported || Item.IsExported == ExportType::IndrectExported))
 	{
 		return;
 	}
@@ -936,7 +908,7 @@ void SystematicAnalysis::Assembly_LoadFuncPtrSymbol(const FuncPtr_Data& Item, co
 }
 void SystematicAnalysis::Assembly_LoadTagSymbol(const Tag_Data& Item, const String& FullName, const String& Scope, SystematicAnalysis::LoadLibMode Mode)
 {
-	if (!Item.IsExported)
+	if (!(Item.IsExported== ExportType::Exported || Item.IsExported == ExportType::IndrectExported))
 	{
 		return;
 	}
@@ -969,7 +941,7 @@ void SystematicAnalysis::Assembly_LoadTagSymbol(const Tag_Data& Item, const Stri
 }
 void SystematicAnalysis::Assembly_LoadTraitSymbol(const Trait_Data& Item, const String& FullName, const String& Scope, SystematicAnalysis::LoadLibMode Mode)
 {
-	if (!Item.IsExported)
+	if (!(Item.IsExported == ExportType::Exported || Item.IsExported == ExportType::NotExported))
 	{
 		return;
 	}
@@ -1484,14 +1456,15 @@ void SystematicAnalysis::Assembly_AddClass(const Vector<Unique_ptr<AttributeNode
 
 	if (ClassSyb->NodePtr)
 	{
-		VClass.IsExported = ClassSyb->Get_NodeInfo<ClassNode>()->_IsExport;
+		VClass.IsExported =
+			ClassSyb->Get_NodeInfo<ClassNode>()->_IsExport ? ExportType::Exported : ExportType::NotExported;
 	}
 	else
 	{
-		VClass.IsExported = true;//most likey generated from enum or something similar
+		VClass.IsExported = ExportType::Exported;//most likey generated from enum or something similar
 	}
 
-	if (VClass.IsExported && Extra.has_value())
+	if (VClass.IsExported == ExportType::Exported && Extra.has_value())
 	{
 		auto& Ex = Extra.value();
 		if (Ex.IsgenericInstantiation) 
@@ -1511,7 +1484,7 @@ void SystematicAnalysis::Assembly_AddClass(const Vector<Unique_ptr<AttributeNode
 
 			if (!isallexported)
 			{
-				VClass.IsExported =false;
+				VClass.IsExported = ExportType::Exported;
 			}
 		}
 
@@ -1582,11 +1555,11 @@ void SystematicAnalysis::Assembly_AddEnum(const NeverNullPtr<Symbol> ClassSyb)
 
 	if (ClassSyb->NodePtr) 
 	{
-		EnumData.IsExported = ClassSyb->Get_NodeInfo<EnumNode>()->_IsExport;
+		EnumData.IsExported = ClassSyb->Get_NodeInfo<EnumNode>()->_IsExport ? ExportType::Exported : ExportType::NotExported;
 	}
 	else
 	{
-		EnumData.IsExported = true;
+		EnumData.IsExported = ExportType::Exported;
 	}
 
 	if (ClassInf->FuncDestructer)

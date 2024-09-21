@@ -3798,7 +3798,8 @@ StartSymbolsLoop:
 	}
 	return { };
 }
-	Optional< Optional<SystematicAnalysis::Get_FuncInfo>> SystematicAnalysis::Type_FuncinferGenerics(Vector<TypeSymbol>& GenericInput, const Vector<ParInfo>& ValueTypes
+
+Optional< Optional<SystematicAnalysis::Get_FuncInfo>> SystematicAnalysis::Type_FuncinferGenerics(Vector<TypeSymbol>& GenericInput, const Vector<ParInfo>& ValueTypes
 	, const UseGenericsNode* Generics
 	, Symbol* Item
 	, bool _ThisTypeIsNotNull)
@@ -4296,7 +4297,7 @@ StartSymbolsLoop:
 	}
 
 	if (cangenericinputbeused) {
-		return { {} };
+		return {  Optional<SystematicAnalysis::Get_FuncInfo>() };
 	}
 	else
 	{

@@ -474,7 +474,7 @@ void SystematicAnalysis::OnDeclareVariablenode(const DeclareVariableNode& node, 
 				auto data = syb->Get_Info<ConstantExpressionInfo>();
 
 				auto& eval = _Lib.Get_Assembly().AddEvalVarable((String)node._Name.token->Value._String, syb->FullName);
-				eval.IsExported = node._IsExport;
+				eval.IsExported = node._IsExport ? ExportType::Exported : ExportType::NotExported;
 				eval.Value._Data.Resize(data->Ex.ObjectSize);
 				memcpy(eval.Value._Data.Get_Data(), data->Ex.Object_AsPointer.get(), data->Ex.ObjectSize);
 

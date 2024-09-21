@@ -874,7 +874,7 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 				}
 			}
 		}
-		V.IsExport = shouldExport;
+		V.IsExport = shouldExport ? ExportType::Exported : ExportType::NotExported;
 
 		for (size_t i = 0; i < Info->Pars.size(); i++)
 		{
@@ -1030,10 +1030,8 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 
 		assemblyfunc.Base.Implementation = GetImplementationFromFunc(filetext, nametoken, endtoken);
 		assemblyfunc.AccessModifier = syb->Access;
-		assemblyfunc.IsExported = node._Signature._IsExport;
+		assemblyfunc.IsExported = node._Signature._IsExport ? ExportType::Exported : ExportType::NotExported;
 		assemblyfunc.UseStatments = Generic_GetCurrentUseStatements();
-		assemblyfunc.InderctExports = std::move(Info->_GenericData._IndirectExport);
-		assemblyfunc.InderctExportStrs = std::move(Info->_GenericData._IndirectExportStr);
 	}
 
 	if (_PassType == PassType::FixedTypes)
@@ -1043,8 +1041,6 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 			auto val = std::move(_FuncStackGenericIndirect.top());
 			_FuncStackGenericIndirect.pop();
 			
-			Info->_GenericData._IndirectExport = std::move(val.IndirectOutput);
-			Info->_GenericData._IndirectExportStr = std::move(val.IndirectOutputStr);
 		}
 		if (!node._Body.has_value() && syb->VarType._Type == TypesEnum::Var)
 		{
@@ -1236,7 +1232,34 @@ void SystematicAnalysis::TryAddIndirectExport(TypeSymbol type)
 			if (top.FuncionName == funciontop.Pointer->FullName)
 			{
 				if (!Type_IsTypeExported(type._CustomTypeSymbol)) {
-					top.AddIndirect(Type_GetTypeID(TypesEnum::CustomType, type._CustomTypeSymbol));
+
+					auto syb = Symbol_GetSymbol(type._CustomTypeSymbol);
+					
+					switch (syb->Type)
+					{
+						case SymbolType::Type_class:
+						{
+							auto info = syb->Get_Info<ClassInfo>();
+							info->_IsIndirectExport = true;
+						}
+						break;
+						case SymbolType::Enum:
+						{
+							auto info = syb->Get_Info<EnumInfo>();
+							info->_IsIndirectExport = true;
+						}
+						break;
+						case SymbolType::Func_ptr:
+						{
+							auto info = syb->Get_Info<FuncPtrInfo>();
+							info->_IsIndirectExport = true;
+						}
+						break;
+				
+						default:
+						break;
+						
+					}
 				}
 			}
 		}
@@ -1297,6 +1320,81 @@ void SystematicAnalysis::TryAddIndirectExport(const Symbol& type)
 			}
 		}
 	}
+}
+
+bool SystematicAnalysis::IsExported(SymbolID type) 
+{
+
+	auto syb = Symbol_GetSymbol(type);
+
+	switch (syb->Type) 
+	{
+		case SymbolType::Type_class:
+		{
+			if (syb->NodePtr)
+			{
+				return syb->Get_NodeInfo<ClassNode>()->_IsExport;
+			}
+			else
+			{
+				return true;
+			}
+		}
+		break;
+		case SymbolType::Enum:
+		{
+			if (syb->NodePtr)
+			{
+				return syb->Get_NodeInfo<EnumNode>()->_IsExport;
+			}
+			else
+			{
+				return true;
+			}
+		}
+		break;
+		case SymbolType::Type_alias:
+		case SymbolType::Func_ptr:
+		{
+			if (syb->NodePtr)
+			{
+				return syb->Get_NodeInfo<AliasNode>()->IsExport;
+			}
+			else
+			{
+				return true;
+			}
+		}
+		break;
+	
+		case SymbolType::Trait_class:
+		{
+			if (syb->NodePtr)
+			{
+				return syb->Get_NodeInfo<TraitNode>()->_IsExport;
+			}
+			else
+			{
+				return true;
+			}
+		}
+		break;
+		case SymbolType::Func:
+		{
+			if (syb->NodePtr)
+			{
+				return syb->Get_NodeInfo<FuncNode>()->_Signature._IsExport;
+			}
+			else
+			{
+				return true;
+			}
+		}
+		break;
+		default:
+			return  false;
+	}
+	return false;
 }
 UCodeLangFrontEnd
 

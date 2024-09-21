@@ -225,7 +225,7 @@ void SystematicAnalysis::OnAliasNode(const AliasNode& node)
 					V.HardAliasTypeID = Type_GetTypeID(TypesEnum::CustomType, Syb.ID);
 				}
 				V.AccessModifier = Syb.Access;
-				V.IsExported = node.IsExport;
+				V.IsExported = node.IsExport ? ExportType::Exported : ExportType::NotExported;
 
 				FileDependency_AddDependencyToCurrentFile(Syb.VarType);
 			}
@@ -266,7 +266,8 @@ void SystematicAnalysis::OnAliasNode(const AliasNode& node)
 				}
 				V.RetType = Assembly_ConvertToType(nodeinfo_->Ret);
 				V.AccessModifier = Syb.Access;
-				V.IsExported = node.IsExport;
+				V.IsExported = node.IsExport ? ExportType::Exported : ExportType::NotExported;
+
 				V.TypeID = Type_GetTypeID(TypesEnum::CustomType, Syb.ID);
 			}
 		}
@@ -289,7 +290,7 @@ void SystematicAnalysis::OnAliasNode(const AliasNode& node)
 			VClass.Base.Implementation = ClassStr + String(ClassBody);
 			VClass.Base.Implementation += "\n\n";
 			VClass.AccessModifier = Syb.Access;
-			VClass.IsExported = node.IsExport;
+			VClass.IsExported = node.IsExport ? ExportType::Exported : ExportType::NotExported;
 			VClass.UseStatments = Generic_GetCurrentUseStatements();
 		}
 	}

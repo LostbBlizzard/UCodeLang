@@ -7,6 +7,13 @@
 UCodeLangStart
 
 
+using ExportType_t = UInt8;
+enum class ExportType : ExportType_t {
+	NotExported,
+	Exported,
+	IndrectExported,
+};
+
 using ReflectionTypes_t = UInt8;
 enum class ReflectionTypes : ReflectionTypes_t
 {
@@ -224,7 +231,7 @@ public:
 	bool IsUnsafe = false;
 	bool IsExternC = false;
 	bool IsRemoved = false;
-	bool IsExport = false;
+	ExportType IsExport = ExportType::NotExported;
 	bool IsTraitDynamicDispatch = false;
 	AccessModifierType Protection = AccessModifierType::Default;
 
@@ -279,7 +286,7 @@ struct Class_Data
 	ReflectionCustomTypeID TypeID = {};
 	size_t Size = 0;
 	AccessModifierType AccessModifier = AccessModifierType::Default;
-	bool IsExported = false;
+	ExportType IsExported = ExportType::NotExported;
 	UsedTags Attributes;
 	Vector<ClassField> Fields;
 	Vector<ClassMethod> Methods;
@@ -367,7 +374,7 @@ struct Enum_Data
 	Optional<String> CopyFuncFullName;
 	
 	AccessModifierType AccessModifier = AccessModifierType::Default;
-	bool IsExported = false;
+	ExportType IsExported = ExportType::NotExported;
 };
 struct Alias_Data
 {
@@ -375,20 +382,20 @@ struct Alias_Data
 	Optional<ReflectionCustomTypeID> HardAliasTypeID;
 
 	AccessModifierType AccessModifier = AccessModifierType::Default;
-	bool IsExported = false;
+	ExportType IsExported = ExportType::NotExported;
 };
 struct Eval_Data
 {
 	TypedRawReflectionData Value;
 
 	AccessModifierType AccessModifier = AccessModifierType::Default;
-	bool IsExported = false;
+	ExportType IsExported = ExportType::NotExported;
 };
 struct Tag_Data
 {
 	ReflectionCustomTypeID TypeID = {};
 	AccessModifierType AccessModifier = AccessModifierType::Default;
-	bool IsExported = false;
+	ExportType IsExported = ExportType::NotExported;
 	Vector<ClassField> Fields;
 	Vector<ClassMethod> Methods;
 	~Tag_Data()
@@ -427,7 +434,7 @@ struct Trait_Data
 {
 	ReflectionCustomTypeID TypeID = {};
 	AccessModifierType AccessModifier = AccessModifierType::Default;
-	bool IsExported = false;
+	ExportType IsExported = ExportType::NotExported;
 	Vector<ClassField> Fields;
 	Vector<TraitMethod> Methods;
 	Vector<TraitSymbol> Symbols;
@@ -467,7 +474,7 @@ struct FuncPtr_Data
 	ReflectionTypeInfo RetType;
 	Vector<ClassMethod::Par> ParsType;
 	AccessModifierType AccessModifier = AccessModifierType::Default;
-	bool IsExported = false;
+	ExportType IsExported = ExportType::NotExported;
 	~FuncPtr_Data()
 	{
 
@@ -489,7 +496,7 @@ struct GenericClass_Data
 
 	}
 	AccessModifierType AccessModifier = AccessModifierType::Default;
-	bool IsExported = false;
+	ExportType IsExported = ExportType::NotExported;
 	CapturedUseStatements UseStatments;
 };
 
@@ -502,11 +509,8 @@ struct GenericFunction_Data
 
 	}
 	AccessModifierType AccessModifier = AccessModifierType::Default;
-	bool IsExported = false;
+	ExportType IsExported = ExportType::NotExported;
 	CapturedUseStatements UseStatments;
-	//Some Generic Funcions may use none exported type.
-	Vector<ReflectionCustomTypeID> InderctExports;
-	Vector<String> InderctExportStrs;
 ;
 };
 struct GenericEnum_Data
@@ -527,7 +531,7 @@ struct GenericAlias_Data
 
 	}
 	AccessModifierType AccessModifier = AccessModifierType::Default;
-	bool IsExported = false;
+	ExportType IsExported = ExportType::NotExported;
 };
 struct GenericTrait_Data
 {
@@ -537,7 +541,7 @@ struct GenericTrait_Data
 
 	}
 	AccessModifierType AccessModifier = AccessModifierType::Default;
-	bool IsExported = false;
+	ExportType IsExported = ExportType::NotExported;
 };
 struct GenericTag_Data
 {
@@ -547,7 +551,7 @@ struct GenericTag_Data
 
 	}
 	AccessModifierType AccessModifier = AccessModifierType::Default;
-	bool IsExported = false;
+	ExportType IsExported = ExportType::NotExported;
 };
 struct GenericForType_Data
 {
@@ -557,7 +561,7 @@ struct GenericForType_Data
 
 	}
 	AccessModifierType AccessModifier = AccessModifierType::Default;
-	bool IsExported = false;
+	ExportType IsExported = ExportType::NotExported;
 };
 struct NameSpace_Data
 {
