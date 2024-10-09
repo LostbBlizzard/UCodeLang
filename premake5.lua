@@ -138,10 +138,10 @@ newaction {
             executeorexit("sudo apt-get update")
 
             print("----downloading libx11 Packages")
-            executeorexit("sudo apt-get install libxcursor-dev libxrandr-dev libxinerama-dev libxi-dev")
+            executeorexit("sudo apt-get install libxcursor-dev libxrandr-dev libxinerama-dev libxi-dev -y")
 
             print("----downloading opengl Packages")
-            executeorexit("sudo apt install mesa-common-dev")
+            executeorexit("sudo apt install mesa-common-dev -y")
 
             print("----installing tools completed");
         end

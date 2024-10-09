@@ -3655,13 +3655,12 @@ void SystematicAnalysis::LogError(ErrorCodes Err, size_t Line, size_t Pos, const
 }
 void SystematicAnalysis::UpdateIndirectExport()
 {
-	size_t oldsymbolschanged = 0;
-	size_t tepsymbolschanged = 0;
+	bool hasupdatedsymbol = false;
 
 	do {
-		size_t currentsymbolschanged = tepsymbolschanged;
+		hasupdatedsymbol = false;
 
-		auto onfunc = [this,&currentsymbolschanged](Symbol& sym) {
+		auto onfunc = [this,&hasupdatedsymbol](Symbol& sym) {
 			if (!IsExported(sym.ID)) 
 			{
 				switch (sym.Type) 
@@ -3670,21 +3669,21 @@ void SystematicAnalysis::UpdateIndirectExport()
 					{
 						auto info = sym.Get_Info<ClassInfo>();
 						info->_IsIndirectExport = true;
-						currentsymbolschanged++;
+						hasupdatedsymbol = true;
 					}
 					break;
 					case SymbolType::Enum:
 					{
 						auto info = sym.Get_Info<EnumInfo>();
 						info->_IsIndirectExport = true;
-						currentsymbolschanged++;
+						hasupdatedsymbol = true;
 					}
 					break;
 					case SymbolType::Func_ptr:
 					{
 						auto info = sym.Get_Info<FuncPtrInfo>();
 						info->_IsIndirectExport = true;
-						currentsymbolschanged++;
+						hasupdatedsymbol = true;
 					}
 					break;
 					default:
@@ -3805,8 +3804,7 @@ void SystematicAnalysis::UpdateIndirectExport()
 		
 		}
 		
-		tepsymbolschanged = oldsymbolschanged;
-	 } while (tepsymbolschanged == oldsymbolschanged);
+	 } while (hasupdatedsymbol);
 }
 
 UCodeLangFrontEnd
