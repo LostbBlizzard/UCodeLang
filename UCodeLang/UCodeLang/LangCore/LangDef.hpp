@@ -217,6 +217,15 @@
 #define UCodeLangAPIExportDLLIMPORT __declspec(dllexport)
 #endif
 
+#ifdef UCodeLangDebug
+#define LogErrors 1
+#else 
+#define LogErrors 0
+#endif
+
+#if LogErrors 
+#include <iostream>
+#endif
 
 #ifdef PUBLISHED
 
@@ -224,11 +233,21 @@
 
 #else
 
+
 #if UCodeLangMSVC
-#define UCodeLangThrowException(Ex) throw std::exception(Ex);
+#define UCodeLangThrowExceptionNoLog(Ex) throw std::exception(Ex);
 #else
-#define UCodeLangThrowException(Ex) throw std::runtime_error(Ex);
+#define UCodeLangThrowExceptionNoLog(Ex) throw std::runtime_error(Ex);
 #endif 
+
+#if LogErrors
+
+#define UCodeLangThrowException(Ex) std::cerr << "UCodeLangThrowException reached on file " __FILE__  " on on line " <<  __LINE__  << std::endl; \
+				    UCodeLangThrowExceptionNoLog(Ex); \
+
+#else
+#define UCodeLangThrowException(Ex) UCodeLangThrowExceptionNoLog(Ex);
+#endif
 
 #endif
 
@@ -244,7 +263,13 @@
 #endif
 
 #if UCodeLangDebug
+
+#if LogErrors 
+#define UCodeLangUnreachable() std::cerr << "UCodeLangUnreachable reached on file " __FILE__  " on on line " <<  __LINE__  << std::endl; UCodeLangBreakPoint();
+#else 
 #define UCodeLangUnreachable() UCodeLangBreakPoint();
+#endif
+
 #else
 
 
@@ -267,7 +292,13 @@
 #endif
 
 #if UCodeLangDebug
+#define UCodeLangAssert(condition) if (!(condition)){UCodeLangBreakPoint(); std::cerr << "Assert Failed on file " __FILE__  " on on line " <<  __LINE__  << std::endl;}
+#if LogErrors 
+#else 
 #define UCodeLangAssert(condition) if (!(condition)){UCodeLangBreakPoint();}
+#endif
+
+
 #else
 #define UCodeLangAssert(condition)
 #endif
