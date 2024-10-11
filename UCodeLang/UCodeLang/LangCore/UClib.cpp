@@ -1320,7 +1320,7 @@ void UClib::FromBytes(BitReader& Input, Eval_Data& Data)
 {
 	FromBytes(Input,Data.Value);
 	Input.ReadType(*(AccessModifierType_t*)&Data.AccessModifier, *(AccessModifierType_t*)&Data.AccessModifier);
-	Input.ReadType(*(ExportType_t*)Data.IsExported,*(ExportType_t*)Data.IsExported);
+	Input.ReadType(*(ExportType_t*)&Data.IsExported,*(ExportType_t*)&Data.IsExported);
 }
 void UClib::FromBytes(BitReader& reader, Vector<UsedTagValueData>& Attributes)
 {
