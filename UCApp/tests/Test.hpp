@@ -344,7 +344,7 @@ static const Array<TestInfo, 184> Tests{
 	TestInfo("EnumCasts", "BasicTests/EnumCasts.uc", "main", SuccessCondition::RunTimeValue, (UCodeLang::Byte)2),
 	TestInfo("EnumCasts_2", "BasicTests/EnumCasts.uc", "main2", SuccessCondition::RunTimeValue, (bool)true),
 	
-	TestInfo("Std Swap", "Std/Swap.uc", "main", SuccessCondition::RunTimeValue, (bool)true),
+	TestInfo("StdSwap", "Std/Swap.uc", "main", SuccessCondition::RunTimeValue, (bool)true),
 	
 	TestInfo("ParOffsetCheck", "StressTest/ParOffsetCheck.uc", "main", SuccessCondition::RunTimeValue, (bool)true),
 	TestInfo("ForTypePrimitive", "Objects/ForTypePrimitive.uc", "main", SuccessCondition::RunTimeValue, (bool)true),
@@ -364,11 +364,11 @@ static const Array<TestInfo, 184> Tests{
 	
 	TestInfo("SpanKeepImut", "Std/SpanKeepImut.uc", "main", SuccessCondition::CompilationFail),
 
-	TestInfo("Attribute Contruct 3", "Eval/Attribute3.uc","", SuccessCondition::CompilationFail),
+	TestInfo("AttributeContruct 3", "Eval/Attribute3.uc","", SuccessCondition::CompilationFail),
 	TestInfo("ForTypeConstruct", "Objects/ForTypePrimitveConstruct.uc", "main", SuccessCondition::RunTimeValue, (UCodeLang::Byte)20),
 	TestInfo("ForTypeReadThis", "Objects/ForTypeReadThis.uc", "main", SuccessCondition::RunTimeValue,UCodeLang::Byte(20)),
 
-	TestInfo("Object Swap", "Objects/Swap.uc", "main", SuccessCondition::RunTimeValue,bool(true)),
+	TestInfo("ObjectSwap", "Objects/Swap.uc", "main", SuccessCondition::RunTimeValue,bool(true)),
 	
 	TestInfo("IndexVarCheck", "BasicTests/IndexVarCheck.uc", "main", SuccessCondition::RunTimeValue,int(5)),
 	
