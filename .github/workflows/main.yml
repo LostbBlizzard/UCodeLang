@@ -94,9 +94,6 @@ jobs:
     - name: Run Premake
       run: premake5 gmake2
 
-    - name: Setup upterm session
-      uses: lhotari/action-upterm@v1
-
     - name: Build
       run: premake5 build
 
