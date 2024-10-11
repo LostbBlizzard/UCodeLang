@@ -4237,6 +4237,7 @@ void SystematicAnalysis::UpdateIndirectExport()
 						ontype(field.Type);
 					}
 				}
+				break;
 				case SymbolType::Enum:
 				{
 					auto info = Item->Get_Info<EnumInfo>();
@@ -4295,8 +4296,6 @@ void SystematicAnalysis::UpdateIndirectExport()
 				//	}
 
 				//}
-				
-
 				break;
 					
 				default:
