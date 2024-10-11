@@ -361,17 +361,6 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 	_Table.AddScope(t);
 
 
-	bool isusingfuncstackgenericindirect = node._Signature._IsExport && Isgeneric_t;
-	if (_PassType == PassType::FixedTypes)
-	{
-		if (isusingfuncstackgenericindirect)
-		{
-			FuncGenericIndirectInfo info;
-			info.FuncionName = _Table._Scope.ThisScope;
-			_FuncStackGenericIndirect.push(std::move(info));
-		}
-	}
-
 
 	Symbol* syb;
 	SymbolID sybId = Symbol_GetSymbolID(node);//Must be pass AddScope thats how GetSymbolID works.
@@ -1051,12 +1040,6 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 
 	if (_PassType == PassType::FixedTypes)
 	{
-		if (isusingfuncstackgenericindirect)
-		{
-			auto val = std::move(_FuncStackGenericIndirect.top());
-			_FuncStackGenericIndirect.pop();
-			
-		}
 		if (!node._Body.has_value() && syb->VarType._Type == TypesEnum::Var)
 		{
 			auto Token = NeverNullptr(node._Signature._Name.token);
@@ -1233,110 +1216,6 @@ IRidentifierID SystematicAnalysis::IR_GetIRID(const FuncInfo* Func)
 {
 	auto FuncName = IR_MangleName(Func);
 	return _IR_Builder.ToID(FuncName);
-}
-
-void SystematicAnalysis::TryAddIndirectExport(TypeSymbol type)
-{
-	return;
-	if (type._Type == TypesEnum::CustomType)
-	{
-		if (_FuncStackGenericIndirect.size() && _FuncStack.size())
-		{
-			auto& top = _FuncStackGenericIndirect.top();
-			auto& funciontop = _FuncStack.back();
-
-			if (top.FuncionName == funciontop.Pointer->FullName)
-			{
-				if (!Type_IsTypeExported(type._CustomTypeSymbol)) {
-
-					auto syb = Symbol_GetSymbol(type._CustomTypeSymbol);
-					
-					switch (syb->Type)
-					{
-						case SymbolType::Type_class:
-						{
-							auto info = syb->Get_Info<ClassInfo>();
-							info->_IsIndirectExport = true;
-						}
-						break;
-						case SymbolType::Enum:
-						{
-							auto info = syb->Get_Info<EnumInfo>();
-							info->_IsIndirectExport = true;
-						}
-						break;
-						case SymbolType::Func_ptr:
-						{
-							auto info = syb->Get_Info<FuncPtrInfo>();
-							info->_IsIndirectExport = true;
-						}
-						break;
-				
-						default:
-						break;
-						
-					}
-				}
-			}
-		}
-	}
-}
-void SystematicAnalysis::TryAddIndirectExport(const Symbol& type)
-{
-	return;
-	if (type.Type == SymbolType::Func || type.Type == SymbolType::GenericFunc)
-	{
-		if (_FuncStackGenericIndirect.size() && _FuncStack.size())
-		{
-			auto& top = _FuncStackGenericIndirect.top();
-			auto& funciontop = _FuncStack.back();
-
-			if (top.FuncionName == funciontop.Pointer->FullName)
-			{
-				bool isok = false;
-				if (funciontop.Pointer->IsObjectCall())
-				{
-					auto par = *funciontop.Pointer->GetObjectForCall();
-
-					auto symop = Symbol_GetSymbol(par);
-					if (symop.has_value())
-					{
-						auto sym = symop.value();
-						if (sym->Type == SymbolType::Type_class)
-						{
-							if (!StringHelper::EndWith(sym->FullName, TraitClassEnd))
-							{
-								isok = true;
-							}
-						}
-					}
-				}
-				else
-				{
-					isok = true;
-				}
-
-				if (!isok) { return; }
-
-				bool isexported = false;
-				auto node = type.NodePtr;
-				if (node)
-				{
-					isexported = type.Get_NodeInfo<FuncNode>()->_Signature._IsExport;
-				}
-				else
-				{
-					isexported = true;
-				}
-
-
-				if (!isexported) {
-					auto DecName = IR_MangleName(type.Get_Info<FuncInfo>());
-					top.AddIndirect(RemoveSymboolFuncOverloadMangling(DecName));
-				}
-			}
-		}
-	}
 }
 
 bool SystematicAnalysis::IsExported(SymbolID type) 

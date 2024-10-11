@@ -984,43 +984,6 @@ private:
 		Symbol* Indirect = nullptr;
 	};
 	Vector<FuncGenericIndirectInfo2> IndirectGenericFunc;
-	
-
-
-	struct FuncGenericIndirectInfo
-	{
-		String FuncionName;
-		Vector<ReflectionCustomTypeID> IndirectOutput;
-		Vector<String> IndirectOutputStr;
-
-		void AddIndirect(ReflectionCustomTypeID id)
-		{
-			for (auto& Item : IndirectOutput)
-			{
-				if (Item == id)
-				{
-					return;
-				}
-			}
-
-			IndirectOutput.push_back(id);
-		}
-		void AddIndirect(const String& id)
-		{
-			for (auto& Item : IndirectOutputStr)
-			{
-				if (Item == id)
-				{
-					return;
-				}
-			}
-
-			IndirectOutputStr.push_back(id);
-		}
-	};
-	Stack<FuncGenericIndirectInfo> _FuncStackGenericIndirect;
-	void TryAddIndirectExport(TypeSymbol type);
-	void TryAddIndirectExport(const Symbol& type);
 	bool IsExported(SymbolID type);
 
 	//Funcs

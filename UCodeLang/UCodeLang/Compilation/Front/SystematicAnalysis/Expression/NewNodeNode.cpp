@@ -19,7 +19,6 @@ void SystematicAnalysis::OnNewNode(const NewExpresionNode* nod)
 
 	if (_PassType == PassType::FixedTypes)
 	{
-		TryAddIndirectExport(Type);
 		if (IsArray)
 		{
 			TypeSymbol UintptrType(TypesEnum::uIntPtr);
