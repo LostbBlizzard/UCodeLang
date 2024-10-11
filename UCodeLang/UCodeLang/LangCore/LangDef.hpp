@@ -218,12 +218,12 @@
 #endif
 
 #ifdef UCodeLangDebug
-#define LogErrors 1
+#define UCodeLangLogErrors 1
 #else 
-#define LogErrors 0
+#define UCodeLangLogErrors 0
 #endif
 
-#if LogErrors 
+#if UCodeLangLogErrors 
 #include <iostream>
 #endif
 
@@ -240,7 +240,7 @@
 #define UCodeLangThrowExceptionNoLog(Ex) throw std::runtime_error(Ex);
 #endif 
 
-#if LogErrors
+#if UCodeLangLogErrors
 
 #define UCodeLangThrowException(Ex) std::cerr << "UCodeLangThrowException reached on file " __FILE__  " on on line " <<  __LINE__  << std::endl; \
 				    UCodeLangThrowExceptionNoLog(Ex); \
@@ -264,7 +264,7 @@
 
 #if UCodeLangDebug
 
-#if LogErrors 
+#if UCodeLangLogErrors 
 #define UCodeLangUnreachable() std::cerr << "UCodeLangUnreachable reached on file " __FILE__  " on on line " <<  __LINE__  << std::endl; UCodeLangBreakPoint();
 #else 
 #define UCodeLangUnreachable() UCodeLangBreakPoint();
@@ -293,7 +293,7 @@
 
 #if UCodeLangDebug
 #define UCodeLangAssert(condition) if (!(condition)){UCodeLangBreakPoint(); std::cerr << "Assert Failed on file " __FILE__  " on on line " <<  __LINE__  << std::endl;}
-#if LogErrors 
+#if UCodeLangLogErrors 
 #else 
 #define UCodeLangAssert(condition) if (!(condition)){UCodeLangBreakPoint();}
 #endif
