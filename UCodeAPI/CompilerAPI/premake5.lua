@@ -2,8 +2,8 @@ project "CompilerAPI"
   kind "StaticLib"
   language "C++"
 
-  targetdir ("../Output/%{prj.name}/" .. OutDirPath)
-  objdir ("../Output/int/%{prj.name}/" .. OutDirPath)
+  targetdir ("../../Output/%{prj.name}/" .. OutDirPath)
+  objdir ("../../Output/int/%{prj.name}/" .. OutDirPath)
 
   
   dependson {"UCodeLangCL","StandardLibrary"}
