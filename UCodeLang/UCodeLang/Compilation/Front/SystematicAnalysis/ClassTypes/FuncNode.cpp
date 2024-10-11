@@ -661,6 +661,12 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 			}
 		}
 	}
+	if (!IsgenericInstantiation && IsGenericS && node._Signature._IsExport) 
+	{
+		FuncGenericIndirectInfo2 indirectinfo;
+		indirectinfo.Indirect = syb;
+		IndirectGenericFunc.push_back(indirectinfo);
+	}
 
 
 	IRFunc* OldIRFunc = nullptr;
@@ -876,6 +882,11 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 		}
 		V.IsExport = shouldExport ? ExportType::Exported : ExportType::NotExported;
 
+		if (V.IsExport == ExportType::NotExported && Info->_IsIndirectExport) 
+		{
+			V.IsExport = ExportType::IndrectExported;
+		}
+
 		for (size_t i = 0; i < Info->Pars.size(); i++)
 		{
 			auto& Item = Info->Pars[i];
@@ -1031,6 +1042,10 @@ void SystematicAnalysis::OnFuncNode(const FuncNode& node)
 		assemblyfunc.Base.Implementation = GetImplementationFromFunc(filetext, nametoken, endtoken);
 		assemblyfunc.AccessModifier = syb->Access;
 		assemblyfunc.IsExported = node._Signature._IsExport ? ExportType::Exported : ExportType::NotExported;
+		if (assemblyfunc.IsExported == ExportType::NotExported && Info->_IsIndirectExport) 
+		{
+			assemblyfunc.IsExported = ExportType::IndrectExported;
+		}
 		assemblyfunc.UseStatments = Generic_GetCurrentUseStatements();
 	}
 
@@ -1222,6 +1237,7 @@ IRidentifierID SystematicAnalysis::IR_GetIRID(const FuncInfo* Func)
 
 void SystematicAnalysis::TryAddIndirectExport(TypeSymbol type)
 {
+	return;
 	if (type._Type == TypesEnum::CustomType)
 	{
 		if (_FuncStackGenericIndirect.size() && _FuncStack.size())
@@ -1267,6 +1283,7 @@ void SystematicAnalysis::TryAddIndirectExport(TypeSymbol type)
 }
 void SystematicAnalysis::TryAddIndirectExport(const Symbol& type)
 {
+	return;
 	if (type.Type == SymbolType::Func || type.Type == SymbolType::GenericFunc)
 	{
 		if (_FuncStackGenericIndirect.size() && _FuncStack.size())

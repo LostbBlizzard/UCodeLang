@@ -263,7 +263,7 @@ void SystematicAnalysis::Assembly_LoadLibSymbols(const UClib& lib, ImportLibInfo
 			}
 
 			if (TextOp.has_value() && 
-				(IsExport == ExportType::Exported || IsExport == ExportType::NotExported)
+				(IsExport == ExportType::Exported || IsExport == ExportType::IndrectExported)
 			)
 			{
 				StringsFromLoadLib.push_back(std::make_unique<String>(TextOp.value()));
@@ -1458,6 +1458,15 @@ void SystematicAnalysis::Assembly_AddClass(const Vector<Unique_ptr<AttributeNode
 	{
 		VClass.IsExported =
 			ClassSyb->Get_NodeInfo<ClassNode>()->_IsExport ? ExportType::Exported : ExportType::NotExported;
+
+		if (VClass.IsExported  == ExportType::NotExported) 
+		{
+			if (Class->_IsIndirectExport) 
+			{
+				VClass.IsExported = ExportType::IndrectExported;
+			}
+
+		}
 	}
 	else
 	{

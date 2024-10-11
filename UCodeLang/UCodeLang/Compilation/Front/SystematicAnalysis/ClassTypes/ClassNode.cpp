@@ -928,7 +928,15 @@ void SystematicAnalysis::OnClassNode(const ClassNode& Node)
 			VClass.Base.Implementation = ClassStr + String(ClassBody);
 			VClass.Base.Implementation += "\n\n";
 			VClass.AccessModifier = Syb.Access;
-			VClass.IsExported = Node._IsExport ? ExportType::NotExported : ExportType::Exported;
+
+			bool indirectexport = ClassInf->_IsIndirectExport;
+
+			VClass.IsExported = Node._IsExport ? ExportType::Exported : ExportType::NotExported;
+			
+			if (VClass.IsExported  == ExportType::NotExported && indirectexport) 
+			{
+				VClass.IsExported =ExportType::IndrectExported;
+			}
 			VClass.UseStatments = Generic_GetCurrentUseStatements();
 		}
 	}

@@ -96,6 +96,7 @@ bool SystematicAnalysis::Analyze(const Vector<NeverNullPtr<FileNode>>& Files, co
 			Lib_BuildLibs(false);//Because of generics the ClassAssembly may need them.
 			Lib_BuildLibs(true);//Because of Enums  may need them.
 
+			UpdateIndirectExportFuncs();
 			UpdateIndirectExport();
 
 			BuildCode();
@@ -3653,8 +3654,502 @@ void SystematicAnalysis::LogError(ErrorCodes Err, size_t Line, size_t Pos, const
 
 	_ErrorsOutput->AddError(Err, Line, Pos, Str);
 }
+void SystematicAnalysis::UpdateIndirectExportFuncs()
+{
+	auto current = SaveAndMove_SymbolContext();
+
+	using VarableType = Vector<Symbol*>;
+
+	std::function<void(Symbol* Item)> onfuncnode;
+	std::function<void(const ExpressionNodeType& node)> onexpression;
+	std::function<void(const Node& node)> onexpression2;
+	std::function<VarableType(const TypeNode& node)> ontype;
+	std::function<void(const Node& node)> onnode;
+	std::function<bool(const Symbol* symbol)> shouldskip;
+	std::function<void(const FuncCallNode& item)> onfunccall;
+	std::function<void(Symbol* item)> oncouldcallfunction;
+
+	Vector<Symbol*> Symbolstoskip; 
+	Stack<const FuncInfo*> funcinfostack;
+	Stack< Symbol*> classinfostatck;
+
+
+	struct Varable 
+	{
+		String name;
+		VarableType type;
+	};
+	struct VarableState 
+	{
+		Vector<Varable> Varables;
+
+		NullablePtr<Varable> GetVarable(const String& name) 
+		{
+			for (auto& Item : Varables) {
+				if (Item.name == name) {
+					return  Nullableptr(&Item);
+				}
+			}
+			return NullablePtr<Varable>();
+		}
+	};
+	VarableState state;
+
+	shouldskip = [&,this](const Symbol* symbol) 
+	{
+		for (auto& Item : Symbolstoskip) 
+		{
+			if (Item == symbol) 
+			{
+				return  true;
+			}
+		}
+		return false;
+	};
+
+	onexpression2 = [&,this](const Node& node) {
+		switch (node.Get_Type())
+		{
+			case NodeType::BinaryExpressionNode:
+				{
+					auto nod = BinaryExpressionNode::As(&node);
+
+					auto Ex0node = nod->_Value0._Value.get();
+					auto Ex1node = nod->_Value1._Value.get();
+					onexpression2(*Ex0node);
+					onexpression2(*Ex1node);
+				}
+			break;
+			case NodeType::ValueExpressionNode:
+				{
+					auto nod = ValueExpressionNode::As(&node);
+					switch (nod->_Value->Get_Type()) 
+					{
+						case NodeType::UnsafeExpression:
+						{
+							auto ex = UnsafeExpression::As(nod->_Value.get());
+							onexpression(ex->_Base);
+						}
+						break;
+						case NodeType::NewExpresionNode:
+						{
+							auto ex = NewExpresionNode::As(nod->_Value.get());
+
+							for (auto& Par : ex->_Parameters._Nodes)
+							{
+									onexpression2(*Par.get());
+							}
+							ontype(ex->_Type);
+						}
+						break;
+						case NodeType::FuncCallNode:
+						{
+							auto ex = FuncCallNode::As(nod->_Value.get());
+
+							onfunccall(*ex);
+						}
+						break;
+						default:
+							break;
+					} 
+				}
+				break;
+			case NodeType::UnaryExpressionNode:
+				{
+					auto nod = UnaryExpressionNode::As(&node);
+					onexpression2(node);
+				}
+				break;
+			case NodeType::CastNode:
+				{
+					auto nod = CastNode::As(&node);
+
+					onexpression(nod->_Expression);
+					ontype(nod->_ToType);
+				}
+				break;
+			case NodeType::IndexedExpresionNode:
+				{
+					auto nod = IndexedExpresionNode::As(&node);
+
+					onexpression(nod->_IndexExpression);
+					onexpression(nod->_SourceExpression);
+				}
+				break;
+			case NodeType::ExtendedScopeExpression:
+				{
+					auto nod = ExtendedScopeExpression::As(&node);
+
+					onexpression(nod->_Expression);
+				}
+				break;
+			case NodeType::ExtendedFuncExpression:
+				{
+					auto nod = ExtendedFuncExpression::As(&node);
+
+					onexpression(nod->_Expression);
+				}
+				break;
+			default:
+				UCodeLangUnreachable();
+				break;
+		}
+	};
+	onexpression = [&,this](const ExpressionNodeType& node) {
+		onexpression2(*node._Value.get());
+	};
+	ontype = [&,this](const TypeNode& node) -> VarableType {
+
+		Vector<Symbol *> symbols;
+		if (node._name._ScopedName.size() == 1 && node._name._ScopedName.front()._token->Type == TokenType::KeyWord_This) 
+		{
+			symbols.push_back(_ClassStack.top().Syb);
+		}
+		else 
+		{
+			String scopename;
+			node._name.GetScopedName(scopename);
+			symbols = GetSymbolsWithName(scopename);
+		}
+
+		for (auto& Item : symbols) 
+		{
+			if (Item->Type == SymbolType::Generic_class || Item->Type == SymbolType::Type_class) 
+			{
+				auto info = Item->Get_Info<ClassInfo>();
+
+				info->_IsIndirectExport = true;
+			}
+			else if (Item->Type == SymbolType::Func_ptr || Item->Type == SymbolType::Hard_Func_ptr) 
+			{
+				auto info = Item->Get_Info<FuncPtrInfo>();
+
+				info->_IsIndirectExport = true;
+			}
+			
+			else if (Item->Type == SymbolType::Type_alias || Item->Type == SymbolType::Hard_Type_alias) 
+			{
+				// auto info = Item->Get_Info<AliasInfo>();
+				//
+				// info->_IsIndirectExport = true;
+			}
+
+		}
+		return symbols;
+	};
+
+
+	oncouldcallfunction = [&,this](Symbol* Item) {
+				auto funcinfo = Item->Get_Info<FuncInfo>();
+
+				
+				if (funcinfo->_IsIndirectExport == false && !IsExported(Item->ID) && !shouldskip(Item))
+				{
+					funcinfo->_IsIndirectExport = true;
+
+					Symbolstoskip.push_back(Item);
+
+					auto current = SaveAndMove_SymbolContext();
+
+					Set_SymbolContext(funcinfo->Context.value());
+					auto oldstate = std::move(state);
+					state = {}; 
+
+					funcinfostack.push(funcinfo);
+					onfuncnode(Item);
+					funcinfostack.pop();
+
+					state =  std::move(oldstate);
+
+					Set_SymbolContext(std::move(current));
+				}
+	};
+
+	onfunccall = [&,this](const FuncCallNode& func) {
+		bool IsThisCall = false;
+		for (auto& Item : func._FuncName._ScopedName)
+		{
+			if (Item._operator == ScopedName::Operator_t::Dot)
+			{
+				IsThisCall = true;
+				break;
+			}
+		}
+
+		String scopename;
+		if (IsThisCall)
+		{
+			String varablename;
+			String funcname;
+
+			func._FuncName.GetScopedName(funcname,func._FuncName._ScopedName.size() - 1);
+
+			varablename = func._FuncName._ScopedName.front()._token->Value._String;
+
+			auto varop = state.GetVarable(varablename);
+			if (varop.has_value()) 
+			{
+				auto varable = varop.value();
+
+				for (auto& couldbetype : varable->type) 
+				{
+					auto newscopename =  couldbetype->FullName;
+					ScopeHelper::GetApendedString(newscopename,funcname);
+
+					auto symbols = GetSymbolsWithName(newscopename);
+					for (auto& Item : symbols) 
+					{
+
+						if (Item->Type == SymbolType::Func || Item->Type == SymbolType::GenericFunc) 
+						{
+							oncouldcallfunction(Item);
+						}
+					}
+
+				}
+				return;
+			} else {
+				//fall back
+				func._FuncName.GetScopedName(scopename);
+			}
+
+		}
+		else 
+		{
+			func._FuncName.GetScopedName(scopename);
+		}
+
+		auto symbols = GetSymbolsWithName(scopename);
+		for (auto& Item : symbols) 
+		{
+			if (Item->Type == SymbolType::Func || Item->Type == SymbolType::GenericFunc) 
+			{
+				oncouldcallfunction(Item);
+			}
+		}
+	};
+	onnode = [&,this](const Node& item) {
+		auto value = item.Get_Type();
+		switch (item.Get_Type()) 
+		{
+			case NodeType::InvalidNode:
+				break;
+			case NodeType::PostfixVariableNode:
+			{
+					auto node = PostfixVariableNode::As(&item);
+					onexpression(node->_ToAssign);
+			}
+			break;
+			case NodeType::DropStatementNode:
+			{
+					auto node = DropStatementNode::As(&item);
+					onexpression(node->_expression);
+			}
+			break;
+			case NodeType::UnsafeStatementsNode:
+			{
+					auto node = UnsafeStatementsNode::As(&item);
+
+					for (const auto& node3 : node->_Base._Nodes)
+					{
+						onnode(*node3);
+					}
+			}
+			break;
+			case NodeType::CompileTimeForNode:
+			{
+					auto node = CompileTimeForNode::As(&item);
+
+					const char* LoopScopePrefix = "_CFor";
+					String ScopeName = GetScopeLabelName(&node);
+					
+					if (node->_Type == CompileTimeForNode::ForType::modern)
+					{
+						onexpression2(*node->_Modern_List._Value);
+
+						for (const auto& node3 : node->_Body._Nodes)
+						{
+							onnode(*node3);
+						}
+					}
+			}
+			break;
+			case NodeType::ForNode:
+			{
+					auto node = ForNode::As(&item);
+
+					const char* LoopScopePrefix = "_CFor";
+					String ScopeName = GetScopeLabelName(&node);
+					
+					if (node->_Type == CompileTimeForNode::ForType::modern)
+					{
+						onexpression2(*node->_Modern_List._Value);
+
+						for (const auto& node3 : node->_Body._Nodes)
+						{
+							onnode(*node3);
+						}
+					}
+			}
+			break;
+			case NodeType::CompileTimeIfNode:
+				{
+					auto node = CompileTimeIfNode::As(&item);
+					onexpression(node->_Expression);
+
+					for (const auto& node3 : node->_Body._Nodes)
+					{
+						onnode(*node3);
+					}
+
+					if (node->_Else.get()) 
+					{
+						ElseNode* Elsenode = ElseNode::As(node->_Else.get());
+
+						for (const auto& node3 : Elsenode->_Body._Nodes)
+						{
+							onnode(*node3);
+						}
+					}
+				}
+				break;
+			case NodeType::IfNode:
+				{
+					auto node = IfNode::As(&item);
+					String ScopeName = GetScopeLabelName(&node);
+
+					Push_NewStackFrame();
+					_Table.AddScope(ScopeName);
+
+					onexpression(node->_Expression);
+
+					for (const auto& node3 : node->_Body._Nodes)
+					{
+						onnode(*node3);
+					}
+
+					if (node->_Else.get()) 
+					{
+						ElseNode* Elsenode = ElseNode::As(node->_Else.get());
+
+						for (const auto& node3 : Elsenode->_Body._Nodes)
+						{
+							onnode(*node3);
+						}
+					}
+
+					_Table.RemoveScope();
+				}
+				break;
+
+			case NodeType::AssignExpressionNode:
+				{
+					auto node = AssignExpressionNode::As(&item);
+
+					onexpression(node->_Expression);
+					onexpression(node->_ToAssign);
+				}
+			break;
+			case NodeType::RetStatementNode:
+				{
+					auto node = RetStatementNode::As(&item);
+					onexpression(node->_Expression);
+				}
+				break;
+			case NodeType::AliasNode:
+				{
+					auto info =AliasNode::As(&item);
+
+
+					if (info->_AliasType == AliasType::Type)
+					{
+						ontype(info->_Type);
+					}
+					else 
+					{
+						UCodeLangUnreachable();
+					}
+
+				};
+			case NodeType::DeclareVariableNode:
+				{
+					auto node = DeclareVariableNode::As(&item);
+					if (node->_Expression._Value.get())
+					{
+						onexpression(node->_Expression);
+					}
+					auto typeinfo = ontype(node->_Type);
+
+					Varable varable = {};
+					varable.name = node->_Name.token->Value._String;
+					varable.type = typeinfo;
+
+					state.Varables.push_back(std::move(varable));
+				}
+				break;
+			case NodeType::FuncCallStatementNode:
+				{
+					auto value = FuncCallStatementNode::As(&item);
+
+					onfunccall(value->_Base);
+				}
+				break;
+			default:
+				UCodeLangUnreachable();
+				break;
+		}
+	};
+
+	onfuncnode = [&,this](const Symbol* Item) {
+		auto funcinfo = Item->Get_Info<FuncInfo>();
+		auto funcnode = Item->Get_NodeInfo<FuncNode>();
+
+
+		if (funcnode->_Body.has_value())
+		{
+
+			for (auto& item : funcnode->_Body.value()._Statements._Nodes) 
+			{
+				onnode(*item);
+			}
+		}
+	};
+
+	for (auto& Item : IndirectGenericFunc)
+	{
+		Symbolstoskip.push_back(Item.Indirect);
+		auto funcinfo = Item.Indirect->Get_Info<FuncInfo>();
+
+		bool hasclass = false;
+		{
+			auto classscope = funcinfo->FullName;
+			ScopeHelper::ReMoveScope(classscope);
+
+			auto symbol = Symbol_GetSymbol(classscope,SymbolType::Type_class);
+			if (symbol.has_value()) 
+			{
+				classinfostatck.push(symbol.value().value());
+				hasclass = true;
+			}
+		}
+
+		funcinfostack.push(funcinfo);
+		Set_SymbolContext(funcinfo->Context.value());
+		onfuncnode(Item.Indirect);
+
+		state = {};
+		if (hasclass) 
+		{
+			classinfostatck.pop();
+		}
+		funcinfostack.pop();
+	}
+
+	Set_SymbolContext(std::move(current));
+}
 void SystematicAnalysis::UpdateIndirectExport()
 {
+
 	bool hasupdatedsymbol = false;
 
 	do {
@@ -3668,22 +4163,28 @@ void SystematicAnalysis::UpdateIndirectExport()
 					case SymbolType::Type_class:
 					{
 						auto info = sym.Get_Info<ClassInfo>();
+						if (info->_IsIndirectExport == false) {
 						info->_IsIndirectExport = true;
 						hasupdatedsymbol = true;
+						}
 					}
 					break;
 					case SymbolType::Enum:
 					{
 						auto info = sym.Get_Info<EnumInfo>();
+						if (info->_IsIndirectExport == false) {
 						info->_IsIndirectExport = true;
 						hasupdatedsymbol = true;
+						}
 					}
 					break;
 					case SymbolType::Func_ptr:
 					{
 						auto info = sym.Get_Info<FuncPtrInfo>();
+						if (info->_IsIndirectExport == false) {
 						info->_IsIndirectExport = true;
 						hasupdatedsymbol = true;
+						}
 					}
 					break;
 					default:

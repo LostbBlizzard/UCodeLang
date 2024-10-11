@@ -875,7 +875,7 @@ void SystematicAnalysis::Symbol_BuildTrait(const NeverNullPtr<Symbol> Syb, Class
 }
 bool SystematicAnalysis::Type_CanDoTypeToTrait(const TypeSymbol& TypeToCheck, const TypeSymbol& Type)
 {
-	if (Type._IsDynamic)
+	if (Type._IsDynamic && Type._Type == TypesEnum::CustomType)
 	{
 		auto SymbolB = Symbol_GetSymbol(Type).value();
 		TraitInfo* Info = SymbolB->Get_Info<TraitInfo>();

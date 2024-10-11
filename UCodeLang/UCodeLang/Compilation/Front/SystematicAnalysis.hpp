@@ -979,6 +979,14 @@ private:
 	Vector<Unique_ptr<FileNode>> NodesFromLoadLib;
 	Vector<Unique_ptr<Vector<Token>>> TokensFromLoadLib;
 
+	struct FuncGenericIndirectInfo2
+	{
+		Symbol* Indirect = nullptr;
+	};
+	Vector<FuncGenericIndirectInfo2> IndirectGenericFunc;
+	
+
+
 	struct FuncGenericIndirectInfo
 	{
 		String FuncionName;
@@ -1232,6 +1240,7 @@ private:
 	Symbol& Symbol_AddSymbol(SymbolType type, const String& Name, const String& FullName, AccessModifierType Access);
 	bool Symbol_IsVarableType(SymbolType type) const;
 	void Pass();
+	void UpdateIndirectExportFuncs();
 	void UpdateIndirectExport();
 	void OnFileNode(const FileNode& File);
 	void OnClassNode(const ClassNode& node);

@@ -428,6 +428,7 @@ public:
 	bool IsExternC = false;
 	bool IsRemoved = false;
 	bool IsTraitDynamicDispatch = false;
+	bool _IsIndirectExport = false;
 	Vector<Symbol*> Attributes;
 	bool IsObjectCall() const
 	{

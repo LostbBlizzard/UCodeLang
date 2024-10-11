@@ -266,7 +266,14 @@ void SystematicAnalysis::OnAliasNode(const AliasNode& node)
 				}
 				V.RetType = Assembly_ConvertToType(nodeinfo_->Ret);
 				V.AccessModifier = Syb.Access;
+
+				bool indirectexport = nodeinfo_->_IsIndirectExport;
 				V.IsExported = node.IsExport ? ExportType::Exported : ExportType::NotExported;
+
+				if (V.IsExported == ExportType::NotExported && indirectexport) 
+				{
+					V.IsExported =  ExportType::IndrectExported;
+				}
 
 				V.TypeID = Type_GetTypeID(TypesEnum::CustomType, Syb.ID);
 			}
