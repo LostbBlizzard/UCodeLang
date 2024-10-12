@@ -306,6 +306,27 @@ newaction {
         end
     end
 }
+newaction {
+    trigger = "build_published_arm64",
+    description = "builds the everything",
+    execute = function()
+        if os.istarget("linux") then
+            executeorexit("make UCodeLang config=published_linuxarm64 -j$(nproc)")
+            executeorexit("make UCodeLanguageSever  config=published_linuxarm64 -j$(nproc)")
+            executeorexit("make UCodeLangCL  config=published_linuxarm64 -j$(nproc)")
+        end
+
+        if os.istarget("windows") then
+            executeorexit("msbuild UCodeLang.sln /t:UCodeLang /p:Configuration=Published /p:Platform=WinArm -maxcpucount")
+            executeorexit("msbuild UCodeLang.sln /t:UCodeLanguageSever /p:Configuration=Published /p:Platform=WinArm -maxcpucount")
+            executeorexit("msbuild UCodeLang.sln /t:UCodeLangCL /p:Configuration=Published /p:Platform=WinArm -maxcpucount")
+        end
+
+        if os.istarget("macosx") then
+
+        end
+    end
+}
 
 ---test
 newaction {
