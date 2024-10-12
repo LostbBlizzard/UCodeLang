@@ -57,6 +57,7 @@ jobs:
       - name: Archive Output
         uses: actions/upload-artifact@v4
         with:
+          name: windows32
           path: |
            Output/UCodeLangCL/Win32
            Output/UCodeLanguageSever/Win32
@@ -96,6 +97,7 @@ jobs:
    
       - uses: actions/upload-artifact@v4
         with:
+          name: windows64
           path: |
            Output/UCodeLangCL/Win64
            Output/UCodeLanguageSever/Win64
@@ -135,6 +137,7 @@ jobs:
    
       - uses: actions/upload-artifact@v4
         with:
+          name: windowarm64
           path: |
            Output/UCodeLangCL/
            Output/UCodeLanguageSever/
@@ -172,6 +175,7 @@ jobs:
       - name: Archive Output
         uses: actions/upload-artifact@v4
         with:
+          name: linux64bit
           path: |
            Output/UCodeLangCL/linux64
            Output/UCodeLanguageSever/linux64
@@ -209,6 +213,7 @@ jobs:
       - name: Archive Output
         uses: actions/upload-artifact@v4
         with:
+          name: linux32bit
           path: |
            Output/UCodeLangCL/linux32
            Output/UCodeLanguageSever/linux32
@@ -246,6 +251,7 @@ jobs:
       - name: Archive Output
         uses: actions/upload-artifact@v4
         with:
+          name: linuxarm64
           path: |
            Output/UCodeLangCL/linuxArm64
            Output/UCodeLanguageSever/linuxArm64
@@ -283,6 +289,7 @@ jobs:
       - name: Archive Output
         uses: actions/upload-artifact@v4
         with:
+          name: macosbuild
           path: |
            Output/UCodeLangCL/MacOS
            Output/UCodeLanguageSever/MacOS
