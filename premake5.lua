@@ -258,9 +258,9 @@ newaction {
         end
 
         if os.istarget("windows") then
-            executeorexit("msbuild UCodeLang/UCodeLang.vcxproj /t:Build /p:Configuration=Debug /p:Platform=WinArm -maxcpucount")
-            executeorexit("msbuild UCodeLanguageSever/UCodeLanguageSever.vcxproj /t:Build /p:Configuration=Debug /p:Platform=WinArm -maxcpucount")
-            executeorexit("msbuild UCodeLangCL/UCodeLangCL.vcxproj UCodeLangCL /t:Build /p:Configuration=Debug /p:Platform=WinArm -maxcpucount")
+            executeorexit("msbuild UCodeLang.sln /t:UCodeLang /p:Configuration=Debug /p:Platform=WinArm -maxcpucount")
+            executeorexit("msbuild UCodeLang.sln /t:UCodeLanguageSever /p:Configuration=Debug /p:Platform=WinArm -maxcpucount")
+            executeorexit("msbuild UCodeLang.sln /t:UCodeLangCL /p:Configuration=Debug /p:Platform=WinArm -maxcpucount")
         end
 
         if os.istarget("macosx") then
