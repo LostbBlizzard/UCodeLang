@@ -1,14 +1,25 @@
 
 workspace "UCodeLang"
     configurations { "Debug", "Release", "Published" }
-    platforms { "Win32", "Win64", "linux32", "linux64", "MacOS", "Android", "IOS", "Web" }
+    platforms { 
+                "Win32"  , "Win64"  ,  "WinArm", 
+                "linux32", "linux64",  "linuxArm64",
+                "MacOS"  , 
+                "Android",
+                "IOS",
+                "Web" 
+    }
     defines { "UCodeLangDebug", "ZYCORE_STATIC_BUILD", "ZYDIS_STATIC_BUILD", "UCodeLangExperimental" }
     startproject "UCodeIDE"
     cppdialect "c++17"
 
 if os.host() == "windows" then
     if os.is64bit() then
-        defaultplatform "Win64"
+        --if os.hostarch() == "ARM64" then
+        --    defaultplatform "WinArm"
+        --else 
+            defaultplatform "Win64"
+        --end 
     else
         defaultplatform "Win32"
     end
@@ -16,7 +27,11 @@ end
 
 if os.host() == "linux" then
     if os.is64bit() then
-        defaultplatform "linux64"
+        --if os.hostarch() == "ARM64" then
+        --    defaultplatform "linuxArm64"
+        --else 
+            defaultplatform "linux64"
+        --end
     else
         defaultplatform "linux32"
     end
@@ -49,9 +64,18 @@ filter { "platforms:Win64" }
     system "Windows"
     architecture "x86_64"
 
-filter { "platforms:linux32" }
+filter { "platforms:WinArm" }
+    system "Windows"
+    architecture "ARM64"
+
+filter { "platforms:linuxArm64" }
     system "linux"
-    architecture "x86"
+    architecture "ARM64"
+    gccprefix ("aarch64-linux-gnu-")
+
+filter { "platforms:linux64" }
+    system "linux"
+    architecture "x86_64"
 
 filter { "platforms:linux64" }
     system "linux"
@@ -101,7 +125,7 @@ filter { "configurations:Published" }
     optimize "Speed"
     symbols "off"
 
-
+filter {}
 
 include "UCodeLang"
 include "UCodeLangCL"
@@ -220,6 +244,25 @@ newaction {
             executeorexit("make UCApp -j$(getconf _NPROCESSORS_ONLN)")
             executeorexit("make StandardLibrary -j$(getconf _NPROCESSORS_ONLN)")
             executeorexit("make UCodeLanguageSever -j$(getconf _NPROCESSORS_ONLN)")
+        end
+    end
+}
+newaction {
+    trigger = "build_arm",
+    description = "builds everything",
+    execute = function()
+        if os.istarget("linux") then
+            executeorexit("make UCodeLang config=debug_linuxarm64 -j$(nproc)")
+            executeorexit("make UCodeLanguageSever  config=debug_linuxarm64 -j$(nproc)")
+            executeorexit("make UCodeLangCL  config=debug_linuxarm64 -j$(nproc)")
+        end
+
+        if os.istarget("windows") then
+            executeorexit("msbuild UCodeLang.sln /t:Build /p:Configuration=Debug /p:Platform=WinArm -maxcpucount")
+        end
+
+        if os.istarget("macosx") then
+
         end
     end
 }
