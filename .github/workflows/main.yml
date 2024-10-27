@@ -98,7 +98,7 @@ jobs:
       run: premake5 vs2022
 
     - name: Build 
-      run: premake5 build_published_arm64
+      run: premake5 build_arm
 
     #- name: Run Tests 
     #  run: premake5 test_32bit
