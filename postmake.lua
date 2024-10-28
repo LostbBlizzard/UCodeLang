@@ -99,18 +99,22 @@ addxfile(mac, "Output/UCodeLanguageSever/MacOS/" .. mod .. "/uclang", unixprogra
 all.addfile("UCodeAPI/NStandardLibrary/**.ucm", postmake.installdir() .. "module/NStandardLibrary")
 all.addfile("UCodeAPI/NStandardLibrary/**.uc", postmake.installdir() .. "module/NStandardLibrary")
 all.addfile("UCodeAPI/NStandardLibrary/LICENSE.txt", postmake.installdir() .. "module/NStandardLibrary/LICENSE.txt")
+all.addfile("UCodeAPI/NStandardLibrary/.gitignore", postmake.installdir() .. "module/NStandardLibrary/.gitignore")
 
 all.addfile("UCodeAPI/StandardLibrary/**.ucm", postmake.installdir() .. "module/StandardLibrary")
 all.addfile("UCodeAPI/StandardLibrary/**.uc", postmake.installdir() .. "module/StandardLibrary")
 all.addfile("UCodeAPI/StandardLibrary/LICENSE.txt", postmake.installdir() .. "module/StandardLibrary/LICENSE.txt")
+all.addfile("UCodeAPI/StandardLibrary/.gitignore", postmake.installdir() .. "module/StandardLibrary/.gitignore")
 
 all.addfile("UCodeAPI/BuildSystem/**.ucm", postmake.installdir() .. "module/BuildSystem")
 all.addfile("UCodeAPI/BuildSystem/**.uc", postmake.installdir() .. "module/BuildSystem")
 all.addfile("UCodeAPI/BuildSystem/LICENSE.txt", postmake.installdir() .. "module/BuildSystem/LICENSE.txt")
+all.addfile("UCodeAPI/BuildSystem/.gitignore", postmake.installdir() .. "module/BuildSystem/.gitignore")
 
 all.addfile("UCodeAPI/CompilerAPI/**.ucm", postmake.installdir() .. "module/CompilerAPI")
 all.addfile("UCodeAPI/CompilerAPI/**.uc", postmake.installdir() .. "module/CompilerAPI")
 all.addfile("UCodeAPI/CompilerAPI/LICENSE.txt", postmake.installdir() .. "module/CompilerAPI/LICENSE.txt")
+all.addfile("UCodeAPI/CompilerAPI/.gitignore", postmake.installdir() .. "module/CompilerAPI/.gitignore")
 
 executeorexit("cd ./doc && mdbook build --dest-dir ../Output/UCodeDocumentation")
 
