@@ -60,9 +60,11 @@ local addpathflag = all.newflag("Add Path", true)
 local mainprogrampath = postmake.installdir() .. "bin/" .. postmake.appname
 local winmainprogrampath = mainprogrampath .. ".exe"
 
+local unixprogrampath_withoutinstalldir = "tools/" .. postmake.appname
 local unixprogrampath = postmake.installdir() .. "tools/" .. postmake.appname
 local winsmainprogram = unixprogrampath .. ".exe"
 
+local unixprogrampathlsp_withoutinstalldir = "bin/" .. "uclanglsp"
 local unixprogrampathlsp = postmake.installdir() .. "bin/" .. "uclanglsp"
 local winsmainprogramlsp = unixprogrampathlsp .. ".exe"
 
@@ -131,41 +133,82 @@ unix.adduninstallcmd("rm", { postmake.installdir() .. "ModuleIndex.ucmi" })
 
 local installwebsite = "https://github.com/LostbBlizzard/UCodeLang/releases/tag/Release-" .. postmake.appversion
 
-postmake.make(shellscript, { gnu64, gnu32, gnuarm64, mac },
-    ---@type ShellScriptConfig
-    {
-        weburl = installwebsite,
-        uploaddir = "./Output/upload/",
-        singlefile = "ShellInstallFiles",
-        testmode = debugmode,
-        uninstallfile = mainprogrampath,
-        proxy = {
-            uninstallcmd = "uninstall",
-            program = unixprogrampath
-        },
-        style = 'modern'
-    });
 
-postmake.make(innosetup, { win64, win32, winarm64 },
-    ---@type InnoSetConfig
-    {
-        AppId = InnoAppID,
-        LaunchProgram = winsmainprogram,
-        proxy = {
-            path = winsmainprogram,
-            uninstallcmd = "uninstall",
-            program = winsmainprogram
-        },
-        UninstallDelete = {
-            postmake.installdir() .. "ModuleIndex.ucmi"
-        }
-    });
+if postmake.target() == "symlink" then
+    local thisinstalldir = postmake.path.absolute(postmake.appinstalldir) .. "/"
 
-postmake.make(githubaction, { win64, win32, winarm64, gnu64, gnu32, gnuarm64, mac },
-    ---@type GitHubActionConfig
-    {
-        weburl = installwebsite,
-        uploaddir = "./Output/githubactionupload/",
-        singlefile = "GitHubActionInstallFiles",
-        version = {}
-    });
+    local mainfile = thisinstalldir .. unixprogrampath_withoutinstalldir
+    local lspfile = thisinstalldir .. unixprogrampathlsp_withoutinstalldir
+    if postmake.os.uname.os() == 'windows' then
+        mainfile = mainfile .. ".exe"
+        lspfile = lspfile .. ".exe"
+    end
+
+    local function symlink(input, output)
+        print("symlink " .. output .. " >> " .. input)
+
+        local issymlink = false
+        if issymlink then
+
+        else
+            if postmake.os.exist(output) then
+                if postmake.os.IsFile(output) then
+                    postmake.os.rm(output)
+                else
+                    postmake.os.rmall(output)
+                end
+            end
+
+            postmake.os.ln(input, output)
+        end
+    end
+
+    symlink(postmake.path.absolute("Output/UCodeLangCL/linux64/" .. mod .. "/uclang"), mainfile)
+    symlink(postmake.path.absolute("Output/UCodeLanguageSever/linux64/" .. mod .. "/uclanglsp"), lspfile)
+    symlink(postmake.path.absolute("Output/UCodeDocumentation"), thisinstalldir .. "doc")
+    symlink(postmake.path.absolute("UCodeAPI/NStandardLibrary"), thisinstalldir .. "module/NStandardLibrary")
+    symlink(postmake.path.absolute("UCodeAPI/StandardLibrary"), thisinstalldir .. "module/StandardLibrary")
+    symlink(postmake.path.absolute("UCodeAPI/BuildSystem"), thisinstalldir .. "module/BuildSystem")
+    symlink(postmake.path.absolute("UCodeAPI/CompilerAPI"), thisinstalldir .. "module/CompilerAPI")
+
+    print("done symlinking")
+else
+    postmake.make(shellscript, { gnu64, gnu32, gnuarm64, mac },
+        ---@type ShellScriptConfig
+        {
+            weburl = installwebsite,
+            uploaddir = "./Output/upload/",
+            singlefile = "ShellInstallFiles",
+            testmode = debugmode,
+            uninstallfile = mainprogrampath,
+            proxy = {
+                uninstallcmd = "uninstall",
+                program = unixprogrampath
+            },
+            style = 'modern'
+        });
+
+    postmake.make(innosetup, { win64, win32, winarm64 },
+        ---@type InnoSetConfig
+        {
+            AppId = InnoAppID,
+            LaunchProgram = winsmainprogram,
+            proxy = {
+                path = winsmainprogram,
+                uninstallcmd = "uninstall",
+                program = winsmainprogram
+            },
+            UninstallDelete = {
+                postmake.installdir() .. "ModuleIndex.ucmi"
+            }
+        });
+
+    postmake.make(githubaction, { win64, win32, winarm64, gnu64, gnu32, gnuarm64, mac },
+        ---@type GitHubActionConfig
+        {
+            weburl = installwebsite,
+            uploaddir = "./Output/githubactionupload/",
+            singlefile = "GitHubActionInstallFiles",
+            version = {}
+        });
+end
