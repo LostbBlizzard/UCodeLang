@@ -2953,6 +2953,14 @@ void UCodeBackEndObject::OnBlockBuildCode(const IRBlock* IR)
 				ThrowJumps.push_back(_OutLayer->Get_Instructions().size() + 1);
 			}
 		}break;
+		case IRInstructionType::Assume:
+		{
+			if (IsDebugMode()) 
+			{
+				InstructionBuilder::DoNothing(_Ins);
+				PushIns();
+			}
+		} break;
 		default:
 			UCodeLangUnreachable();
 			break;
