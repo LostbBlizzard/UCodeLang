@@ -4068,7 +4068,7 @@ StartSymbolsLoop:
 	}
 
 	if (cangenericinputbeused) {
-		return { {} };
+		return { Optional<SystematicAnalysis::Get_FuncInfo>() };
 	}
 	else
 	{
