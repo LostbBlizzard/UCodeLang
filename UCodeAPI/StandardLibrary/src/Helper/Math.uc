@@ -1,5 +1,5 @@
 
-$Math:
+$Math export:
  export eval |PI<T>[] => 3.14;
  
  export |Max<T>[T A,T B]:

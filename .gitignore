@@ -57,3 +57,8 @@ ARM64
 .cache
 compile_commands
 compile_commands.json
+
+
+*.ninja_deps
+*.ninja_log
+*.ninja

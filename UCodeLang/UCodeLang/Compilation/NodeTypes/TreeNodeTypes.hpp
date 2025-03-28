@@ -738,6 +738,7 @@ enum class AliasType
 {
 	Type,
 	Func,
+	Match
 };
 
 struct AliasNode :Node

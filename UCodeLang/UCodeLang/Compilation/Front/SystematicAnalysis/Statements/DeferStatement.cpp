@@ -5,7 +5,7 @@ UCodeLangFrontStart
 //how defer is as a Lambda that just so happened to have its destructor have the statements
 void SystematicAnalysis::OnDeferStatement(const DeferStatementNode& node)
 {
-	const String LambdaName = CompilerGenerated("DeferLambda") + std::to_string((uintptr_t)&node);
+	const String LambdaName = CompilerGenerated("DeferLambda") + GetScopeLabelName(&node);
 	auto classSymname = LambdaName + "_";
 
 	if (_PassType == PassType::GetTypes)
@@ -64,7 +64,6 @@ void SystematicAnalysis::OnDeferStatement(const DeferStatementNode& node)
 				Info->_CapturedVarables.push_back(std::move(NewValue));
 			}
 
-			int a = 10;
 		}
 	}
 	else if (_PassType == PassType::BuidCode)

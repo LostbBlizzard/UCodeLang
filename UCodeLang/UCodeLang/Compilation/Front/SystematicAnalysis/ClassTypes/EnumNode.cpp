@@ -331,8 +331,7 @@ void SystematicAnalysis::OnEnum(const EnumNode& node)
 
 			VClass.Base.Implementation = ClassStr + String(ClassBody);
 			VClass.Base.Implementation += "\n\n";
-			VClass.IsExported = node._IsExport;
-			VClass.AccessModifier = node._Access;
+			VClass.IsExported = node._IsExport ? ExportType::Exported : ExportType::NotExported;
 			VClass.UseStatments = Generic_GetCurrentUseStatements();
 		}
 

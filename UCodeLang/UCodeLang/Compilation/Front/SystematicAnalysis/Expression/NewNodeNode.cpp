@@ -50,6 +50,7 @@ void SystematicAnalysis::OnNewNode(const NewExpresionNode* nod)
 			Type.SetAsAddress();
 		}
 		_LastExpressionType = Type;
+
 	}
 
 	if (_PassType == PassType::BuidCode)

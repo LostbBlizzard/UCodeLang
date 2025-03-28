@@ -1560,7 +1560,8 @@ public:
 	IRFunc _threaddeInit;
 	Vector<Unique_ptr<IRFunc>> Funcs;
 	Vector<Unique_ptr<IRSymbolData>> _Symbols;
-	UnorderedMap<IRidentifierID, IRidentifier> _Map;
+	UnorderedMap<IRidentifier,IRidentifierID> _Map;
+	UnorderedMap<IRidentifierID,IRidentifier> _FlipedMap;
 	UnorderedMap<String, IRidentifierID> ConstStaticStrings;
 
 	IRDebugSybInfo _Debug;
@@ -1725,7 +1726,7 @@ public:
 	IRidentifierID ToID(const IRidentifier& Value);
 	IRidentifier FromID(IRidentifierID Value) const
 	{
-		return _Map.GetValue(Value);
+		return _FlipedMap.GetValue(Value);
 	}
 
 	IRSymbolData* GetSymbol(IRidentifierID Value)

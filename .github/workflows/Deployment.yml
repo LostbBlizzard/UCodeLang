@@ -40,13 +40,13 @@ jobs:
       - name: Get zydis
         run: premake5 installzydis
 
+      - name: Run Premake Install Dependencies
+        run: premake5 installdependencies
+     
       - name: Version Setup
         run: | 
          echo ${{ inputs.VersionNumber }} > ./version.txt 
          premake5 updateverion
-
-      - name: Run Premake Install Dependencies
-        run: premake5 installdependencies
 
       - name: Run Premake
         run: premake5 vs2022
@@ -57,12 +57,11 @@ jobs:
       - name: Archive Output
         uses: actions/upload-artifact@v4
         with:
-          name: Output_Windows32
+          name: windows32
           path: |
-           Output/UCodeLangCL
-           Output/UCodeLanguageSever
-           Output/UCodeLang
-           !Output/int
+           Output/UCodeLangCL/Win32
+           Output/UCodeLanguageSever/Win32
+           Output/UCodeLang/Win32
           retention-days: 1
  
   build-Windows-64bit:
@@ -82,37 +81,68 @@ jobs:
       - name: Get zydis
         run: premake5 installzydis
 
+      - name: Run Premake Install Dependencies
+        run: premake5 installdependencies
+
       - name: Version Setup
         run: | 
          echo ${{ inputs.VersionNumber }} > ./version.txt 
          premake5 updateverion
-
-      - name: Run Premake Install Dependencies
-        run: premake5 installdependencies
-
-      - name: Run Premake Install inno
-        run: premake5 installinno
 
       - name: Run Premake
         run: premake5 vs2022
 
       - name: Build 64 bit
         run: premake5 build_published
-    
-      - name: Build installer
-        run: premake5 buildinstaller
    
       - uses: actions/upload-artifact@v4
         with:
-          name: Output_Windows
+          name: windows64
           path: |
-           Output/UCodeLangCL
-           Output/UCodeLanguageSever
-           Output/UCodeLang
-           Output/UCodeLangSetup.exe
-           !Output/int
+           Output/UCodeLangCL/Win64
+           Output/UCodeLanguageSever/Win64
+           Output/UCodeLang/Win64
           retention-days: 1
 
+  build-Windows-arm64:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Add Premake to PATH
+        uses: abel0b/setup-premake@v2.4
+        with:
+         version: "5.0.0-beta2"      
+
+      - name: Add MSBuild to PATH
+        uses: microsoft/setup-msbuild@v1.0.2
+
+      - name: Get zydis
+        run: premake5 installzydis
+
+      - name: Run Premake Install Dependencies
+        run: premake5 installdependencies
+
+      - name: Version Setup
+        run: | 
+         echo ${{ inputs.VersionNumber }} > ./version.txt 
+         premake5 updateverion
+
+      - name: Run Premake
+        run: premake5 vs2022
+
+      - name: Build Arm64 bit
+        run: premake5 build_published_arm64
+   
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windowarm64
+          path: |
+           Output/UCodeLangCL/
+           Output/UCodeLanguageSever/
+           Output/UCodeLang/
+          retention-days: 1
 
   build-Linux-64bit:
     runs-on: ubuntu-latest
@@ -124,11 +154,6 @@ jobs:
         uses: abel0b/setup-premake@v2.4
         with:
          version: "5.0.0-beta2"      
-
-      - name: Setup mdBook
-        uses: peaceiris/actions-mdbook@v2
-        with:
-          mdbook-version: 'latest'
 
       - name: Version Setup
         run: | 
@@ -147,21 +172,14 @@ jobs:
       - name: Build 64 bit
         run: premake5 build_published
 
-      - name: Make packedfiles for unix
-        run: |
-         premake5 build_docs
-         premake5 zipforunix 
-
       - name: Archive Output
         uses: actions/upload-artifact@v4
         with:
-          name: Output_Linux
+          name: linux64bit
           path: |
-           Output/UCodeLangCL
-           Output/UCodeLanguageSever
-           Output/UCodeLang
-           Output/ULangPacked.tar.gz 
-           !Output/int
+           Output/UCodeLangCL/linux64
+           Output/UCodeLanguageSever/linux64
+           Output/UCodeLang/linux64
           retention-days: 1
  
   build-Linux-32bit:
@@ -174,11 +192,6 @@ jobs:
         uses: abel0b/setup-premake@v2.4
         with:
          version: "5.0.0-beta2"      
-
-      - name: Setup mdBook
-        uses: peaceiris/actions-mdbook@v2
-        with:
-          mdbook-version: 'latest'
 
       - name: Add gcc multilib to PATH
         run: sudo apt install gcc-multilib g++-multilib
@@ -197,23 +210,53 @@ jobs:
       - name: Build 32 bit
         run: premake5 build_published_32bit
 
-      - name: Make packedfiles for unix
-        run: |
-         premake5 build_docs
-         premake5 zipforunix 
+      - name: Archive Output
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux32bit
+          path: |
+           Output/UCodeLangCL/linux32
+           Output/UCodeLanguageSever/linux32
+           Output/UCodeLang/linux32
+          retention-days: 1
+
+  build-Linux-arm64:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Add Premake to PATH
+        uses: abel0b/setup-premake@v2.4
+        with:
+         version: "5.0.0-beta2"      
+
+      - name: Add gcc aarch64 to PATH
+        run: sudo apt install gcc-aarch64-linux-gnu && sudo apt install g++-aarch64-linux-gnu
+    
+      - name: Version Setup
+        run: | 
+         echo ${{ inputs.VersionNumber }} > ./version.txt 
+         premake5 updateverion 
+
+      - name: Get zydis
+        run: premake5 installzydis
+
+      - name: Run Premake
+        run: premake5 gmake2
+
+      - name: Build 
+        run: premake5 build_published_arm64
 
       - name: Archive Output
         uses: actions/upload-artifact@v4
         with:
-          name: Output_Linux32
+          name: linuxarm64
           path: |
-           Output/UCodeLangCL
-           Output/UCodeLanguageSever
-           Output/UCodeLang
-           Output/ULangPacked.tar.gz 
-           !Output/int
+           Output/UCodeLangCL/linuxArm64
+           Output/UCodeLanguageSever/linuxArm64
+           Output/UCodeLang/linuxArm64
           retention-days: 1
-
 
   build-MacOS:
     runs-on: macos-latest
@@ -225,11 +268,6 @@ jobs:
         uses: abel0b/setup-premake@v2.4
         with:
          version: "5.0.0-beta2"      
-
-      - name: Setup mdBook
-        uses: peaceiris/actions-mdbook@v2
-        with:
-          mdbook-version: 'latest'
 
       - name: Get zydis
         run: premake5 installzydis
@@ -248,21 +286,14 @@ jobs:
       - name: Build 
         run: premake5 build_published
      
-      - name: Make packedfiles for unix
-        run: |
-         premake5 build_docs
-         premake5 zipforunix
-     
       - name: Archive Output
         uses: actions/upload-artifact@v4
         with:
-          name: Output_MacOS
+          name: macosbuild
           path: |
-           Output/UCodeLangCL
-           Output/UCodeLanguageSever
-           Output/UCodeLang
-           Output/ULangPacked.tar.gz
-           !Output/int 
+           Output/UCodeLangCL/MacOS
+           Output/UCodeLanguageSever/MacOS
+           Output/UCodeLang/MacOS
           retention-days: 1
 
   wasm-build-32:
@@ -354,7 +385,6 @@ jobs:
       - name: set working path
         run: cd ./UCodeLanguageSever/EditorSpecific/VSCode/ucode-language
 
-
       - name: Install the dependencies
         run: npm i
         working-directory: ./UCodeLanguageSever/EditorSpecific/VSCode/ucode-language
@@ -374,7 +404,7 @@ jobs:
         working-directory: ./UCodeLanguageSever/EditorSpecific/VSCode/ucode-language
 
   deployment-GitHub:
-    needs: [build-Windows-64bit,build-Windows-32bit,build-Linux-32bit,build-Linux-64bit,wasm-build-32,build-MacOS,ios-build,android-build]
+    needs: [build-Windows-64bit,build-Windows-32bit,build-Windows-arm64,build-Linux-32bit,build-Linux-64bit,build-Linux-arm64,wasm-build-32,build-MacOS,ios-build,android-build]
     runs-on: ubuntu-latest
     environment: production
     steps:
@@ -392,7 +422,9 @@ jobs:
 
       - name: Download all workflow run artifacts
         uses: actions/download-artifact@v4
-
+        with: 
+          path: Output
+          merge-multiple: true
 
       - name: Create Release
         id: create_release
@@ -416,45 +448,15 @@ jobs:
           asset_name: UCodeLangCAPI.h
           asset_content_type: text/plain
       
-      - name: Upload Unix Setup
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./install.sh
-          asset_name: install.sh
-          asset_content_type: text/plain  
-      
-      - name: Upload ULangPackedMacOS 
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./Output_MacOS/ULangPacked.tar.gz
-          asset_name: ULangPackedMacOS.tar.gz
-          asset_content_type: application/gzip  
-      
-      - name: Upload ULangPackedLinux 
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./Output_Linux/ULangPacked.tar.gz
-          asset_name: ULangPackedLinux.tar.gz
-          asset_content_type: application/gzip  
-      
-      - name: Upload Windows Setup
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./Output_Windows/UCodeLangSetup.exe
-          asset_name: UCodeLangSetup.exe
-          asset_content_type: application/octet-stream
+      #- name: Upload Windows Setup
+      #  uses: actions/upload-release-asset@v1
+      #  env:
+      #    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #  with:
+      #    upload_url: ${{ steps.create_release.outputs.upload_url }}
+      #    asset_path: ./Output/UCodeLangSetup.exe
+      #    asset_name: UCodeLangSetup.exe
+      #    asset_content_type: application/octet-stream
         
       - name: Upload UCodeLangLibWindows64
         uses: actions/upload-release-asset@v1
@@ -462,7 +464,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./Output_Windows/UCodeLang/Win64/Published/UCodeLang.lib
+          asset_path: ./Output/UCodeLang/Win64/Published/UCodeLang.lib
           asset_name: UCodeLang-win64.lib
           asset_content_type: application/octet-stream 
 
@@ -472,7 +474,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./Output_Windows/UCodeLangCL/Win64/Published/uclang.exe
+          asset_path: ./Output/UCodeLangCL/Win64/Published/uclang.exe
           asset_name: uclang-win64.exe
           asset_content_type: application/octet-stream 
           
@@ -482,7 +484,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./Output_Windows/UCodeLanguageSever/Win64/Published/uclanglsp.exe
+          asset_path: ./Output/UCodeLanguageSever/Win64/Published/uclanglsp.exe
           asset_name: uclanglsp-win64.exe
           asset_content_type: application/octet-stream 
  
@@ -492,7 +494,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }} 
-          asset_path: ./Output_Windows32/UCodeLang/Win32/Published/UCodeLang.lib
+          asset_path: ./Output/UCodeLang/Win32/Published/UCodeLang.lib
           asset_name: UCodeLang-win32.lib
           asset_content_type: application/octet-stream 
       
@@ -502,7 +504,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./Output_Windows32/UCodeLangCL/Win32/Published/uclang.exe
+          asset_path: ./Output/UCodeLangCL/Win32/Published/uclang.exe
           asset_name: uclang-win32.exe
           asset_content_type: application/octet-stream 
       
@@ -512,17 +514,47 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./Output_Windows32/UCodeLanguageSever/Win32/Published/uclanglsp.exe
+          asset_path: ./Output/UCodeLanguageSever/Win32/Published/uclanglsp.exe
           asset_name: uclanglsp-win32.exe
           asset_content_type: application/octet-stream 
+     
+      - name: Upload UCodeLangLibWindowsArm64
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }} 
+          asset_path: ./Output/UCodeLang/WinArm/Published/UCodeLang.lib
+          asset_name: UCodeLang-win-arm64.lib
+          asset_content_type: application/octet-stream 
       
+      - name: Upload UCodeLangCLWindowsArm64
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./Output/UCodeLangCL/WinArm/Published/uclang.exe
+          asset_name: uclang-win-arm64.exe
+          asset_content_type: application/octet-stream 
+      
+      - name: Upload UCodeLangSeverWindowsArm64
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./Output/UCodeLanguageSever/WinArm/Published/uclanglsp.exe
+          asset_name: uclanglsp-win-arm64.exe
+          asset_content_type: application/octet-stream 
+
       - name: Upload UCodeLangLibLinux64
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./Output_Linux/UCodeLang/linux64/Published/libUCodeLang.a
+          asset_path: ./Output/UCodeLang/linux64/Published/libUCodeLang.a
           asset_name: libUCodeLang-linux64.a
           asset_content_type: application/octet-stream 
 
@@ -532,7 +564,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./Output_Linux/UCodeLangCL/linux64/Published/uclang
+          asset_path: ./Output/UCodeLangCL/linux64/Published/uclang
           asset_name: uclang-linux64
           asset_content_type: application/octet-stream 
 
@@ -542,7 +574,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./Output_Linux/UCodeLanguageSever/linux64/Published/uclanglsp
+          asset_path: ./Output/UCodeLanguageSever/linux64/Published/uclanglsp
           asset_name: uclanglsp-linux64
           asset_content_type: application/octet-stream 
 
@@ -552,7 +584,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./Output_Linux32/UCodeLang/linux32/Published/libUCodeLang.a
+          asset_path: ./Output/UCodeLang/linux32/Published/libUCodeLang.a
           asset_name: libUCodeLang-linux32.a
           asset_content_type: application/octet-stream 
 
@@ -562,7 +594,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./Output_Linux32/UCodeLangCL/linux32/Published/uclang
+          asset_path: ./Output/UCodeLangCL/linux32/Published/uclang
           asset_name: uclang-linux32
           asset_content_type: application/octet-stream 
 
@@ -572,8 +604,38 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./Output_Linux32/UCodeLanguageSever/linux32/Published/uclanglsp
+          asset_path: ./Output/UCodeLanguageSever/linux32/Published/uclanglsp
           asset_name: uclanglsp-linux32
+          asset_content_type: application/octet-stream 
+
+      - name: Upload UCodeLangLibLinuxArm
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./Output/UCodeLang/linuxArm64/Published/libUCodeLang.a
+          asset_name: libUCodeLang-linux-arm64.a
+          asset_content_type: application/octet-stream 
+
+      - name: Upload UCodeLangCLlinuxArm
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./Output/UCodeLangCL/linuxArm64/Published/uclang
+          asset_name: uclang-linux-arm64
+          asset_content_type: application/octet-stream 
+
+      - name: Upload UCodeLangSeverlinuxArm
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./Output/UCodeLanguageSever/linuxArm64/Published/uclanglsp
+          asset_name: uclanglsp-linux-arm64
           asset_content_type: application/octet-stream 
 
       - name: Upload UCodeLangLibMacOS
@@ -582,7 +644,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./Output_MacOS/UCodeLang/MacOS/Published/libUCodeLang.a
+          asset_path: ./Output/UCodeLang/MacOS/Published/libUCodeLang.a
           asset_name: libUCodeLang-macos.a
           asset_content_type: application/octet-stream 
 
@@ -592,7 +654,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./Output_MacOS/UCodeLangCL/MacOS/Published/uclang
+          asset_path: ./Output/UCodeLangCL/MacOS/Published/uclang
           asset_name: uclang-macos
           asset_content_type: application/octet-stream 
 
@@ -602,7 +664,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./Output_MacOS/UCodeLanguageSever/MacOS/Published/uclanglsp
+          asset_path: ./Output/UCodeLanguageSever/MacOS/Published/uclanglsp
           asset_name: uclanglsp-macos
           asset_content_type: application/octet-stream 
  

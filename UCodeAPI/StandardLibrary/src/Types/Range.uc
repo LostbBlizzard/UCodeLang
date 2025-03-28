@@ -26,15 +26,54 @@ $RangeInclusive_t<T> export:
   export |End[imut this&] => _end;
 
 
-$RangeFull_t<T> export;
+$RangeFull_t export;
 
-$RangeTo_t<T> export;
+$RangeTo_t<T> export:
+ private: 
+  T _to;
+ public:
+  |new[this&,T to]:
+   _to = to;
+  export |To[this&] => _to;
 
-$RangeFrom_t<T> export;
+$RangeFrom_t<T> export:
+ private: 
+  T _from;
+ public:
+  |new[this&,T from]:
+   _from = from;
 
+  export |From[this&] => _from;
 
+$RangeToInclusive_t<T> export:
+ private: 
+  T _to;
+ public:
+  |new[this&,T to]:
+   _to = to;
+  export |To[this&] => _to;
+
+// Map from 1..10
 export |Range<T>[T start,T end] -> Range_t<T>:
  ret [start,end];
 
+// Map from 1..=10
 export |RangeInclusive<T>[T start,T end]  -> RangeInclusive_t<T>:
  ret [start,end];
+
+// Map from ..
+export |RangeFull[] -> RangeFull_t:
+ ret [];
+
+// Map from ..10
+export |RangeTo<T>[T to] -> RangeTo_t<T>:
+ ret [to];
+
+// Map from 10..
+export |RangeFrom<T>[T from] -> RangeFrom_t<T>:
+ ret [from];
+
+// Map from ..=10
+export |RangeToInclusive<T>[T to]  -> RangeToInclusive_t<T>:
+ ret [to];
+

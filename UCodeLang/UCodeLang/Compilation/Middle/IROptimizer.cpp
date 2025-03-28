@@ -2412,7 +2412,6 @@ void IROptimizer::ConstantFoldOperator(IRInstruction& I, IROperator& Value, Read
 			auto& op = ins->Target();
 			if (op.Type == IROperatorType::Get_PointerOf_IRInstruction)
 			{
-				int a = 0;
 				Optional<size_t> newinsIndex;
 
 				for (size_t i = 0; i < lookatblock->Instructions.size(); i++)
@@ -2636,13 +2635,6 @@ void IROptimizer::ControlFlowToBaseBasicBlocks(IRFunc* Func, SSAState& state)
 	{
 		auto* Ins = &Block->Instructions[i];
 
-		if ((*Ins)->Type == IRInstructionType::Jump)
-		{
-			int a = 0;
-
-		}
-
-
 
 		if (lasttype == IRInstructionType::ConditionalJump)
 		{
@@ -2665,8 +2657,6 @@ void IROptimizer::ControlFlowToBaseBasicBlocks(IRFunc* Func, SSAState& state)
 				if (Ins->get()->Type != IRInstructionType::ConditionalJump
 					&& Ins->get()->Type != IRInstructionType::Jump)
 				{
-					int a = 0;
-
 					//for fall through
 					auto Index = IndexToBlock.GetValue(i);
 

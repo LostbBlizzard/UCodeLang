@@ -37,7 +37,7 @@ void SystematicAnalysis::OnAwaitExpression(const AwaitExpression& node)
 			OnLambdaNode(LambdaNode);
 
 
-			const String LambdaName = CompilerGenerated("Lambda") + std::to_string((uintptr_t)&LambdaNode);
+			const String LambdaName = CompilerGenerated("Lambda") + GetScopeLabelName(&LambdaNode);
 			_Table.AddScope(LambdaName);
 
 			auto& LambdaSym = *Symbol_GetSymbol(Symbol_GetSymbolID(LambdaNode));
@@ -94,7 +94,7 @@ void SystematicAnalysis::OnAwaitExpression(const AwaitExpression& node)
 		{
 			const LambdaNode& LambdaNode = node._Lambda;
 
-			const String LambdaName = CompilerGenerated("Lambda") + std::to_string((uintptr_t)&LambdaNode);
+			const String LambdaName = CompilerGenerated("Lambda") + GetScopeLabelName(&LambdaNode);
 			_Table.AddScope(LambdaName);
 
 			auto& LambdaSym = *Symbol_GetSymbol(Symbol_GetSymbolID(LambdaNode));

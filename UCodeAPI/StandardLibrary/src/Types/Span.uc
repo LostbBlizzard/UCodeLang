@@ -26,9 +26,28 @@ $Span<T> export:
     
     ret unsafe _data[Index];
 
-  export |[][this&,Range_t<uintptr> Range] -> this:ret unsafe [_data[Range.Start()],Range.End() - Range.Start()];
-  export |[][imut this&,Range_t<uintptr> Range] -> this:ret unsafe [_data[Range.Start()],Range.End() - Range.Start()];
+  export |[][this&,Range_t<uintptr> Range] -> this:
+    var offset = Math::Min(_size,Range.Start()); 
+    ret unsafe [_data[offset],Math::Min(_size - offset,Range.End())];
 
+  export |[][imut this&,Range_t<uintptr> Range] -> this:
+    var offset = Math::Min(_size,Range.Start()); 
+    ret unsafe [_data[offset],Math::Min(_size - offset,Range.End())];
+ 
+  export |[][this&,RangeFull_t Range] -> T[:]:ret unsafe [_data,_size]; 
+  export |[][imut this&,RangeFull_t Range] -> imut T[:]:ret unsafe [_data,_size];
+  
+  export |[][this&,RangeTo_t<uintptr> Range] -> T[:]:ret unsafe [_data,Math::Min(Range.To(),_size)]; 
+  export |[][imut this&,RangeTo_t<uintptr> Range] -> imut T[:]:ret unsafe [_data,Math::Min(Range.To(),_size)];
+  
+  export |[][this&,RangeFrom_t<uintptr> Range] -> T[:]:
+   var offset = Math::Min(_size,Range.From());
+   ret unsafe [_data[offset],_size - offset]; 
+  
+  export |[][imut this&,RangeFrom_t<uintptr> Range] -> imut T[:]:
+   var offset = Math::Min(_size,Range.From());
+   ret unsafe [_data[offset],_size - offset]; 
+ 
   $ThisType = this;
   $Iterator export:
     uintptr Index = 0;

@@ -1,3 +1,5 @@
+#include "UCodeLang/Compilation/Middle/Symbol.hpp"
+#include <cstdint>
 #ifndef UCodeLangNoCompiler
 #include "UCodeLang/Compilation/Front/SystematicAnalysis.hpp"
 UCodeLangFrontStart
@@ -85,10 +87,6 @@ void SystematicAnalysis::OnFuncCallNode(const FuncCallNode& node)
 			_IR_LastExpressionField = _IR_LookingAtIRBlock->NewLoad_Dereferenc(ir, IR_ConvertToIRType(typetoget));
 		}
 
-		if (_GetExpressionMode.size() && IsWrite(_GetExpressionMode.top()))
-		{
-			int a = 0;
-		}
 	}
 }
 void SystematicAnalysis::IR_Build_EnumOut(NeverNullPtr<Symbol> EnumSymbol, IRInstruction* ThisEnum, size_t EnumIndex, const ValueParametersNode& Pars, size_t StartIndex)
@@ -472,8 +470,18 @@ void SystematicAnalysis::IR_Build_FuncCall(Get_FuncInfo Func, const ScopedNameNo
 									auto& FuncParInfo = EnumVariantFieldData.Types[i];
 
 
+									bool pushlookaddress = false;
+									if (FuncParInfo.IsDynamicTrait())
+									{
+										  pushlookaddress = true;
+									}
 
 									_LookingForTypes.push(FuncParInfo);
+
+									if (pushlookaddress) 
+									{
+										_LookingForTypes.top()._IsAddress = true;
+									}
 
 									OnExpressionTypeNode(Item.get(), GetValueMode::Read);
 									IR_Build_ImplicitConversion(_IR_LastExpressionField, _LastExpressionType, FuncParInfo);
@@ -523,9 +531,92 @@ void SystematicAnalysis::IR_Build_FuncCall(Get_FuncInfo Func, const ScopedNameNo
 					_IR_LastExpressionField = LoadEvaluatedEx(EvalObject, Value.RetType);
 				}
 			}
+			else if (Name._ScopedName.size() >= 2)
+			{
+				bool foundfunc =false;
+				if (Name._ScopedName[0]._token->Type == TokenType::KeyWord_compiler)
+				{
+					auto nametoken =Name._ScopedName[1]._token;
+					if (nametoken->Type == TokenType::Name)
+					{
+						if (nametoken->Value._String == "Unreachable")
+						{
+							bool IsDebug =	(OptimizationFlags_t)_Settings->_Flags & (OptimizationFlags_t)OptimizationFlags::Debug;
+
+							if (IsDebug) 
+							{
+								String_view errormsg =String_view("Reached Unreachable");
+								IRBuilder::StringSpanInfo Span;
+								Span = _IR_Builder.FindOrAddStaticSpanString(errormsg);
+							
+								auto irpointer = _IR_LookingAtIRBlock->NewLoadPtr(Span.StaticVar);
+								if (Span.Offset)
+								{
+									irpointer = _IR_LookingAtIRBlock->NewAdd(IR_Load_UIntptr(Span.Offset), irpointer);
+								}
+
+								IRInstruction* size = IR_Load_UIntptr(errormsg.size());
+								_IR_LookingAtIRBlock->ThrowException(irpointer,size);
+							}
+							else 
+							{
+								_IR_LookingAtIRBlock->NewUnreachable();
+							}
+							_IR_LastExpressionField = nullptr;
+							foundfunc = true;
+						}
+						else if (nametoken->Value._String == "Assume")
+						{
+							bool IsDebug =	(OptimizationFlags_t)_Settings->_Flags & (OptimizationFlags_t)OptimizationFlags::Debug;
+
+							auto& Item = Pars._Nodes[0];
+							auto partype = TypeSymbol(TypesEnum::Bool);
+
+
+							_LookingForTypes.push(partype);
+							OnExpressionTypeNode(Item.get(), GetValueMode::Read);
+							IR_Build_ImplicitConversion(_IR_LastExpressionField, _LastExpressionType,partype);
+							_LookingForTypes.pop();
+							
+							auto boolthattrue = _IR_LastExpressionField;	
+
+							if (IsDebug) 
+							{
+								auto jumpif = _IR_LookingAtIRBlock->NewConditionalJump(boolthattrue,0);
+								{
+									String_view errormsg = String_view("Assume was False");
+									IRBuilder::StringSpanInfo Span;
+									Span = _IR_Builder.FindOrAddStaticSpanString(errormsg);
+								
+									auto irpointer = _IR_LookingAtIRBlock->NewLoadPtr(Span.StaticVar);
+									if (Span.Offset)
+									{
+										irpointer = _IR_LookingAtIRBlock->NewAdd(IR_Load_UIntptr(Span.Offset), irpointer);
+									}
+
+									IRInstruction* size = IR_Load_UIntptr(errormsg.size());
+									_IR_LookingAtIRBlock->ThrowException(irpointer,size);
+								}
+							
+								_IR_LookingAtIRBlock->UpdateConditionaJump(jumpif,boolthattrue,_IR_LookingAtIRBlock->GetIndex());
+							}
+							else 
+							{
+								_IR_LookingAtIRBlock->NewAssume(boolthattrue);
+							}
+							_IR_LastExpressionField = nullptr;
+							foundfunc = true;
+						}
+					}
+				}
+
+				if (foundfunc == false)
+				{
+					UCodeLangUnreachable();
+				}
+			}
 			else
 			{
-
 				UCodeLangUnreachable();
 			}
 
@@ -751,6 +842,10 @@ void SystematicAnalysis::IR_Build_FuncCall(Get_FuncInfo Func, const ScopedNameNo
 				auto* typepack = Syb->Get_Info<TypePackInfo>();
 				size_t NewIndex = Index - (Pars.size() - 1);
 
+				if (typepack->List.size() == 0)
+				{
+					break;
+				}
 
 				FuncParInfoPtr.Type = typepack->List[NewIndex];
 			}
@@ -822,6 +917,13 @@ void SystematicAnalysis::IR_Build_FuncCall(Get_FuncInfo Func, const ScopedNameNo
 	FileDependency_AddDependencyToCurrentFile(Syb);
 
 	//
+	IRInstruction* classfeildfunccall = nullptr;
+	if (Syb->Type == SymbolType::Class_Field)
+	{
+		GetMemberTypeSymbolFromVar_t V;
+		Symbol_MemberTypeSymbolFromVar(0, Name._ScopedName.size(), Name, V);
+		classfeildfunccall = IR_Build_Member_GetValue(V);
+	}
 
 	if (Func.ThisPar != Get_FuncInfo::ThisPar_t::PushFromScopedNameDynamicTrait)
 	{
@@ -882,6 +984,10 @@ void SystematicAnalysis::IR_Build_FuncCall(Get_FuncInfo Func, const ScopedNameNo
 	else if (Syb->Type == SymbolType::ParameterVarable)
 	{
 		_IR_LastExpressionField = _IR_LookingAtIRBlock->NewCallFuncPtr(Syb->IR_Par);
+	}
+	else if (Syb->Type == SymbolType::Class_Field)
+	{
+		_IR_LastExpressionField = _IR_LookingAtIRBlock->NewCallFuncPtr(classfeildfunccall);
 	}
 	else
 	{
@@ -1395,10 +1501,6 @@ Vector<Symbol*> SystematicAnalysis::Type_FindForTypeFuncions(const TypeSymbol& T
 
 SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedNameNode& Name, const ValueParametersNode& Pars, TypeSymbol Ret)
 {
-
-
-
-
 	TypeSymbol _ThisType;
 	Get_FuncInfo::ThisPar_t ThisParType = Get_FuncInfo::ThisPar_t::NoThisPar;
 	String ScopedName;
@@ -1478,7 +1580,14 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 						}
 						else
 						{
-							ScopedName = Syb.value()->FullName;
+							if (Syb.value()->Type == SymbolType::Type_alias)
+							{
+								ScopedName = ToString(Syb.value()->VarType);
+							}
+							else 
+							{
+								ScopedName = Syb.value()->FullName;
+							}
 						}
 					}
 					if (Item._operator != ScopedName::Operator_t::Null)
@@ -1794,6 +1903,47 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 									}
 								}
 							}
+						}
+						else 
+						{
+							//Deals with Func<T>[T val,T other]
+							// Func<uintptr>(10,0) to Func<uintptr>(uintptr(10),uintptr(0))
+							// and not Func<uintptr>(int(10),int(0))
+
+							
+							if (Name._ScopedName.back()._generic)
+							{
+								auto _generic = Name._ScopedName.back()._generic.get();
+
+								for (auto& Item : Info->Pars)
+								{
+								
+									if (Item.Type._Type == TypesEnum::CustomType)
+									{
+										auto sym =Item.Type._CustomTypeSymbol;
+									
+										for (uintptr_t i = 0; i < Info->_GenericData._Genericlist.size(); i++) 
+										{
+											auto& GItem = Info->_GenericData._Genericlist[i];
+										
+											if (i >= _generic->_Values.size()) { break; }
+
+											if (sym == GItem.SybID)
+											{
+												if (!typemap.HasValue(GItem.SybID))
+												{
+													TypeSymbol ty;
+													Type_Convert(_generic->_Values[i],ty);
+													typemap.AddValue(GItem.SybID, ty);
+												}
+											}
+										}
+									}
+								}
+							}
+
+
+
 						}
 
 						for (auto& Item : Pars)
@@ -2428,7 +2578,26 @@ SystematicAnalysis::Get_FuncInfo  SystematicAnalysis::Type_GetFunc(const ScopedN
 					R._BuiltFunc = std::move(F);
 					return R;
 				}
+				if (functocall == "Unreachable" && ValueTypes.size() == 0)
+				{
+					Systematic_BuiltInFunctions::Func F;
+					F.RetType = TypeSymbol(TypesEnum::Void);
 
+					Get_FuncInfo R;
+					R.ThisPar = ThisParType;
+					R._BuiltFunc = std::move(F);
+					return R;
+				}
+				if (functocall == "Assume" && ValueTypes.size() == 1)
+				{
+					Systematic_BuiltInFunctions::Func F;
+					F.RetType = TypeSymbol(TypesEnum::Void);
+
+					Get_FuncInfo R;
+					R.ThisPar = ThisParType;
+					R._BuiltFunc = std::move(F);
+					return R;
+				}
 			}
 		}
 	}
@@ -2700,8 +2869,16 @@ StartSymbolsLoop:
 				}
 			}
 		}
-		else if (Symbol_IsVarableType(Item->Type))
+		else if (Symbol_IsVarableType(Item->Type) || Item->Type == SymbolType::Class_Field)
 		{
+			if (Item->Type == SymbolType::Class_Field)
+			{
+				GetMemberTypeSymbolFromVar_t V;
+				if (!Symbol_MemberTypeSymbolFromVar(0, Name._ScopedName.size(), Name, V))
+				{
+					return { };
+				}
+			}
 			Symbol* Type = Symbol_GetSymbol(Item->VarType).value_unchecked();
 			if (Type)
 			{
@@ -3243,21 +3420,19 @@ StartSymbolsLoop:
 	}
 	else
 	{
-
-
-
-
 		Optional<int> MinScore;
 		Get_FuncInfo* Ret = nullptr;
 		for (auto& Item : OkFunctions)
 		{
 			Vector<ParInfo> _TepGeneric;
 			IsCompatiblePar CMPPar;
+
+			bool addthispush = false;
 			if (Item.SymFunc->Type == SymbolType::Func)
 			{
 				CMPPar.SetAsFuncInfo(Item.SymFunc);
 			}
-			else if (Symbol_IsVarableType(Item.SymFunc->Type))
+			else if (Symbol_IsVarableType(Item.SymFunc->Type) || Item.SymFunc->Type == SymbolType::Class_Field)
 			{
 				Symbol* Type = Symbol_GetSymbol(Item.SymFunc->VarType).value_unchecked();
 				if (Type == nullptr)
@@ -3280,6 +3455,14 @@ StartSymbolsLoop:
 			}
 			else if (Item.SymFunc->Type == SymbolType::GenericFunc)
 			{
+				 addthispush = Item.SymFunc->Get_Info<FuncInfo>()->_FuncType == FuncInfo::FuncType::New;
+				
+				if (addthispush)
+				{
+					auto info = Item.SymFunc->Get_Info<FuncInfo>();
+					ValueTypes.push_back(info->Pars.front());
+				}
+
 				CMPPar.SetAsFuncInfo(Item.SymFunc);
 
 				//Get Par type like it was instantiated
@@ -3347,6 +3530,12 @@ StartSymbolsLoop:
 
 
 			int Score = Type_GetCompatibleScore(CMPPar, ValueTypes);
+			
+			if (addthispush)
+			{
+				ValueTypes.pop_back();
+			}
+		
 			if (!MinScore.has_value() || Score > MinScore.value())
 			{
 				MinScore = Score;
@@ -3608,7 +3797,8 @@ StartSymbolsLoop:
 	}
 	return { };
 }
-	Optional< Optional<SystematicAnalysis::Get_FuncInfo>> SystematicAnalysis::Type_FuncinferGenerics(Vector<TypeSymbol>& GenericInput, const Vector<ParInfo>& ValueTypes
+
+Optional< Optional<SystematicAnalysis::Get_FuncInfo>> SystematicAnalysis::Type_FuncinferGenerics(Vector<TypeSymbol>& GenericInput, const Vector<ParInfo>& ValueTypes
 	, const UseGenericsNode* Generics
 	, Symbol* Item
 	, bool _ThisTypeIsNotNull)
@@ -3736,16 +3926,50 @@ StartSymbolsLoop:
 
 				if (addinput)
 				{
-					auto removed = InputType;
+	 				auto removed = InputType;
 					Type_RemoveTypeattributes(removed);
 					if (i2 >= HasBenAdded.size())
 					{
+						auto sybop = Symbol_GetSymbol(removed);
+						if (sybop.has_value())
+						{
+							auto syb = sybop.value();
+
+							if (syb->Type == SymbolType::Type_Pack)
+							{
+								Added = true;
+								auto info = syb->Get_Info<TypePackInfo>();
+
+								for (auto& Item : info->List)
+								{
+									GenericInput.push_back(Item);
+								}
+								continue;
+							}
+						}
 						GenericInput.push_back(removed);
 						Added = true;
 						continue;
 					}
 					else if (HasBenAdded[i2] == false)
 					{
+						auto sybop = Symbol_GetSymbol(removed);
+						if (sybop.has_value())
+						{
+							auto syb = sybop.value();
+
+							if (syb->Type == SymbolType::Type_Pack)
+							{
+								Added = true;
+								auto info = syb->Get_Info<TypePackInfo>();
+
+								for (auto& Item : info->List)
+								{
+									GenericInput.push_back(Item);
+								}
+								continue;
+							}
+						}
 						GenericInput.push_back(removed);
 						HasBenAdded[i2] = true;
 						Added = true;
@@ -3848,18 +4072,21 @@ StartSymbolsLoop:
 						auto& ret = *Ret;
 						
 						size_t parcount = par.size();
+						auto functorparcount = GetParCountResolveTypePack(functor->Pars);
 
 						if (skipthis) {parcount--;}
 
-						if (functor->Pars.size() == parcount)
+						if (functorparcount == parcount)
 						{
 							if (Type_AreTheSame(functor->Ret, ret))
 							{
 
+								auto _functortypepack = GetTypePackFromInputPar(functor->Pars);
+								
 								bool bad = false;
-								for (size_t i = 0; i < functor->Pars.size(); i++)
+								for (size_t i = 0; i < functorparcount; i++)
 								{
-									auto& functorpar = functor->Pars[i];
+									ParInfo functorpar = GetParInfoResolveTypePack(i, functor->Pars, _functortypepack);
 									auto& infopar = par[skipthis ? i + 1 : i];
 
 									if (!Type_AreTheSame(functorpar, infopar))
@@ -4021,10 +4248,11 @@ StartSymbolsLoop:
 			{
 				return {};
 			}
+			auto typepack = GetTypePackFromInputPar(ValueTypes);
 			for (size_t i = 0; i < fpars.size(); i++)
 			{
 				auto& Item = fpars[i];
-				auto& Par = ValueTypes[i].Type;
+				auto Par = GetParInfoResolveTypePack(i,ValueTypes,typepack).Type;
 				auto sym = lazyattemp(Item._Type);
 
 				if (sym.has_value())
@@ -4068,7 +4296,7 @@ StartSymbolsLoop:
 	}
 
 	if (cangenericinputbeused) {
-		return { Optional<SystematicAnalysis::Get_FuncInfo>() };
+		return {  Optional<SystematicAnalysis::Get_FuncInfo>() };
 	}
 	else
 	{
@@ -4222,7 +4450,6 @@ void SystematicAnalysis::IR_Build_DestructorCall(const ObjectToDrop& Object)
 
 		if (Object.Type.IsAn(TypesEnum::CustomType))
 		{
-			int a = 0;
 
 			TypeSymbol tep = Object.Type;
 

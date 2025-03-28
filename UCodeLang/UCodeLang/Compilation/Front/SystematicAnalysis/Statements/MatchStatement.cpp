@@ -9,7 +9,7 @@ void SystematicAnalysis::OnMatchStatement(const MatchStatement& node)
 		OnExpressionTypeNode(node._Expression, GetValueMode::Read);
 
 		size_t ScopeCounter = 0;
-		const String ScopeName = std::to_string((uintptr_t)&node);
+		const String ScopeName = GetScopeLabelName(&node);
 
 		for (auto& Item : node._Arms)
 		{
@@ -48,7 +48,7 @@ void SystematicAnalysis::OnMatchStatement(const MatchStatement& node)
 
 		auto ToMatchType = _LastExpressionType;
 
-		const String ScopeName = std::to_string((uintptr_t)&node);
+		const String ScopeName = GetScopeLabelName(&node);
 
 
 		MatchStatementData V;
@@ -101,7 +101,7 @@ void SystematicAnalysis::OnMatchStatement(const MatchStatement& node)
 	else if (_PassType == PassType::BuidCode)
 	{
 		size_t ScopeCounter = 0;
-		const String ScopeName = std::to_string((uintptr_t)&node);
+		const String ScopeName = GetScopeLabelName(&node);
 
 		OnExpressionTypeNode(node._Expression, GetValueMode::Read);
 
@@ -714,7 +714,7 @@ void SystematicAnalysis::OnMatchExpression(const MatchExpression& node)
 		OnExpressionTypeNode(node._Expression, GetValueMode::Read);
 
 		size_t ScopeCounter = 0;
-		const String ScopeName = std::to_string((uintptr_t)&node);
+		const String ScopeName = GetScopeLabelName(&node);
 
 		for (auto& Item : node._Arms)
 		{
@@ -747,11 +747,12 @@ void SystematicAnalysis::OnMatchExpression(const MatchExpression& node)
 		auto ToMatchType = _LastExpressionType;
 
 		auto MatchAssignmentType = _LookingForTypes.top();
-		const String ScopeName = std::to_string((uintptr_t)&node);
+		const String ScopeName = GetScopeLabelName(&node);
 
 
 		MatchExpressionData V;
 
+		bool haserror = false;
 		for (auto& Item : node._Arms)
 		{
 			_Table.AddScope(ScopeName + std::to_string(ScopeCounter));
@@ -774,10 +775,25 @@ void SystematicAnalysis::OnMatchExpression(const MatchExpression& node)
 			
 			if (!Type_CanBeImplicitConverted(AssignmentType, MatchAssignmentType))
 			{
-				const NeverNullPtr<Token> token = _LastLookedAtToken.value();
-				LogError_CantCastImplicitTypes(token, MatchAssignmentType, AssignmentType, false);
+				bool next = true;
+				//TODO make sure this only happens in an AlasNode.
+				if (MatchAssignmentType.IsTypeInfo() && AssignmentType.IsTypeInfo())
+				{
+					next = false;
+				}
+
+				if (next) 
+				{
+					const NeverNullPtr<Token> token = _LastLookedAtToken.value();
+					LogError_CantCastImplicitTypes(token, MatchAssignmentType, AssignmentType, false);
+					haserror = true;
+				}
 			}
 
+			if (AssignmentType.IsNull())
+			{
+				haserror = true;
+			}
 
 			_Table.RemoveScope();
 
@@ -822,12 +838,19 @@ void SystematicAnalysis::OnMatchExpression(const MatchExpression& node)
 		V._MatchAssignmentType = MatchAssignmentType;
 		_MatchExpressionDatas.AddValue(Symbol_GetSymbolID(node), std::move(V));
 
-		_LastExpressionType = MatchAssignmentType;
+		if (haserror)
+		{
+			_LastExpressionType = TypesEnum::Null;
+		}
+		else 
+		{
+			_LastExpressionType = MatchAssignmentType;
+		}
 	}
 	else if (_PassType == PassType::BuidCode)
 	{
 		size_t ScopeCounter = 0;
-		const String ScopeName = std::to_string((uintptr_t)&node);
+		const String ScopeName = GetScopeLabelName(&node);
 
 		OnExpressionTypeNode(node._Expression, GetValueMode::Read);
 

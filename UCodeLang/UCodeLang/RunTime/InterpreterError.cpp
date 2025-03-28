@@ -21,34 +21,34 @@ void GetDetils(UAddress Input,StackFrameDetails& Out,const RunTimeLangState* Sta
 			auto infosop = DebugInfo.GetForIns(i,cach.cach.value());
 			if (infosop.has_value())
 			{
-				continue;
-			}
-			auto infos = *infosop.value();
+				auto infos = *infosop.value();
 
-			for (auto& Item : infos)
-			{
-				if (auto val = Item->Debug.Get_If<UDebugSetFile>())
+				for (auto& Item : infos)
 				{
-					if (!Out.FilePath.has_value()) 
+					if (auto val = Item->Debug.Get_If<UDebugSetFile>())
 					{
-						auto& str = val->FileName;
+						if (!Out.FilePath.has_value()) 
+						{
+							auto& str = val->FileName;
 
-						if (str.size() && str.front() == '[')
-						{
-							UCodeLangToDo();
-						}
-						else 
-						{
-							Out.FilePath = val->FileName;
+							if (str.size() && str.front() == '[')
+							{
+								UCodeLangToDo();
+							}
+							else 
+							{
+								Out.FilePath = val->FileName;
+							}
 						}
 					}
-				}
-				else if (auto val = Item->Debug.Get_If<UDebugSetLineNumber>())
-				{
-					if (!Out.CallerLineNumber.has_value()) 
+					else if (auto val = Item->Debug.Get_If<UDebugSetLineNumber>())
 					{
-						Out.CallerLineNumber = val->LineNumber;
+						if (!Out.CallerLineNumber.has_value()) 
+						{
+							Out.CallerLineNumber = val->LineNumber;
+						}
 					}
+			
 				}
 			}
 			if (Ins.OpCode == InstructionSet::Return)

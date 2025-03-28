@@ -4,7 +4,7 @@ UCodeLangFrontStart
 
 void SystematicAnalysis::OnLambdaNode(const LambdaNode& node)
 {
-	const String LambdaName = CompilerGenerated("Lambda") + std::to_string((uintptr_t)&node);
+	const String LambdaName = CompilerGenerated("Lambda") + GetScopeLabelName(&node);
 
 	const String LambdaClassName = LambdaName + "class";
 	if (_PassType == PassType::GetTypes)
@@ -320,6 +320,14 @@ void SystematicAnalysis::OnLambdaNode(const LambdaNode& node)
 				{
 					HasDropCall = true;
 				}
+			}
+
+			{
+				auto& lastfield = Classinfo->Fields.back();
+				Classinfo->Size = Type_GetOffset(*Classinfo, &lastfield).value();
+				Classinfo->Size += Type_GetSize(lastfield.Type).value();
+
+				Classinfo->SizeInitialized = true;
 			}
 
 			if (HasDropCall)

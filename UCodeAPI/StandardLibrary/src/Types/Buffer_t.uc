@@ -97,6 +97,15 @@ $Buffer_t<T> trait export:
   export |[][this&,Range_t<uintptr> Range] -> T[:]:ret AsSpan()[Range]; 
   export |[][imut this&,Range_t<uintptr> Range] -> imut T[:]:ret AsSpan()[Range];
 
+  export |[][this&,RangeFull_t Range] -> T[:]:ret AsSpan(); 
+  export |[][imut this&,RangeFull_t Range] -> imut T[:]:ret AsSpan();
+  
+  export |[][this&,RangeTo_t<uintptr> Range] -> T[:]:ret AsSpan()[Range]; 
+  export |[][imut this&,RangeTo_t<uintptr> Range] -> imut T[:]:ret AsSpan()[Range];
+  
+  export |[][this&,RangeFrom_t<uintptr> Range] -> T[:]:ret AsSpan()[Range]; 
+  export |[][imut this&,RangeFrom_t<uintptr> Range] -> imut T[:]:ret AsSpan()[Range];
+ 
   export |AsSpan[this&] -> T[:]:ret unsafe [Data(),Size()];
   export |AsSpan[imut this&] -> imut T[:]:ret unsafe [Data(),Size()];
   
@@ -121,3 +130,25 @@ $Buffer_t<T> trait export:
     if func(this[i]):
      ret Opt(i);
    ret None;
+
+  //Based On https://en.wikipedia.org/wiki/Fisher%E2%80%93Yates_shuffle
+  export |Shuffle<[Random_t]Rand>[this&,Rand& Rng] -> void:
+   var span = AsSpan();
+
+   for [uintptr i = 0;i < span.Size();i++]:
+     var newspan = span[0..span.Size() - i];
+
+     uintptr indextomove = Rng.NextInt<uintptr>(0,newspan.Size());
+
+     T tep = move newspan[indextomove];
+
+     //Shift all newspan item left
+     for [uintptr x = indextomove + 1; x < newspan.Size(); x++]:
+       newspan[x - 1] = move newspan[x];
+
+     //Shift all donespan items left
+     for [uintptr x = 0; x < i; x++]:
+        span[newspan.Size() + x - 1] = move span[newspan.Size() + x];
+
+     span[span.Size() - 1] = move tep;
+  

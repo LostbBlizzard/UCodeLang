@@ -428,6 +428,7 @@ public:
 	bool IsExternC = false;
 	bool IsRemoved = false;
 	bool IsTraitDynamicDispatch = false;
+	bool _IsIndirectExport = false;
 	Vector<Symbol*> Attributes;
 	bool IsObjectCall() const
 	{
@@ -581,6 +582,8 @@ public:
 	Optional<SymbolID> _AutoGenerateMoveConstructor;
 
 	bool _IsExternalC = false;
+	bool _IsIndirectExport = false;
+
 
 	Optional<SymbolContext> Context;
 };
@@ -743,6 +746,7 @@ public:
 	Optional<FuncInfo*> FuncCopyContructer;
 
 	Generic _GenericData;
+	bool _IsIndirectExport = false;
 	Optional<SymbolContext> Context;
 };
 
@@ -760,6 +764,7 @@ public:
 
 	Generic _GenericData;
 	Optional<SymbolContext> Context;
+	bool _IsIndirectExport = false;
 };
 
 
@@ -894,6 +899,7 @@ class AliasInfo :public Symbol_Info
 {
 public:
 	Optional<SymbolContext> Context;
+	bool _IsIndirectExport = false;
 };
 
 class Generic_AliasInfo :public Symbol_Info

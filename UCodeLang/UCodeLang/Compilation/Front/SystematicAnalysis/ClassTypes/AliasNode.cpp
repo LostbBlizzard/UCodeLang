@@ -65,6 +65,18 @@ void SystematicAnalysis::OnAliasNode(const AliasNode& node)
 
 				V->Context = Save_SymbolContextRemoveOneScopeName();
 			}
+			else if (node._AliasType == AliasType::Match)
+			{
+				const MatchExpression* ex = MatchExpression::As(node._Node.get());
+
+				_LookingForTypes.push(TypesEnum::Var);
+				_GetExpressionMode.push(GetValueMode::Read);
+				
+				OnMatchExpression(*ex);
+
+				_GetExpressionMode.pop();
+				_LookingForTypes.pop();
+			}
 			else
 			{
 
@@ -103,10 +115,55 @@ void SystematicAnalysis::OnAliasNode(const AliasNode& node)
 	{
 		if (!Isgeneric_t)
 		{
-			if (node._AliasType == AliasType::Type)
+			if (node._AliasType == AliasType::Type || node._AliasType == AliasType::Match)
 			{
 				Syb.PassState = PassType::FixedTypes;
-				Type_ConvertAndValidateType(node._Type, Syb.VarType, NodeSyb_t::Any);
+			
+				if (node._AliasType == AliasType::Type) 
+				{
+					Type_ConvertAndValidateType(node._Type, Syb.VarType, NodeSyb_t::Any);
+				}
+				else
+				{
+					const MatchExpression* ex = MatchExpression::As(node._Node.get());
+
+					_LookingForTypes.push(TypesEnum::Var);
+					_GetExpressionMode.push(GetValueMode::Read);
+					_NodeTypeStack.push_back(NodeType::InturnalEvalTypeCheck);
+
+					OnMatchExpression(*ex);
+
+					_NodeTypeStack.pop_back();
+					_GetExpressionMode.pop();
+					_LookingForTypes.pop();
+
+					auto outputtype = _LastExpressionType;
+					if (!outputtype.IsTypeInfo() && !outputtype.IsNull())
+					{
+						LogError(ErrorCodes::InValidType, "Match must return 'typeinfo' type", NeverNullptr(ex->_Token));
+					}
+
+					if (outputtype.IsTypeInfo()) 
+					{
+						EvaluatedEx evalout = Eval_MakeEx(outputtype);
+						bool itworked = Eval_Evaluate(evalout, *ex, false);
+
+						if (itworked)
+						{
+							const TypeSymbol* EvalTypeSymbol = Eval_Get_ObjectAs<TypeSymbol>(evalout);
+
+							TypeSymbol val = *EvalTypeSymbol;
+							val._TypeInfo = TypeInfoPrimitive::Null;
+
+							Syb.VarType = val;
+						}
+						else 
+						{
+							Syb.VarType = TypesEnum::Null;
+						}
+					}
+
+				}
 
 				bool ispublic = node._Access == AccessModifierType::Public;
 				if (node.IsExport && ispublic)
@@ -119,7 +176,7 @@ void SystematicAnalysis::OnAliasNode(const AliasNode& node)
 			}
 			else
 			{
-				AliasNode_Func* node_ = (AliasNode_Func*)node._Node.get();
+				const AliasNode_Func* node_ = (AliasNode_Func*)node._Node.get();
 				FuncPtrInfo* nodeinfo_ = (FuncPtrInfo*)Syb.Info.get();
 
 				auto& GenericList = node.Generic;
@@ -158,7 +215,7 @@ void SystematicAnalysis::OnAliasNode(const AliasNode& node)
 	{
 		if (!Isgeneric_t)
 		{
-			if (node._AliasType == AliasType::Type)
+			if (node._AliasType == AliasType::Type || node._AliasType == AliasType::Match)
 			{
 				auto& V = _Lib.Get_Assembly().AddAlias((String)ClassName, RemoveSymboolFuncOverloadMangling(_Table._Scope.ThisScope));
 				V.Type = Assembly_ConvertToType(Syb.VarType);
@@ -168,7 +225,7 @@ void SystematicAnalysis::OnAliasNode(const AliasNode& node)
 					V.HardAliasTypeID = Type_GetTypeID(TypesEnum::CustomType, Syb.ID);
 				}
 				V.AccessModifier = Syb.Access;
-				V.IsExported = node.IsExport;
+				V.IsExported = node.IsExport ? ExportType::Exported : ExportType::NotExported;
 
 				FileDependency_AddDependencyToCurrentFile(Syb.VarType);
 			}
@@ -176,15 +233,48 @@ void SystematicAnalysis::OnAliasNode(const AliasNode& node)
 			{
 				auto& V = _Lib.Get_Assembly().AddFuncPtr((String)ClassName, RemoveSymboolFuncOverloadMangling(_Table._Scope.ThisScope));
 				const FuncPtrInfo* nodeinfo_ = Syb.Get_Info<FuncPtrInfo>();
-				V.ParsType.resize(nodeinfo_->Pars.size());
+				V.ParsType.reserve(nodeinfo_->Pars.size());
+
 				for (size_t i = 0; i < nodeinfo_->Pars.size(); i++)
 				{
-					V.ParsType[i].IsOutPar = nodeinfo_->Pars[i].IsOutPar;
-					V.ParsType[i].Type = Assembly_ConvertToType(nodeinfo_->Pars[i].Type);
+					auto& nodeinfopar = nodeinfo_->Pars[i];
+
+					auto Symop = Symbol_GetSymbol(nodeinfopar.Type);
+					if (Symop.has_value())
+					{
+						auto sym = Symop.value();
+
+						if (sym->Type == SymbolType::Type_Pack)
+						{
+							auto parpack = sym->Get_Info<TypePackInfo>();
+
+							for (auto& Iner : parpack->List)
+							{
+								ClassMethod::Par tep;
+								tep.Type = Assembly_ConvertToType(Iner);
+								tep.IsOutPar = false;
+								V.ParsType.push_back(tep);
+							}
+							break;
+						}
+					}
+
+					ClassMethod::Par tep;
+					tep.Type = Assembly_ConvertToType(nodeinfopar.Type);
+					tep.IsOutPar = nodeinfopar.IsOutPar;
+					V.ParsType.push_back(tep);
 				}
 				V.RetType = Assembly_ConvertToType(nodeinfo_->Ret);
 				V.AccessModifier = Syb.Access;
-				V.IsExported = node.IsExport;
+
+				bool indirectexport = nodeinfo_->_IsIndirectExport;
+				V.IsExported = node.IsExport ? ExportType::Exported : ExportType::NotExported;
+
+				if (V.IsExported == ExportType::NotExported && indirectexport) 
+				{
+					V.IsExported =  ExportType::IndrectExported;
+				}
+
 				V.TypeID = Type_GetTypeID(TypesEnum::CustomType, Syb.ID);
 			}
 		}
@@ -207,7 +297,7 @@ void SystematicAnalysis::OnAliasNode(const AliasNode& node)
 			VClass.Base.Implementation = ClassStr + String(ClassBody);
 			VClass.Base.Implementation += "\n\n";
 			VClass.AccessModifier = Syb.Access;
-			VClass.IsExported = node.IsExport;
+			VClass.IsExported = node.IsExport ? ExportType::Exported : ExportType::NotExported;
 			VClass.UseStatments = Generic_GetCurrentUseStatements();
 		}
 	}

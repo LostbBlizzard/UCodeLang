@@ -1,45 +1,156 @@
 local innosetup = postmake.loadplugin("internal/innosetup")
 local shellscript = postmake.loadplugin("internal/shellscript")
+local githubaction = postmake.loadplugin("internal/githubaction")
 
 local InnoAppID = "{{1CA82B81-B465-41F7-9FFE-7DF174047519}"
 
 -- App Settings
-postmake.appname = "UCodeLang"
-
-
-local function readAll(file)
-	local f = assert(io.open(file, "rb"))
-	local content = f:read("*all")
-	f:close()
-	return content
-end
-
+postmake.appname = "uclang"
 postmake.appversion = "0.0.1"
-postmake.appversion = readAll("version.txt")
-
+postmake.apppublisher = "LostbBlizzard"
+postmake.appinstalldir = "~/.ucodelang"
 postmake.output = "./Output/install"
 
-postmake.appinstalldir = "~/.ucodelang"
-postmake.applicensefile = "LICENSE.txt"
-postmake.apppublisher = "LostbBlizzard"
-postmake.appwebsite = "https://github.com/LostbBlizzard/UCodeLang"
+local f = io.open("version.txt", "rb")
+if f then
+	local content = f:read("*all")
+	f:close()
+	postmake.appversion = content
+end
+
+local function executeorexit(str)
+	local exit = os.execute(str)
+
+	if exit == nil then
+		os.exit(1)
+	end
+
+	if not exit == true then
+		os.exit(1)
+	end
+end
+
+local debugmode = os.getenv("POSTMAKEDEBUGMODE") ~= nil
+local mod
+if debugmode then
+	mod = "Debug"
+else
+	mod = "Published"
+end
+
+-- Short Hands
+local all = postmake.allconfig
+
+--- Configs
+local win64 = postmake.newconfig("windows", "x64")
+local win32 = postmake.newconfig("windows", "x32")
+local winarm64 = postmake.newconfig("windows", "arm64")
+
+local gnu64 = postmake.newconfig("linux", "x64")
+local gnu32 = postmake.newconfig("linux", "x32")
+local gnuarm64 = postmake.newconfig("linux", "arm64")
+
+local mac = postmake.newconfig("macos", "universal")
+
+local unix = postmake.foros("unix")
+--- flags
+local addpathflag = all.newflag("Add Path", true)
+--- Add Your files
+
+local mainprogrampath = postmake.installdir() .. "bin/" .. postmake.appname
+local winmainprogrampath = mainprogrampath .. ".exe"
+
+local unixprogrampath_withoutinstalldir = "tools/" .. postmake.appname
+local unixprogrampath = postmake.installdir() .. "tools/" .. postmake.appname
+local winsmainprogram = unixprogrampath .. ".exe"
+
+local unixprogrampathlsp_withoutinstalldir = "bin/" .. "uclanglsp"
+local unixprogrampathlsp = postmake.installdir() .. "bin/" .. "uclanglsp"
+local winsmainprogramlsp = unixprogrampathlsp .. ".exe"
+
+---@param config Config
+---@param input string
+---@param output string
+local function addxfile(config, input, output)
+	if postmake.os.exist(input) then
+		config.addxfile(input, output)
+	end
+end
+
+addxfile(win64, "Output/UCodeLangCL/Win64/" .. mod .. "/uclang", winsmainprogram)
+addxfile(win64, "Output/UCodeLanguageSever/Win64/" .. mod .. "/uclanglsp", winsmainprogramlsp)
+
+addxfile(win32, "Output/UCodeLangCL/Win32/" .. mod .. "/uclang", winsmainprogram)
+addxfile(win32, "Output/UCodeLanguageSever/Win32/" .. mod .. "/uclanglsp", winsmainprogramlsp)
+
+addxfile(winarm64, "Output/UCodeLangCL/WinArm/" .. mod .. "/uclang", winsmainprogram)
+addxfile(winarm64, "Output/UCodeLanguageSever/WinArm/" .. mod .. "/uclanglsp", winsmainprogramlsp)
+
+addxfile(gnu64, "Output/UCodeLangCL/linux64/" .. mod .. "/uclang", unixprogrampath)
+addxfile(gnu64, "Output/UCodeLanguageSever/linux64/" .. mod .. "/uclanglsp", unixprogrampathlsp)
+
+addxfile(gnu32, "Output/UCodeLangCL/linux32/" .. mod .. "/uclang", unixprogrampath)
+addxfile(gnu32, "Output/UCodeLanguageSever/linux32/" .. mod .. "/uclanglsp", unixprogrampathlsp)
+
+addxfile(gnuarm64, "Output/UCodeLangCL/linuxArm64/" .. mod .. "/uclang", unixprogrampath)
+addxfile(gnuarm64, "Output/UCodeLanguageSever/linuxArm64/" .. mod .. "/uclanglsp", unixprogrampathlsp)
+
+addxfile(mac, "Output/UCodeLangCL/MacOS/" .. mod .. "/uclang", unixprogrampath)
+addxfile(mac, "Output/UCodeLanguageSever/MacOS/" .. mod .. "/uclang", unixprogrampathlsp)
+
+all.addfile("UCodeAPI/NStandardLibrary/**.ucm", postmake.installdir() .. "module/NStandardLibrary")
+all.addfile("UCodeAPI/NStandardLibrary/**.uc", postmake.installdir() .. "module/NStandardLibrary")
+all.addfile("UCodeAPI/NStandardLibrary/LICENSE.txt", postmake.installdir() .. "module/NStandardLibrary/LICENSE.txt")
+all.addfile("UCodeAPI/NStandardLibrary/.gitignore", postmake.installdir() .. "module/NStandardLibrary/.gitignore")
+
+all.addfile("UCodeAPI/StandardLibrary/**.ucm", postmake.installdir() .. "module/StandardLibrary")
+all.addfile("UCodeAPI/StandardLibrary/**.uc", postmake.installdir() .. "module/StandardLibrary")
+all.addfile("UCodeAPI/StandardLibrary/LICENSE.txt", postmake.installdir() .. "module/StandardLibrary/LICENSE.txt")
+all.addfile("UCodeAPI/StandardLibrary/.gitignore", postmake.installdir() .. "module/StandardLibrary/.gitignore")
+
+all.addfile("UCodeAPI/BuildSystem/**.ucm", postmake.installdir() .. "module/BuildSystem")
+all.addfile("UCodeAPI/BuildSystem/**.uc", postmake.installdir() .. "module/BuildSystem")
+all.addfile("UCodeAPI/BuildSystem/LICENSE.txt", postmake.installdir() .. "module/BuildSystem/LICENSE.txt")
+all.addfile("UCodeAPI/BuildSystem/.gitignore", postmake.installdir() .. "module/BuildSystem/.gitignore")
+
+all.addfile("UCodeAPI/CompilerAPI/**.ucm", postmake.installdir() .. "module/CompilerAPI")
+all.addfile("UCodeAPI/CompilerAPI/**.uc", postmake.installdir() .. "module/CompilerAPI")
+all.addfile("UCodeAPI/CompilerAPI/LICENSE.txt", postmake.installdir() .. "module/CompilerAPI/LICENSE.txt")
+all.addfile("UCodeAPI/CompilerAPI/.gitignore", postmake.installdir() .. "module/CompilerAPI/.gitignore")
+
+executeorexit("cd ./doc && mdbook build --dest-dir ../Output/UCodeDocumentation")
+
+all.addfile("Output/UCodeDocumentation/**", postmake.installdir() .. "doc")
+
+all.If(addpathflag).addpath(postmake.installdir())
+
+all.addinstallcmd(unixprogrampath, { "index", postmake.installdir() .. "module/NStandardLibrary" })
+all.addinstallcmd(unixprogrampath, { "index", postmake.installdir() .. "module/StandardLibrary" })
+all.addinstallcmd(unixprogrampath, { "index", postmake.installdir() .. "module/BuildSystem" })
+all.addinstallcmd(unixprogrampath, { "index", postmake.installdir() .. "module/CompilerAPI" })
+
+unix.adduninstallcmd("rm", { postmake.installdir() .. "ModuleIndex.ucmi" })
+
+local installwebsite = "https://github.com/LostbBlizzard/UCodeLang/releases/tag/Release-" .. postmake.appversion
 
 
 if postmake.target() == "symlink" then
-	local configtype = ""
+	local thisinstalldir = postmake.path.absolute(postmake.appinstalldir) .. "/"
+
+	local mainfile = thisinstalldir .. unixprogrampath_withoutinstalldir
+	local lspfile = thisinstalldir .. unixprogrampathlsp_withoutinstalldir
 	if postmake.os.uname.os() == 'windows' then
-		configtype = "Win64"
-	elseif postmake.os.uname.os() == 'linux' then
-		configtype = "linux64"
-	elseif postmake.os.uname.os() == 'macos' then
-		configtype = "MacOS"
+		mainfile = mainfile .. ".exe"
+		lspfile = lspfile .. ".exe"
 	end
 
 	local function symlink(input, output)
 		print("symlink " .. output .. " >> " .. input)
 
 		local issymlink = false
-		if not issymlink then
+		if issymlink then
+
+		else
 			if postmake.os.exist(output) then
 				if postmake.os.IsFile(output) then
 					postmake.os.rm(output)
@@ -52,182 +163,52 @@ if postmake.target() == "symlink" then
 		end
 	end
 
-	local thisinstalldir = postmake.path.absolute(postmake.appinstalldir) .. postmake.installdir()
+	symlink(postmake.path.absolute("Output/UCodeLangCL/linux64/" .. mod .. "/uclang"), mainfile)
+	symlink(postmake.path.absolute("Output/UCodeLanguageSever/linux64/" .. mod .. "/uclanglsp"), lspfile)
+	symlink(postmake.path.absolute("Output/UCodeDocumentation"), thisinstalldir .. "doc")
+	symlink(postmake.path.absolute("UCodeAPI/NStandardLibrary"), thisinstalldir .. "module/NStandardLibrary")
+	symlink(postmake.path.absolute("UCodeAPI/StandardLibrary"), thisinstalldir .. "module/StandardLibrary")
+	symlink(postmake.path.absolute("UCodeAPI/BuildSystem"), thisinstalldir .. "module/BuildSystem")
+	symlink(postmake.path.absolute("UCodeAPI/CompilerAPI"), thisinstalldir .. "module/CompilerAPI")
 
-	local mainfile = thisinstalldir .. "tools/" .. "uclang"
-	local lspfile = thisinstalldir .. "bin/" .. "uclanglsp"
-	if postmake.os.uname.os() == 'windows' then
-		mainfile = mainfile .. ".exe"
-		lspfile = lspfile .. ".exe"
-	end
-	postmake.os.mkdirall(thisinstalldir .. "/bin")
-	postmake.os.mkdirall(thisinstalldir .. "/tools")
+	print("done symlinking")
+else
+	postmake.make(shellscript, { gnu64, gnu32, gnuarm64, mac },
+		---@type ShellScriptConfig
+		{
+			weburl = installwebsite,
+			uploaddir = "./Output/upload/",
+			singlefile = "ShellInstallFiles",
+			testmode = debugmode,
+			uninstallfile = mainprogrampath,
+			proxy = {
+				uninstallcmd = "uninstall",
+				program = unixprogrampath
+			},
+			style = 'modern'
+		});
 
-	if postmake.os.exist(thisinstalldir .. "/module") then
-		postmake.os.rmall(thisinstalldir .. "/module")
-	end
-	postmake.os.mkdirall(thisinstalldir .. "/module")
+	postmake.make(innosetup, { win64, win32, winarm64 },
+		---@type InnoSetConfig
+		{
+			AppId = InnoAppID,
+			LaunchProgram = winsmainprogram,
+			proxy = {
+				path = winsmainprogram,
+				uninstallcmd = "uninstall",
+				program = winsmainprogram
+			},
+			UninstallDelete = {
+				postmake.installdir() .. "ModuleIndex.ucmi"
+			}
+		});
 
-	symlink(postmake.path.absolute("./Output/UCodeLangCL/" .. configtype .. "/Debug/uclang"), mainfile)
-
-
-	symlink(
-		postmake.path.absolute("./Output/UCodeLanguageSever/" .. configtype .. "/Debug/uclanglsp"),
-		lspfile)
-	symlink(postmake.path.absolute("./Output/UCodeDocumentation"), thisinstalldir .. "doc")
-	symlink(mainfile, thisinstalldir .. "bin/uclang")
-
-	symlink(postmake.path.absolute("./NStandardLibrary"), thisinstalldir .. "module/NStandardLibrary")
-	symlink(postmake.path.absolute("./StandardLibrary"), thisinstalldir .. "module/StandardLibrary")
-	symlink(postmake.path.absolute("./BuildSystem"), thisinstalldir .. "module/BuildSystem")
-	symlink(postmake.path.absolute("./CompilerAPI"), thisinstalldir .. "module/CompilerAPI")
-
-	symlink(postmake.path.absolute("./LICENSE.txt"), thisinstalldir .. "LICENSE.txt")
-
-	return
+	postmake.make(githubaction, { win64, win32, winarm64, gnu64, gnu32, gnuarm64, mac },
+		---@type GitHubActionConfig
+		{
+			weburl = installwebsite,
+			uploaddir = "./Output/githubactionupload/",
+			singlefile = "GitHubActionInstallFiles",
+			version = {}
+		});
 end
-
--- Short Hands
-local all = postmake.allconfig
-local unix = postmake.foros("unix")
-
-
-local mainstartup = postmake.installdir() .. "./bin/" .. "uclang"
-
-local unixmainprogram = postmake.installdir() .. "./tools/" .. "uclang"
-local winsmainprogram = unixmainprogram .. ".exe"
-
-local unixlspmainprogram = postmake.installdir() .. "./bin/uclanglsp"
-local winslspmainprogram = unixlspmainprogram .. ".exe"
-
---- Configs
-local win = postmake.newconfig("windows", "x64")
-local win32 = postmake.newconfig("windows", "x32")
-local winarm = postmake.newconfig("windows", "arm64")
-
-local gnu = postmake.newconfig("linux", "x64")
-local gnu32 = postmake.newconfig("linux", "x32")
-local gnuarm64 = postmake.newconfig("linux", "arm64")
-
-local mac = postmake.newconfig("macos", "universal")
-
---- Add Your files
-
-local installwebsite =
-"https://github.com/LostbBlizzard/UCodeLang/releases/download/Release-"
-installwebsite = installwebsite .. postmake.appversion
-
---- flags
-local addpathflag = all.newflag("Add Path", true)
-
-all.If(addpathflag).addpath(postmake.installdir() .. "/bin")
-
-local mode = "Debug"
-if postmake.os.exist("./Output/UCodeLang/linux64/Published") then
-	mode = "Published"
-end
-
----@type {config: Config, path:string,lsp:string}[]
-local programs = {
-	{
-		config = win32,
-		path = "Output/UCodeLangCL/Win32/" .. mode .. "/uclang",
-		lsp = "Output/UCodeLanguageSever/Win32/" .. mode .. "/uclanglsp"
-	},
-	{
-		config = win,
-		path = "Output/UCodeLangCL/Win64/" .. mode .. "/uclang",
-		lsp = "Output/UCodeLanguageSever/Win64/" .. mode .. "/uclanglsp"
-	},
-
-	{
-		config = gnu,
-		path = "Output/UCodeLangCL/linux64/" .. mode .. "/uclang",
-		lsp = "Output/UCodeLanguageSever/linux64/" .. mode .. "/uclanglsp"
-	},
-	{
-		config = gnu32,
-		path = "Output/UCodeLangCL/linux32/" .. mode .. "/uclang",
-		lsp = "Output/UCodeLanguageSever/linux32/" .. mode .. "/uclanglsp"
-	},
-
-	{
-		os = mac,
-		arch = "arm64",
-		path = "Output/UCodeLangCL/MacOS/" .. mode .. "/uclang",
-		lsp = "Output/UCodeLanguageSever/MacOS/" .. mode .. "/uclanglsp"
-	},
-
-}
-for _, value in ipairs(programs) do
-	if postmake.os.exist(value.path) then
-		if value.config.os() == 'windows' then
-			value.config.addxfile(value.path, winsmainprogram)
-		else
-			value.config.addxfile(value.path, unixmainprogram)
-		end
-	end
-	if postmake.os.exist(value.lsp) then
-		if value.config.os() == 'windows' then
-			value.config.addxfile(value.lsp, winslspmainprogram)
-		else
-			value.config.addxfile(value.lsp, unixlspmainprogram)
-		end
-	end
-end
-
-local ModuleIndex = postmake.installdir() .. "/ModuleIndex.ucmi"
---- all version
-all.addfile("UCodeAPI/StandardLibrary/**.ucm", postmake.installdir() .. "module/StandardLibrary")
-all.addfile("UCodeAPI/StandardLibrary/**.uc", postmake.installdir() .. "module/StandardLibrary")
-all.addfile("UCodeAPI/StandardLibrary/LICENSE.txt", postmake.installdir() .. "module/StandardLibrary/LICENSE.txt")
-
-all.addfile("UCodeAPI/NStandardLibrary/**.ucm", postmake.installdir() .. "module/NStandardLibrary")
-all.addfile("UCodeAPI/NStandardLibrary/**.uc", postmake.installdir() .. "module/NStandardLibrary")
-all.addfile("UCodeAPI/NStandardLibrary/LICENSE.txt", postmake.installdir() .. "module/NStandardLibrary/LICENSE.txt")
-
-all.addfile("UCodeAPI/BuildSystem/**.ucm", postmake.installdir() .. "module/BuildSystem")
-all.addfile("UCodeAPI/BuildSystem/**.uc", postmake.installdir() .. "module/BuildSystem")
-all.addfile("UCodeAPI/BuildSystem/LICENSE.txt", postmake.installdir() .. "module/BuildSystem/LICENSE.txt")
-
-all.addfile("UCodeAPI/CompilerAPI/**.ucm", postmake.installdir() .. "module/CompilerAPI")
-all.addfile("UCodeAPI/CompilerAPI/**.uc", postmake.installdir() .. "module/CompilerAPI")
-all.addfile("UCodeAPI/CompilerAPI/LICENSE.txt", postmake.installdir() .. "module/CompilerAPI/LICENSE.txt")
-
-all.addfile("LICENSE.txt", postmake.installdir() .. "License.txt")
-
-all.addfile("Output/UCodeDocumentation/**", postmake.installdir() .. "doc")
-
-all.addinstallcmd(unixmainprogram, { "index", postmake.installdir() .. "module/StandardLibrary" })
-all.addinstallcmd(unixmainprogram, { "index", postmake.installdir() .. "module/NStandardLibrary" })
-all.addinstallcmd(unixmainprogram, { "index", postmake.installdir() .. "module/BuildSystem" })
-all.addinstallcmd(unixmainprogram, { "index", postmake.installdir() .. "module/CompilerAPI" })
-
-unix.adduninstallcmd("rm ", { ModuleIndex })
-
-
-postmake.make(shellscript, { gnu, gnu32, gnuarm64, mac },
-	---@type ShellScriptConfig
-	{
-		weburl = installwebsite,
-		uploaddir = "./Output/upload",
-		testmode = postmake.target() == "test",
-		checksum = 'sha256',
-		style = 'modern',
-		uninstallfile = mainstartup,
-		proxy = {
-			uninstallcmd = "uninstall",
-			program = unixmainprogram,
-		},
-	}
-);
-postmake.make(innosetup, { win, win32, winarm },
-	---@type InnoSetConfig
-	{
-		AppId = InnoAppID,
-		LaunchProgram = winsmainprogram,
-		UninstallDelete = {
-			ModuleIndex,
-		},
-
-	});

@@ -9,14 +9,15 @@ UCodeLangStart
 
 IRidentifierID IRBuilder::ToID(const IRidentifier& Value)
 {
-	String V = Value;
-	auto r = std::hash<IRidentifier>()(V);
-
-	if (!_Map.HasValue(r))
+	if (_Map.HasValue(Value))
 	{
-		_Map.AddValue(r, V);
+		return _Map.GetValue(Value);
 	}
-	return r;
+
+	auto newid = _Map.size() + 1;
+	_Map.AddValue(Value, newid);
+	_FlipedMap.AddValue(newid, Value);
+	return newid;
 }
 void IRBuilder::Reset()
 {
@@ -432,14 +433,17 @@ bool IRBuilder::FromBytes(IRBuilder& Out, const BytesView Bytes)
 		size_t Size = V;
 
 		Out._Map.reserve(Size);
+		Out._FlipedMap.reserve(Size);
 		for (size_t i = 0; i < Size; i++)
 		{
-			IRidentifierID Key = 0;
+			IRidentifier Key = {};
 			Bits.ReadType(Key, Key);
-
-			IRidentifier Value = {};
+			
+			IRidentifierID Value = 0;
 			Bits.ReadType(Value, Value);
 
+
+			Out._FlipedMap.AddIfNotHaveKey(Value,Key);
 			Out._Map.AddIfNotHaveKey(std::move(Key), std::move(Value));
 		}
 
@@ -1173,6 +1177,7 @@ void IRBuilder::CombineWith(const IRBuilder& Other)
 		for (auto& Item : Other._Map)
 		{
 			_Map.AddIfNotHaveKey(Item.first, Item.second);
+			_FlipedMap.AddIfNotHaveKey(Item.second, Item.first);
 		}
 	}
 

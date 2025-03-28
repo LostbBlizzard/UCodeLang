@@ -107,10 +107,17 @@ void SystematicAnalysis::OnCompileTimeIfNode(const CompileTimeIfNode& node, bool
 
 
 
-			if (BoolValue.has_value())
+			//if (BoolValue.has_value())
 			{
-				const bool& EvalValue = *Eval_Get_ObjectAs<bool>(BoolValue.value());
-
+				bool EvalValue;
+				if (BoolValue.has_value())
+				{
+					 EvalValue = *Eval_Get_ObjectAs<bool>(BoolValue.value());
+				}
+				else
+				{
+					EvalValue = false;
+				}
 
 				if (EvalValue)
 				{

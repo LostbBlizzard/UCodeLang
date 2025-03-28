@@ -33,7 +33,10 @@ void SystematicAnalysis::OnAssignExpressionNode(const AssignExpressionNode& node
 
 		if (node._ReassignAddress == false)
 		{
-			ExpressionType._IsAddress = false;
+			if (!AssignType.IsDynamicTrait()) 
+			{
+				ExpressionType._IsAddress = false;
+			}
 		}
 
 
@@ -156,9 +159,13 @@ void SystematicAnalysis::OnAssignExpressionNode(const AssignExpressionNode& node
 			}
 
 			
-			if (!AssignExType._IsAddress )
+			if (!AssignExType._IsAddress)
 			{
-				//obj = _IR_LookingAtIRBlock->NewLoadPtr(obj.Pointer);
+				if (AssignExType.IsLocationValue() && !domove_ctor) 
+				{
+					obj = _IR_LookingAtIRBlock->NewLoadPtr(obj.Pointer);
+					ExIR = _IR_LookingAtIRBlock->NewLoad_Dereferenc(ExIR,IR_ConvertToIRType(AssignExType));//This current line may be in the wrong place. I will update it when i find the edge case
+				}
 				AssignExType._IsAddress = true;
 			}
 

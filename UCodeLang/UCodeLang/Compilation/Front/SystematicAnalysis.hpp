@@ -277,6 +277,48 @@ public:
 	static Optional<Func> GetFunction(const String_view Name, const Vector<FunctionPar>& Pars, SystematicAnalysis& This);
 };
 
+struct ScopeGenerator
+{
+	inline String GetScopeLabelName(const String& currentscope, const void* node)
+	{
+		constexpr const char* ScopePrefix = "_";
+
+		if (!_Data.HasValue(currentscope))
+		{
+			auto newlist = CurrentScopeInfo();
+
+			_Data.AddValue(currentscope, std::move(newlist));
+		}
+
+
+		auto& list = _Data.GetValue(currentscope);
+		if (list.NodeToIndex.HasValue(node))
+		{
+			auto index = list.NodeToIndex.GetValue(node);
+			return String(ScopePrefix) + std::to_string(index);
+		}
+		else
+		{
+			auto index = list.GetNextIndex();
+			list.NodeToIndex.AddValue(node, index);
+			return String(ScopePrefix) + std::to_string(index);
+		}
+	}
+	void Clear()
+	{
+		_Data.clear();
+	}
+private:
+	struct CurrentScopeInfo
+	{
+		UnorderedMap<const void*, size_t> NodeToIndex;
+		size_t GetNextIndex()
+		{
+			return NodeToIndex.size() + 1;
+		}
+	};
+	UnorderedMap<String, CurrentScopeInfo> _Data;
+};
 
 
 class SystematicAnalysis
@@ -483,7 +525,6 @@ private:
 
 		WritePointerReassment,
 	};
-
 	struct Get_FuncInfo
 	{
 		enum class ThisPar_t : UInt8
@@ -814,6 +855,13 @@ private:
 		size_t errcount = 0;
 	};
 
+	struct DoBinaryOpContext
+	{
+		const RawEvaluatedObject* Op1 = nullptr;
+		const RawEvaluatedObject* Op2 = nullptr;
+		TokenType type = TokenType::Null;
+		RawEvaluatedObject* OpOut = nullptr;
+	};
 	//Members
 	CompilationErrors* _ErrorsOutput = nullptr;
 	CompilationSettings* _Settings = nullptr;
@@ -829,6 +877,7 @@ private:
 
 	UnorderedMap<String, UnorderedMap<const void*, SymbolID>> _SybIdMap;
 	uintptr_t _IDIndex = 0;
+	ScopeGenerator _ScopeGenerator;
 	//Args
 	bool _ForceImportArgWasPassed = false;
 	bool _ImmutabilityIsForced = false;
@@ -856,7 +905,7 @@ private:
 
 	UnorderedMap<SymbolID, VarableMemberData> _VarableMemberDatas;//Var.$Item
 	UnorderedMap<AssemblyNode*, Symbol*> LibGenericSymbolLoad;
-	UnorderedMap<SymbolID, TypeSymbol> DelareVarableImplicit;	
+	UnorderedMap<SymbolID, TypeSymbol> DelareVarableImplicit;
 	UnorderedMap<TypeSymbol*, String> GenericOutputs;
 	struct Test
 	{
@@ -930,6 +979,12 @@ private:
 	Vector<Unique_ptr<FileNode>> NodesFromLoadLib;
 	Vector<Unique_ptr<Vector<Token>>> TokensFromLoadLib;
 
+	struct FuncGenericIndirectInfo2
+	{
+		Symbol* Indirect = nullptr;
+	};
+	Vector<FuncGenericIndirectInfo2> IndirectGenericFunc;
+	bool IsExported(SymbolID type);
 
 	//Funcs
 	bool IsInUnSafeBlock()
@@ -1148,6 +1203,8 @@ private:
 	Symbol& Symbol_AddSymbol(SymbolType type, const String& Name, const String& FullName, AccessModifierType Access);
 	bool Symbol_IsVarableType(SymbolType type) const;
 	void Pass();
+	void UpdateIndirectExportFuncs();
+	void UpdateIndirectExport();
 	void OnFileNode(const FileNode& File);
 	void OnClassNode(const ClassNode& node);
 	void OnAliasNode(const AliasNode& node);
@@ -1175,7 +1232,7 @@ private:
 	void OnEnum(const EnumNode& node);
 	void OnNamespace(const NamespaceNode& node);
 	void OnAttributeNode(const AttributeNode& node, OptionalRef<Vector<Symbol*>> Out = {});
-	void OnAttributesNode(const Vector<Unique_ptr<AttributeNode>>& nodes,OptionalRef<Vector<Symbol*>> Out = {});
+	void OnAttributesNode(const Vector<Unique_ptr<AttributeNode>>& nodes, OptionalRef<Vector<Symbol*>> Out = {});
 	void OnDeclareVariablenode(const DeclareVariableNode& node, DeclareStaticVariableNode_t type);
 
 	bool IsEnableAttribute(const Symbol& symbol);
@@ -1397,11 +1454,14 @@ private:
 	void Assembly_LoadTraitAliases(const String& FullName, const Vector<TraitAlias>& GenericAlias);
 	void Assembly_LoadTraitAliases_FixTypes(const Vector<TraitAlias>& GenericAlias);
 
+	bool Assembly_IsExport(ExportType IsNodeExport, ReflectionCustomTypeID id);
+	bool Assembly_IsExport(ExportType IsNodeExport, const String& id);
 	void Assembly_LoadClassSymbol(const Class_Data& Item, const String& FullName, const String& Scope, SystematicAnalysis::LoadLibMode Mode);
 	void Assembly_LoadEnumSymbol(const Enum_Data& Item, const String& FullName, const String& Scope, SystematicAnalysis::LoadLibMode Mode);
 	void Assembly_LoadAliasSymbol(const Alias_Data& Item, const String& FullName, const String& Scope, SystematicAnalysis::LoadLibMode Mode);
 	void Assembly_LoadTagSymbol(const Tag_Data& Item, const String& FullName, const String& Scope, SystematicAnalysis::LoadLibMode Mode);
 	void Assembly_LoadTraitSymbol(const Trait_Data& Item, const String& FullName, const String& Scope, SystematicAnalysis::LoadLibMode Mode);
+	void Assembly_LoadFuncPtrSymbol(const FuncPtr_Data& Item, const String& FullName, const String& Scope, SystematicAnalysis::LoadLibMode Mode);
 
 	void Assembly_LoadSymbol(const ForType_Data& Item, SystematicAnalysis::LoadLibMode Mode);
 	void Assembly_LoadSymbol(const NameSpace_Data& Item, const String& FullName, SystematicAnalysis::LoadLibMode Mode);
@@ -1427,7 +1487,7 @@ private:
 	{
 		bool IsgenericInstantiation = false;
 	};
-	void Assembly_AddClass(const Vector<Unique_ptr<AttributeNode>>& attributes, const NeverNullPtr<Symbol> ClassSyb,Optional<AddClassExtraInfo> Extra = {});
+	void Assembly_AddClass(const Vector<Unique_ptr<AttributeNode>>& attributes, const NeverNullPtr<Symbol> ClassSyb, Optional<AddClassExtraInfo> Extra = {});
 	ReflectionTypeInfo Assembly_ConvertToType(const TypeSymbol& Type);
 
 	void Assembly_AddEnum(const NeverNullPtr<Symbol> ClassSyb);
@@ -1474,7 +1534,7 @@ private:
 
 
 
-	void Type_Convert(const TypeNode& V, TypeSymbol& Out,bool allowtraitasself = false);
+	void Type_Convert(const TypeNode& V, TypeSymbol& Out, bool allowtraitasself = false);
 
 	NullablePtr<Symbol> Generic_InstantiateOrFindGenericSymbol(const NeverNullPtr<Token> Token, const UseGenericsNode& GenericsVals, const String_view& Name);
 
@@ -1587,6 +1647,8 @@ private:
 	}
 
 
+	String GetScopeLabelName(const void* node);
+
 	void Symbol_RedefinitionCheck(const NeverNullPtr<Symbol> Syb, const NeverNullPtr<Token> Value);
 	void Symbol_RedefinitionCheck(const String_view FullName, SymbolType Type, const NeverNullPtr<Token> Value);
 	void Symbol_RedefinitionCheck(const NeverNullPtr<Symbol> Syb, const FuncInfo* Fvalue, const NeverNullPtr<Token> Value);
@@ -1638,7 +1700,7 @@ private:
 	void Symbol_Update_ThreadAndStatic_ToFixedTypes(NeverNullPtr<Symbol> Sym);
 	void Symbol_Update_ForType_ToFixedTypes(NeverNullPtr<Symbol> Sym);
 	void Symbol_Update_ClassField_ToFixedTypes(NeverNullPtr<Symbol> Sym);
-	
+
 	void Symbol_Update_Sym_ToFixedTypes(NeverNullPtr<Symbol> Sym);
 
 	Optional<size_t> Type_GetSize(const TypeSymbol& Type)
@@ -1666,7 +1728,7 @@ private:
 
 	Vector<Symbol*> Type_FindForTypeFuncions(const TypeSymbol& ThisType);
 	Vector<Symbol*> Type_FindForTypeFuncions(const TypeSymbol& ThisType, const String& FuncionName);
-	Get_FuncInfo Type_GetFunc(const TypeSymbol& Name, const ValueParametersNode& Pars,const NeverNullPtr<Token> token);
+	Get_FuncInfo Type_GetFunc(const TypeSymbol& Name, const ValueParametersNode& Pars, const NeverNullPtr<Token> token);
 	Get_FuncInfo Type_GetFunc(const ScopedNameNode& Name, const ValueParametersNode& Pars, TypeSymbol Ret);
 
 	Optional<Optional<Get_FuncInfo>> Type_FuncinferGenerics(Vector<TypeSymbol>& GenericInput, const Vector<ParInfo>& ValueTypes
@@ -1689,6 +1751,10 @@ private:
 	bool Type_HasDefaultConstructorFunc(const TypeSymbol& Type) const;
 
 	bool Type_IsCompatible(const IsCompatiblePar& FuncPar, const Vector<ParInfo>& ValueTypes, bool _ThisTypeIsNotNull, const NeverNullPtr<Token> Token);
+
+	const OptionalRef<Vector<TypeSymbol>> GetTypePackFromInputPar(const Vector<ParInfo>& Pars);
+	ParInfo GetParInfoResolveTypePack(size_t i, const Vector<ParInfo>& Pars, const OptionalRef<Vector<TypeSymbol>> TypePack);
+	size_t GetParCountResolveTypePack(const Vector<ParInfo>& Pars);
 
 	int Type_GetCompatibleScore(const ParInfo& ParFunc, const ParInfo& Value);
 	int Type_GetCompatibleScore(const IsCompatiblePar& Func, const Vector<ParInfo>& ValueTypes);
@@ -1735,7 +1801,7 @@ private:
 	void Generic_TypeInstantiate_Tag(const NeverNullPtr<Symbol> Trait, const Vector<TypeSymbol>& Type);
 	void Generic_TypeInstantiate_ForType(const NeverNullPtr<Symbol> ForType, const Vector<TypeSymbol>& Type);
 
-	bool TypeHasTrait(const TypeSymbol& Type,SymbolID id);
+	bool TypeHasTrait(const TypeSymbol& Type, SymbolID id);
 
 	EvaluatedEx Eval_MakeEx(const TypeSymbol& Type);
 	RawEvaluatedObject Eval_MakeExr(const TypeSymbol& Type);
@@ -1848,7 +1914,18 @@ private:
 	using TypeInstantiateFunc = void(SystematicAnalysis::*)(const NeverNullPtr<Symbol> Symbol, const Vector<TypeSymbol>& GenericInput);
 	NullablePtr<Symbol> Generic_InstantiateOrFindGenericSymbol(const NeverNullPtr<Token> Name, const NeverNullPtr<Symbol> Symbol, const GenericValuesNode& SymbolGenericValues, const Generic& GenericData, const UseGenericsNode& UseNode, TypeInstantiateFunc Instantiate)
 	{
-		if (GenericData._Genericlist.size() != UseNode._Values.size())
+		bool hasbadgenericcount = false;
+		if (GenericData.IsPack())
+		{
+			auto mingenericcount = GenericData._Genericlist.size();
+			hasbadgenericcount = mingenericcount < UseNode._Values.size();
+		}
+		else
+		{
+			hasbadgenericcount = GenericData._Genericlist.size() != UseNode._Values.size();
+		}
+
+		if (hasbadgenericcount)
 		{
 			LogError_CanIncorrectGenericCount(Name, Name->Value._String, UseNode._Values.size(), GenericData._Genericlist.size());
 			return nullptr;
@@ -1876,7 +1953,7 @@ private:
 			Type_ConvertAndValidateType(Tnode, Type, NodeSyb_t::Any);
 			_LookingForTypes.pop();
 
-			if (Type_IsUnMapType(Type))
+			if (Type_IsUnMapType(Type) || Type.IsNull())
 			{
 				return nullptr;
 			}
@@ -1994,6 +2071,79 @@ private:
 	bool Eval_Evaluate(EvaluatedEx& Out, const BinaryExpressionNode& node);
 	bool Eval_Evaluate(EvaluatedEx& Out, const CastNode& node);
 	bool Eval_Evaluate(EvaluatedEx& Out, const ReadVariableNode& nod);
+	bool Eval_Evaluate(EvaluatedEx& Out, const MatchExpression& nod, bool runmatchcheck = true);
+	bool Eval_MatchArm(const TypeSymbol& MatchItem, const EvaluatedEx& Item, MatchArm& Arm, const ExpressionNodeType& ArmEx);
+	void DoBinaryOpContextWith(TypeSymbol type, const DoBinaryOpContext& context);
+
+	template<typename T>
+	static void DoBinaryIntOp(const SystematicAnalysis::DoBinaryOpContext& context)
+	{
+		T& op1 = *(T*)context.Op1->Object_AsPointer.get();
+		T& op2 = *(T*)context.Op2->Object_AsPointer.get();
+		T& out = *(T*)context.OpOut->Object_AsPointer.get();
+		bool& outequal = *(bool*)context.OpOut->Object_AsPointer.get();
+
+		switch (context.type)
+		{
+		case TokenType::plus:
+			out = op1 + op2;
+			break;
+		case TokenType::minus:
+			out = op1 + op2;
+			break;
+		case TokenType::star:
+			out = op1 * op2;
+			break;
+		case TokenType::forwardslash:
+			out = op1 / op2;
+			break;
+		case TokenType::modulo:
+			out = op1 % op2;
+			break;
+
+		case TokenType::equal_Comparison:
+			outequal = op1 == op2;
+			break;
+		case TokenType::Notequal_Comparison:
+			outequal = op1 != op2;
+			break;
+		case TokenType::logical_and:
+			outequal = op1 && op2;
+			break;
+		case TokenType::logical_or:
+			outequal = op1 || op2;
+			break;
+		case TokenType::greater_than_or_equalto:
+			outequal = op1 >= op2;
+			break;
+		case TokenType::less_than_or_equalto:
+			outequal = op1 <= op2;
+			break;
+		case TokenType::greaterthan:
+			outequal = op1 > op2;
+			break;
+		case TokenType::lessthan:
+			outequal = op1 < op2;
+			break;
+
+		case TokenType::bitwise_LeftShift:
+			out = op1 << op2;
+			break;
+		case TokenType::bitwise_RightShift:
+			out = op1 >> op2;
+			break;
+		case TokenType::bitwise_and:
+			out = op1 && op2;
+			break;
+		case TokenType::bitwise_or:
+			out = op1 || op2;
+			break;
+		default:
+			UCodeLangUnreachable();
+			break;
+		}
+	}
+
 	bool Eval_Evaluate_t(EvaluatedEx& Out, const Node* node, GetValueMode Mode);
 	bool Eval_Evaluate(EvaluatedEx& Out, const ExpressionNodeType& node, GetValueMode Mode);
 	bool Eval_EvaluatePostfixOperator(EvaluatedEx& Out, TokenType Op);
@@ -2043,6 +2193,8 @@ private:
 	IRInstruction* IR_RawObjectDataToCString(const RawEvaluatedObject& EvalObject);
 
 	bool EvalStore(EvalFuncData& State, const ExpressionNodeType& Storenode, EvaluatedEx& In);
+	
+	bool TypesBeingCheckedForEval();
 	//IR
 	void IR_Build_FuncCall(Get_FuncInfo Func, const ScopedNameNode& Name, const ValueParametersNode& Pars);
 	void IR_Build_FuncCall(const TypeSymbol& Type, const Get_FuncInfo& Func, const ValueParametersNode& ValuePars);

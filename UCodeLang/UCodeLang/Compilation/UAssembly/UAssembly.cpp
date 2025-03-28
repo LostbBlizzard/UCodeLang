@@ -186,7 +186,7 @@ String UAssembly::ToString(const UClib* Lib, Optional<Path> SourceFiles, bool Sh
 
 					r += "]";
 				}
-				if (Class.IsExported)
+				if (Class.IsExported == ExportType::Exported)
 				{
 					r += " export";
 				}
@@ -238,7 +238,7 @@ String UAssembly::ToString(const UClib* Lib, Optional<Path> SourceFiles, bool Sh
 			auto& Class = Item->Get_AliasData();
 			r += "$" + Item->FullName;
 
-			if (Class.IsExported)
+			if (Class.IsExported == ExportType::Exported)
 			{
 				r += " export";
 			}
@@ -256,7 +256,7 @@ String UAssembly::ToString(const UClib* Lib, Optional<Path> SourceFiles, bool Sh
 			auto& Enum = Item->Get_EnumData();
 			r += "$" + Item->FullName + " enum[" + ToString(Enum.BaseType,Assembly) + "]";
 
-			if (Enum.IsExported)
+			if (Enum.IsExported == ExportType::Exported)
 			{
 				r += " export";
 			}
@@ -305,7 +305,7 @@ String UAssembly::ToString(const UClib* Lib, Optional<Path> SourceFiles, bool Sh
 
 			r += "$" + Item->FullName;
 			
-			if (FuncPtr.IsExported)
+			if (FuncPtr.IsExported == ExportType::Exported)
 			{
 				r += " export";
 			}
@@ -332,7 +332,7 @@ String UAssembly::ToString(const UClib* Lib, Optional<Path> SourceFiles, bool Sh
 			auto& TagData = Item->Get_TagData();
 			bool hasany = TagData.Fields.size() || TagData.Fields.size();
 			
-			if (TagData.IsExported)
+			if (TagData.IsExported == ExportType::Exported)
 			{
 				r += " export";
 			}
@@ -393,7 +393,7 @@ String UAssembly::ToString(const UClib* Lib, Optional<Path> SourceFiles, bool Sh
 			r += "$" + Item->FullName + " trait";
 			auto& TraitData = Item->Get_TraitData();
 
-			if (TraitData.IsExported)
+			if (TraitData.IsExported == ExportType::Exported)
 			{
 				r += " export";
 			}
@@ -454,7 +454,7 @@ String UAssembly::ToString(const UClib* Lib, Optional<Path> SourceFiles, bool Sh
 		case ClassType::Eval:
 		{
 			auto& TraitData = Item->Get_EvalData();
-			if (TraitData.IsExported)
+			if (TraitData.IsExported == ExportType::Exported)
 			{
 				r += " export ";
 			}
@@ -546,30 +546,37 @@ String UAssembly::ToString(const UClib* Lib, Optional<Path> SourceFiles, bool Sh
 								}
 								else
 								{
+									Path filepath = Path(SourceFiles.value() / Path(OnFile).native());
 									std::ifstream file;
 
-									file.open(Path(SourceFiles.value() / Path(OnFile).native()));
-									if (file.is_open())
+
+									bool openedfile = false;
+									if (std::filesystem::is_regular_file(filepath))
 									{
-										std::string str;
-										Vector<String> Lines;
-										while (std::getline(file, str))
+										file.open(filepath);
+										if (file.is_open())
 										{
-											Lines.push_back(std::move(str));
-										}
-										OpenedSourceFilesLines.AddValue(OnFile, std::move(Lines));
+											std::string str;
+											Vector<String> Lines;
+											while (std::getline(file, str))
+											{
+												Lines.push_back(std::move(str));
+											}
+											OpenedSourceFilesLines.AddValue(OnFile, std::move(Lines));
 
-										auto& Item = OpenedSourceFilesLines.GetValue(OnFile);
+											auto& Item = OpenedSourceFilesLines.GetValue(OnFile);
 
-										if (Val->LineNumber - 1 < Item.size()) {
-											ItemValue = &Item[Val->LineNumber - 1];
+											if (Val->LineNumber - 1 < Item.size()) {
+												ItemValue = &Item[Val->LineNumber - 1];
+											}
+											openedfile = true;
 										}
 									}
-									else
+
+									if (!openedfile)
 									{
 										OpenedSourceFilesLines.AddValue(OnFile, {});
 									}
-
 								}
 
 
@@ -1310,8 +1317,9 @@ void UAssembly::ToString(String& r, ClassMethod& Item2, const UClib* Lib)
 	if (Item2.Attributes.Attributes.size())
 	{
 		r += '\n';
+		r += ' ';
 	}
-	if (Item2.IsExport)
+	if (Item2.IsExport == ExportType::Exported)
 	{
 		r += "export ";
 	}
@@ -2083,8 +2091,6 @@ UAssembly::StripFuncs UAssembly::StripFunc(UClib& lib, const StripFuncSettings& 
 			}),list.end());
 
 		} while (count != list.size());
-
-		int a = 0;
 	}
 
 	lib.Get_Assembly().Remove_NullFunc();

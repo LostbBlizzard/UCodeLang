@@ -149,7 +149,7 @@ inline String ModeType(OptimizationFlags Flags)
 	return r;
 }
 
-static const Array<TestInfo, 175> Tests{
+static const Array<TestInfo, 184> Tests{
 
 	TestInfo("main_0", "BasicTests/main.uc", "Main", SuccessCondition::Compilation),
 
@@ -344,7 +344,7 @@ static const Array<TestInfo, 175> Tests{
 	TestInfo("EnumCasts", "BasicTests/EnumCasts.uc", "main", SuccessCondition::RunTimeValue, (UCodeLang::Byte)2),
 	TestInfo("EnumCasts_2", "BasicTests/EnumCasts.uc", "main2", SuccessCondition::RunTimeValue, (bool)true),
 	
-	TestInfo("Swap", "Std/Swap.uc", "main", SuccessCondition::RunTimeValue, (bool)true),
+	TestInfo("StdSwap", "Std/Swap.uc", "main", SuccessCondition::RunTimeValue, (bool)true),
 	
 	TestInfo("ParOffsetCheck", "StressTest/ParOffsetCheck.uc", "main", SuccessCondition::RunTimeValue, (bool)true),
 	TestInfo("ForTypePrimitive", "Objects/ForTypePrimitive.uc", "main", SuccessCondition::RunTimeValue, (bool)true),
@@ -364,11 +364,11 @@ static const Array<TestInfo, 175> Tests{
 	
 	TestInfo("SpanKeepImut", "Std/SpanKeepImut.uc", "main", SuccessCondition::CompilationFail),
 
-	TestInfo("Attribute Contruct 3", "Eval/Attribute3.uc","", SuccessCondition::CompilationFail),
+	TestInfo("AttributeContruct 3", "Eval/Attribute3.uc","", SuccessCondition::CompilationFail),
 	TestInfo("ForTypeConstruct", "Objects/ForTypePrimitveConstruct.uc", "main", SuccessCondition::RunTimeValue, (UCodeLang::Byte)20),
 	TestInfo("ForTypeReadThis", "Objects/ForTypeReadThis.uc", "main", SuccessCondition::RunTimeValue,UCodeLang::Byte(20)),
 
-	TestInfo("Swap", "Objects/Swap.uc", "main", SuccessCondition::RunTimeValue,bool(true)),
+	TestInfo("ObjectSwap", "Objects/Swap.uc", "main", SuccessCondition::RunTimeValue,bool(true)),
 	
 	TestInfo("IndexVarCheck", "BasicTests/IndexVarCheck.uc", "main", SuccessCondition::RunTimeValue,int(5)),
 	
@@ -399,7 +399,19 @@ static const Array<TestInfo, 175> Tests{
 	TestInfo("TraitTypeBind", "Generics/TraitTypeBind.uc", "main", SuccessCondition::RunTimeValue,bool(true)),
 	TestInfo("TraitTypeBind2","Generics/TraitTypeBind2.uc", "main", SuccessCondition::CompilationFail),
 	TestInfo("ClassFields","OutofOrder/ClassFields.uc", "main", SuccessCondition::RunTimeValue,bool(true)),
+	TestInfo("InvaildNumberLiteral","BasicTests/InvaildNumberLiteral.uc", "main", SuccessCondition::CompilationFail),
+	TestInfo("InferParametr","Generics/inferParameter.uc", "main", SuccessCondition::RunTimeValue,uintptr_t(7)),
+
+	TestInfo("IsTypeFuncionPointer","Eval/IsTypeFuncionPointer.uc", "main", SuccessCondition::RunTimeValue,bool(true)),
+
+	TestInfo("ClassFieldFuncionPointer","BasicTests/ClassFieldFuncionPointer.uc", "main", SuccessCondition::RunTimeValue,bool(true)),
 	
+	TestInfo("IsDynmaicTrait","Eval/IsDynmaicTrait.uc", "main", SuccessCondition::RunTimeValue,bool(true)),
+	TestInfo("IsEvalOnClassField","Eval/EvalOnClassField.uc", "main", SuccessCondition::RunTimeValue,bool(true)),
+	TestInfo("MatchAlias","Eval/MatchAlias.uc", "main", SuccessCondition::RunTimeValue,bool(true)),
+	
+	TestInfo("GenericContructor","Objects/GenericContructer.uc", "main", SuccessCondition::RunTimeValue,bool(true)),
+	TestInfo("GenericContructor2","Objects/GenericContructer2.uc", "main", SuccessCondition::RunTimeValue,bool(true)),
 };
 struct SkipTestRange
 {

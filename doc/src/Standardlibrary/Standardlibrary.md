@@ -88,13 +88,15 @@ import UCodeLang::StandardLibarary[0:0:0];
 [Empty](./Miscellaneous/Empty.md) | class | A Zero-sized type. 
 [Buffer_t\<T>](./Miscellaneous/StringBuffer_t.md) | Generic trait | Gives the types that have continuous elements helper funcions such as Sort,Find and Filter.
 [StringBuffer_t\<T>](./Miscellaneous/StringBuffer_t.md) | Generic trait | Gives the types that are strings funcions such as StartWith,EndWith and GetLines.
-[Range_t\<T>](./Miscellaneous/Ranges.md) |
-[RangeFrom_t\<T>](./Miscellaneous/Ranges.md) | 
-[RangeTo_t\<T>](./Miscellaneous/Ranges.md) | 
-[RangeFull_t\<T>](./Miscellaneous/Ranges.md) | 
-[RangeInclusive_t\<T>](./Miscellaneous/Ranges.md) | 
-[RangeToInclusive_t\<T>](./Miscellaneous/Ranges.md) | 
-
+[Range_t\<T>](./Miscellaneous/Range_t.md) | Generic Class | Represents a Range with to and from values
+[RangeFrom_t\<T>](./Miscellaneous/RangeFrom_t.md) | Generic Class | Represents a Range from  a value
+[RangeTo_t\<T>](./Miscellaneous/RangeTo_t.md) | Generic Class | Represents a Range a to value
+[RangeFull](./Miscellaneous/RangeFull_t.md) | Class | Represents a Full Range
+[RangeInclusive_t\<T>](./Miscellaneous/RangeInclusive_t.md) | Generic Class | Represents an Inclusive Range with a to and from a value 
+[RangeToInclusive_t\<T>](./Miscellaneous/RangeToIncnusive_t.md) | Generic Class | Represents an Inclusive Range to a value 
+[Random_t\<T>](./Miscellaneous/Random_t.md) | Trait | Represents an Random Function and State.
+[Random](./Miscellaneous/Random.md) | alias | An ailas to [RandomXorshift32](./Miscellaneous/RandomXorshift32.md)
+[RandomXorshift32](./Miscellaneous/RandomXorshift32.md) | Class | A Random Number Generator.
 
 ## Notes
 

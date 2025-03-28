@@ -4,6 +4,8 @@ UCodeLangFrontStart
 
 void SystematicAnalysis::OnCompileTimeforNode(const CompileTimeForNode& node)
 {
+	const char* LoopScopePrefix = "_CFor";
+
 	if (_PassType == PassType::GetTypes)
 	{
 		if (node._Type == CompileTimeForNode::ForType::Traditional)
@@ -38,8 +40,7 @@ void SystematicAnalysis::OnCompileTimeforNode(const CompileTimeForNode& node)
 					{
 						CanBeLooped = true;
 					}
-					else
-						if (ListTypeSyb->Type == SymbolType::Type_StaticArray)
+					else if (ListTypeSyb->Type == SymbolType::Type_StaticArray)
 						{
 							CanBeLooped = true;
 						}
@@ -133,7 +134,7 @@ void SystematicAnalysis::OnCompileTimeforNode(const CompileTimeForNode& node)
 											other = &node._OtherVarables[0];
 										}
 
-										const String ScopeName = std::to_string(Symbol_GetSymbolID(node).AsInt());
+										const String ScopeName = GetScopeLabelName(&node);
 										const String VarableName = withindex ?
 											(String)other->_Name->Value._String : (String)node._Name->Value._String;
 
@@ -145,7 +146,7 @@ void SystematicAnalysis::OnCompileTimeforNode(const CompileTimeForNode& node)
 										{
 											auto& Item = PackInfo->List[i];
 
-											_Table.AddScope(ScopeName + std::to_string(i));
+											_Table.AddScope(ScopeName + String(LoopScopePrefix) + std::to_string(i));
 
 
 											Symbol* NumberVarableSymbol = nullptr;
@@ -237,7 +238,7 @@ void SystematicAnalysis::OnCompileTimeforNode(const CompileTimeForNode& node)
 							other = &node._OtherVarables[0];
 						}
 
-						const String ScopeName = std::to_string(Symbol_GetSymbolID(node).AsInt());
+						const String ScopeName = GetScopeLabelName(&node);
 						const String VarableName = withindex ?
 							(String)other->_Name->Value._String : (String)node._Name->Value._String;
 
@@ -260,7 +261,7 @@ void SystematicAnalysis::OnCompileTimeforNode(const CompileTimeForNode& node)
 								void* ItemOffset = ListArrayValue.EvaluatedObject.Object_AsPointer.get() + (i * ItemSize);
 								Eval_Set_ObjectAs(StaticInfo->Type, _DataAsIndex, ItemOffset, ItemSize);
 
-								_Table.AddScope(ScopeName + std::to_string(i));
+								_Table.AddScope(ScopeName + String(LoopScopePrefix) + std::to_string(i));
 
 								Symbol* NumberVarableSymbol = nullptr;
 								if (withindex)
@@ -345,7 +346,7 @@ void SystematicAnalysis::OnCompileTimeforNode(const CompileTimeForNode& node)
 		CompileTimeforNode& Nodes = _ForNodes.GetValue(Symbol_GetSymbolID(node));
 		if (Nodes.SybToLoopOver->Type == SymbolType::ParameterVarable)
 		{
-			const String ScopeName = std::to_string(Symbol_GetSymbolID(node).AsInt());
+			const String ScopeName = GetScopeLabelName(&node);
 
 			for (size_t i = 0; i < Nodes.SybItems.size(); i++)
 			{
@@ -358,7 +359,7 @@ void SystematicAnalysis::OnCompileTimeforNode(const CompileTimeForNode& node)
 					auto Token = NeverNullptr(node._Name);
 					Push_ExtendedErr("Were '" + (String)node._Name->Value._String + "' is type of " + ToString(Item->VarType), Token);
 				}
-				_Table.AddScope(ScopeName + std::to_string(i));
+				_Table.AddScope(ScopeName + String(LoopScopePrefix) + std::to_string(i));
 
 				for (const auto& node2 : node._Body._Nodes)
 				{
@@ -373,14 +374,14 @@ void SystematicAnalysis::OnCompileTimeforNode(const CompileTimeForNode& node)
 		}
 		else if (Nodes.SybToLoopOver->Type == SymbolType::Type_StaticArray)
 		{
-			const String ScopeName = std::to_string(Symbol_GetSymbolID(node).AsInt());
+			const String ScopeName = GetScopeLabelName(&node);
 
 
 			for (size_t i = 0; i < Nodes.SybItems.size(); i++)
 			{
 				auto& Item = Nodes.SybItems[i];
 
-				_Table.AddScope(ScopeName + std::to_string(i));
+				_Table.AddScope(ScopeName + String(LoopScopePrefix) + std::to_string(i));
 				{
 					ConstantExpressionInfo* ConstExpressionInfo = Item->Get_Info< ConstantExpressionInfo>();
 					auto Token = NeverNullptr(node._Name);

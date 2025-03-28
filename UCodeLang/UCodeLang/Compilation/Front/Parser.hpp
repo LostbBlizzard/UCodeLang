@@ -156,32 +156,32 @@ private:
 
 	TryGetNode GetNamespaceNode()
 	{
-		NamespaceNode* V = NamespaceNode::Gen();
+		auto V = NamespaceNode::Gen();
 		auto r = GetNamespaceNode(*V);
 		TrippedCheck(r);
-		return { r,V->As() };
+		return { r,std::move(V) };
 	}
 	GotNodeType GetNamespaceNode(NamespaceNode& out);
 	TryGetNode GetClassNode()
 	{
-		Node* V = nullptr;
+		Unique_ptr<Node> V = nullptr;
 		auto r = GetClassTypeNode(V);
 		TrippedCheck(r);
-		return { r,V };
+		return { r,std::move(V) };
 	}
-	GotNodeType GetClassTypeNode(Node*& out);
+	GotNodeType GetClassTypeNode(Unique_ptr<Node>& out);
 	GotNodeType DoClassType(ClassNode* output, const Token* ClassToken, GenericValuesNode& TepGenerics, const Token* ColonToken);
 	void ClassTypeAccessModifierInerScope(Vector<Unique_ptr<Node>>& Out);
 
 	TryGetNode GetFuncNode()
 	{
-		FuncNode* V = FuncNode::Gen();
+		auto V = FuncNode::Gen();
 		auto r = GetFuncNode(*V);
 		TrippedCheck(r);
-		return { r,V->As() };
+		return { r,std::move(V) };
 	}
 	GotNodeType GetStatementsorStatementNode(StatementsNode& out);
-	GotNodeType GetStatement(Node*& out);
+	GotNodeType GetStatement(Unique_ptr<Node>& out);
 
 	bool IsStartofaStatement(TokenType type)
 	{
@@ -197,10 +197,10 @@ private:
 	}
 	TryGetNode GetStatements()
 	{
-		StatementsNode* V = StatementsNode::Gen();
+		auto V = StatementsNode::Gen();
 		auto r = GetStatements(*V);
 		TrippedCheck(r);
-		return { r,V->As() };
+		return { r,std::move(V) };
 	}
 	GotNodeType GetStatements(StatementsNode& out);
 
@@ -209,7 +209,7 @@ private:
 	GotNodeType GetFuncBodyNode(FuncBodyNode& out);
 	GotNodeType GetNamedParametersNode(NamedParametersNode& out, bool CanHaveOutPar = false);
 
-	GotNodeType GetValueParameterNode(Node*& out);
+	GotNodeType GetValueParameterNode(Unique_ptr<Node>& out);
 	GotNodeType GetValueParametersNode(ValueParametersNode& out);
 	GotNodeType TryGetGeneric(GenericValuesNode& out);
 
@@ -245,66 +245,66 @@ private:
 	GotNodeType GetNumericType(TypeNode& out);
 
 
-	GotNodeType GetExpressionNode(Node*& out);
+	GotNodeType GetExpressionNode(Unique_ptr<Node>& out);
 	GotNodeType GetExpressionNode(ValueExpressionNode& out);
 
-	GotNodeType GetExpressionTypeNode(Node*& out);
+	GotNodeType GetExpressionTypeNode(Unique_ptr<Node>& out);
 	GotNodeType GetExpressionTypeNode(ExpressionNodeType& out);
 
 
 	TryGetNode GetAttribute()
 	{
-		AttributeNode* V = AttributeNode::Gen();
+		auto V = AttributeNode::Gen();
 		auto r = GetAttribute(*V);
 		TrippedCheck(r);
-		_TepAttributes.top().push_back(Unique_ptr<AttributeNode>(V));
+		_TepAttributes.top().push_back(std::move(V));
 		return { r,nullptr };
 	}
 	GotNodeType GetAttribute(AttributeNode& out);
 
 	TryGetNode GetUseNode()
 	{
-		UsingNode* V = UsingNode::Gen();
+		auto V = UsingNode::Gen();
 		auto r = GetUseNode(*V);
 		TrippedCheck(r);
-		return { r,V->As() };
+		return { r,std::move(V) };
 	}
 	GotNodeType GetUseNode(UsingNode& out);
 	//Statements
 
 	TryGetNode GetRetStatement()
 	{
-		RetStatementNode* V = RetStatementNode::Gen();
+		auto V = RetStatementNode::Gen();
 		auto r = GetRetStatement(*V);
 		TrippedCheck(r);
-		return { r,V->As() };
+		return { r,std::move(V) };
 	}
 	GotNodeType GetRetStatement(RetStatementNode& out);
 
 	TryGetNode GetDeclareStaticVariable()
 	{
-		DeclareStaticVariableNode* V = DeclareStaticVariableNode::Gen();
+		auto V = DeclareStaticVariableNode::Gen();
 		auto r = GetDeclareStaticVariable(*V);
 		TrippedCheck(r);
-		return { r,V->As() };
+		return { r,std::move(V) };
 	}
 	GotNodeType GetDeclareStaticVariable(DeclareStaticVariableNode& out, bool ignoreleftHandType = false);
 	TryGetNode GetDeclareThreadVariable()
 	{
-		DeclareThreadVariableNode* V = DeclareThreadVariableNode::Gen();
+		auto V = DeclareThreadVariableNode::Gen();
 		auto r = GetDeclareThreadVariable(*V);
 		TrippedCheck(r);
-		return { r,V->As() };
+		return { r,std::move(V) };
 	}
 	GotNodeType  GetDeclareThreadVariable(DeclareThreadVariableNode& out, bool ignoreleftHandType = false);
 
 
 	TryGetNode GetDeclareVariable()
 	{
-		DeclareVariableNode* V = DeclareVariableNode::Gen();
+		auto V = DeclareVariableNode::Gen();
 		auto r = GetDeclareVariable(*V);
 		TrippedCheck(r);
-		return { r,V->As() };
+		return { r,std::move(V) };
 	}
 	GotNodeType GetDeclareVariable(DeclareVariableNode& out, bool ignoreleftHandType = false);
 
@@ -312,28 +312,28 @@ private:
 
 	TryGetNode GetAssignExpression()
 	{
-		AssignExpressionNode* V = AssignExpressionNode::Gen();
+		auto V = AssignExpressionNode::Gen();
 		auto r = GetAssignExpression(*V);
 		TrippedCheck(r);
-		return { r,V->As() };
+		return { r,std::move(V) };
 	}
 	GotNodeType GetAssignExpression(AssignExpressionNode& out);
 
 	TryGetNode GetPostfixStatement(bool DoSemicolon = true)
 	{
-		PostfixVariableNode* V = PostfixVariableNode::Gen();
+		auto V = PostfixVariableNode::Gen();
 		auto r = GetPostfixStatement(*V, DoSemicolon);
 		TrippedCheck(r);
-		return { r,V->As() };
+		return { r,std::move(V) };
 	}
 	GotNodeType GetPostfixStatement(PostfixVariableNode& out, bool DoSemicolon = true);
 
 	TryGetNode GetCompoundStatement()
 	{
-		CompoundStatementNode* V = CompoundStatementNode::Gen();
+		auto V = CompoundStatementNode::Gen();
 		auto r = GetCompoundStatement(*V);
 		TrippedCheck(r);
-		return { r,V->As() };
+		return { r,std::move(V) };
 	}
 	GotNodeType GetCompoundStatement(CompoundStatementNode& out);
 
@@ -343,28 +343,28 @@ private:
 
 	TryGetNode GetIfNode()
 	{
-		IfNode* V = IfNode::Gen();
+		auto V = IfNode::Gen();
 		auto r = GetIfNode(*V);
 		TrippedCheck(r);
-		return { r,V->As() };
+		return { r,std::move(V) };
 	}
 	GotNodeType GetIfNode(IfNode& out);
 
 	TryGetNode GetWhileNode()
 	{
-		WhileNode* V = WhileNode::Gen();
+		auto V = WhileNode::Gen();
 		auto r = GetWhileNode(*V);
 		TrippedCheck(r);
-		return { r,V->As() };
+		return { r,std::move(V) };
 	}
 	GotNodeType GetWhileNode(WhileNode& out);
 
 	TryGetNode GetDoNode()
 	{
-		DoNode* V = DoNode::Gen();
+		auto V = DoNode::Gen();
 		auto r = GetDoNode(*V);
 		TrippedCheck(r);
-		return { r,V->As() };
+		return { r,std::move(V) };
 	}
 	GotNodeType GetDoNode(DoNode& out);
 
@@ -377,75 +377,75 @@ private:
 
 	TryGetNode GetFuncCallStatementNode()
 	{
-		FuncCallStatementNode* V = FuncCallStatementNode::Gen();
+		auto V = FuncCallStatementNode::Gen();
 		auto r = GetFuncCallStatementNode(*V);
 		TrippedCheck(r);
-		return { r,V->As() };
+		return { r,std::move(V) };
 	}
 	GotNodeType GetFuncCallStatementNode(FuncCallStatementNode& out);
 
 	TryGetNode GetFuncCallStatementNode2()
 	{
-		Node* V = nullptr;
+		Unique_ptr<Node> V = nullptr;
 		auto r = GetFuncCallStatementNode2(V);
 		TrippedCheck(r);
-		return { r,V };
+		return { r,std::move(V) };
 	}
-	GotNodeType GetFuncCallStatementNode2(Node*& out);
+	GotNodeType GetFuncCallStatementNode2(Unique_ptr<Node>& out);
 
 	TryGetNode GetFuncCallNode()
 	{
-		FuncCallNode* V = FuncCallNode::Gen();
+		auto V = FuncCallNode::Gen();
 		auto r = GetFuncCallNode(*V);
 		TrippedCheck(r);
-		return { r,V->As() };
+		return { r,std::move(V) };
 	}
 	GotNodeType GetFuncCallNode(FuncCallNode& out);
 
 	TryGetNode GetAnonymousObjectConstructorNode()
 	{
-		AnonymousObjectConstructorNode* V = AnonymousObjectConstructorNode::Gen();
+		auto V = AnonymousObjectConstructorNode::Gen();
 		auto r = GetAnonymousObjectConstructorNode(*V);
 		TrippedCheck(r);
-		return { r,V->As() };
+		return { r,std::move(V) };
 	}
 	GotNodeType GetAnonymousObjectConstructorNode(AnonymousObjectConstructorNode& out);
 
 	TryGetNode GetDropStatementNode()
 	{
-		DropStatementNode* V = DropStatementNode::Gen();
+		auto V = DropStatementNode::Gen();
 		auto r = GetDropStatementNode(*V);
 		TrippedCheck(r);
-		return { r,V->As() };
+		return { r,std::move(V) };
 	}
 	GotNodeType GetDropStatementNode(DropStatementNode& out);
 
 	TryGetNode GetNewExpresionNode()
 	{
-		NewExpresionNode* V = NewExpresionNode::Gen();
+		auto V = NewExpresionNode::Gen();
 		auto r = GetNewExpresionNode(*V);
 		TrippedCheck(r);
-		return { r,V->As() };
+		return { r,std::move(V) };
 	}
 
 	GotNodeType GetNewExpresionNode(NewExpresionNode& out);
 
 	TryGetNode GetimutVariableDeclare()
 	{
-		Node* V = nullptr;
+		Unique_ptr<Node> V = nullptr;
 		auto r = GetimutVariableDeclare(V);
 		TrippedCheck(r);
-		return { r,V };
+		return { r,std::move(V) };
 	}
-	GotNodeType GetimutVariableDeclare(Node*& out);
+	GotNodeType GetimutVariableDeclare(Unique_ptr<Node>& out);
 
 
 	TryGetNode GetForNode()
 	{
-		ForNode* V = ForNode::Gen();
+		auto V = ForNode::Gen();
 		auto r = GetForNode(*V);
 		TrippedCheck(r);
-		return { r,V->As() };
+		return { r,std::move(V) };
 	}
 	GotNodeType GetForNode(ForNode& out);
 
@@ -453,38 +453,38 @@ private:
 
 	TryGetNode GetContinueNode()
 	{
-		ContinueNode* V = ContinueNode::Gen();
+		auto V = ContinueNode::Gen();
 		auto r = GetContinueNode(*V);
 		TrippedCheck(r);
-		return { r,V->As() };
+		return { r,std::move(V) };
 	}
 	GotNodeType GetContinueNode(ContinueNode& out);
 
 	TryGetNode GetBreakNode()
 	{
-		BreakNode* V = BreakNode::Gen();
+		auto V = BreakNode::Gen();
 		auto r = GetBreakNode(*V);
 		TrippedCheck(r);
-		return { r,V->As() };
+		return { r,std::move(V) };
 	}
 	GotNodeType GetBreakNode(BreakNode& out);
 
 
 	TryGetNode GetLambdaNode()
 	{
-		LambdaNode* V = LambdaNode::Gen();
+		auto V = LambdaNode::Gen();
 		auto r = GetLambdaNode(*V);
 		TrippedCheck(r);
-		return { r,V->As() };
+		return { r,std::move(V) };
 	}
 	GotNodeType GetLambdaNode(LambdaNode& out);
 
 	TryGetNode GetShortLambdaNode()
 	{
-		LambdaNode* V = LambdaNode::Gen();
+		auto V = LambdaNode::Gen();
 		auto r = GetShortLambdaNode(*V);
 		TrippedCheck(r);
-		return { r,V->As() };
+		return { r,std::move(V) };
 	}
 	GotNodeType GetShortLambdaNode(LambdaNode& out);
 
@@ -495,20 +495,20 @@ private:
 
 	TryGetNode GetBitCastExpression()
 	{
-		BitCastExpression* V = BitCastExpression::Gen();
+		auto V = BitCastExpression::Gen();
 		auto r = GetBitCastExpression(*V);
 		TrippedCheck(r);
-		return { r,V->As() };
+		return { r,std::move(V) };
 	}
 	GotNodeType GetBitCastExpression(BitCastExpression& out);
 
 
 	TryGetNode GetPanicNode()
 	{
-		PanicNode* V = PanicNode::Gen();
+		auto V = PanicNode::Gen();
 		auto r = GetPanicNode(*V);
 		TrippedCheck(r);
-		return { r,V->As() };
+		return { r,std::move(V) };
 	}
 	GotNodeType GetPanicNode(PanicNode& out);
 
@@ -520,67 +520,67 @@ private:
 
 	TryGetNode GetInvalidNode()
 	{
-		InvalidNode* V = InvalidNode::Gen();
+		auto V = InvalidNode::Gen();
 		auto r = GetInvalidNode(*V);
 		TrippedCheck(r);
-		return { r,V->As() };
+		return { r,std::move(V) };
 	}
 	GotNodeType GetInvalidNode(InvalidNode& out);
 
 	TryGetNode GetValidNode()
 	{
-		ValidNode* V = ValidNode::Gen();
+		auto V = ValidNode::Gen();
 		auto r = GetValidNode(*V);
 		TrippedCheck(r);
-		return { r,V->As() };
+		return { r,std::move(V) };
 	}
 	GotNodeType GetValidNode(ValidNode& out);
 
 
 	TryGetNode GeTypeExNode()
 	{
-		Node* V = nullptr;
+		Unique_ptr<Node> V = nullptr;
 		auto r = GeTypeExNode(V);
 		TrippedCheck(r);
-		return { r,V };
+		return { r,std::move(V) };
 	}
-	GotNodeType GeTypeExNode(Node*& out);
+	GotNodeType GeTypeExNode(Unique_ptr<Node>& out);
 
 	TryGetNode GetExpressionToTypeValue()
 	{
-		ExpressionToTypeValueNode* V = ExpressionToTypeValueNode::Gen();
+		auto V = ExpressionToTypeValueNode::Gen();
 		auto r = GetExpressionToTypeValue(*V);
 		TrippedCheck(r);
-		return { r,V->As() };
+		return { r,std::move(V) };
 	}
 	GotNodeType GetExpressionToTypeValue(ExpressionToTypeValueNode& out);
 
 	TryGetNode GetEvalDeclare()
 	{
-		Node* V = nullptr;
+		Unique_ptr<Node> V = nullptr;
 		auto r = GetEvalDeclare(V);
 		TrippedCheck(r);
-		return { r,V };
+		return { r,std::move(V) };
 	}
-	GotNodeType GetEvalDeclare(Node*& out);
+	GotNodeType GetEvalDeclare(Unique_ptr<Node>& out);
 
 
 	TryGetNode GetCompileTimeIf(bool IsInFunc = true)
 	{
-		CompileTimeIfNode* V = CompileTimeIfNode::Gen();
-		auto r = GetCompileTimeIf(V, IsInFunc);
+		auto V = CompileTimeIfNode::Gen();
+		auto r = GetCompileTimeIf(*V, IsInFunc);
 		TrippedCheck(r);
-		return { r,V };
+		return { r,std::move(V) };
 	}
-	GotNodeType GetCompileTimeIf(CompileTimeIfNode*& out, bool IsInFunc = true);
+	GotNodeType GetCompileTimeIf(CompileTimeIfNode& out, bool IsInFunc = true);
 
 
 	TryGetNode GetCompileTimeForNode()
 	{
-		CompileTimeForNode* V = CompileTimeForNode::Gen();
+		auto V = CompileTimeForNode::Gen();
 		auto r = GetCompileTimeForNode(*V);
 		TrippedCheck(r);
-		return { r,V->As() };
+		return { r,std::move(V) };
 	}
 	GotNodeType GetCompileTimeForNode(CompileTimeForNode& out);
 
@@ -589,72 +589,72 @@ private:
 
 	TryGetNode GetMatchStatement()
 	{
-		MatchStatement* V = MatchStatement::Gen();
+		auto V = MatchStatement::Gen();
 		auto r = GetMatchStatement(*V);
 		TrippedCheck(r);
-		return { r,V };
+		return { r,std::move(V) };
 	}
 	GotNodeType GetMatchStatement(MatchStatement& out);
 
 	TryGetNode GetMatchExpression()
 	{
-		MatchExpression* V = MatchExpression::Gen();
+		auto V = MatchExpression::Gen();
 		auto r = GetMatchExpression(*V);
 		TrippedCheck(r);
-		return { r,V };
+		return { r,std::move(V) };
 	}
 	GotNodeType GetMatchExpression(MatchExpression& out);
 
 	TryGetNode GetUnqExpresionNode()
 	{
-		Node* V = nullptr;
+		Unique_ptr<Node> V = nullptr;
 		auto r = GetUnqExpresionNode(V);
 		TrippedCheck(r);
-		return { r,V };
+		return { r,std::move(V) };
 	}
 
-	GotNodeType GetUnqExpresionNode(Node*& out);
+	GotNodeType GetUnqExpresionNode(Unique_ptr<Node>& out);
 
-	void SmartPointerNewArray(TypeNode& TypeNode, const Token* Token, FuncCallNode* OutNode, Node* ArrayCountexpression, String_view SmartPointerName, String_view SmartPoinerMakeFunc);
+	void SmartPointerNewArray(TypeNode& TypeNode, const Token* Token,Unique_ptr<FuncCallNode>& OutNode, Unique_ptr<Node>& ArrayCountexpression, String_view SmartPointerName, String_view SmartPoinerMakeFunc);
 
-	void SmartPointerNewToFuncName(TypeNode& TypeNode, ValueParametersNode& Pars, const Token* Token, FuncCallNode* OutNode, String_view SmartPointerName, String_view SmartPoinerMakeFunc);
+	void SmartPointerNewToFuncName(TypeNode& TypeNode, ValueParametersNode& Pars, const Token* Token,Unique_ptr<FuncCallNode>& OutNode, String_view SmartPointerName, String_view SmartPoinerMakeFunc);
 
 	TryGetNode GetShrExpresionNode()
 	{
-		Node* V = nullptr;
+		Unique_ptr<Node> V = nullptr;
 		auto r = GetShrExpresionNode(V);
 		TrippedCheck(r);
-		return { r,V };
+		return { r,std::move(V) };
 	}
 
-	GotNodeType GetShrExpresionNode(Node*& out);
+	GotNodeType GetShrExpresionNode(Unique_ptr<Node>& out);
 
 
 	TryGetNode GetImportStatement()
 	{
-		ImportStatement* V = ImportStatement::Gen();
+		auto V = ImportStatement::Gen();
 		auto r = GetImportStatement(*V);
 		TrippedCheck(r);
-		return { r,V };
+		return { r,std::move(V) };
 	}
 	GotNodeType GetImportStatement(ImportStatement& out);
 
 	TryGetNode GetAwaitExpresionNode()
 	{
-		AwaitExpression* V = AwaitExpression::Gen();
+		auto V = AwaitExpression::Gen();
 		auto r = GetAwaitExpresionNode(*V);
 		TrippedCheck(r);
-		return { r,V };
+		return { r,std::move(V) };
 	}
 
 	GotNodeType GetAwaitExpresionNode(AwaitExpression& out);
 
 	TryGetNode GetAwaitStatementNode()
 	{
-		AwaitStatement* V = AwaitStatement::Gen();
+		auto V = AwaitStatement::Gen();
 		auto r = GetAwaitStatementNode(*V);
 		TrippedCheck(r);
-		return { r,V };
+		return { r,std::move(V) };
 	}
 
 	GotNodeType GetAwaitStatementNode(AwaitStatement& out);
@@ -662,20 +662,20 @@ private:
 
 	TryGetNode GetYieldExpresionNode()
 	{
-		YieldExpression* V = YieldExpression::Gen();
+		auto V = YieldExpression::Gen();
 		auto r = GetYieldExpresionNode(*V);
 		TrippedCheck(r);
-		return { r,V };
+		return { r,std::move(V) };
 	}
 
 	GotNodeType GetYieldExpresionNode(YieldExpression& out);
 
 	TryGetNode GetYieldStatementNode()
 	{
-		YieldStatement* V = YieldStatement::Gen();
+		auto V = YieldStatement::Gen();
 		auto r = GetYieldStatementNode(*V);
 		TrippedCheck(r);
-		return { r,V };
+		return { r,std::move(V) };
 	}
 
 	GotNodeType GetYieldStatementNode(YieldStatement& out);
@@ -683,10 +683,10 @@ private:
 
 	TryGetNode GetUnsafeStatementNode()
 	{
-		UnsafeStatementsNode* V = UnsafeStatementsNode::Gen();
+		auto V = UnsafeStatementsNode::Gen();
 		auto r = GetUnsafeStatementNode(*V);
 		TrippedCheck(r);
-		return { r,V };
+		return { r,std::move(V) };
 	}
 
 	GotNodeType GetUnsafeStatementNode(UnsafeStatementsNode& out);
@@ -694,40 +694,40 @@ private:
 
 	TryGetNode GetUnsafeExpression()
 	{
-		UnsafeExpression* V = UnsafeExpression::Gen();
+		auto V = UnsafeExpression::Gen();
 		auto r = GetUnsafeExpression(*V);
 		TrippedCheck(r);
-		return { r,V };
+		return { r,std::move(V) };
 	}
 	GotNodeType GetUnsafeExpression(UnsafeExpression& out);
 
 
 	TryGetNode GetDeferStatementNode()
 	{
-		DeferStatementNode* V = DeferStatementNode::Gen();
+		auto V = DeferStatementNode::Gen();
 		auto r = GetDeferStatementNode(*V);
 		TrippedCheck(r);
-		return { r,V };
+		return { r,std::move(V) };
 	}
 
 	GotNodeType GetDeferStatementNode(DeferStatementNode& out);
 
 	TryGetNode GetForTypeNode()
 	{
-		ForTypeNode* V = ForTypeNode::Gen();
+		auto V = ForTypeNode::Gen();
 		auto r = GetForTypeNode(*V);
 		TrippedCheck(r);
-		return { r,V->As() };
+		return { r,std::move(V) };
 	}
 
 	GotNodeType GetForTypeNode(ForTypeNode& out);
 
 	TryGetNode GetRangeExpression()
 	{
-		FuncCallNode* V = FuncCallNode::Gen();
+		auto V = FuncCallNode::Gen();
 		auto r = GetRangeExpression(*V);
 		TrippedCheck(r);
-		return { r,V };
+		return { r,std::move(V) };
 	}
 	GotNodeType GetRangeExpression(FuncCallNode& out);
 };

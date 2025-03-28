@@ -1,4 +1,4 @@
-name: Docs
+name: pages
 
 on:
   pull_request:
@@ -31,7 +31,7 @@ jobs:
 
     - name: Build Docs
       working-directory: ./doc
-      run: mdbook build --dest-dir Output/UCodeDocumentation
+      run: mdbook build --dest-dir ../Output/UCodeDocumentation
     
     - name: Upload artifact
       uses: actions/upload-pages-artifact@v3
